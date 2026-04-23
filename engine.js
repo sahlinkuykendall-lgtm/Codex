@@ -635,9 +635,9 @@ function startGame() {
     spawnHostile('guard_ministry', 1900, 1600, [
         { x: 1900, y: 1600 }, { x: 2200, y: 1600 }, { x: 2200, y: 1800 }, { x: 1900, y: 1800 }
     ]);
-    // Panicked worker wanders north dig zone
-    spawnHostile('worker_panicked', 900, 900, [
-        { x: 900, y: 900 }, { x: 1300, y: 900 }, { x: 1300, y: 800 }, { x: 900, y: 800 }
+    // Panicked worker wanders north of dig zone (clear space between outcrops)
+    spawnHostile('worker_panicked', 1400, 600, [
+        { x: 1400, y: 600 }, { x: 1700, y: 600 }, { x: 1700, y: 780 }, { x: 1400, y: 780 }
     ]);
     updateHUD();
     // Original opening: Ellis in tent with the Codex — scene1_start fires first
