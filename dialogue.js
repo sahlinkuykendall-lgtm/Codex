@@ -180,14 +180,34 @@ const storyData = {
     },
     'flavor_drum_opened': {
         speaker: "System",
-        text: "You work the drum off its base. Inside the hollow: a waxed canvas bag. Inside the bag: a notebook in Sam's handwriting, two rolls of undeveloped 35mm film, and a folded map of the dig site with an X marked at a point two hundred meters west of the tunnel mouth.\n\nX marks the spot. Sam was running his own dig.",
+        text: "You work the drum off its base. Inside the hollow: a waxed canvas bag. Inside the bag: a notebook in Sam's handwriting, two rolls of undeveloped 35mm film, and a folded map of the dig site with an X marked at a point two hundred meters west of the tunnel mouth.\n\nX marks the spot. Sam was running his own dig.\n\nOne page is dog-eared. You open to it.",
         choices: [
-            { text: "Take everything.", onSelect: () => {
+            { text: "Read the dog-eared page.", onSelect: () => startDialogue('flavor_drum_sam_note') },
+            { text: "Take everything without reading.", onSelect: () => {
                 if (!gameState.inventory.includes("Sam's Notebook")) gameState.inventory.push("Sam's Notebook");
                 if (!gameState.inventory.includes("Undeveloped Film")) gameState.inventory.push("Undeveloped Film");
                 if (!gameState.inventory.includes("Sam's Marked Map")) gameState.inventory.push("Sam's Marked Map");
                 gameState.knowledgeCodex += 2;
                 gameState.flags.sams_second_dig_known = true;
+                closeDialogue();
+            }}
+        ]
+    },
+
+    'flavor_drum_sam_note': {
+        speaker: "System",
+        text: "The handwriting is rushed. The pencil is pressed hard enough to tear the page in two places. The entry is dated February 11th — the day he died.\n\n\"Ellis. If you're reading this, my air is bad and they've won the first round. I don't know who 'they' are but I know who sent Halberd. Go back to Giza. Finish what I started. Everything you need is in the shed and the drum. The codex is a key. It asks a question. Don't answer it the way they want you to answer it. — S\"\n\nThe page below is blank. He ran out of breath before he ran out of paper.",
+        choices: [
+            { text: "Take everything. Close the bag.", onSelect: () => {
+                if (!gameState.inventory.includes("Sam's Notebook")) gameState.inventory.push("Sam's Notebook");
+                if (!gameState.inventory.includes("Undeveloped Film")) gameState.inventory.push("Undeveloped Film");
+                if (!gameState.inventory.includes("Sam's Marked Map")) gameState.inventory.push("Sam's Marked Map");
+                gameState.knowledgeCodex += 3;
+                gameState.flags.sams_second_dig_known = true;
+                gameState.flags.sam_final_note_read = true;
+                gameState.flags.memorializedPartner = true;
+                decreaseSanity(1.5);
+                updateHUD();
                 closeDialogue();
             }}
         ]
@@ -388,7 +408,7 @@ const storyData = {
         { text: "Nod.", onSelect: () => closeDialogue() }
     ]},
 
-    'ch1_tariq_grandfather': { speaker: "Tariq", text: "He lights his cigarette from the brazier with the old trick of holding the tip against the coal instead of the flame.\n\n'My grandfather worked on the Giza team in 1954. Before the current boundaries. Before the ministry cared as much as they do now. He was a foreman, like me. He worked for a British archaeologist — a woman — who was, he said, the only foreigner on the plateau who called him by his name and not \"boy.\"\n\n'They opened a tunnel in the eastern quadrant. My grandfather told me the story of what was in that tunnel exactly one time, when I was fourteen. He never told it again. He said telling it once had been enough to satisfy the obligation.'", choices: [
+    'ch1_tariq_grandfather': { speaker: "Tariq", text: "He lights his cigarette from the brazier with the old trick of holding the tip against the coal instead of the flame.\n\n'My grandfather — Abdul-Aziz Hassan — worked on the Giza team in 1957. Before the current boundaries. Before the ministry cared as much as they do now. He was a foreman, like me. He worked for a British archaeologist — a woman — who was, he said, the only foreigner on the plateau who called him by his name and not \"boy.\"\n\n'They opened a tunnel in the eastern quadrant. My grandfather told me the story of what was in that tunnel exactly one time, when I was fourteen. He never told it again. He said telling it once had been enough to satisfy the obligation.'", choices: [
         { text: "'What was in the tunnel?'", onSelect: () => startDialogue('ch1_tariq_grandfather_tunnel') },
         { text: "'What happened to the archaeologist?'", onSelect: () => startDialogue('ch1_tariq_grandfather_her') }
     ]},
@@ -1552,10 +1572,40 @@ const storyData = {
 
     'hostile_ministry_bluff_fail': {
         speaker: "Ministry Guard",
-        text: "He doesn't buy it. He keys his radio before you finish the sentence.\n\nYou hear a response — two words in Arabic — and he looks back at you with an expression that has moved from professional to something harder.\n\n'Wait here.'",
+        text: "He doesn't buy it. He keys his radio before you finish the sentence.\n\nYou hear a response — two words in Arabic — and he looks back at you with an expression that has moved from professional to something harder.\n\n'Wait here. Inspector is coming.'",
         choices: [
-            { text: "Wait.", onSelect: () => { decreaseSanity(1.0); gameState.repMinistry -= 1; updateHUD(); closeDialogue(); } },
-            { text: "Walk away quickly.", onSelect: () => { decreaseSanity(0.5); closeDialogue(); } }
+            { text: "Wait where you are.", onSelect: () => { startDialogue('hostile_ministry_inspector_arrives'); } },
+            { text: "Walk away quickly — risk it.", onSelect: () => { startDialogue('hostile_ministry_bluff_run'); } }
+        ]
+    },
+
+    'hostile_ministry_inspector_arrives': {
+        speaker: "System",
+        text: "Two minutes later, a white Land Cruiser rolls up along the perimeter track, headlights cutting across the sand. A man in a pressed khaki uniform steps out and walks toward you without hurry.\n\nThe guard steps aside.\n\nThe inspector stops three meters from you and takes his time lighting a cigarette before he speaks.",
+        choices: [
+            { text: "Wait for him to speak.", onSelect: () => {
+                // Force the inspector arc to trigger at a disadvantage — Ellis didn't come to the Land Cruiser;
+                // the Land Cruiser came to him, publicly.
+                gameState.repMinistry -= 2;
+                gameState.flags.inspector_summoned_to_guard = true;
+                updateHUD();
+                startDialogue('ch1_inspector_approach');
+            }}
+        ]
+    },
+
+    'hostile_ministry_bluff_run': {
+        speaker: "System",
+        text: "You turn and walk. Not fast enough to look guilty. Not slow enough to be caught.\n\nThe guard shouts something at your back. You do not turn around. His radio crackles.\n\nTwenty meters past the ministry perimeter you hear a vehicle engine start up somewhere to the east. Someone is looking for you. You've got perhaps ten minutes before they find you.",
+        choices: [
+            { text: "Head straight for Tariq and the brazier.", onSelect: () => {
+                decreaseSanity(1.5);
+                gameState.repMinistry -= 3;
+                gameState.flags.ministry_flagged = true;
+                gameState.flags.inspector_summoned_to_guard = true;
+                updateHUD();
+                closeDialogue();
+            }}
         ]
     },
 
@@ -2665,7 +2715,7 @@ const storyData = {
 
     'puzzle_start_glyph_lock': {
         speaker: "System",
-        text: "A stone panel is set into the tunnel approach wall. Four glyph symbols are inset into its surface, each capable of being pressed.\n\nBeside the panel, scratched into the stone in faint modern pencil: a sequence of four numbers. Sam's handwriting.\n\nSam was here. Sam knew the sequence.",
+        text: "A stone panel is set into the tunnel approach wall. Four glyph symbols are inset into its surface, each capable of being pressed — from left to right:\n\n  [1] 𓂀   [2] 𓃭   [3] 𓅓   [4] 𓆑\n\nBeside the panel, scratched into the stone in faint modern pencil, in Sam's handwriting:\n\n  \"3 — 1 — 4 — 2\"\n\nAnd below that, smaller: \"owl first. then the eye. then the fish. then the lion. — S\"\n\nSam was here. Sam knew the sequence.",
         choices: [
             {
                 text: "Try the combination. (Opens puzzle)",
@@ -2677,7 +2727,7 @@ const storyData = {
                     }
                 }
             },
-            { text: "Leave it.", onSelect: () => closeDialogue() }
+            { text: "Leave it for now.", onSelect: () => closeDialogue() }
         ]
     },
 
@@ -2703,7 +2753,7 @@ const storyData = {
 
     'puzzle_glyph_fail': {
         speaker: "System",
-        text: "Wrong sequence. The panel flashes red and something releases with a hiss from the wall — a dart, fired at shin height, that buries itself in the opposite timber brace.\n\nYou stand very still.\n\nThe mechanism resets. The dart is cedar-wood, extremely old. The tip has dried to a dark resin. You do not touch the tip.",
+        text: "Wrong sequence. The panel flashes red and something releases with a hiss from the wall — a dart, fired at shin height, that buries itself in the opposite timber brace.\n\nYou stand very still.\n\nThe mechanism resets. The dart is cedar-wood, extremely old. The tip has dried to a dark resin. You do not touch the tip.\n\nSam's pencil marks are still on the stone beside the lock: 3 — 1 — 4 — 2. Owl, then eye, then fish, then lion. Look again and try more carefully.",
         choices: [{
             text: "Try again more carefully.",
             onSelect: () => {
