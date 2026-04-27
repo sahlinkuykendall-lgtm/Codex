@@ -3,6 +3,32 @@ window.onerror = function(message, source, lineno, colno, error) {
     return false;
 };
 
+// ---- AUDIO (Web Audio API — no file downloads) ----
+let _audioCtx = null;
+function _getAudio() {
+    if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    return _audioCtx;
+}
+function _tone(freq, dur, type = 'sine', vol = 0.12) {
+    try {
+        const ctx = _getAudio();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.frequency.value = freq; osc.type = type;
+        gain.gain.setValueAtTime(vol, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+        osc.start(ctx.currentTime); osc.stop(ctx.currentTime + dur);
+    } catch(e) {}
+}
+function sndClick()    { _tone(480, 0.05, 'square', 0.07); }
+function sndInteract() { _tone(340, 0.14, 'sine',   0.09); }
+function sndDialogue() { _tone(660, 0.07, 'sine',   0.06); }
+function sndChoice()   { _tone(560, 0.11, 'sine',   0.09); }
+function sndFail()     { _tone(180, 0.28, 'sawtooth', 0.10); }
+function sndSuccess()  { _tone(880, 0.22, 'sine',   0.09); }
+function sndPickup()   { _tone(700, 0.10, 'triangle', 0.10); _tone(900, 0.10, 'triangle', 0.08); }
+
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 canvas.width = 1280; canvas.height = 720;
@@ -359,6 +385,10 @@ function _completeEnter() {
     interiorState.fadeDir = -1;
     clearHostiles();
     updateHUD();
+    if (gameState.flags._pendingTentCodexScene) {
+        gameState.flags._pendingTentCodexScene = false;
+        startDialogue('ch1_all_missions_complete');
+    }
 }
 
 function exitBuilding() {
@@ -389,6 +419,13 @@ function _completeExit() {
     canvas.style.backgroundColor = bgColors[currentMapKey] || '#111';
     interiorState.fadeDir = -1;
     updateHUD();
+}
+
+// Fade into tent interior before showing the ch1_all_missions_complete scene
+function enterTentForCodexScene() {
+    enterBuilding('INT_TENT', player.x, player.y);
+    // After fade completes, dialogue fires via _completeEnter hook below
+    gameState.flags._pendingTentCodexScene = true;
 }
 
 function drawInteriorFade() {
@@ -560,7 +597,6 @@ function decreaseSanity(amount) {
 
 // ---- HUD ----
 function updateHUD() {
-    // Calculate sanity state based on current sanity level
     if (gameState.sanity >= 8.0) {
         gameState.sanityState = 'CALM';
     } else if (gameState.sanity >= 5.0) {
@@ -568,16 +604,11 @@ function updateHUD() {
     } else {
         gameState.sanityState = 'FRACTURED';
     }
-
-    // Update only the on-canvas sanity display
     document.getElementById('stat-sanity').innerText = gameState.sanityState;
-
-    // Update stamina bar
     const staminaPercent = (gameState.stamina / gameState.maxStamina) * 100;
     document.getElementById('stat-stamina').innerText = gameState.stamina.toFixed(1);
     document.getElementById('stamina-bar-fill').style.width = staminaPercent + '%';
-
-    // Apply screen filter based on sanity
+    document.getElementById('stat-funds').innerText = gameState.funds;
     canvas.className = gameState.sanityState === 'STRAINED'
         ? 'strained-filter'
         : (gameState.sanityState === 'FRACTURED' ? 'fractured-filter' : '');
@@ -616,6 +647,7 @@ function resetGameState() {
     player.x = 1060; player.y = 1680;
     // Hide HUD
     document.getElementById('hud').classList.add('hidden');
+    document.getElementById('hud-bottomleft').classList.add('hidden');
     document.getElementById('hud-hint').classList.add('hidden');
     document.getElementById('ui-overlay').classList.add('hidden');
     canvas.style.backgroundColor = '#1a1a1a';
@@ -629,6 +661,7 @@ function startGame() {
     // Spawn at tent compound south entrance — player "steps out of tent"
     player.x = 1060; player.y = 1680;
     document.getElementById('hud').classList.remove('hidden');
+    document.getElementById('hud-bottomleft').classList.remove('hidden');
     document.getElementById('hud-hint').classList.remove('hidden');
     clearHostiles();
     // Ministry guard patrols east perimeter
@@ -818,6 +851,7 @@ function startDialogue(id) {
         console.warn('startDialogue: missing scene id "' + id + '"');
         return;
     }
+    sndDialogue();
     gameState.isDialogueActive = true;
     document.getElementById('ui-overlay').classList.remove('hidden');
 
@@ -839,6 +873,7 @@ function startDialogue(id) {
         btn.innerText = typeof c.text === 'function' ? c.text() : c.text;
         btn.onclick = (e) => {
             e.stopPropagation();
+            sndChoice();
             if (c.onSelect) c.onSelect();
             if (c.nextScene) startDialogue(c.nextScene);
             else updateHUD();
@@ -874,6 +909,7 @@ window.addEventListener('keydown', e => {
         menuPhase = 'FADEOUT'; overlayAlpha = 0;
     }
     if (e.key === ' ' && gameState.currentScreen === 'GAME' && !gameState.isDialogueActive && gameState.activeInteractableId) {
+        sndInteract();
         startDialogue(gameState.activeInteractableId);
     }
     if (e.key === 'Tab') { e.preventDefault(); document.getElementById('hud').classList.toggle('hidden'); updateHUD(); }
@@ -1244,12 +1280,13 @@ function handlePuzzleClick(cx, cy) {
                     // Wrong — flash fail and reset
                     p.flashTimer = 30; p.flashColor = 'fail';
                     p.input = []; p.phase = 'failed';
+                    sndFail();
                     if (def.failScene) { setTimeout(() => { closePuzzle(); startDialogue(def.failScene); }, 500); }
                     return;
                 }
                 if (p.input.length === def.sequence.length) {
                     // Solved!
-                    p.phase = 'solved'; p.flashTimer = 40; p.flashColor = 'win';
+                    p.phase = 'solved'; p.flashTimer = 40; p.flashColor = 'win'; sndSuccess();
                     gameState.flags[def.rewardFlag] = true;
                     setTimeout(() => { closePuzzle(); if (def.rewardScene) startDialogue(def.rewardScene); }, 900);
                 }
@@ -1268,7 +1305,7 @@ function handlePuzzleClick(cx, cy) {
         });
         // Check solved
         if (def.target.every((t, i) => p.current[i] === t)) {
-            p.phase = 'solved'; p.flashTimer = 40; p.flashColor = 'win';
+            p.phase = 'solved'; p.flashTimer = 40; p.flashColor = 'win'; sndSuccess();
             gameState.flags[def.rewardFlag] = true;
             setTimeout(() => { closePuzzle(); if (def.rewardScene) startDialogue(def.rewardScene); }, 900);
         }
@@ -1284,7 +1321,7 @@ function handlePuzzleClick(cx, cy) {
             }
         });
         if (def.combination.every((t, i) => p.current[i] === t)) {
-            p.phase = 'solved'; p.flashTimer = 40; p.flashColor = 'win';
+            p.phase = 'solved'; p.flashTimer = 40; p.flashColor = 'win'; sndSuccess();
             gameState.flags[def.rewardFlag] = true;
             setTimeout(() => { closePuzzle(); if (def.rewardScene) startDialogue(def.rewardScene); }, 900);
         }
@@ -1721,8 +1758,8 @@ function gameLoop() {
         ctx.stroke();
     }
 
-    // Walls — drop shadow + fill + stroke for depth
-    const currentWalls = mapWalls[currentMapKey] || [];
+    // Walls — drop shadow + fill + stroke for depth (gate walls removed when their flag is set)
+    const currentWalls = (mapWalls[currentMapKey] || []).filter(w => !w.isGate || !gameState.flags[w.gateFlag]);
     for (const wall of currentWalls) {
         const wx = wall.x - camera.x;
         const wy = wall.y - camera.y;
@@ -1811,10 +1848,13 @@ function gameLoop() {
         ctx.fillRect(ox, oy, o.w, 2);
         ctx.font = '13px Courier New';
         ctx.textAlign = 'left';
+        // Dig gate shows as unlocked once scene3 triggers
+        const displayLabel = (o.id === 'dig_gate' && gameState.flags.scene3Triggered)
+            ? 'Dig Zone Gate — OPEN' : o.label;
         ctx.fillStyle = 'rgba(0,0,0,0.85)';
-        ctx.fillText(o.label, ox + 1, oy - 4);
-        ctx.fillStyle = '#f4e4b0';
-        ctx.fillText(o.label, ox, oy - 5);
+        ctx.fillText(displayLabel, ox + 1, oy - 4);
+        ctx.fillStyle = (o.id === 'dig_gate' && gameState.flags.scene3Triggered) ? '#6bc46b' : '#f4e4b0';
+        ctx.fillText(displayLabel, ox, oy - 5);
 
         const px = player.x + player.size / 2;
         const py = player.y + player.size / 2;

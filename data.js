@@ -95,6 +95,11 @@ const mapWalls = {
     // Paths cut between buildings and terrain features.
     // ============================================================
     1: [
+        // Dig zone gate — blocks north access until all missions complete
+        { x: 40,   y: 1045, w: 955,  h: 30                                       },
+        { x: 1205, y: 1045, w: 1155, h: 30                                       },
+        { x: 1000, y: 1045, w: 200,  h: 30, isGate: true, gateFlag: 'scene3Triggered' },
+
         // World border
         { x: 0,    y: 0,    w: 2400, h: 40   },
         { x: 0,    y: 0,    w: 40,   h: 2200 },
@@ -573,7 +578,7 @@ const mapObjects = {
         { id: 'trench',       x: 1775, y: 1300, w: 175, h: 120, color: '#3d3024', label: 'East Trench',        interactScene: 'scene2_trench'   },
         { id: 'carts',        x: 120,  y: 1920, w: 180, h: 80,  color: '#5c2c2c', label: 'Supply Line',        interactScene: 'scene2_carts'    },
         { id: 'generator',    x: 2000, y: 1500, w: 55,  h: 55,  color: '#2d3436', label: 'Generator',          interactScene: 'scene2_stranger' },
-        { id: 'sams_gear',    x: 1250, y: 950,  w: 28,  h: 28,  color: '#888',    label: 'Half-Buried Gear',   interactScene: 'flavor_sam'      },
+        { id: 'sams_gear',    x: 1310, y: 870,  w: 28,  h: 28,  color: '#888',    label: 'Half-Buried Gear',   interactScene: 'flavor_sam'      },
         // Satphone: inside compound near south entry
         { id: 'satphone',     x: 990,  y: 1620, w: 28,  h: 28,  color: '#1a1a1a', label: 'Satphone',           interactScene: 'ch1_satphone'    },
         // Tariq: at camp brazier
@@ -600,16 +605,16 @@ const mapObjects = {
         { id: 'fl_stake_sam',   x: 700,  y: 1120, w: 30,  h: 45,  color: '#b8860b', label: "Sam's Survey Stake", interactScene: 'flavor_survey_stake'   },
         { id: 'fl_cooking',     x: 150,  y: 1470, w: 60,  h: 30,  color: '#5c3010', label: 'Cooking Table',      interactScene: 'flavor_cooking_table'  },
         { id: 'fl_crates',      x: 95,   y: 1580, w: 60,  h: 60,  color: '#5c4030', label: 'Sorted Crates',      interactScene: 'flavor_crates'         },
-        { id: 'fl_spoil',       x: 1250, y: 900,  w: 60,  h: 50,  color: '#5c4a30', label: 'Spoil Mound',        interactScene: 'flavor_spoil_mound'    },
-        { id: 'fl_toolshed',    x: 990,  y: 880,  w: 50,  h: 60,  color: '#4a3820', label: "Sam's Tool Shed",    interactScene: 'flavor_tool_shed'      },
+        { id: 'fl_spoil',       x: 1160, y: 790,  w: 60,  h: 50,  color: '#5c4a30', label: 'Spoil Mound',        interactScene: 'flavor_spoil_mound'    },
+        { id: 'fl_toolshed',    x: 1050, y: 870,  w: 50,  h: 60,  color: '#4a3820', label: "Sam's Tool Shed",    interactScene: 'flavor_tool_shed'      },
         { id: 'fl_ministry_post',x: 2170,y: 1430, w: 60,  h: 60,  color: '#2d3436', label: 'Ministry Post',      interactScene: 'flavor_ministry_post'  },
         { id: 'fl_fuel_drums',  x: 2020, y: 1610, w: 55,  h: 60,  color: '#4a3020', label: 'Fuel Drums',         interactScene: 'flavor_fuel_drums'     },
         { id: 'fl_guard_booth', x: 2270, y: 1505, w: 55,  h: 55,  color: '#3d4446', label: 'Guard Booth',        interactScene: 'flavor_guard_booth'    },
         { id: 'fl_scaffold',    x: 2060, y: 1355, w: 45,  h: 80,  color: '#4a4a4a', label: 'Scaffolding',        interactScene: 'flavor_scaffolding'    },
-        { id: 'fl_trailer',     x: 1520, y: 1300, w: 60,  h: 60,  color: '#3a3430', label: 'Site Trailer',       interactScene: 'flavor_site_trailer'   },
+        { id: 'fl_trailer',     x: 1530, y: 1375, w: 50,  h: 22,  color: '#5a5048', label: 'Enter Site Trailer', interactScene: 'flavor_site_trailer'   },
         { id: 'fl_palm',        x: 1000, y: 1690, w: 30,  h: 60,  color: '#2d7a1b', label: "Sam's Date Palm",    interactScene: 'flavor_palm_tree'      },
         { id: 'fl_gate_post',   x: 600,  y: 1990, w: 30,  h: 60,  color: '#5a4a3a', label: 'Camp Gate Post',     interactScene: 'flavor_gate_post'      },
-        { id: 'fl_digshed',     x: 910,  y: 880,  w: 50,  h: 60,  color: '#4a3820', label: 'Dig Shed Clipboard', interactScene: 'flavor_digshed'        },
+        { id: 'fl_digshed',     x: 870,  y: 870,  w: 50,  h: 60,  color: '#4a3820', label: 'Dig Shed Clipboard', interactScene: 'flavor_digshed'        },
 
         // --- DECORATIVE (no interaction, green labels) ---
         deco('d_cooking',   90,  1480, 250, 20,  '#5c3010', 'Cooking Table'   ),
@@ -620,10 +625,11 @@ const mapObjects = {
         deco('d_min1',      1600,2070, 180, 80,  '#2d3436', 'Ministry Vehicle'),
         deco('d_min2',      1900,2070, 120, 80,  '#2d3436', 'Ministry Vehicle'),
         deco('d_scaff',     2050,1350, 55,  90,  '#4a4a4a', 'Scaffolding'     ),
-        deco('d_spoil1',    1100, 860, 100, 50,  '#5c4a30', 'Spoil Mound'     ),
-        deco('d_spoil2',    1250, 890, 75,  38,  '#5c4a30', 'Spoil Mound'     ),
-        deco('d_spoil3',    1450, 860, 120, 60,  '#5c4a30', 'Spoil Mound'     ),
-        deco('d_digshed',   900,  880, 140, 90,  '#4a3820', 'Tool Shed'       ),
+        deco('d_spoil1',    1145, 780, 80,  50,  '#5c4a30', 'Spoil Mound'     ),
+        deco('d_spoil2',    1290, 810, 75,  38,  '#5c4a30', 'Spoil Mound'     ),
+        deco('d_spoil3',    1430, 780, 100, 60,  '#5c4a30', 'Spoil Mound'     ),
+        deco('d_digshed',   855,  860, 75,  90,  '#4a3820', 'Dig Shed'        ),
+        deco('d_toolshed',  1040, 860, 70,  90,  '#4a3820', 'Tool Shed'       ),
         deco('d_stake1',    800,  1100, 10, 35,  '#b8860b', 'Survey Stake'    ),
         deco('d_stake2',    1000,1080, 10, 35,  '#b8860b', 'Survey Stake'    ),
         deco('d_stake3',    1200,1100, 10, 35,  '#b8860b', 'Survey Stake'    ),
