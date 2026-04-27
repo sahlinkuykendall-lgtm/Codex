@@ -1243,7 +1243,7 @@ function handlePuzzleClick(cx, cy) {
                 if (p.input[pos] !== def.sequence[pos]) {
                     // Wrong — flash fail and reset
                     p.flashTimer = 30; p.flashColor = 'fail';
-                    p.input = [];
+                    p.input = []; p.phase = 'failed';
                     if (def.failScene) { setTimeout(() => { closePuzzle(); startDialogue(def.failScene); }, 500); }
                     return;
                 }
@@ -1307,8 +1307,8 @@ function drawAmbientDust(style) {
         p.x += p.vx;
         p.y += p.vy;
         if (p.y < -4) { p.y = canvas.height + 4; p.x = Math.random() * canvas.width; }
-        if (p.x < -4) p.x = 804;
-        if (p.x > 804) p.x = -4;
+        if (p.x < -4) p.x = canvas.width;
+        if (p.x > canvas.width) p.x = -4;
 
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
@@ -1329,9 +1329,9 @@ function spawnPhantom() {
     const side = Math.floor(Math.random() * 4);
     let x, y;
     if (side === 0)      { x = Math.random() * canvas.width; y = -20; }
-    else if (side === 1) { x = Math.random() * canvas.width; y = 620; }
+    else if (side === 1) { x = Math.random() * canvas.width; y = canvas.height + 20; }
     else if (side === 2) { x = -20; y = Math.random() * canvas.height; }
-    else                 { x = 820; y = Math.random() * canvas.height; }
+    else                 { x = canvas.width + 20; y = Math.random() * canvas.height; }
     phantoms.push({
         x, y,
         targetX: x + (Math.random() - 0.5) * 60,

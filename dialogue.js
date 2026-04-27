@@ -521,9 +521,6 @@ const storyData = {
     ]},
 
     // Zone gates — mission-locked passages
-    'zone_dig_gate': { speaker: "System", text: "The excavation perimeter rope. A hand-painted sign: 'AUTHORISED PERSONNEL ONLY BEYOND THIS POINT — FOREMAN HASSAN.'\n\nYou haven't dealt with the three site issues yet. The crew is watching.", choices: [
-        { text: "Not yet.", onSelect: () => closeDialogue() }
-    ]},
     'ch1_tunnel_gate': { speaker: "System", text: () => {
         if (!gameState.flags.scene3Triggered) return "The tunnel mouth. Timber bracing, amber-lit depth below. It pulls at you.\n\nNot yet. You still have things to resolve on the surface.";
         return "The tunnel mouth is open. Sam's notes said the depth was approximately forty meters.\n\nYou feel the vibration through your boots. The same rhythm as the trench, the supply path, the generator. It's stronger here.\n\nThis is the way in.";
@@ -767,13 +764,6 @@ const storyData = {
         return exit;
     }, choices: [{ text: "Enter the market.", onSelect: () => loadChapterThree() }] },
 
-    'puzzle_glyph_fail': { speaker: "System", text: "The panel rejects the sequence. A low grinding sound — something mechanical cocking somewhere behind the stone wall. A dart, cedar-tipped, punches out of a hole at shin height and clatters across the floor.\n\nIt missed. It was very close.\n\nSam's pencilled sequence is still there on the wall. Look again.", choices: [{ text: "Study the sequence more carefully.", onSelect: () => { gameState.knowledgeCodex += 1; closeDialogue(); } }]},
-    'puzzle_glyph_solved': { speaker: "System", text: "The four glyphs flash amber in sequence — your sequence. A deep mechanical sound from within the wall, stone on stone, gears that haven't moved in a long time moving.\n\nA panel in the tunnel wall swings inward. A second passage — narrower, lower than the main tunnel, unlit except for the faintest amber seam along the floor.\n\nSam drew the solution. Sam wanted someone specific to find this. The question you can't answer yet: did he mean you, or did he mean anyone who was paying close enough attention to find his pencil marks?", choices: [
-        { text: "Go through the second passage.", onSelect: () => { gameState.flags.glyph_lock_solved = true; gameState.flags.Secret_Route_Entered = true; closeDialogue(); } },
-        { text: "Note the passage. Take the main tunnel.", onSelect: () => { gameState.flags.glyph_lock_solved = true; closeDialogue(); } }
-    ]},
-    'puzzle_glyph_already': { speaker: "System", text: "The lock is already open. The mechanism has disengaged. The second passage sits open in the wall.", choices: [{ text: "Continue.", onSelect: () => closeDialogue() }]},
-
     // --- CHAPTER 2 SECRET ROUTE — FULL ---
 
     'ch2_start_secret': { speaker: "System", text: () => {
@@ -953,7 +943,6 @@ const storyData = {
     'ch2_trap_bridge': { speaker: "System", text: "You crawl through a narrow, shifting passage for hours. Eventually, you emerge from a forgotten drainage pipe near the Khan el-Khalili in Cairo. The humid market air is a shock to your lungs.", choices: [{ text: "Enter the Market.", onSelect: () => loadChapterThree() }] },
 
     // --- CHAPTER 2 SECRET ROUTE ---
-    'ch2_start_secret': { speaker: "System", text: "[CHAPTER 2: SECRET ROUTE]\n\nYou stand in the vast grand hallway. The air smells of dry stone and something faintly sweet, like honey left too long in a jar.", choices: [{ text: "Explore.", onSelect: () => closeDialogue() }] },
     'flavor_ch2_amber': { speaker: "System", text: "A metallic sconce embedded in the wall. The amber light it emits feels strangely warm, almost liquid to the touch.", choices: [{ text: "Touch the light.", onSelect: () => { if (!gameState.flags.ch2AmberTouched) { increaseSanity(1.5); gameState.knowledgeAtlantean += 1; gameState.flags.ch2AmberTouched = true; } closeDialogue(); } }, { text: "Leave it alone.", onSelect: () => closeDialogue() }] },
     
     // THE HOLLOW KING PUZZLE
@@ -972,7 +961,6 @@ const storyData = {
     'flavor_ch2_urn': { speaker: "System", text: "A cracked clay urn in the corner of the room. It smells faintly of sweet honey and old copper.", choices: [{ text: "Step away.", onSelect: () => closeDialogue() }] },
 
     // --- CHAPTER 2 CUTTHROAT ROUTE ---
-    'ch2_start_cutthroat': { speaker: "System", text: "[CHAPTER 2: CUTTHROAT ROUTE]\n\nYou stand on a narrow wooden scaffolding. Below you is a bottomless chasm. Maren's mercenary team is setting up a staging area.", choices: [{ text: "Walk carefully.", onSelect: () => closeDialogue() }] },
     'ch2_cutthroat_tariq': { speaker: "Ellis", text: "*[whispering]* Tariq, hold still. I'll get you free.", choices: [ { text: "Cut his zip-ties right now.", onSelect: () => { gameState.trustTariq += 5; gameState.flags.tariqUntied = true; }, nextScene: 'tariq_cut_result' }, { text: "Tell him to wait until the guards move.", onSelect: () => { gameState.trustTariq -= 2; }, nextScene: 'tariq_wait_result' } ]},
     'tariq_cut_result': { speaker: "Tariq", text: "'Thank you, Doctor. Watch your back around these mercenaries. They are not here for history.'", choices: [{ text: "Nod.", onSelect: () => closeDialogue() }] },
     'tariq_wait_result': { speaker: "Tariq", text: "'You leave me bound like an animal? Fine. Play your games.'", choices: [{ text: "Walk away.", onSelect: () => closeDialogue() }] },
@@ -989,9 +977,6 @@ const storyData = {
     'flavor_ch2_chasm': { speaker: "System", text: "The scaffolding groans under your weight. You look over the edge into the black void below. You drop a pebble, but never hear it hit bottom.", choices: [{ text: "Focus on the path.", onSelect: () => closeDialogue() }] },
     'flavor_ch2_blood': { speaker: "System", text: "A fresh smear of blood on the wooden planks. Maren's team ran into serious trouble down here before they found you.", choices: [{ text: "Step around it.", onSelect: () => closeDialogue() }] },
     'flavor_ch2_gear': { speaker: "System", text: "A dropped tactical radio belonging to one of the mercs. It's crushed completely flat, as if stepped on by something incredibly heavy.", choices: [{ text: "Leave it.", onSelect: () => closeDialogue() }] },
-    'ch2_cutthroat_maren': { speaker: "Maren", text: "You made it up the scaffolding.\n\n'You work for me now, Doctor. We leave this cavern immediately. The extraction team is waiting.'", choices: [{ text: "Follow her.", onSelect: () => startDialogue('ch2_cutthroat_bridge') }] },
-    'ch2_cutthroat_bridge': { speaker: "System", text: "Maren's team leads you through a series of military-grade extraction tunnels. You are blindfolded for the final leg and violently pushed out of a black van near the Hub. The Cairo market is already awake.", choices: [{ text: "Enter the Market.", onSelect: () => loadChapterThree() }] },
-
     // --- CHAPTER 3 MARKET ---
     'ch3_start': { speaker: "System", text: () => {
         let intro = "[CHAPTER 3: CONVERGENCE]\n\nYou emerge into the Khan el-Khalili market. It's 3:00 AM, but the bazaar is teeming with shadows, merchants, and strange faces.\n\n";
@@ -1520,18 +1505,6 @@ const storyData = {
     // =========================================================
     // ========= PUZZLE OUTCOME SCENES =========================
     // =========================================================
-
-    'puzzle_glyph_solved': {
-        speaker: "System",
-        text: "A deep mechanical click, felt more than heard. The stone panel recesses by two centimeters. A seam appears in the tunnel wall ahead — a door that wasn't there before.\n\nSomebody built this for someone who knew what they were looking at.",
-        choices: [{ text: "Step through.", onSelect: () => closeDialogue() }]
-    },
-
-    'puzzle_glyph_fail': {
-        speaker: "System",
-        text: "Wrong order. The lock resets with a grinding sound. The fine sand on the tunnel floor shivers outward from the panel in a perfect circle.\n\nSomething beneath registered the attempt.",
-        choices: [{ text: "Try again.", onSelect: () => { decreaseSanity(0.5); closeDialogue(); } }]
-    },
 
     'puzzle_plates_solved': {
         speaker: "System",
