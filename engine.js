@@ -1826,7 +1826,7 @@ function gameLoop() {
     gameState.activeInteractableId = interacting;
     document.getElementById('interaction-prompt').classList.toggle(
         'hidden',
-        !interacting || gameState.isDialogueActive
+        !interacting || gameState.isDialogueActive || !!activePuzzle
     );
 
     // Rest — takes ~3 seconds, restores 5 sanity (half the max bar)
