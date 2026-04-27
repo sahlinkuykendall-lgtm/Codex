@@ -626,7 +626,7 @@ function resetGameState() {
     gameState.currentRoute = null;
     gameState.trustTariq = 0; gameState.trustMaren = 0; gameState.trustIry = 0; gameState.trustYusra = 0;
     gameState.inventory = ['Field Journal']; gameState.mintTeaCount = 0; gameState.usedRestSites = []; gameState.restCooldowns = {};
-    gameState.stamina = 10.0; gameState.maxStamina = 10.0; gameState.isSprinting = false;
+    gameState.stamina = 10.0; gameState.maxStamina = 10.0; gameState.isSprinting = false; gameState.staminaExhausted = false;
     gameState.walkBobPhase = 0; gameState.isPaused = false;
     gameState.isDialogueActive = false; gameState.activeInteractableId = null;
     // Reset all flags to false
@@ -1893,19 +1893,14 @@ function gameLoop() {
         ctx.textAlign = 'left';
     }
 
-    // Stamina regeneration — slowly restore stamina when not sprinting
-    if (!gameState.isSprinting && gameState.stamina < gameState.maxStamina) {
-        const regenRate = gameState.inventory.includes('Mint Tea') ? 0.08 : 0.04; // tea speeds up regen
-        gameState.stamina = Math.min(gameState.maxStamina, gameState.stamina + regenRate);
-    }
+    // Sprint — exhaustion flag prevents oscillation when stamina hits 0
+    if (gameState.stamina <= 0) gameState.staminaExhausted = true;
+    if (gameState.staminaExhausted && gameState.stamina >= 2.0) gameState.staminaExhausted = false;
 
-    // Sprint: use shiftHeld (cleared on keyup and blur — no sticky sprint)
-    gameState.isSprinting = shiftHeld && gameState.stamina > 0 && !gameState.isDialogueActive;
+    gameState.isSprinting = shiftHeld && !gameState.staminaExhausted && gameState.stamina > 0 && !gameState.isDialogueActive;
     if (gameState.isSprinting) {
         gameState.stamina = Math.max(0, gameState.stamina - 0.12);
-    }
-    // Stamina regen when not sprinting
-    if (!gameState.isSprinting && gameState.stamina < gameState.maxStamina) {
+    } else if (gameState.stamina < gameState.maxStamina) {
         const regenRate = gameState.inventory.includes('Mint Tea') ? 0.08 : 0.04;
         gameState.stamina = Math.min(gameState.maxStamina, gameState.stamina + regenRate);
     }
