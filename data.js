@@ -577,7 +577,7 @@ const mapObjects = {
         // --- MISSION INTERACTABLES ---
         { id: 'trench',       x: 1775, y: 1300, w: 175, h: 120, color: '#3d3024', label: 'East Trench',        interactScene: 'scene2_trench'   },
         { id: 'carts',        x: 120,  y: 1920, w: 180, h: 80,  color: '#5c2c2c', label: 'Supply Line',        interactScene: 'scene2_carts'    },
-        { id: 'generator',    x: 2000, y: 1500, w: 55,  h: 55,  color: '#2d3436', label: 'Generator',          interactScene: 'scene2_stranger' },
+        { id: 'generator',    x: 1960, y: 1490, w: 65,  h: 65,  color: '#2d3436', label: 'Generator',          interactScene: 'scene2_stranger' },
         { id: 'sams_gear',    x: 1640, y: 870,  w: 28,  h: 28,  color: '#888',    label: 'Half-Buried Gear',   interactScene: 'flavor_sam'      },
         // Satphone: inside compound near south entry
         { id: 'satphone',     x: 990,  y: 1620, w: 28,  h: 28,  color: '#1a1a1a', label: 'Satphone',           interactScene: 'ch1_satphone'    },
@@ -611,7 +611,7 @@ const mapObjects = {
         { id: 'fl_fuel_drums',  x: 2020, y: 1610, w: 55,  h: 60,  color: '#4a3020', label: 'Fuel Drums',         interactScene: 'flavor_fuel_drums'     },
         { id: 'fl_guard_booth', x: 2270, y: 1505, w: 55,  h: 55,  color: '#3d4446', label: 'Guard Booth',        interactScene: 'flavor_guard_booth'    },
         { id: 'fl_scaffold',    x: 1640, y: 1450, w: 45,  h: 80,  color: '#4a4a4a', label: 'Scaffolding',        interactScene: 'flavor_scaffolding'    },
-        { id: 'fl_trailer',     x: 1530, y: 1375, w: 50,  h: 22,  color: '#5a5048', label: 'Enter Site Trailer', interactScene: 'flavor_site_trailer'   },
+        { id: 'fl_trailer',     x: 1500, y: 1290, w: 160, h: 107, color: '#3a3430', label: 'Site Trailer',       interactScene: 'flavor_site_trailer'   },
         { id: 'fl_palm',        x: 1000, y: 1690, w: 30,  h: 60,  color: '#2d7a1b', label: "Sam's Date Palm",    interactScene: 'flavor_palm_tree'      },
         { id: 'fl_gate_post',   x: 600,  y: 1990, w: 30,  h: 60,  color: '#5a4a3a', label: 'Camp Gate Post',     interactScene: 'flavor_gate_post'      },
         { id: 'fl_digshed',     x: 885,  y: 860,  w: 75,  h: 90,  color: '#4a3820', label: 'Dig Shed Clipboard', interactScene: 'flavor_digshed'        },
@@ -632,7 +632,6 @@ const mapObjects = {
         deco('d_stake3',    1200,1100, 10, 35,  '#b8860b', 'Survey Stake'    ),
         deco('d_gearstor',  1100,1290, 200, 80,  '#3a3028', 'Gear Storage'    ),
         deco('d_equiptbl',  1120,1490, 170, 30,  '#4a3820', 'Equipment Table' ),
-        deco('d_trailer',   1500,1290, 160, 80,  '#3a3430', 'Site Trailer'    ),
         // Cacti
         deco('d_cact1',  60,  550, 18, 38,  '#2d5a1b', 'Cactus'),
         deco('d_cact2',  100, 530, 18, 55,  '#2d5a1b', 'Cactus'),
@@ -662,7 +661,6 @@ const mapObjects = {
         deco('d_sandbag3',  1800,1760, 50, 25, '#8b7540', 'Sandbags'),
         deco('d_rope_coil', 90, 1700, 30, 30, '#6a5530', 'Rope Coil'),
         deco('d_bucket',    420,1700, 25, 25, '#3a3428', 'Tin Bucket'),
-        deco('d_generator2',1960,1490, 50, 50, '#2d3436', 'Backup Generator'),
         deco('d_tarp',      350, 1840, 100, 35, '#5a4020', 'Tarped Supplies'),
         deco('d_antenna',   1440,1330, 8, 60, '#8b8b8b', 'Radio Antenna'),
         deco('d_dustbin',   620, 1800, 30, 30, '#3a3430', 'Oil Drum'),
