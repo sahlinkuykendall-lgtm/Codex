@@ -703,10 +703,11 @@ const mapObjects = {
         { id: 'puzzle_res',    x: 700,  y: 1600, w: 260, h: 60,  color: '#8b6914', label: 'Resonance Nodes',   interactScene: 'puzzle_start_resonance' },
     ],
     'CUTTHROAT': [
-        { id: 'cut_maren',     x: 600,  y: 300,  w: 60,  h: 60,  color: '#8b0000', label: 'Maren',             interactScene: 'ch2_maren'       },
-        { id: 'cut_boros',     x: 1000, y: 800,  w: 60,  h: 60,  color: '#1a1a4a', label: 'Boros',             interactScene: 'ch2_boros'       },
-        { id: 'cut_scaff',     x: 600,  y: 1600, w: 200, h: 60,  color: '#4a4a4a', label: 'Scaffolding',       interactScene: 'ch2_scaffolding' },
-        { id: 'cut_gate',      x: 600,  y: 2200, w: 200, h: 80,  color: '#d4af37', label: 'The Gate',          interactScene: 'ch2_gate'        },
+        { id: 'cut_maren',     x: 1050, y: 300,  w: 60,  h: 60,  color: '#8b0000', label: 'Maren',             interactScene: 'ch2_maren'       },
+        { id: 'cut_boros',     x: 1060, y: 700,  w: 60,  h: 60,  color: '#1a1a4a', label: 'Boros',             interactScene: 'ch2_boros'       },
+        { id: 'cut_tariq',     x: 1100, y: 1200, w: 60,  h: 60,  color: '#3a3a50', label: 'Tariq',             interactScene: 'ch2_cutthroat_tariq' },
+        { id: 'cut_scaff',     x: 1020, y: 1400, w: 320, h: 60,  color: '#4a4a4a', label: 'Scaffolding',       interactScene: 'ch2_scaffolding' },
+        { id: 'cut_gate',      x: 1050, y: 2200, w: 200, h: 80,  color: '#d4af37', label: 'The Gate',          interactScene: 'ch2_gate'        },
     ],
 
     // ============================================================

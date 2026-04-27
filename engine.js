@@ -471,12 +471,12 @@ function loadChapterTwo() {
             { x: 1500, y: 2000 }, { x: 1800, y: 2000 }
         ]);
     } else if (gameState.currentRoute === 'CUTTHROAT') {
-        WORLD = { width: 2500, height: 2500 }; player.x = 1200; player.y = 2300;
-        spawnHostile('figure_dark', 600, 1000, [
-            { x: 600, y: 1000 }, { x: 900, y: 1200 }, { x: 600, y: 1500 }
+        WORLD = { width: 2500, height: 2500 }; player.x = 1200; player.y = 200;
+        spawnHostile('figure_dark', 1150, 1000, [
+            { x: 1150, y: 1000 }, { x: 1350, y: 1200 }, { x: 1150, y: 1500 }
         ]);
     } else {
-        WORLD = { width: 2500, height: 2500 }; player.x = 1200; player.y = 2300;
+        WORLD = { width: 2500, height: 2500 }; player.x = 1200; player.y = 200;
     }
     currentMapKey = gameState.currentRoute;
     activeMapObjects = mapObjects[gameState.currentRoute] || [];
