@@ -198,6 +198,7 @@ const storyData = {
         speaker: "System",
         text: "The handwriting is rushed. The pencil is pressed hard enough to tear the page in two places. The entry is dated February 11th — the day he died.\n\n\"Ellis. If you're reading this, my air is bad and they've won the first round. I don't know who 'they' are but I know who sent Halberd. Go back to Giza. Finish what I started. Everything you need is in the shed and the drum. The codex is a key. It asks a question. Don't answer it the way they want you to answer it. — S\"\n\nThe page below is blank. He ran out of breath before he ran out of paper.",
         choices: [
+            { text: "Flip through the rest of the notebook.", onSelect: () => startDialogue('flavor_sam_notebook_glyphs') },
             { text: "Take everything. Close the bag.", onSelect: () => {
                 if (!gameState.inventory.includes("Sam's Notebook")) gameState.inventory.push("Sam's Notebook");
                 if (!gameState.inventory.includes("Undeveloped Film")) gameState.inventory.push("Undeveloped Film");
@@ -212,6 +213,28 @@ const storyData = {
             }}
         ]
     },
+
+    'flavor_sam_notebook_glyphs': {
+        speaker: "System",
+        text: "Most of the notebook is field measurements — soil composition, vibration readings, instrument calibrations. Sam's handwriting gets smaller and denser toward the middle.\n\nOne page is headed TUNNEL GATE in capital letters, double-underlined. Four glyphs are drawn carefully in a row, numbered 1 through 4:\n\n  [1] 𓂀   [2] 𓃭   [3] 𓅓   [4] 𓆑\n\nBelow them:\n\n  3 — 1 — 4 — 2\n  owl first. then the eye. then the fish. then the lion.\n\nAnd in the margin, very small: \"Don't try it blind. — S\"",
+        choices: [{
+            text: "Close the notebook. Take everything.",
+            onSelect: () => {
+                if (!gameState.inventory.includes("Sam's Notebook")) gameState.inventory.push("Sam's Notebook");
+                if (!gameState.inventory.includes("Undeveloped Film")) gameState.inventory.push("Undeveloped Film");
+                if (!gameState.inventory.includes("Sam's Marked Map")) gameState.inventory.push("Sam's Marked Map");
+                gameState.knowledgeCodex += 3;
+                gameState.flags.sams_second_dig_known = true;
+                gameState.flags.sam_final_note_read = true;
+                gameState.flags.memorializedPartner = true;
+                gameState.flags.sam_glyph_sequence_known = true;
+                decreaseSanity(1.5);
+                updateHUD();
+                closeDialogue();
+            }
+        }]
+    },
+
     'flavor_guard_booth': {
         speaker: "System",
         text: "A chain-link enclosure with a folding chair inside. A guard's booth. The chair is empty but the thermos on the floor is still warm.\n\nOn the inside of the door, at eye height for a seated man: tally marks. Forty-two of them. Scratched one per night, by someone counting the days since something began.",
@@ -2715,7 +2738,7 @@ const storyData = {
 
     'puzzle_start_glyph_lock': {
         speaker: "System",
-        text: "A stone panel is set into the tunnel approach wall. Four glyph symbols are inset into its surface, each capable of being pressed — from left to right:\n\n  [1] 𓂀   [2] 𓃭   [3] 𓅓   [4] 𓆑\n\nBeside the panel, scratched into the stone in faint modern pencil, in Sam's handwriting:\n\n  \"3 — 1 — 4 — 2\"\n\nAnd below that, smaller: \"owl first. then the eye. then the fish. then the lion. — S\"\n\nSam was here. Sam knew the sequence.",
+        text: "A stone panel is set into the tunnel approach wall. Four glyph symbols are inset into its surface, each capable of being pressed — from left to right:\n\n  [1] 𓂀   [2] 𓃭   [3] 𓅓   [4] 𓆑\n\nBeside the panel, the stone surface is faintly discoloured — the ghost of something written in pencil, then carefully rubbed away. Sam was here. Sam was careful about what he left behind.",
         choices: [
             {
                 text: "Try the combination. (Opens puzzle)",
@@ -2753,7 +2776,7 @@ const storyData = {
 
     'puzzle_glyph_fail': {
         speaker: "System",
-        text: "Wrong sequence. The panel flashes red and something releases with a hiss from the wall — a dart, fired at shin height, that buries itself in the opposite timber brace.\n\nYou stand very still.\n\nThe mechanism resets. The dart is cedar-wood, extremely old. The tip has dried to a dark resin. You do not touch the tip.\n\nSam's pencil marks are still on the stone beside the lock: 3 — 1 — 4 — 2. Owl, then eye, then fish, then lion. Look again and try more carefully.",
+        text: "Wrong sequence. The panel flashes red and something releases with a hiss from the wall — a dart, fired at shin height, that buries itself in the opposite timber brace.\n\nYou stand very still.\n\nThe mechanism resets. The dart is cedar-wood, extremely old. The tip has dried to a dark resin. You do not touch the tip.\n\nThe sequence isn't written here. Sam made sure of that. Whatever he left, he left somewhere else — somewhere he trusted you'd already looked.",
         choices: [{
             text: "Try again more carefully.",
             onSelect: () => {
