@@ -34,7 +34,7 @@ const ctx = canvas.getContext('2d');
 canvas.width = 1280; canvas.height = 720;
 
 let camera = { x: 0, y: 0, w: 1280, h: 720 };
-let player = { x: 1000, y: 1000, size: 30, speed: 3, color: '#d4af37' };
+let player = { x: 1000, y: 1000, size: 30, speed: 2, color: '#d4af37' };
 
 // ---- INPUT SYSTEM ----
 // Use a Set for held keys — immune to case issues, sticky-key bugs, and repeat events.
@@ -614,6 +614,13 @@ function updateHUD() {
         : (gameState.sanityState === 'FRACTURED' ? 'fractured-filter' : '');
 }
 
+function addJournalNote(title, text) {
+    if (!gameState.journalNotes) gameState.journalNotes = [];
+    if (!gameState.journalNotes.find(n => n.title === title)) {
+        gameState.journalNotes.push({ title, text });
+    }
+}
+
 function resetGameState() {
     // Full reset of all game state — called on Return to Menu and on startGame
     gameState.currentScreen = 'START_MENU';
@@ -627,6 +634,7 @@ function resetGameState() {
     gameState.trustTariq = 0; gameState.trustMaren = 0; gameState.trustIry = 0; gameState.trustYusra = 0;
     gameState.inventory = ['Field Journal']; gameState.mintTeaCount = 0; gameState.usedRestSites = []; gameState.restCooldowns = {};
     gameState.stamina = 10.0; gameState.maxStamina = 10.0; gameState.isSprinting = false; gameState.staminaExhausted = false;
+    gameState.journalNotes = []; gameState.devChapterMenuOpen = false;
     gameState.walkBobPhase = 0; gameState.isPaused = false;
     gameState.isDialogueActive = false; gameState.activeInteractableId = null;
     // Reset all flags to false
@@ -953,29 +961,43 @@ window.addEventListener('pointerdown', (e) => {
         // Only respond to clicks in the center panel
         if (canvasX < 320 || canvasX > 960 || canvasY < 100 || canvasY > 620) return;
 
-        // Pause menu clicks — match the drawn option positions (CP_Y=100, options at +130/+190/+250/+310)
-        // Each button: text at y, hitbox from y-30 to y+30
-        // Resume at CP_Y+130 = 230
-        if (canvasY > 200 && canvasY < 260) {
-            gameState.isPaused = false; return;
+        // Dev chapter sub-menu (CP_Y=100, items at CP_Y+115 + i*40)
+        if (gameState.devChapterMenuOpen) {
+            const devActions = [
+                () => { gameState.devChapterMenuOpen = false; gameState.isPaused = false; resetGameState(); startGame(); },
+                () => { gameState.devChapterMenuOpen = false; gameState.isPaused = false; gameState.currentRoute = 'TRAP'; gameState.currentScreen = 'GAME'; loadChapterTwo(); },
+                () => { gameState.devChapterMenuOpen = false; gameState.isPaused = false; gameState.currentRoute = 'SECRET'; gameState.currentScreen = 'GAME'; loadChapterTwo(); },
+                () => { gameState.devChapterMenuOpen = false; gameState.isPaused = false; gameState.currentRoute = 'CUTTHROAT'; gameState.currentScreen = 'GAME'; loadChapterTwo(); },
+                () => { gameState.devChapterMenuOpen = false; gameState.isPaused = false; gameState.currentScreen = 'GAME'; loadChapterThree(); },
+                () => { gameState.devChapterMenuOpen = false; gameState.isPaused = false; gameState.currentScreen = 'GAME'; loadChapterFour(); },
+                () => { gameState.devChapterMenuOpen = false; gameState.isPaused = false; gameState.currentScreen = 'GAME'; loadChapterFive(); },
+                () => { gameState.devChapterMenuOpen = false; gameState.isPaused = false; gameState.currentScreen = 'GAME'; loadChapterSix(); },
+                () => { gameState.devChapterMenuOpen = false; gameState.isPaused = false; gameState.currentScreen = 'GAME'; loadChapterSeven(); },
+                () => { gameState.devChapterMenuOpen = false; },
+            ];
+            const idx = Math.floor((canvasY - (100 + 115 - 20)) / 40);
+            if (idx >= 0 && idx < devActions.length) devActions[idx]();
+            return;
         }
-        // Fullscreen at CP_Y+190 = 290
-        if (canvasY > 260 && canvasY < 320) {
+
+        // Normal pause menu (options at CP_Y+115/170/225/280/350)
+        if (canvasY > 90 && canvasY < 150)  { gameState.isPaused = false; return; }
+        if (canvasY > 150 && canvasY < 200) {
             const gc = document.getElementById('game-container');
             if (!document.fullscreenElement) gc.requestFullscreen().catch(err => console.log(err));
             else document.exitFullscreen();
             return;
         }
-        // Return to Menu at CP_Y+250 = 350
-        if (canvasY > 320 && canvasY < 380) {
-            resetGameState();
-            menuPhase = 'FADEIN'; overlayAlpha = 1.0;
+        if (canvasY > 200 && canvasY < 255) {
+            resetGameState(); menuPhase = 'FADEIN'; overlayAlpha = 1.0;
             gameState.isPaused = false; gameState.currentScreen = 'START_MENU'; return;
         }
-        // Quit at CP_Y+310 = 410
-        if (canvasY > 380 && canvasY < 440) {
+        if (canvasY > 255 && canvasY < 310) {
             if (confirm('Quit to desktop?')) window.location.reload();
             return;
+        }
+        if (canvasY > 325 && canvasY < 385) {
+            gameState.devChapterMenuOpen = true; return;
         }
         return; // swallow all other clicks while paused
     }
@@ -1577,23 +1599,41 @@ function drawPauseMenu() {
     ctx.lineTo(CP_X + CP_W - 100, CP_Y + 75);
     ctx.stroke();
 
-    // Menu options
-    const options = [
-        { text: 'Resume',         sub: 'ESC or ENTER',    y: CP_Y + 130 },
-        { text: 'Fullscreen',     sub: 'Toggle',          y: CP_Y + 190 },
-        { text: 'Return to Menu', sub: 'Go to start',     y: CP_Y + 250 },
-        { text: 'Quit',           sub: 'Reload page',     y: CP_Y + 310 },
-    ];
-
-    options.forEach(opt => {
-        ctx.fillStyle = '#e0e0e0';
-        ctx.font = '20px Courier New';
+    if (gameState.devChapterMenuOpen) {
+        ctx.fillStyle = '#d4af37';
+        ctx.font = 'bold 18px Courier New';
         ctx.textAlign = 'center';
-        ctx.fillText(opt.text, CP_X + CP_W / 2, opt.y);
-        ctx.fillStyle = '#777';
-        ctx.font = '12px Courier New';
-        ctx.fillText(opt.sub, CP_X + CP_W / 2, opt.y + 22);
-    });
+        ctx.fillText('CHAPTER SELECT', CP_X + CP_W / 2, CP_Y + 80);
+        const devItems = [
+            'Chapter 1', 'Ch2: TRAP', 'Ch2: SECRET', 'Ch2: CUTTHROAT',
+            'Chapter 3', 'Chapter 4', 'Chapter 5', 'Chapter 6', 'Chapter 7', '← Back'
+        ];
+        devItems.forEach((label, i) => {
+            const dy = CP_Y + 115 + i * 40;
+            ctx.fillStyle = label === '← Back' ? '#888' : '#e0e0e0';
+            ctx.font = '17px Courier New';
+            ctx.fillText(label, CP_X + CP_W / 2, dy);
+        });
+    } else {
+        const options = [
+            { text: 'Resume',              sub: 'ESC or ENTER',   y: CP_Y + 115 },
+            { text: 'Fullscreen',          sub: 'Toggle',         y: CP_Y + 170 },
+            { text: 'Return to Menu',      sub: 'Go to start',    y: CP_Y + 225 },
+            { text: 'Quit',               sub: 'Reload page',    y: CP_Y + 280 },
+            { text: '— DEV: Skip Chapter —', sub: 'Jump to any chapter', y: CP_Y + 350 },
+        ];
+        options.forEach(opt => {
+            ctx.fillStyle = opt.text.startsWith('—') ? '#666' : '#e0e0e0';
+            ctx.font = opt.text.startsWith('—') ? '14px Courier New' : '20px Courier New';
+            ctx.textAlign = 'center';
+            ctx.fillText(opt.text, CP_X + CP_W / 2, opt.y);
+            if (opt.sub) {
+                ctx.fillStyle = '#777';
+                ctx.font = '12px Courier New';
+                ctx.fillText(opt.sub, CP_X + CP_W / 2, opt.y + 20);
+            }
+        });
+    }
 
     // Version
     ctx.fillStyle = '#555';
@@ -1660,9 +1700,8 @@ function drawPauseMenu() {
         objectives.forEach(obj => {
             ctx.fillStyle = '#aaa';
             ctx.font = '11px Courier New';
-            // Wrap text if needed
             const maxW = 260;
-            let line = '', lineH = 0;
+            let line = '';
             const words = obj.split(' ');
             words.forEach(w => {
                 const test = line + (line ? ' ' : '') + w;
@@ -1672,6 +1711,39 @@ function drawPauseMenu() {
                 } else { line = test; }
             });
             if (line) { ctx.fillText('• ' + line, RP_X + 15, rY); rY += 16; }
+        });
+    }
+
+    // Journal Notes
+    rY += 16;
+    ctx.fillStyle = '#d4af37';
+    ctx.font = 'bold 13px Courier New';
+    ctx.fillText('FIELD NOTES', RP_X + 15, rY);
+    rY += 18;
+    const notes = gameState.journalNotes || [];
+    if (notes.length === 0) {
+        ctx.fillStyle = '#555';
+        ctx.font = '11px Courier New';
+        ctx.fillText('(nothing recorded yet)', RP_X + 15, rY);
+    } else {
+        const maxNotes = Math.floor((RP_Y + RP_H - rY - 10) / 28);
+        notes.slice(-maxNotes).forEach(note => {
+            if (rY + 28 > RP_Y + RP_H - 10) return;
+            ctx.fillStyle = '#d4af37';
+            ctx.font = 'bold 10px Courier New';
+            ctx.fillText(note.title.toUpperCase(), RP_X + 15, rY);
+            rY += 14;
+            ctx.fillStyle = '#888';
+            ctx.font = '10px Courier New';
+            const words = note.text.split(' ');
+            let line = '';
+            words.forEach(w => {
+                const test = line + (line ? ' ' : '') + w;
+                if (ctx.measureText(test).width > 250 && line) {
+                    ctx.fillText(line, RP_X + 15, rY); line = w; rY += 12;
+                } else { line = test; }
+            });
+            if (line && rY < RP_Y + RP_H - 10) { ctx.fillText(line, RP_X + 15, rY); rY += 14; }
         });
     }
 
@@ -1899,9 +1971,10 @@ function gameLoop() {
 
     gameState.isSprinting = shiftHeld && !gameState.staminaExhausted && gameState.stamina > 0 && !gameState.isDialogueActive;
     if (gameState.isSprinting) {
-        gameState.stamina = Math.max(0, gameState.stamina - 0.12);
+        gameState.stamina = Math.max(0, gameState.stamina - 0.04);
     } else if (gameState.stamina < gameState.maxStamina) {
-        const regenRate = gameState.inventory.includes('Mint Tea') ? 0.08 : 0.04;
+        const regenRate = gameState.inventory.includes('Karkadeh') ? 0.10
+            : gameState.inventory.includes('Mint Tea') ? 0.08 : 0.04;
         gameState.stamina = Math.min(gameState.maxStamina, gameState.stamina + regenRate);
     }
     // Update stamina bar every frame
