@@ -784,7 +784,20 @@ function drawStartScreen() {
     ctx.fillText('V2  —  ACT I', 640, 500);
     ctx.restore();
 
-    // 13 — Overlay for fade transitions
+    // 13 — Smiley face (bottom-right corner)
+    ctx.save();
+    const sx = canvas.width - 30, sy = canvas.height - 30, sr = 16;
+    ctx.beginPath(); ctx.arc(sx, sy, sr, 0, Math.PI * 2);
+    ctx.fillStyle = '#FFE600'; ctx.fill();
+    ctx.strokeStyle = '#CC9900'; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.fillStyle = '#333';
+    ctx.beginPath(); ctx.arc(sx - 5, sy - 5, 2, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(sx + 5, sy - 5, 2, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(sx, sy + 1, 8, 0.15 * Math.PI, 0.85 * Math.PI);
+    ctx.strokeStyle = '#333'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.restore();
+
+    // 14 — Overlay for fade transitions
     if (menuPhase === 'FADEIN') {
         overlayAlpha = Math.max(0, overlayAlpha - 0.018);
         if (overlayAlpha <= 0) menuPhase = 'IDLE';
