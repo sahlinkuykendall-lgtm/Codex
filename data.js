@@ -578,7 +578,7 @@ const mapObjects = {
         { id: 'trench',       x: 1775, y: 1300, w: 175, h: 120, color: '#3d3024', label: 'East Trench',        interactScene: 'scene2_trench'   },
         { id: 'carts',        x: 120,  y: 1920, w: 180, h: 80,  color: '#5c2c2c', label: 'Supply Line',        interactScene: 'scene2_carts'    },
         { id: 'generator',    x: 2000, y: 1500, w: 55,  h: 55,  color: '#2d3436', label: 'Generator',          interactScene: 'scene2_stranger' },
-        { id: 'sams_gear',    x: 1520, y: 870,  w: 28,  h: 28,  color: '#888',    label: 'Half-Buried Gear',   interactScene: 'flavor_sam'      },
+        { id: 'sams_gear',    x: 1640, y: 870,  w: 28,  h: 28,  color: '#888',    label: 'Half-Buried Gear',   interactScene: 'flavor_sam'      },
         // Satphone: inside compound near south entry
         { id: 'satphone',     x: 990,  y: 1620, w: 28,  h: 28,  color: '#1a1a1a', label: 'Satphone',           interactScene: 'ch1_satphone'    },
         // Tariq: at camp brazier
