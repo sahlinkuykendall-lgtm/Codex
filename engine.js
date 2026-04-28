@@ -184,6 +184,22 @@ function spawnHostile(defKey, x, y, patrolPoints) {
 // Clear all hostiles (called on chapter load / interior enter)
 function clearHostiles() { hostiles = []; }
 
+// Ministry car drive-in animation state
+let ministeryCar = { active: false, parked: false, x: 2200, y: 2500, targetY: 1300, speed: 4.5, w: 90, h: 60 };
+
+function spawnChapterOneHostiles() {
+    if (!gameState.flags.inspector_dealt) {
+        spawnHostile('guard_ministry', 1900, 1600, [
+            { x: 1900, y: 1600 }, { x: 2200, y: 1600 }, { x: 2200, y: 1800 }, { x: 1900, y: 1800 }
+        ]);
+    }
+    if (!gameState.flags.workerSeen) {
+        spawnHostile('worker_panicked', 1400, 600, [
+            { x: 1400, y: 600 }, { x: 1700, y: 600 }, { x: 1700, y: 780 }, { x: 1400, y: 780 }
+        ]);
+    }
+}
+
 function updateHostiles() {
     if (gameState.isPaused || gameState.isDialogueActive || activePuzzle) return;
 
@@ -414,6 +430,11 @@ function _completeExit() {
     player.y = interiorState.returnY;
     // Restore map objects for the outer map
     activeMapObjects = mapObjects[currentMapKey] || [];
+    // Respawn hostiles for ch1 exterior
+    if (currentMapKey === 1) {
+        clearHostiles();
+        spawnChapterOneHostiles();
+    }
     // Restore bg color
     const bgColors = { 1: '#1a1a1a', 'MARKET': '#1a1410', 'CITY': '#050510', 'AIRFIELD': '#111', 'GATE': '#030305' };
     canvas.style.backgroundColor = bgColors[currentMapKey] || '#111';
@@ -672,14 +693,8 @@ function startGame() {
     document.getElementById('hud-bottomleft').classList.remove('hidden');
     document.getElementById('hud-hint').classList.remove('hidden');
     clearHostiles();
-    // Ministry guard patrols east perimeter
-    spawnHostile('guard_ministry', 1900, 1600, [
-        { x: 1900, y: 1600 }, { x: 2200, y: 1600 }, { x: 2200, y: 1800 }, { x: 1900, y: 1800 }
-    ]);
-    // Panicked worker wanders north of dig zone (clear space between outcrops)
-    spawnHostile('worker_panicked', 1400, 600, [
-        { x: 1400, y: 600 }, { x: 1700, y: 600 }, { x: 1700, y: 780 }, { x: 1400, y: 780 }
-    ]);
+    ministeryCar = { active: false, parked: false, x: 2200, y: 2500, targetY: 1300, speed: 4.5, w: 90, h: 60 };
+    spawnChapterOneHostiles();
     updateHUD();
     // Original opening: Ellis in tent with the Codex — scene1_start fires first
     startDialogue('scene1_start');
@@ -980,23 +995,23 @@ window.addEventListener('pointerdown', (e) => {
             return;
         }
 
-        // Normal pause menu (options at CP_Y+115/170/225/280/350)
-        if (canvasY > 90 && canvasY < 150)  { gameState.isPaused = false; return; }
-        if (canvasY > 150 && canvasY < 200) {
+        // Normal pause menu — buttons drawn at CP_Y+115=215, +170=270, +225=325, +280=380, +350=450
+        if (canvasY > 195 && canvasY < 245)  { gameState.isPaused = false; return; }
+        if (canvasY > 250 && canvasY < 295) {
             const gc = document.getElementById('game-container');
             if (!document.fullscreenElement) gc.requestFullscreen().catch(err => console.log(err));
             else document.exitFullscreen();
             return;
         }
-        if (canvasY > 200 && canvasY < 255) {
+        if (canvasY > 305 && canvasY < 350) {
             resetGameState(); menuPhase = 'FADEIN'; overlayAlpha = 1.0;
             gameState.isPaused = false; gameState.currentScreen = 'START_MENU'; return;
         }
-        if (canvasY > 255 && canvasY < 310) {
+        if (canvasY > 360 && canvasY < 405) {
             if (confirm('Quit to desktop?')) window.location.reload();
             return;
         }
-        if (canvasY > 325 && canvasY < 385) {
+        if (canvasY > 430 && canvasY < 475) {
             gameState.devChapterMenuOpen = true; return;
         }
         return; // swallow all other clicks while paused
@@ -1022,6 +1037,7 @@ function isObjectResolved(o) {
         if (o.interactScene === 'flavor_sam'      && f.memorializedPartner)  return true;
         if (o.interactScene === 'flavor_sand'     && f.heardSand)            return true;
         // New Ch1 expansion scenes
+        if (o.id === 'inspector' && !f.ministeryCar_parked)                   return true;
         if (o.interactScene === 'ch1_inspector'   && f.inspector_dealt)      return true;
         if (o.interactScene === 'ch1_night_watch' && f.night_watch_done)     return true;
         // Codex — only interactable once (scene1_start), afterwards becomes flavor
@@ -1507,9 +1523,9 @@ function drawPauseMenu() {
     lY += 18;
 
     const knowTracks = [
-        { label: 'Hermetic', val: gameState.knowledgeHermetic, max: 20 },
-        { label: 'Atlantean', val: gameState.knowledgeAtlantean, max: 20 },
-        { label: 'Codex', val: gameState.knowledgeCodex, max: 20 },
+        { label: 'Hermetic', val: gameState.knowledgeHermetic, max: 40 },
+        { label: 'Atlantean', val: gameState.knowledgeAtlantean, max: 40 },
+        { label: 'Codex', val: gameState.knowledgeCodex, max: 40 },
     ];
 
     knowTracks.forEach(kt => {
@@ -1837,14 +1853,41 @@ function drawObjectShape(ctx, o, ox, oy) {
         }}
         return true;
     }
-    if (id.startsWith('d_truck') || id.startsWith('d_min')) {
-        var isMIN = id.startsWith('d_min');
-        ctx.fillStyle = isMIN ? '#1e2d1e' : '#2d3436'; ctx.fillRect(ox, oy + h*0.2, w, h*0.6);
-        ctx.fillStyle = isMIN ? '#152415' : '#1e2428'; ctx.fillRect(ox + w*0.6, oy, w*0.38, h*0.65);
+    if (id.startsWith('d_truck')) {
+        ctx.fillStyle = '#2d3436'; ctx.fillRect(ox, oy + h*0.2, w, h*0.6);
+        ctx.fillStyle = '#1e2428'; ctx.fillRect(ox + w*0.6, oy, w*0.38, h*0.65);
         ctx.fillStyle = '#2a4060'; ctx.fillRect(ox + w*0.63, oy + h*0.06, w*0.3, h*0.24);
         ctx.fillStyle = '#0d0a08';
         ctx.fillRect(ox + w*0.06, oy + h*0.78, w*0.18, h*0.16); ctx.fillRect(ox + w*0.32, oy + h*0.78, w*0.18, h*0.16); ctx.fillRect(ox + w*0.64, oy + h*0.78, w*0.14, h*0.16);
         ctx.fillStyle = 'rgba(255,255,255,0.06)'; ctx.fillRect(ox, oy + h*0.2, w*0.58, 2);
+        return true;
+    }
+    if (id.startsWith('d_min')) {
+        // Top-down SUV / Land Cruiser (horizontal orientation)
+        // Hull
+        ctx.fillStyle = '#1e2a3a'; ctx.fillRect(ox, oy + h*0.12, w, h*0.76);
+        // Roof panel (narrower, centered vertically)
+        ctx.fillStyle = '#2d3e52'; ctx.fillRect(ox + w*0.12, oy + h*0.18, w*0.76, h*0.64);
+        // Front windshield (right side)
+        ctx.fillStyle = 'rgba(100,180,255,0.35)'; ctx.fillRect(ox + w*0.76, oy + h*0.2, w*0.1, h*0.6);
+        // Rear window (left side)
+        ctx.fillStyle = 'rgba(100,180,255,0.22)'; ctx.fillRect(ox + w*0.14, oy + h*0.2, w*0.08, h*0.6);
+        // Wheel arches — 4 corners
+        ctx.fillStyle = '#111';
+        ctx.fillRect(ox, oy + h*0.1, w*0.14, h*0.25);        // front-top
+        ctx.fillRect(ox, oy + h*0.65, w*0.14, h*0.25);       // front-bottom
+        ctx.fillRect(ox + w*0.86, oy + h*0.1, w*0.14, h*0.25);   // rear-top
+        ctx.fillRect(ox + w*0.86, oy + h*0.65, w*0.14, h*0.25);  // rear-bottom
+        // Headlights (right/front)
+        ctx.fillStyle = '#ffffaa';
+        ctx.fillRect(ox + w*0.92, oy + h*0.13, w*0.08, h*0.18);
+        ctx.fillRect(ox + w*0.92, oy + h*0.69, w*0.08, h*0.18);
+        // Taillights (left/rear)
+        ctx.fillStyle = '#cc2200';
+        ctx.fillRect(ox, oy + h*0.13, w*0.07, h*0.15);
+        ctx.fillRect(ox, oy + h*0.72, w*0.07, h*0.15);
+        // Grille
+        ctx.fillStyle = '#3a4a5a'; ctx.fillRect(ox + w*0.86, oy + h*0.35, w*0.14, h*0.3);
         return true;
     }
     if (id === 'fl_scaffold' || id.startsWith('d_scaff') || lbl.includes('scaffolding')) {
@@ -1979,6 +2022,22 @@ function gameLoop() {
 
     // Update hostile NPCs
     updateHostiles();
+
+    // Ministry car drive-in: triggered once guard mentions it
+    if (gameState.chapter === 1 && !interiorState.active) {
+        if (gameState.flags.watcherResolved && !ministeryCar.active && !ministeryCar.parked) {
+            ministeryCar.active = true;
+        }
+        if (ministeryCar.active && !ministeryCar.parked) {
+            ministeryCar.y -= ministeryCar.speed;
+            if (ministeryCar.y <= ministeryCar.targetY) {
+                ministeryCar.y = ministeryCar.targetY;
+                ministeryCar.parked = true;
+                ministeryCar.active = false;
+                gameState.flags.ministeryCar_parked = true;
+            }
+        }
+    }
 
     ctx.save();
     // Apply dev zoom scale — scales world rendering to fill canvas
@@ -2120,6 +2179,67 @@ function gameLoop() {
             interacting = o.interactScene;
         }
     });
+
+    // Ministry car render (animated drive-in or parked)
+    if (gameState.chapter === 1 && !interiorState.active && (ministeryCar.active || ministeryCar.parked)) {
+        var mcx = ministeryCar.x - camera.x;
+        var mcy = ministeryCar.y - camera.y;
+        var mcw = ministeryCar.w;
+        var mch = ministeryCar.h;
+        if (mcx + mcw > 0 && mcx < canvas.width && mcy + mch > 0 && mcy < canvas.height) {
+            // Shadow
+            ctx.fillStyle = 'rgba(0,0,0,0.5)';
+            ctx.fillRect(mcx + 4, mcy + 6, mcw, mch);
+            // Hull body
+            ctx.fillStyle = '#1e2a3a';
+            ctx.fillRect(mcx, mcy + 10, mcw, mch - 10);
+            // Roof (narrower, centered)
+            ctx.fillStyle = '#2d3e52';
+            ctx.fillRect(mcx + 12, mcy, mcw - 24, mch - 8);
+            // Front windshield strip
+            ctx.fillStyle = 'rgba(100,180,255,0.35)';
+            ctx.fillRect(mcx + 14, mcy + 2, mcw - 28, 10);
+            // Rear window strip
+            ctx.fillStyle = 'rgba(100,180,255,0.25)';
+            ctx.fillRect(mcx + 14, mcy + mch - 20, mcw - 28, 8);
+            // Wheel arches (4 corners)
+            ctx.fillStyle = '#111';
+            ctx.fillRect(mcx - 4, mcy + 12, 14, 16);   // front-left
+            ctx.fillRect(mcx + mcw - 10, mcy + 12, 14, 16); // front-right
+            ctx.fillRect(mcx - 4, mcy + mch - 24, 14, 16);  // rear-left
+            ctx.fillRect(mcx + mcw - 10, mcy + mch - 24, 14, 16); // rear-right
+            // Headlights (front)
+            ctx.fillStyle = '#ffffaa';
+            ctx.fillRect(mcx + 6, mcy + 14, 8, 5);
+            ctx.fillRect(mcx + mcw - 14, mcy + 14, 8, 5);
+            // Taillights (rear)
+            ctx.fillStyle = '#cc2200';
+            ctx.fillRect(mcx + 6, mcy + mch - 14, 8, 5);
+            ctx.fillRect(mcx + mcw - 14, mcy + mch - 14, 8, 5);
+            // Grille line
+            ctx.fillStyle = '#444';
+            ctx.fillRect(mcx + 18, mcy + 20, mcw - 36, 3);
+            // Label when parked
+            if (ministeryCar.parked) {
+                ctx.font = '13px Courier New';
+                ctx.textAlign = 'left';
+                ctx.fillStyle = 'rgba(0,0,0,0.85)';
+                ctx.fillText('Ministry Car', mcx + 1, mcy - 4);
+                ctx.fillStyle = '#f4e4b0';
+                ctx.fillText('Ministry Car', mcx, mcy - 5);
+            }
+        }
+    }
+
+    // Parked ministry car proximity — makes it interactable like a map object
+    if (ministeryCar.parked && !gameState.flags.inspector_dealt && gameState.chapter === 1 && !interiorState.active) {
+        var mpx = player.x + player.size / 2;
+        var mpy = player.y + player.size / 2;
+        if (mpx > ministeryCar.x - 60 && mpx < ministeryCar.x + ministeryCar.w + 60 &&
+            mpy > ministeryCar.y - 60 && mpy < ministeryCar.y + ministeryCar.h + 60) {
+            interacting = 'ch1_inspector';
+        }
+    }
 
     gameState.activeInteractableId = interacting;
     document.getElementById('interaction-prompt').classList.toggle(
