@@ -1751,6 +1751,223 @@ function drawPauseMenu() {
 }
 
 
+function drawObjectShape(ctx, o, ox, oy) {
+    const id = o.id || '';
+    const lbl = (o.label || '').toLowerCase();
+    const w = o.w, h = o.h;
+    if (id === 'enter_tent') {
+        ctx.fillStyle = '#1e3310';
+        ctx.beginPath(); ctx.moveTo(ox, oy + h*0.3); ctx.lineTo(ox + w/2, oy); ctx.lineTo(ox + w, oy + h*0.3); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = '#2d4a1a'; ctx.fillRect(ox, oy + h*0.28, w, h*0.72);
+        ctx.fillStyle = '#243e14'; ctx.fillRect(ox, oy + h*0.28, w, 3);
+        ctx.fillStyle = '#0d1a08'; ctx.fillRect(ox + w*0.4, oy + h*0.52, w*0.2, h*0.48);
+        ctx.fillStyle = '#8b6914'; ctx.fillRect(ox + 3, oy + h*0.28, 4, h*0.72); ctx.fillRect(ox + w - 7, oy + h*0.28, 4, h*0.72);
+        ctx.strokeStyle = '#4a3810'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(ox + 3, oy + h*0.28); ctx.lineTo(ox - 14, oy + h); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(ox + w - 3, oy + h*0.28); ctx.lineTo(ox + w + 14, oy + h); ctx.stroke();
+        return true;
+    }
+    if (id === 'enter_office' || lbl.includes('office')) {
+        ctx.fillStyle = '#2a2218'; ctx.fillRect(ox, oy + h*0.2, w, h*0.8);
+        ctx.fillStyle = '#1a1510'; ctx.fillRect(ox - 2, oy, w + 4, h*0.22);
+        ctx.fillStyle = '#4a3c28'; ctx.fillRect(ox, oy + h*0.2, w, 2);
+        ctx.fillStyle = '#0d0a06'; ctx.fillRect(ox + w*0.35, oy + h*0.55, w*0.3, h*0.45);
+        ctx.fillStyle = '#2a3f55'; ctx.fillRect(ox + w*0.08, oy + h*0.28, w*0.28, h*0.22);
+        return true;
+    }
+    if (id === 'fl_digshed' || id === 'fl_toolshed' || lbl.includes('shed')) {
+        ctx.fillStyle = '#3a2e1a'; ctx.fillRect(ox, oy + h*0.18, w, h*0.82);
+        ctx.fillStyle = '#241e10'; ctx.fillRect(ox - 3, oy, w + 6, h*0.2);
+        ctx.fillStyle = '#5a4a28'; ctx.fillRect(ox, oy + h*0.18, w, 2);
+        ctx.fillStyle = '#0d0a06'; ctx.fillRect(ox + w*0.35, oy + h*0.52, w*0.3, h*0.48);
+        ctx.fillStyle = '#251c0c'; ctx.fillRect(ox + 4, oy + h*0.18, 3, h*0.82); ctx.fillRect(ox + w - 7, oy + h*0.18, 3, h*0.82);
+        ctx.fillStyle = '#2a2010'; ctx.fillRect(ox + w*0.08, oy + h*0.28, w*0.3, h*0.2);
+        return true;
+    }
+    if (id === 'fl_trailer' || lbl.includes('trailer')) {
+        ctx.fillStyle = '#3a3430'; ctx.fillRect(ox, oy + h*0.12, w, h*0.72);
+        ctx.fillStyle = '#2a2420'; ctx.fillRect(ox - 2, oy, w + 4, h*0.14);
+        ctx.fillStyle = '#464040'; ctx.fillRect(ox, oy + h*0.12, w, 3);
+        for (let i = 0; i < 4; i++) { ctx.fillStyle = '#2a4a65'; ctx.fillRect(ox + w*0.07 + i*(w*0.22), oy + h*0.22, w*0.14, h*0.2); }
+        ctx.fillStyle = '#1a1410'; ctx.fillRect(ox + w*0.75, oy + h*0.42, w*0.1, h*0.42);
+        ctx.fillRect(ox + w*0.735, oy + h*0.82, w*0.13, h*0.05); ctx.fillRect(ox + w*0.725, oy + h*0.86, w*0.15, h*0.05);
+        ctx.fillStyle = '#0d0a08';
+        [0.08, 0.3, 0.55, 0.8].forEach(function(x) { ctx.fillRect(ox + w*x, oy + h*0.83, w*0.1, h*0.1); });
+        ctx.fillStyle = 'rgba(255,255,255,0.06)'; ctx.fillRect(ox, oy + h*0.12, w, 2);
+        return true;
+    }
+    if (id === 'fl_palm' || lbl.includes('palm') || lbl.includes('date palm')) {
+        ctx.fillStyle = '#5c3a10'; ctx.fillRect(ox + w*0.38, oy + h*0.32, w*0.24, h*0.68);
+        ctx.fillStyle = '#1e5a10'; ctx.fillRect(ox + w*0.3, oy + h*0.08, w*0.4, h*0.28);
+        ctx.fillStyle = '#2a7a14';
+        ctx.fillRect(ox, oy + h*0.12, w*0.48, h*0.14); ctx.fillRect(ox + w*0.52, oy + h*0.12, w*0.48, h*0.14);
+        ctx.fillRect(ox + w*0.08, oy, w*0.38, h*0.16); ctx.fillRect(ox + w*0.54, oy, w*0.38, h*0.16);
+        ctx.fillStyle = '#1e5a10';
+        ctx.fillRect(ox - w*0.12, oy + h*0.22, w*0.32, h*0.1); ctx.fillRect(ox + w*0.8, oy + h*0.22, w*0.32, h*0.1);
+        ctx.fillStyle = '#7a3d10'; ctx.fillRect(ox + w*0.3, oy + h*0.25, w*0.16, h*0.1); ctx.fillRect(ox + w*0.54, oy + h*0.25, w*0.16, h*0.1);
+        return true;
+    }
+    if (lbl.includes('cactus')) {
+        ctx.fillStyle = '#2d5a1b';
+        ctx.fillRect(ox + w*0.3, oy, w*0.4, h);
+        ctx.fillRect(ox, oy + h*0.3, w*0.35, h*0.18); ctx.fillRect(ox + w*0.65, oy + h*0.38, w*0.35, h*0.18);
+        ctx.fillRect(ox, oy + h*0.12, w*0.35, h*0.1); ctx.fillRect(ox + w*0.65, oy + h*0.2, w*0.35, h*0.1);
+        return true;
+    }
+    if (id === 'fl_boulder' || id.startsWith('d_bould')) {
+        ctx.fillStyle = '#2a2218'; ctx.fillRect(ox + w*0.1, oy + h*0.18, w*0.85, h*0.8);
+        ctx.fillStyle = '#3a3028'; ctx.fillRect(ox, oy + h*0.22, w, h*0.68); ctx.fillRect(ox + w*0.1, oy + h*0.04, w*0.8, h*0.25);
+        ctx.fillStyle = '#4a4038'; ctx.fillRect(ox + w*0.12, oy + h*0.08, w*0.5, h*0.38);
+        ctx.fillStyle = '#1e1c14'; ctx.fillRect(ox + w*0.52, oy + h*0.28, 2, h*0.35);
+        return true;
+    }
+    if (id === 'fl_spoil' || id.startsWith('d_spoil')) {
+        ctx.fillStyle = '#2a2010'; ctx.fillRect(ox + w*0.05, oy + h*0.32, w*0.9, h*0.68);
+        ctx.fillStyle = '#5c4a30'; ctx.fillRect(ox, oy + h*0.42, w, h*0.58); ctx.fillRect(ox + w*0.1, oy + h*0.22, w*0.8, h*0.32); ctx.fillRect(ox + w*0.25, oy + h*0.1, w*0.5, h*0.2);
+        ctx.fillStyle = '#6a5a3a'; ctx.fillRect(ox + w*0.2, oy + h*0.48, 5, 3); ctx.fillRect(ox + w*0.55, oy + h*0.36, 4, 3); ctx.fillRect(ox + w*0.7, oy + h*0.52, 6, 3);
+        return true;
+    }
+    if (id === 'fl_crates' || id.startsWith('d_crate')) {
+        var cw = w/2 - 2, ch = h/2 - 2;
+        for (var r = 0; r < 2; r++) { for (var c = 0; c < 2; c++) {
+            var cx2 = ox + c*(cw+2), cyr = oy + r*(ch+2);
+            ctx.fillStyle = '#4a3820'; ctx.fillRect(cx2, cyr, cw, ch);
+            ctx.fillStyle = '#2a2010'; ctx.fillRect(cx2+1, cyr+1, cw-2, 2); ctx.fillRect(cx2+1, cyr+ch-3, cw-2, 2); ctx.fillRect(cx2+cw/2-1, cyr+1, 2, ch-2);
+            ctx.fillStyle = '#5a4a28'; ctx.fillRect(cx2, cyr, cw, 2);
+        }}
+        return true;
+    }
+    if (id.startsWith('d_truck') || id.startsWith('d_min')) {
+        var isMIN = id.startsWith('d_min');
+        ctx.fillStyle = isMIN ? '#1e2d1e' : '#2d3436'; ctx.fillRect(ox, oy + h*0.2, w, h*0.6);
+        ctx.fillStyle = isMIN ? '#152415' : '#1e2428'; ctx.fillRect(ox + w*0.6, oy, w*0.38, h*0.65);
+        ctx.fillStyle = '#2a4060'; ctx.fillRect(ox + w*0.63, oy + h*0.06, w*0.3, h*0.24);
+        ctx.fillStyle = '#0d0a08';
+        ctx.fillRect(ox + w*0.06, oy + h*0.78, w*0.18, h*0.16); ctx.fillRect(ox + w*0.32, oy + h*0.78, w*0.18, h*0.16); ctx.fillRect(ox + w*0.64, oy + h*0.78, w*0.14, h*0.16);
+        ctx.fillStyle = 'rgba(255,255,255,0.06)'; ctx.fillRect(ox, oy + h*0.2, w*0.58, 2);
+        return true;
+    }
+    if (id === 'fl_scaffold' || id.startsWith('d_scaff') || lbl.includes('scaffolding')) {
+        ctx.fillStyle = '#3a3a3a';
+        ctx.fillRect(ox + 2, oy, 4, h); ctx.fillRect(ox + w/2 - 2, oy, 4, h); ctx.fillRect(ox + w - 6, oy, 4, h);
+        ctx.fillStyle = '#4a4a4a';
+        for (var si = 0; si <= 3; si++) { ctx.fillRect(ox, oy + si*(h/3), w, 3); }
+        ctx.fillStyle = '#282828'; ctx.fillRect(ox + 6, oy + h*0.05, 2, h*0.5); ctx.fillRect(ox + 8, oy + h*0.55, 2, h*0.4);
+        return true;
+    }
+    if (id === 'fl_fuel_drums' || lbl.includes('fuel drum')) {
+        var dw = w/3 - 2;
+        for (var di = 0; di < 3; di++) {
+            var dx = ox + di*(dw+2);
+            ctx.fillStyle = '#4a2a18'; ctx.fillRect(dx, oy, dw, h);
+            ctx.fillStyle = '#5c3a24'; ctx.fillRect(dx, oy, dw, h*0.1); ctx.fillRect(dx, oy + h*0.9, dw, h*0.1);
+            ctx.fillStyle = '#2a1808'; ctx.fillRect(dx, oy + h*0.3, dw, 3); ctx.fillRect(dx, oy + h*0.6, dw, 3);
+            ctx.fillStyle = '#6a3a20'; ctx.fillRect(dx, oy, dw, 2);
+        }
+        return true;
+    }
+    if (id.startsWith('d_barrel') || lbl.includes('water barrel')) {
+        var bw = w/2 - 2;
+        for (var bi = 0; bi < 2; bi++) {
+            var bx = ox + bi*(bw+2);
+            ctx.fillStyle = '#0e1f33'; ctx.fillRect(bx, oy, bw, h);
+            ctx.fillStyle = '#1e3f66'; ctx.fillRect(bx, oy, bw, h*0.1); ctx.fillRect(bx, oy + h*0.9, bw, h*0.1);
+            ctx.fillStyle = '#0a1828'; ctx.fillRect(bx, oy + h*0.35, bw, 3); ctx.fillRect(bx, oy + h*0.6, bw, 3);
+        }
+        return true;
+    }
+    if (id.startsWith('fl_stake') || id.startsWith('d_stake') || lbl.includes('stake')) {
+        ctx.fillStyle = '#6b4c1a'; ctx.fillRect(ox + w*0.38, oy + h*0.15, w*0.24, h*0.85);
+        ctx.fillStyle = '#4a3010'; ctx.fillRect(ox + w*0.33, oy + h*0.88, w*0.34, h*0.12);
+        ctx.fillStyle = '#d4750a'; ctx.fillRect(ox + w*0.38, oy + h*0.08, w*0.55, h*0.14); ctx.fillRect(ox + w*0.38, oy + h*0.22, w*0.45, h*0.1);
+        return true;
+    }
+    if (id === 'fl_stars' || lbl.includes('sky') || lbl.includes('open sky')) {
+        ctx.fillStyle = '#060610'; ctx.fillRect(ox, oy, w, h);
+        ctx.fillStyle = '#dde8ff';
+        [[0.15,0.18],[0.45,0.08],[0.75,0.28],[0.25,0.52],[0.6,0.68],[0.85,0.12],[0.35,0.78],[0.9,0.48],[0.55,0.35],[0.1,0.65]].forEach(function(p) { ctx.fillRect(ox+p[0]*w, oy+p[1]*h, 2, 2); });
+        ctx.fillStyle = 'rgba(80,80,180,0.18)'; ctx.fillRect(ox, oy, w, h);
+        return true;
+    }
+    if (id === 'fl_ruins' || id.startsWith('d_ruin') || lbl.includes('limestone') || lbl.includes('stone wall')) {
+        var bH = Math.max(8, Math.floor(h/3)), bW = Math.max(18, Math.floor(w/4));
+        ctx.fillStyle = '#2a2418'; ctx.fillRect(ox, oy, w, h);
+        for (var row = 0; row < 3; row++) {
+            var off = (row % 2) * (bW * 0.5);
+            for (var col = -1; col <= 5; col++) {
+                var rbx = ox + col*bW + off, rby = oy + row*bH;
+                if (rbx + bW < ox || rbx > ox + w) continue;
+                ctx.fillStyle = row === 1 ? '#4a3d28' : '#3a3020';
+                var rcx = Math.max(ox, rbx), rcw = Math.min(ox+w, rbx+bW-1) - rcx;
+                if (rcw > 0) ctx.fillRect(rcx, rby, rcw, bH - 1);
+            }
+        }
+        return true;
+    }
+    if (id === 'fl_cooking' || id.startsWith('d_cooking') || lbl.includes('cooking')) {
+        ctx.fillStyle = '#3c2410'; ctx.fillRect(ox, oy + h*0.28, w, h*0.2);
+        ctx.fillStyle = '#4a3018'; ctx.fillRect(ox, oy + h*0.28, w, 3);
+        ctx.fillStyle = '#2a1808'; ctx.fillRect(ox + 4, oy + h*0.48, 4, h*0.52); ctx.fillRect(ox + w - 8, oy + h*0.48, 4, h*0.52);
+        ctx.fillStyle = '#1a1210'; ctx.fillRect(ox + w*0.28, oy, w*0.44, h*0.32);
+        ctx.fillStyle = '#3a3030'; ctx.fillRect(ox + w*0.22, oy, w*0.56, h*0.1);
+        ctx.fillStyle = '#5a2010'; ctx.fillRect(ox + w*0.55, oy + h*0.05, w*0.2, h*0.14);
+        return true;
+    }
+    if (id === 'fl_sand_east' || lbl.includes('dune') || lbl.includes('howling')) {
+        ctx.fillStyle = '#5a4c28'; ctx.fillRect(ox, oy + h*0.42, w, h*0.58);
+        ctx.fillStyle = '#6c5c30'; ctx.fillRect(ox + w*0.08, oy + h*0.22, w*0.84, h*0.36); ctx.fillRect(ox + w*0.22, oy + h*0.06, w*0.56, h*0.24);
+        ctx.fillStyle = '#7c6c40'; ctx.fillRect(ox + w*0.08, oy + h*0.52, w*0.32, 2); ctx.fillRect(ox + w*0.48, oy + h*0.62, w*0.38, 2); ctx.fillRect(ox + w*0.18, oy + h*0.7, w*0.42, 2);
+        return true;
+    }
+    if (id === 'fl_guard_booth' || lbl.includes('booth')) {
+        ctx.fillStyle = '#2a2a28'; ctx.fillRect(ox, oy + h*0.14, w, h*0.86);
+        ctx.fillStyle = '#1a1a18'; ctx.fillRect(ox - 2, oy, w + 4, h*0.16);
+        ctx.fillStyle = '#323030'; ctx.fillRect(ox, oy + h*0.14, w, 2);
+        ctx.fillStyle = '#2a3818'; ctx.fillRect(ox + w*0.14, oy + h*0.24, w*0.72, h*0.3);
+        ctx.fillStyle = '#1e2c12'; ctx.fillRect(ox + w*0.5 - 1, oy + h*0.24, 2, h*0.3); ctx.fillRect(ox + w*0.14, oy + h*0.37, w*0.72, 2);
+        ctx.fillStyle = '#0d0d0b'; ctx.fillRect(ox + w*0.32, oy + h*0.6, w*0.36, h*0.4);
+        return true;
+    }
+    if (id === 'fl_ministry_post' || lbl.includes('ministry')) {
+        ctx.fillStyle = '#2d3436'; ctx.fillRect(ox, oy + h*0.14, w, h*0.86);
+        ctx.fillStyle = '#1a1e1f'; ctx.fillRect(ox - 2, oy + h*0.1, w + 4, h*0.06);
+        ctx.fillStyle = '#888'; ctx.fillRect(ox + w*0.68, oy - h*0.28, 3, h*0.4); ctx.fillRect(ox + w*0.52, oy - h*0.14, w*0.38, 2);
+        ctx.fillStyle = '#1a3a28'; ctx.fillRect(ox + w*0.1, oy + h*0.24, w*0.8, h*0.28);
+        ctx.fillStyle = '#0d1010'; ctx.fillRect(ox + w*0.34, oy + h*0.6, w*0.32, h*0.4);
+        return true;
+    }
+    if (id === 'fl_gate_post' || lbl.includes('gate post')) {
+        ctx.fillStyle = '#5a4a3a'; ctx.fillRect(ox + w*0.28, oy + h*0.1, w*0.44, h*0.9);
+        ctx.fillStyle = '#3a2c1e'; ctx.fillRect(ox + w*0.08, oy, w*0.84, h*0.12);
+        ctx.fillStyle = '#4a3c2c'; ctx.fillRect(ox + w*0.14, oy + h*0.22, w*0.72, h*0.22);
+        return true;
+    }
+    if (id === 'd_gearstor' || lbl.includes('gear storage')) {
+        ctx.fillStyle = '#2a2818'; ctx.fillRect(ox, oy, w, h);
+        ctx.fillStyle = '#3a3828'; ctx.fillRect(ox, oy, w, h*0.12);
+        ctx.fillStyle = 'rgba(0,0,0,0.28)';
+        for (var gi = 1; gi < 4; gi++) { ctx.fillRect(ox + gi*(w/4), oy, 2, h); }
+        ctx.fillRect(ox, oy + h*0.5, w, 2);
+        ctx.fillStyle = '#4a4838'; ctx.fillRect(ox, oy, w, 2);
+        return true;
+    }
+    if (id === 'd_equiptbl' || lbl.includes('equipment table')) {
+        ctx.fillStyle = '#3c2c18'; ctx.fillRect(ox, oy + h*0.28, w, h*0.22);
+        ctx.fillStyle = '#4a3a24'; ctx.fillRect(ox, oy + h*0.28, w, 2);
+        ctx.fillStyle = '#2a1c08'; ctx.fillRect(ox + 4, oy + h*0.5, 4, h*0.5); ctx.fillRect(ox + w - 8, oy + h*0.5, 4, h*0.5);
+        ctx.fillStyle = '#5a4a30'; ctx.fillRect(ox + w*0.08, oy, w*0.18, h*0.3); ctx.fillRect(ox + w*0.34, oy + h*0.04, w*0.28, h*0.26); ctx.fillRect(ox + w*0.72, oy + h*0.07, w*0.2, h*0.23);
+        return true;
+    }
+    if (lbl.includes('fountain')) {
+        ctx.strokeStyle = '#1e3f66'; ctx.lineWidth = 4;
+        ctx.beginPath(); ctx.arc(ox + w/2, oy + h/2, w/2, 0, Math.PI * 2); ctx.stroke();
+        ctx.fillStyle = '#0a1a2a'; ctx.beginPath(); ctx.arc(ox + w/2, oy + h/2, w/2 - 4, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#1e3f88'; ctx.beginPath(); ctx.arc(ox + w/2, oy + h/2, w/4, 0, Math.PI * 2); ctx.fill();
+        return true;
+    }
+    return false;
+}
+
 function gameLoop() {
     if (gameState.currentScreen === 'START_MENU') {
         drawStartScreen();
@@ -1852,250 +2069,6 @@ function gameLoop() {
     }
 
     // Map objects — shadow + fill + label
-    function drawObjectShape(ctx, o, ox, oy) {
-        const id = o.id || '';
-        const lbl = (o.label || '').toLowerCase();
-        const w = o.w, h = o.h;
-
-        // TENT
-        if (id === 'enter_tent') {
-            ctx.fillStyle = '#1e3310';
-            ctx.beginPath(); ctx.moveTo(ox, oy + h*0.3); ctx.lineTo(ox + w/2, oy); ctx.lineTo(ox + w, oy + h*0.3); ctx.closePath(); ctx.fill();
-            ctx.fillStyle = '#2d4a1a'; ctx.fillRect(ox, oy + h*0.28, w, h*0.72);
-            ctx.fillStyle = '#243e14'; ctx.fillRect(ox, oy + h*0.28, w, 3);
-            ctx.fillStyle = '#0d1a08'; ctx.fillRect(ox + w*0.4, oy + h*0.52, w*0.2, h*0.48);
-            ctx.fillStyle = '#8b6914'; ctx.fillRect(ox + 3, oy + h*0.28, 4, h*0.72); ctx.fillRect(ox + w - 7, oy + h*0.28, 4, h*0.72);
-            ctx.strokeStyle = '#4a3810'; ctx.lineWidth = 1;
-            ctx.beginPath(); ctx.moveTo(ox + 3, oy + h*0.28); ctx.lineTo(ox - 14, oy + h); ctx.stroke();
-            ctx.beginPath(); ctx.moveTo(ox + w - 3, oy + h*0.28); ctx.lineTo(ox + w + 14, oy + h); ctx.stroke();
-            return true;
-        }
-        // OFFICE / SMALL BUILDING
-        if (id === 'enter_office' || lbl.includes('office')) {
-            ctx.fillStyle = '#2a2218'; ctx.fillRect(ox, oy + h*0.2, w, h*0.8);
-            ctx.fillStyle = '#1a1510'; ctx.fillRect(ox - 2, oy, w + 4, h*0.22);
-            ctx.fillStyle = '#4a3c28'; ctx.fillRect(ox, oy + h*0.2, w, 2);
-            ctx.fillStyle = '#0d0a06'; ctx.fillRect(ox + w*0.35, oy + h*0.55, w*0.3, h*0.45);
-            ctx.fillStyle = '#2a3f55'; ctx.fillRect(ox + w*0.08, oy + h*0.28, w*0.28, h*0.22);
-            return true;
-        }
-        // SHEDS
-        if (id === 'fl_digshed' || id === 'fl_toolshed' || lbl.includes('shed')) {
-            ctx.fillStyle = '#3a2e1a'; ctx.fillRect(ox, oy + h*0.18, w, h*0.82);
-            ctx.fillStyle = '#241e10'; ctx.fillRect(ox - 3, oy, w + 6, h*0.2);
-            ctx.fillStyle = '#5a4a28'; ctx.fillRect(ox, oy + h*0.18, w, 2);
-            ctx.fillStyle = '#0d0a06'; ctx.fillRect(ox + w*0.35, oy + h*0.52, w*0.3, h*0.48);
-            ctx.fillStyle = '#251c0c'; ctx.fillRect(ox + 4, oy + h*0.18, 3, h*0.82); ctx.fillRect(ox + w - 7, oy + h*0.18, 3, h*0.82);
-            ctx.fillStyle = '#2a2010'; ctx.fillRect(ox + w*0.08, oy + h*0.28, w*0.3, h*0.2);
-            return true;
-        }
-        // SITE TRAILER
-        if (id === 'fl_trailer' || lbl.includes('trailer')) {
-            ctx.fillStyle = '#3a3430'; ctx.fillRect(ox, oy + h*0.12, w, h*0.72);
-            ctx.fillStyle = '#2a2420'; ctx.fillRect(ox - 2, oy, w + 4, h*0.14);
-            ctx.fillStyle = '#464040'; ctx.fillRect(ox, oy + h*0.12, w, 3);
-            for (let i = 0; i < 4; i++) ctx.fillStyle = '#2a4a65', ctx.fillRect(ox + w*0.07 + i*(w*0.22), oy + h*0.22, w*0.14, h*0.2);
-            ctx.fillStyle = '#1a1410'; ctx.fillRect(ox + w*0.75, oy + h*0.42, w*0.1, h*0.42);
-            ctx.fillRect(ox + w*0.735, oy + h*0.82, w*0.13, h*0.05); ctx.fillRect(ox + w*0.725, oy + h*0.86, w*0.15, h*0.05);
-            ctx.fillStyle = '#0d0a08';
-            [0.08, 0.3, 0.55, 0.8].forEach(x => ctx.fillRect(ox + w*x, oy + h*0.83, w*0.1, h*0.1));
-            ctx.fillStyle = 'rgba(255,255,255,0.06)'; ctx.fillRect(ox, oy + h*0.12, w, 2);
-            return true;
-        }
-        // PALM TREE (interactive + deco)
-        if (id === 'fl_palm' || lbl.includes('palm') || lbl.includes('date palm')) {
-            ctx.fillStyle = '#5c3a10'; ctx.fillRect(ox + w*0.38, oy + h*0.32, w*0.24, h*0.68);
-            ctx.fillStyle = '#1e5a10'; ctx.fillRect(ox + w*0.3, oy + h*0.08, w*0.4, h*0.28);
-            ctx.fillStyle = '#2a7a14';
-            ctx.fillRect(ox, oy + h*0.12, w*0.48, h*0.14); ctx.fillRect(ox + w*0.52, oy + h*0.12, w*0.48, h*0.14);
-            ctx.fillRect(ox + w*0.08, oy, w*0.38, h*0.16); ctx.fillRect(ox + w*0.54, oy, w*0.38, h*0.16);
-            ctx.fillStyle = '#1e5a10';
-            ctx.fillRect(ox - w*0.12, oy + h*0.22, w*0.32, h*0.1); ctx.fillRect(ox + w*0.8, oy + h*0.22, w*0.32, h*0.1);
-            ctx.fillStyle = '#7a3d10'; ctx.fillRect(ox + w*0.3, oy + h*0.25, w*0.16, h*0.1); ctx.fillRect(ox + w*0.54, oy + h*0.25, w*0.16, h*0.1);
-            return true;
-        }
-        // CACTUS
-        if (lbl.includes('cactus')) {
-            ctx.fillStyle = '#2d5a1b';
-            ctx.fillRect(ox + w*0.3, oy, w*0.4, h);
-            ctx.fillRect(ox, oy + h*0.3, w*0.35, h*0.18); ctx.fillRect(ox + w*0.65, oy + h*0.38, w*0.35, h*0.18);
-            ctx.fillRect(ox, oy + h*0.12, w*0.35, h*0.1); ctx.fillRect(ox + w*0.65, oy + h*0.2, w*0.35, h*0.1);
-            return true;
-        }
-        // BOULDERS
-        if (id === 'fl_boulder' || id.startsWith('d_bould')) {
-            ctx.fillStyle = '#2a2218'; ctx.fillRect(ox + w*0.1, oy + h*0.18, w*0.85, h*0.8);
-            ctx.fillStyle = '#3a3028'; ctx.fillRect(ox, oy + h*0.22, w, h*0.68); ctx.fillRect(ox + w*0.1, oy + h*0.04, w*0.8, h*0.25);
-            ctx.fillStyle = '#4a4038'; ctx.fillRect(ox + w*0.12, oy + h*0.08, w*0.5, h*0.38);
-            ctx.fillStyle = '#1e1c14'; ctx.fillRect(ox + w*0.52, oy + h*0.28, 2, h*0.35);
-            ctx.fillStyle = '#2a2218'; ctx.fillRect(ox + w*0.18, oy + h*0.55, 6, 4);
-            return true;
-        }
-        // SPOIL MOUNDS
-        if (id === 'fl_spoil' || id.startsWith('d_spoil')) {
-            ctx.fillStyle = '#2a2010'; ctx.fillRect(ox + w*0.05, oy + h*0.32, w*0.9, h*0.68);
-            ctx.fillStyle = '#5c4a30'; ctx.fillRect(ox, oy + h*0.42, w, h*0.58); ctx.fillRect(ox + w*0.1, oy + h*0.22, w*0.8, h*0.32); ctx.fillRect(ox + w*0.25, oy + h*0.1, w*0.5, h*0.2);
-            ctx.fillStyle = '#6a5a3a'; ctx.fillRect(ox + w*0.2, oy + h*0.48, 5, 3); ctx.fillRect(ox + w*0.55, oy + h*0.36, 4, 3); ctx.fillRect(ox + w*0.7, oy + h*0.52, 6, 3);
-            return true;
-        }
-        // CRATES
-        if (id === 'fl_crates' || id.startsWith('d_crate')) {
-            const cw = w/2 - 2, ch = h/2 - 2;
-            for (let r = 0; r < 2; r++) for (let c = 0; c < 2; c++) {
-                const cx2 = ox + c*(cw+2), cy = oy + r*(ch+2);
-                ctx.fillStyle = '#4a3820'; ctx.fillRect(cx2, cy, cw, ch);
-                ctx.fillStyle = '#2a2010'; ctx.fillRect(cx2+1, cy+1, cw-2, 2); ctx.fillRect(cx2+1, cy+ch-3, cw-2, 2); ctx.fillRect(cx2+cw/2-1, cy+1, 2, ch-2);
-                ctx.fillStyle = '#5a4a28'; ctx.fillRect(cx2, cy, cw, 2);
-            }
-            return true;
-        }
-        // TRUCKS / VEHICLES
-        if (id.startsWith('d_truck') || id.startsWith('d_min')) {
-            const isMIN = id.startsWith('d_min');
-            ctx.fillStyle = isMIN ? '#1e2d1e' : '#2d3436'; ctx.fillRect(ox, oy + h*0.2, w, h*0.6);
-            ctx.fillStyle = isMIN ? '#152415' : '#1e2428'; ctx.fillRect(ox + w*0.6, oy, w*0.38, h*0.65);
-            ctx.fillStyle = '#2a4060'; ctx.fillRect(ox + w*0.63, oy + h*0.06, w*0.3, h*0.24);
-            ctx.fillStyle = '#0d0a08';
-            ctx.fillRect(ox + w*0.06, oy + h*0.78, w*0.18, h*0.16); ctx.fillRect(ox + w*0.32, oy + h*0.78, w*0.18, h*0.16); ctx.fillRect(ox + w*0.64, oy + h*0.78, w*0.14, h*0.16);
-            ctx.fillStyle = 'rgba(255,255,255,0.06)'; ctx.fillRect(ox, oy + h*0.2, w*0.58, 2);
-            return true;
-        }
-        // SCAFFOLDING
-        if (id === 'fl_scaffold' || id.startsWith('d_scaff') || lbl.includes('scaffolding')) {
-            ctx.fillStyle = '#3a3a3a';
-            ctx.fillRect(ox + 2, oy, 4, h); ctx.fillRect(ox + w/2 - 2, oy, 4, h); ctx.fillRect(ox + w - 6, oy, 4, h);
-            ctx.fillStyle = '#4a4a4a';
-            for (let i = 0; i <= 3; i++) ctx.fillRect(ox, oy + i*(h/3), w, 3);
-            ctx.fillStyle = '#282828'; ctx.fillRect(ox + 6, oy + h*0.05, 2, h*0.5); ctx.fillRect(ox + 8, oy + h*0.55, 2, h*0.4);
-            return true;
-        }
-        // FUEL DRUMS
-        if (id === 'fl_fuel_drums' || lbl.includes('fuel drum')) {
-            const dw = w/3 - 2;
-            for (let i = 0; i < 3; i++) {
-                const dx = ox + i*(dw+2);
-                ctx.fillStyle = '#4a2a18'; ctx.fillRect(dx, oy, dw, h);
-                ctx.fillStyle = '#5c3a24'; ctx.fillRect(dx, oy, dw, h*0.1); ctx.fillRect(dx, oy + h*0.9, dw, h*0.1);
-                ctx.fillStyle = '#2a1808'; ctx.fillRect(dx, oy + h*0.3, dw, 3); ctx.fillRect(dx, oy + h*0.6, dw, 3);
-                ctx.fillStyle = '#6a3a20'; ctx.fillRect(dx, oy, dw, 2);
-            }
-            return true;
-        }
-        // WATER BARRELS
-        if (id.startsWith('d_barrel') || lbl.includes('water barrel')) {
-            const bw = w/2 - 2;
-            for (let i = 0; i < 2; i++) {
-                const bx = ox + i*(bw+2);
-                ctx.fillStyle = '#0e1f33'; ctx.fillRect(bx, oy, bw, h);
-                ctx.fillStyle = '#1e3f66'; ctx.fillRect(bx, oy, bw, h*0.1); ctx.fillRect(bx, oy + h*0.9, bw, h*0.1);
-                ctx.fillStyle = '#0a1828'; ctx.fillRect(bx, oy + h*0.35, bw, 3); ctx.fillRect(bx, oy + h*0.6, bw, 3);
-            }
-            return true;
-        }
-        // SURVEY STAKES
-        if (id.startsWith('fl_stake') || id.startsWith('d_stake') || lbl.includes('stake')) {
-            ctx.fillStyle = '#6b4c1a'; ctx.fillRect(ox + w*0.38, oy + h*0.15, w*0.24, h*0.85);
-            ctx.fillStyle = '#4a3010'; ctx.fillRect(ox + w*0.33, oy + h*0.88, w*0.34, h*0.12);
-            ctx.fillStyle = '#d4750a'; ctx.fillRect(ox + w*0.38, oy + h*0.08, w*0.55, h*0.14); ctx.fillRect(ox + w*0.38, oy + h*0.22, w*0.45, h*0.1);
-            return true;
-        }
-        // OPEN SKY / STARS
-        if (id === 'fl_stars' || lbl.includes('sky') || lbl.includes('open sky')) {
-            ctx.fillStyle = '#060610'; ctx.fillRect(ox, oy, w, h);
-            ctx.fillStyle = '#dde8ff';
-            [[0.15,0.18],[0.45,0.08],[0.75,0.28],[0.25,0.52],[0.6,0.68],[0.85,0.12],[0.35,0.78],[0.9,0.48],[0.55,0.35],[0.1,0.65]].forEach(([sx,sy]) => ctx.fillRect(ox+sx*w, oy+sy*h, 2, 2));
-            ctx.fillStyle = 'rgba(80,80,180,0.18)'; ctx.fillRect(ox, oy, w, h);
-            return true;
-        }
-        // STONE RUINS / LIMESTONE WALLS
-        if (id === 'fl_ruins' || id.startsWith('d_ruin') || lbl.includes('limestone') || lbl.includes('stone wall')) {
-            const bH = Math.max(8, Math.floor(h/3)), bW = Math.max(18, Math.floor(w/4));
-            ctx.fillStyle = '#2a2418'; ctx.fillRect(ox, oy, w, h);
-            for (let row = 0; row < 3; row++) {
-                const off = (row % 2) * (bW * 0.5);
-                for (let col = -1; col <= 5; col++) {
-                    const bx = ox + col*bW + off, by = oy + row*bH;
-                    if (bx + bW < ox || bx > ox + w) continue;
-                    ctx.fillStyle = row === 1 ? '#4a3d28' : '#3a3020';
-                    const cx2 = Math.max(ox, bx), cw2 = Math.min(ox+w, bx+bW-1) - cx2;
-                    if (cw2 > 0) ctx.fillRect(cx2, by, cw2, bH - 1);
-                }
-            }
-            return true;
-        }
-        // COOKING TABLE / SURFACE
-        if (id === 'fl_cooking' || id.startsWith('d_cooking') || lbl.includes('cooking')) {
-            ctx.fillStyle = '#3c2410'; ctx.fillRect(ox, oy + h*0.28, w, h*0.2);
-            ctx.fillStyle = '#4a3018'; ctx.fillRect(ox, oy + h*0.28, w, 3);
-            ctx.fillStyle = '#2a1808'; ctx.fillRect(ox + 4, oy + h*0.48, 4, h*0.52); ctx.fillRect(ox + w - 8, oy + h*0.48, 4, h*0.52);
-            ctx.fillStyle = '#1a1210'; ctx.fillRect(ox + w*0.28, oy, w*0.44, h*0.32);
-            ctx.fillStyle = '#3a3030'; ctx.fillRect(ox + w*0.22, oy, w*0.56, h*0.1);
-            ctx.fillStyle = '#5a2010'; ctx.fillRect(ox + w*0.55, oy + h*0.05, w*0.2, h*0.14);
-            return true;
-        }
-        // HOWLING DUNE / SAND
-        if (id === 'fl_sand_east' || lbl.includes('dune') || lbl.includes('howling')) {
-            ctx.fillStyle = '#5a4c28'; ctx.fillRect(ox, oy + h*0.42, w, h*0.58);
-            ctx.fillStyle = '#6c5c30'; ctx.fillRect(ox + w*0.08, oy + h*0.22, w*0.84, h*0.36); ctx.fillRect(ox + w*0.22, oy + h*0.06, w*0.56, h*0.24);
-            ctx.fillStyle = '#7c6c40'; ctx.fillRect(ox + w*0.08, oy + h*0.52, w*0.32, 2); ctx.fillRect(ox + w*0.48, oy + h*0.62, w*0.38, 2); ctx.fillRect(ox + w*0.18, oy + h*0.7, w*0.42, 2);
-            return true;
-        }
-        // GUARD BOOTH
-        if (id === 'fl_guard_booth' || lbl.includes('booth')) {
-            ctx.fillStyle = '#2a2a28'; ctx.fillRect(ox, oy + h*0.14, w, h*0.86);
-            ctx.fillStyle = '#1a1a18'; ctx.fillRect(ox - 2, oy, w + 4, h*0.16);
-            ctx.fillStyle = '#323030'; ctx.fillRect(ox, oy + h*0.14, w, 2);
-            ctx.fillStyle = '#2a3818'; ctx.fillRect(ox + w*0.14, oy + h*0.24, w*0.72, h*0.3);
-            ctx.fillStyle = '#1e2c12'; ctx.fillRect(ox + w*0.5 - 1, oy + h*0.24, 2, h*0.3); ctx.fillRect(ox + w*0.14, oy + h*0.37, w*0.72, 2);
-            ctx.fillStyle = '#0d0d0b'; ctx.fillRect(ox + w*0.32, oy + h*0.6, w*0.36, h*0.4);
-            return true;
-        }
-        // MINISTRY POST / PREFAB SHACK
-        if (id === 'fl_ministry_post' || lbl.includes('ministry')) {
-            ctx.fillStyle = '#2d3436'; ctx.fillRect(ox, oy + h*0.14, w, h*0.86);
-            ctx.fillStyle = '#1a1e1f'; ctx.fillRect(ox - 2, oy + h*0.1, w + 4, h*0.06);
-            ctx.fillStyle = '#888'; ctx.fillRect(ox + w*0.68, oy - h*0.28, 3, h*0.4); ctx.fillRect(ox + w*0.52, oy - h*0.14, w*0.38, 2);
-            ctx.fillStyle = '#1a3a28'; ctx.fillRect(ox + w*0.1, oy + h*0.24, w*0.8, h*0.28);
-            ctx.fillStyle = '#243a30'; ctx.fillRect(ox + w*0.1, oy + h*0.24, w*0.8, 2);
-            ctx.fillStyle = '#0d1010'; ctx.fillRect(ox + w*0.34, oy + h*0.6, w*0.32, h*0.4);
-            return true;
-        }
-        // CAMP GATE POST
-        if (id === 'fl_gate_post' || lbl.includes('gate post')) {
-            ctx.fillStyle = '#5a4a3a'; ctx.fillRect(ox + w*0.28, oy + h*0.1, w*0.44, h*0.9);
-            ctx.fillStyle = '#3a2c1e'; ctx.fillRect(ox + w*0.08, oy, w*0.84, h*0.12);
-            ctx.fillStyle = '#4a3c2c'; ctx.fillRect(ox + w*0.14, oy + h*0.22, w*0.72, h*0.22);
-            ctx.fillStyle = '#2a2010'; ctx.fillRect(ox + w*0.14, oy + h*0.22, w*0.72, 2);
-            return true;
-        }
-        // GEAR STORAGE
-        if (id === 'd_gearstor' || lbl.includes('gear storage')) {
-            ctx.fillStyle = '#2a2818'; ctx.fillRect(ox, oy, w, h);
-            ctx.fillStyle = '#3a3828'; ctx.fillRect(ox, oy, w, h*0.12);
-            ctx.fillStyle = 'rgba(0,0,0,0.28)';
-            for (let i = 1; i < 4; i++) ctx.fillRect(ox + i*(w/4), oy, 2, h);
-            ctx.fillRect(ox, oy + h*0.5, w, 2);
-            ctx.fillStyle = '#4a4838'; ctx.fillRect(ox, oy, w, 2);
-            return true;
-        }
-        // EQUIPMENT TABLE
-        if (id === 'd_equiptbl' || lbl.includes('equipment table')) {
-            ctx.fillStyle = '#3c2c18'; ctx.fillRect(ox, oy + h*0.28, w, h*0.22);
-            ctx.fillStyle = '#4a3a24'; ctx.fillRect(ox, oy + h*0.28, w, 2);
-            ctx.fillStyle = '#2a1c08'; ctx.fillRect(ox + 4, oy + h*0.5, 4, h*0.5); ctx.fillRect(ox + w - 8, oy + h*0.5, 4, h*0.5);
-            ctx.fillStyle = '#5a4a30'; ctx.fillRect(ox + w*0.08, oy, w*0.18, h*0.3); ctx.fillRect(ox + w*0.34, oy + h*0.04, w*0.28, h*0.26); ctx.fillRect(ox + w*0.72, oy + h*0.07, w*0.2, h*0.23);
-            return true;
-        }
-        // FOUNTAIN (ch2+)
-        if (lbl.includes('fountain')) {
-            ctx.strokeStyle = '#1e3f66'; ctx.lineWidth = 4;
-            ctx.beginPath(); ctx.arc(ox + w/2, oy + h/2, w/2, 0, Math.PI * 2); ctx.stroke();
-            ctx.fillStyle = '#0a1a2a'; ctx.beginPath(); ctx.arc(ox + w/2, oy + h/2, w/2 - 4, 0, Math.PI * 2); ctx.fill();
-            ctx.fillStyle = '#1e3f88'; ctx.beginPath(); ctx.arc(ox + w/2, oy + h/2, w/4, 0, Math.PI * 2); ctx.fill();
-            return true;
-        }
-        return false;
-    }
 
     let interacting = null;
     activeMapObjects.forEach(o => {
