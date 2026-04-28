@@ -2594,6 +2594,7 @@ const storyData = {
         choices: [{
             text: "Stand up. Go back to the tent.",
             onSelect: () => {
+                gameState.flags.Watcher_Observed_Ellis = true;
                 updateHUD();
                 startDialogue('ch1_m3_resolution_check');
             }
@@ -2713,7 +2714,9 @@ const storyData = {
             if (gameState.flags.tariq_grandfather_full) {
                 base += "\n\nTariq's grandfather said: do not trust what the stone tells you, but do not lie about what you saw. Write the truth in a place only you can find it.\n\nYou have been writing. Now you go see what the truth is.";
             } else if (gameState.flags.Watcher_Acknowledged_Ellis) {
-                base += "\n\nSomething in the dark acknowledged you. You acknowledged it back. Whatever comes next, you went in with your eyes open. That has to count for something.";
+                base += "\n\nSomething in the dark acknowledged you — out there, in the sand, three nights ago. You stood up. You raised your hand. It raised something back.\n\nWhatever comes next, you went in with your eyes open. That has to count for something.";
+            } else if (gameState.flags.Watcher_Observed_Ellis) {
+                base += "\n\nSomething in the dark looked right at you and didn't move against you. You stayed still. You watched it the way it watched you.\n\nIt already knows you're here. Whatever that means for what comes next.";
             } else {
                 base += "\n\nThe work is what it is. You understand enough to proceed. The tunnel is north.";
             }
