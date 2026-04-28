@@ -1571,7 +1571,7 @@ const storyData = {
         speaker: "Ministry Guard",
         text: "'This area is restricted. Authorised personnel only beyond the yellow tape. Move back to the approved excavation zone now or I radio for assistance.' His hand rests on his radio, not his belt. Professional.\n\nHe hasn't touched you. He's giving you a way out.",
         choices: [
-            { text: "Comply and walk back.", onSelect: () => { gameState.repMinistry -= 1; updateHUD(); closeDialogue(); } },
+            { text: "Comply and walk back.", onSelect: () => { gameState.repMinistry -= 1; gameState.flags.ministeryCar_called = true; updateHUD(); closeDialogue(); } },
             { text: "'I'm with the excavation team — Dr. Vance.'", onSelect: () => {
                 if (gameState.repMinistry >= 0) startDialogue('hostile_ministry_bluff_success');
                 else startDialogue('hostile_ministry_bluff_fail');
@@ -1593,8 +1593,8 @@ const storyData = {
         speaker: "Ministry Guard",
         text: "He doesn't buy it. He keys his radio before you finish the sentence.\n\nYou hear a response — two words in Arabic — and he looks back at you with an expression that has moved from professional to something harder.\n\n'Wait here. Inspector is coming.'",
         choices: [
-            { text: "Wait where you are.", onSelect: () => { startDialogue('hostile_ministry_inspector_arrives'); } },
-            { text: "Walk away quickly — risk it.", onSelect: () => { startDialogue('hostile_ministry_bluff_run'); } }
+            { text: "Wait where you are.", onSelect: () => { gameState.flags.ministeryCar_called = true; startDialogue('hostile_ministry_inspector_arrives'); } },
+            { text: "Walk away quickly — risk it.", onSelect: () => { gameState.flags.ministeryCar_called = true; startDialogue('hostile_ministry_bluff_run'); } }
         ]
     },
 

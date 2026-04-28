@@ -2025,7 +2025,7 @@ function gameLoop() {
 
     // Ministry car drive-in: triggered once guard mentions it
     if (gameState.chapter === 1 && !interiorState.active) {
-        if (gameState.flags.watcherResolved && !ministeryCar.active && !ministeryCar.parked) {
+        if (gameState.flags.ministeryCar_called && !ministeryCar.active && !ministeryCar.parked) {
             ministeryCar.active = true;
         }
         if (ministeryCar.active && !ministeryCar.parked) {
