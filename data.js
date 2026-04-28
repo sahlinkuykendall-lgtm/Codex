@@ -600,7 +600,7 @@ const mapObjects = {
         { id: 'fl_sand_east',   x: 1700, y: 750,  w: 60,  h: 60,  color: '#6c5c30', label: 'Howling Dune',       interactScene: 'flavor_sand'           },
         { id: 'fl_stars',       x: 1200, y: 1900, w: 60,  h: 60,  color: '#3a3a50', label: 'Open Sky',           interactScene: 'flavor_stars'          },
         { id: 'fl_ruins',       x: 430,  y: 680,  w: 60,  h: 60,  color: '#5a4a30', label: 'Old Limestone Wall', interactScene: 'flavor_ruins_fragment' },
-        { id: 'fl_boulder',     x: 2090, y: 980,  w: 55,  h: 45,  color: '#3a3028', label: 'Big Boulder',        interactScene: 'flavor_boulder'        },
+        { id: 'fl_boulder',     x: 2080, y: 960,  w: 65,  h: 50,  color: '#3a3028', label: 'Big Boulder',        interactScene: 'flavor_boulder'        },
         { id: 'fl_cactus',      x: 60,   y: 550,  w: 30,  h: 50,  color: '#2d5a1b', label: 'Lone Date Cactus',   interactScene: 'flavor_cactus'         },
         { id: 'fl_stake_sam',   x: 700,  y: 1120, w: 30,  h: 45,  color: '#b8860b', label: "Sam's Survey Stake", interactScene: 'flavor_survey_stake'   },
         { id: 'fl_cooking',     x: 150,  y: 1470, w: 60,  h: 30,  color: '#5c3010', label: 'Cooking Table',      interactScene: 'flavor_cooking_table'  },
@@ -642,7 +642,6 @@ const mapObjects = {
         // Boulder clusters
         deco('d_bould1', 150, 950, 55, 45,  '#3a3028', 'Boulder'),
         deco('d_bould2', 220, 935, 70, 55,  '#3a3028', 'Boulder'),
-        deco('d_bould3', 2080,960, 65, 50,  '#3a3028', 'Boulder'),
         // Ancient ruins
         deco('d_ruin1',  350, 650, 130, 18, '#4a3820', 'Stone Wall'),
         deco('d_ruin2',  550, 610, 18, 110, '#4a3820', 'Stone Wall'),

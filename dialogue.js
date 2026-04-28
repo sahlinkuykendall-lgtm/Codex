@@ -2,8 +2,8 @@ const storyData = {
     // --- SCENE 1.1: FIRST EXAMINATION ---
     'scene1_start': { speaker: "Ellis", text: "Day 22. Still can't pin the dynasty. The pharaoh determinative in the third register is pre-dynastic, but the cartouche style below it is Middle Kingdom. That's fifteen hundred years of difference on a single stone.\n\nEither I'm wrong about everything I've been taught, or this thing was made by someone showing off.", choices: [
         { text: "Touch it, bare hand, feel the grooves.", onSelect: () => { decreaseSanity(0.5); gameState.flags.Codex_Pulse_Felt = true; gameState.knowledgeCodex += 1; }, nextScene: 's1_touch_result' },
-        { text: "Use magnifying loupe, careful, no contact.", onSelect: () => { decreaseSanity(0.3); gameState.flags.Crystalline_Structure_Noted = true; gameState.knowledgeCodex += 2; }, nextScene: 's1_loupe_result' },
-        { text: "Sketch it in the field journal - every glyph, every position.", onSelect: () => { decreaseSanity(0.3); gameState.flags.Codex_Sketch_Captured = true; gameState.knowledgeCodex += 3; if (!gameState.inventory.includes('Codex_Sketch')) gameState.inventory.push('Codex_Sketch'); }, nextScene: 's1_sketch_result' }
+        { text: "Use magnifying loupe, careful, no contact.", onSelect: () => { gameState.flags.Crystalline_Structure_Noted = true; gameState.knowledgeCodex += 2; }, nextScene: 's1_loupe_result' },
+        { text: "Sketch it in the field journal - every glyph, every position.", onSelect: () => { gameState.flags.Codex_Sketch_Captured = true; gameState.knowledgeCodex += 3; if (!gameState.inventory.includes('Codex_Sketch')) gameState.inventory.push('Codex_Sketch'); }, nextScene: 's1_sketch_result' }
     ]},
     's1_touch_result': { speaker: "System", text: "The stone is warm. Not ambient-warm. Body-warm. The grooves of the hieroglyphs are rougher on one diagonal than the other - like the stone has a grain, except stone doesn't have a grain.\n\nA faint, almost subsonic vibration travels up through your wrist. It stops the moment you lift your hand. Your palm is tingling.\n\nYou wait. Count silently. At eight seconds exactly, the vibration comes again — faint, precise, unhurried. You count again. Eight seconds. Again. It has not missed an interval once. Whatever this thing is, it has a heartbeat.", choices: [{ text: "Keep examining.", onSelect: () => { addJournalNote('Codex Pulse: 8-Second Interval', 'Tablet vibrates at precise 8-second intervals. Never missed once. Too regular for geological resonance. Warm to the touch — body temperature, not ambient.'); startDialogue('scene1_sound'); } }] },
     's1_loupe_result': { speaker: "System", text: "Under 10x magnification, the incision marks aren't tool marks. They're crystalline. Like the glyphs grew out of the stone rather than being carved into it.\n\nYou blink. The loupe slips fractionally. When you re-focus, three of the glyphs have moved. Just enough that the cartouche now reads a different name.", choices: [{ text: "Blink again.", onSelect: () => startDialogue('scene1_sound') }] },
@@ -33,7 +33,7 @@ const storyData = {
 
     // --- SCENE 2: LOGISTICS ---
     'scene2_trench': { speaker: "Tariq", text: "The local men have stopped here, Doctor. Carts three and five are past the east trench. The men say the ground there has 'softened.'\n\nThey refuse to push across it in the dark. You can walk the path yourself. See it. Decide.", choices: [ 
-        { text: "Cross it yourself. Lead by example.", onSelect: () => { decreaseSanity(1.2); gameState.repLocal += 2; gameState.flags.East_Trench_Crossed = true; gameState.flags.Subsurface_Vibration_Felt = true; gameState.flags.eastTrenchResolved = true; }, nextScene: 'trench_cross_result' },
+        { text: "Cross it yourself. Lead by example.", onSelect: () => { decreaseSanity(0.4); gameState.repLocal += 2; gameState.flags.East_Trench_Crossed = true; gameState.flags.Subsurface_Vibration_Felt = true; gameState.flags.eastTrenchResolved = true; }, nextScene: 'trench_cross_result' },
         { text: "Pay a worker to cross it first (500 EGP).", onSelect: () => { if(gameState.funds >= 500) { gameState.funds -= 500; gameState.repLocal -= 1; gameState.flags.eastTrenchResolved = true; gameState.flags.Paid_For_Risk = true; startDialogue('trench_pay_result'); } else { alert("Not enough funds!"); } } },
         { text: "Reroute around the trench. Longer path, but safer.", onSelect: () => { gameState.repLocal += 3; gameState.flags.eastTrenchResolved = true; gameState.flags.East_Trench_Avoided = true; }, nextScene: 'trench_reroute_result' },
         { text: "Ask Tariq what he personally thinks is down there.", onSelect: () => { if (gameState.flags.Tariq_Confessed_Unease) { gameState.knowledgeCodex += 2; gameState.knowledgeAtlantean += 1; gameState.trustTariq += 2; gameState.flags.Tariq_Grandfather_Story = true; startDialogue('trench_ask_result'); } else { alert("Tariq isn't willing to open up to you about this yet."); } } }
@@ -53,7 +53,7 @@ const storyData = {
     'carts_instruct_result': { speaker: "System", text: "You direct. They execute. Tariq translates your instructions, cutting some of your more pedantic demands because he knows the workers and you do not. The job gets done safely.", choices: [{ text: "Examine the failed axles.", onSelect: () => startDialogue('ch1_m2_entry') }, { text: "Nod to Tariq.", onSelect: () => closeDialogue() }] },
     
     'scene2_stranger': { speaker: "Ellis", text: "Tariq. Look. Behind the pallet by the generator. Who is that? That's not one of our men.\n\nTARIQ: I see no one, Doctor.", choices: [ 
-        { text: "Approach the figure directly.", onSelect: () => { decreaseSanity(1.5); gameState.flags.Watched_By_Stranger = true; gameState.flags.watcherResolved = true; }, nextScene: 'stranger_approach_result' }, 
+        { text: "Approach the figure directly.", onSelect: () => { decreaseSanity(0.8); gameState.flags.Watched_By_Stranger = true; gameState.flags.watcherResolved = true; }, nextScene: 'stranger_approach_result' }, 
         { text: "Press Tariq. 'You saw him. You looked right at him.'", onSelect: () => { gameState.trustTariq -= 1; gameState.flags.Tariq_Lied_About_Watcher = true; gameState.knowledgeHermetic += 1; gameState.flags.watcherResolved = true; }, nextScene: 'stranger_press_result' },
         { text: "Drop it. Note it in the journal.", onSelect: () => { gameState.flags.Watched_By_Stranger = true; gameState.flags.Watcher_Logged = true; gameState.flags.watcherResolved = true; }, nextScene: 'stranger_drop_result' } 
     ]},
@@ -77,7 +77,7 @@ const storyData = {
     'water_ask_result': { speaker: "System", text: "They refuse to meet your eyes, murmuring apologies in Arabic before scattering back to their posts. You shouldn't have pried.", choices: [{ text: "Leave.", onSelect: () => closeDialogue() }] },
     'water_drink_result': { speaker: "System", text: "You share the water in total silence. A quiet, mutual respect is established in the shared dread of the dark.", choices: [{ text: "Leave.", onSelect: () => closeDialogue() }] },
     
-    'flavor_sand': { speaker: "System", text: "The wind whips across this dune in a bizarre, geometric pattern. If you close your eyes, the howling sounds exactly like a choir.", choices: [ { text: "Listen closely.", onSelect: () => { if (!gameState.flags.heardSand) { gameState.knowledgeAtlantean += 1; decreaseSanity(1.0); gameState.flags.heardSand = true; } }, nextScene: 'sand_listen_result' }, { text: "Leave.", onSelect: () => closeDialogue() } ]},
+    'flavor_sand': { speaker: "System", text: "The wind whips across this dune in a bizarre, geometric pattern. If you close your eyes, the howling sounds exactly like a choir.", choices: [ { text: "Listen closely.", onSelect: () => { if (!gameState.flags.heardSand) { gameState.knowledgeAtlantean += 1; decreaseSanity(0.4); gameState.flags.heardSand = true; } }, nextScene: 'sand_listen_result' }, { text: "Leave.", onSelect: () => closeDialogue() } ]},
     'sand_listen_result': { speaker: "System", text: "The choir isn't wind. It's breathing. Massive, slow, subterranean breathing. Your head begins to pound as the sound vibrates against your skull.", choices: [{ text: "Step back.", onSelect: () => closeDialogue() }] },
 
     // ---- NEW Ch1 flavor nodes ----
@@ -85,7 +85,7 @@ const storyData = {
         speaker: "System",
         text: "You tilt your head back. The sky over Giza has no light pollution — you can see the Milky Way clear as a chalk line. Orion is high. The three stars of his belt align almost exactly with the three great pyramids. Sam used to call that 'the joke that took ten thousand years to land.'",
         choices: [
-            { text: "Stay a moment longer.", onSelect: () => { gameState.flags.stars_watched = true; increaseSanity(0.5); updateHUD(); closeDialogue(); } },
+            { text: "Stay a moment longer.", onSelect: () => { gameState.flags.stars_watched = true; increaseSanity(2.0); updateHUD(); closeDialogue(); } },
             { text: "Get back to work.", onSelect: () => closeDialogue() }
         ]
     },
@@ -119,7 +119,7 @@ const storyData = {
         speaker: "System",
         text: "A wooden stake driven into the sand. Yellow flagging tape, faded orange now. Sam's handwriting on the stake in black marker: '1.2m subsurface anomaly. GPR confirm req.'\n\nThe date on the stake is 14 months ago. Two weeks before he died.",
         choices: [
-            { text: "Leave it standing.", onSelect: () => { decreaseSanity(0.5); closeDialogue(); } },
+            { text: "Leave it standing.", onSelect: () => closeDialogue() },
             { text: "Pull it up. Take it with you.", onSelect: () => { if (!gameState.inventory.includes("Sam's Survey Stake")) gameState.inventory.push("Sam's Survey Stake"); gameState.flags.memorializedPartner = true; increaseSanity(0.5); updateHUD(); closeDialogue(); } }
         ]
     },
@@ -136,7 +136,7 @@ const storyData = {
         speaker: "System",
         text: "A pile of supply crates. Ministry stamps on three of them, UNESCO tags on two, unlabeled on the rest. The ones with no labels are heavier than they look. The tops are pried open and resealed. Someone's been sorting these at night.",
         choices: [
-            { text: "Pry one open.", onSelect: () => { decreaseSanity(0.5); gameState.flags.crates_investigated = true; startDialogue('flavor_crates_opened'); } },
+            { text: "Pry one open.", onSelect: () => { gameState.flags.crates_investigated = true; startDialogue('flavor_crates_opened'); } },
             { text: "Leave them.", onSelect: () => closeDialogue() }
         ]
     },
@@ -171,14 +171,14 @@ const storyData = {
         speaker: "System",
         text: "The key from Sam's boulder mark — pried from under the rock edge where he always left things for someone he trusted. It fits. The padlock clicks.\n\nInside: a cork board covered in photographs. Not of the dig. Of people. Faces photographed at distance, without their knowledge. Workers. Ministry officials. A man you don't recognize but who appears in eleven of the shots. Each photo has a date and a location on the back.\n\nSam was watching someone. Sam was watching everyone.",
         choices: [
-            { text: "Take the photographs.", onSelect: () => { if (!gameState.inventory.includes("Sam's Surveillance File")) gameState.inventory.push("Sam's Surveillance File"); gameState.knowledgeCodex += 3; decreaseSanity(0.8); closeDialogue(); } }
+            { text: "Take the photographs.", onSelect: () => { if (!gameState.inventory.includes("Sam's Surveillance File")) gameState.inventory.push("Sam's Surveillance File"); gameState.knowledgeCodex += 3; decreaseSanity(0.3); closeDialogue(); } }
         ]
     },
     'flavor_ministry_post': {
         speaker: "System",
         text: "The Ministry observation post. A prefab guard shack with a satellite uplink on the roof. The radio inside is on — you can hear a muffled Arabic voice every few minutes. Check-ins.\n\nOn the window ledge outside: three cigarette butts. Same brand. All lit within the last hour. Someone has been waiting here, watching the camp.",
         choices: [
-            { text: "Note it and leave.", onSelect: () => { gameState.flags.ministry_watching = true; decreaseSanity(0.5); closeDialogue(); } }
+            { text: "Note it and leave.", onSelect: () => { gameState.flags.ministry_watching = true; closeDialogue(); } }
         ]
     },
     'flavor_fuel_drums': {
@@ -218,7 +218,7 @@ const storyData = {
                 gameState.flags.sams_second_dig_known = true;
                 gameState.flags.sam_final_note_read = true;
                 gameState.flags.memorializedPartner = true;
-                decreaseSanity(1.5);
+                decreaseSanity(0.5);
                 updateHUD();
                 closeDialogue();
             }}
@@ -240,7 +240,7 @@ const storyData = {
                 gameState.flags.memorializedPartner = true;
                 gameState.flags.sam_glyph_sequence_known = true;
                 addJournalNote('Glyph Lock Sequence', 'From Sam\'s notebook: 3-1-4-2. Owl first, then eye, then fish, then lion. Sam\'s note: "Don\'t try it blind." He knew the gate personally.');
-                decreaseSanity(1.5);
+                decreaseSanity(0.5);
                 updateHUD();
                 closeDialogue();
             }
@@ -250,7 +250,7 @@ const storyData = {
     'flavor_guard_booth': {
         speaker: "System",
         text: "A chain-link enclosure with a folding chair inside. A guard's booth. The chair is empty but the thermos on the floor is still warm.\n\nOn the inside of the door, at eye height for a seated man: tally marks. Forty-two of them. Scratched one per night, by someone counting the days since something began.",
-        choices: [{ text: "Step away.", onSelect: () => { decreaseSanity(0.5); closeDialogue(); } }]
+        choices: [{ text: "Step away.", onSelect: () => closeDialogue() }]
     },
     'flavor_scaffolding': {
         speaker: "System",
@@ -275,13 +275,13 @@ const storyData = {
     'flavor_gate_post': {
         speaker: "System",
         text: "The main gate post of the camp perimeter. A rusted metal arch, unlit. Two names were painted on it once. One has been scraped off. The remaining one is 'OKAFOR / VANCE GIZA INVESTIGATION — SEASON 3.'\n\nYou are season 4. The paint has been scraped every time.",
-        choices: [{ text: "Walk through.", onSelect: () => { decreaseSanity(0.5); closeDialogue(); } }]
+        choices: [{ text: "Walk through.", onSelect: () => closeDialogue() }]
     },
     'flavor_digshed': {
         speaker: "System",
         text: "The primary dig shed — three days from expired permits, a week from a Ministry audit, a thousand years from anything you understand. The clipboard on the door lists today's crew. Three names are crossed out in the same handwriting. The Arabic marginalia next to them translates roughly as 'did not report. Not expected to.'",
         choices: [
-            { text: "Read carefully.", onSelect: () => { gameState.flags.crew_missing = true; decreaseSanity(0.5); closeDialogue(); } },
+            { text: "Read carefully.", onSelect: () => { gameState.flags.crew_missing = true; decreaseSanity(0.2); closeDialogue(); } },
             { text: "Move on.", onSelect: () => closeDialogue() }
         ]
     },
@@ -325,7 +325,7 @@ const storyData = {
     ]},
 
     'ch1_call_helena_real': { speaker: "Helena", text: "A long silence. The kettle clicks off in England.\n\n'You said that about Saqqara too.'\n\nShe isn't trying to hurt you. She's trying to make you hear yourself.\n\n'Ellis. You haven't called in six months. You don't call to tell me you found something. You call because you want someone to tell you that you're allowed to keep looking. I'm not going to do that anymore. Please take care of yourself.'\n\nShe hangs up. Gently. No anger in it.\n\nYou stare at the silent phone for a long time.", choices: [
-        { text: "Put it down.", onSelect: () => { decreaseSanity(1.5); gameState.knowledgeCodex += 1; closeDialogue(); } }
+        { text: "Put it down.", onSelect: () => { decreaseSanity(0.8); gameState.knowledgeCodex += 1; closeDialogue(); } }
     ]},
 
     'ch1_call_helena_sam': { speaker: "Helena", text: "A softer pause.\n\n'Ellis.'\n\n'I think the report was wrong. The one from Saqqara. I think someone — '\n\n'Ellis. Stop.'\n\nAnother pause. When she speaks again her voice is different — the voice she used when you were both younger and not yet broken.\n\n'Whatever you're about to say to me at two in the morning from a tent in Egypt, you're going to regret in the daylight. Call Ayo. Not me. I was never part of that friendship. Call his sister. Say it to her.'\n\n'I haven't called her in fourteen months.'\n\n'I know.'", choices: [
@@ -440,7 +440,7 @@ const storyData = {
     ]},
 
     'ch1_tariq_checkin': { speaker: "Tariq", text: "A small smile.\n\n'Doctor. In twelve years of working digs I have never been checked on by the academic. This is a new experience for me. I will remember it.'\n\nHe offers you a cigarette. You wave it off. He puts the pack away.\n\n'Go do whatever you were going to do. Come find me later.'", choices: [
-        { text: "Nod.", onSelect: () => closeDialogue() }
+        { text: "Nod.", onSelect: () => { increaseSanity(0.8); updateHUD(); closeDialogue(); } }
     ]},
 
     'ch1_tariq_grandfather': { speaker: "Tariq", text: "He lights his cigarette from the brazier with the old trick of holding the tip against the coal instead of the flame.\n\n'My grandfather — Abdul-Aziz Hassan — worked on the Giza team in 1957. Before the current boundaries. Before the ministry cared as much as they do now. He was a foreman, like me. He worked for a British archaeologist — a woman — who was, he said, the only foreigner on the plateau who called him by his name and not \"boy.\"\n\n'They opened a tunnel in the eastern quadrant. My grandfather told me the story of what was in that tunnel exactly one time, when I was fourteen. He never told it again. He said telling it once had been enough to satisfy the obligation.'", choices: [
@@ -449,16 +449,16 @@ const storyData = {
     ]},
 
     'ch1_tariq_grandfather_tunnel': { speaker: "Tariq", text: "He looks at the fire.\n\n'He said there was a room. In the room there was a stone. On the stone there were marks. He said the marks moved when no one looked. He said he watched the British woman try for three days to sketch them accurately and on the third day she broke her pencil in half and cried, and then laughed, and then did not speak for the rest of the week.\n\n'He said they sealed the tunnel on the fourth day. The British woman wrote a report that said it was an empty antechamber. She made my grandfather sign as witness that the report was accurate. He said he understood why.'\n\nHe takes a long drag. The coal flares.\n\n'He told me this story the day before I started university. He said: \"If you ever find this room again, do not trust what the stone tells you. But do not lie about what you saw, either. Write the truth in a place only you can find it. That is the compromise I made. It is a good compromise.\"'", choices: [
-        { text: "Stare into the fire.", onSelect: () => { decreaseSanity(1.0); gameState.knowledgeCodex += 3; gameState.knowledgeAtlantean += 1; gameState.flags.Tariq_Grandfather_Story = true; gameState.flags.Tariq_Grandfather_Story_Told = true; gameState.flags.tariq_grandfather_full = true; gameState.trustTariq += 2; startDialogue('ch1_tariq_grandfather_close'); } }
+        { text: "Stare into the fire.", onSelect: () => { decreaseSanity(0.3); gameState.knowledgeCodex += 3; gameState.knowledgeAtlantean += 1; gameState.flags.Tariq_Grandfather_Story = true; gameState.flags.Tariq_Grandfather_Story_Told = true; gameState.flags.tariq_grandfather_full = true; gameState.trustTariq += 2; startDialogue('ch1_tariq_grandfather_close'); } }
     ]},
 
     'ch1_tariq_grandfather_her': { speaker: "Tariq", text: "'She went back to England. She stopped publishing. She died in 1972 in a hospice in Cornwall. My grandfather visited her three times in those eighteen years. He never explained to my grandmother why he was flying to England.\n\n'He said she was the only person on the surface who also knew, and she needed to be visited by someone who knew.'\n\nHe taps ash into the fire.\n\n'When she died, he did not go to the funeral. He said the funeral would be full of people who did not understand her. He sat on her grave a month later, alone, for an afternoon. He told me this is what you do when someone else has carried the same weight with you.\n\n'I thought about this a lot after Doctor Okafor died in Saqqara. I considered flying to Lagos. I did not. I regret that I did not.'", choices: [
-        { text: "'It's not too late.'", onSelect: () => { gameState.trustTariq += 2; gameState.flags.Tariq_Grandfather_Story = true; gameState.flags.Tariq_Grandfather_Story_Told = true; gameState.flags.tariq_grandfather_full = true; startDialogue('ch1_tariq_grandfather_close'); } },
+        { text: "'It's not too late.'", onSelect: () => { gameState.trustTariq += 2; gameState.flags.Tariq_Grandfather_Story = true; gameState.flags.Tariq_Grandfather_Story_Told = true; gameState.flags.tariq_grandfather_full = true; increaseSanity(0.5); updateHUD(); startDialogue('ch1_tariq_grandfather_close'); } },
         { text: "Don't say anything. Just listen.", onSelect: () => { gameState.trustTariq += 1; gameState.flags.Tariq_Grandfather_Story = true; gameState.flags.Tariq_Grandfather_Story_Told = true; gameState.flags.tariq_grandfather_full = true; startDialogue('ch1_tariq_grandfather_close'); } }
     ]},
 
     'ch1_tariq_grandfather_close': { speaker: "Tariq", text: "He stubs out the cigarette on the rim of the brazier. The ember vanishes.\n\n'I tell you this because I think you are about to find my grandfather's room again. Or one like it. The ground has that feeling.\n\n'Do not trust what the stone tells you. But do not lie about what you saw.'\n\nHe stands up.\n\n'Back to work.'", choices: [
-        { text: "Stand up with him.", onSelect: () => closeDialogue() }
+        { text: "Stand up with him.", onSelect: () => { increaseSanity(1.5); updateHUD(); closeDialogue(); } }
     ]},
 
     // ---- MINISTRY INSPECTOR — external pressure before the collapse ----
@@ -486,7 +486,7 @@ const storyData = {
     ]},
 
     'ch1_inspector_bribe': { speaker: "Inspector Mahfouz", text: "The notes disappear into his jacket without being counted.\n\n'I did not drive out here. You did not dig this week. We understand each other.'\n\nHe crushes his cigarette in the sand.\n\n'I would advise you to find what you are looking for tonight. I cannot come out here a second time.'\n\nHe gets in the Land Cruiser and leaves. You have bought yourself exactly one night.", choices: [
-        { text: "Watch him drive off.", onSelect: () => { updateHUD(); decreaseSanity(0.5); closeDialogue(); } }
+        { text: "Watch him drive off.", onSelect: () => { updateHUD(); closeDialogue(); } }
     ]},
 
     'ch1_inspector_lie': { speaker: "Inspector Mahfouz", text: "He looks at you. He looks at the generator. He looks at the tracks in the sand leading to the east trench. He looks back at you.\n\n'Doctor Vance. You are an educated man. Please do not waste my time pretending I am not one also.'\n\nHe sighs.\n\n'I will file my report in the morning. It will be processed in approximately seventy-two hours. Use the time.'\n\nHe gets in the Land Cruiser and leaves.", choices: [
@@ -898,6 +898,9 @@ const storyData = {
         { text: "Study it carefully.", onSelect: () => { gameState.knowledgeHermetic += 2; gameState.knowledgeAtlantean += 2; closeDialogue(); } }
     ]},
     'zone_dig_gate': { speaker: "System", text: () => {
+        if (!gameState.flags.scene3Triggered && gameState.flags.cartsResolved && gameState.flags.eastTrenchResolved && gameState.flags.watcherResolved) {
+            gameState.flags.scene3Triggered = true;
+        }
         if (gameState.flags.scene3Triggered) return "The dig zone perimeter. The fence is buckled and partially collapsed from the subsurface breach. You could walk through if you wanted to.\n\nThe tunnel mouth is visible to the north. The Codex is in your hands. The ground is still warm under your boots.\n\nThis is the last moment you are on the surface.";
         return "The dig zone perimeter fence. A combination padlock on the main gate, Ministry of Antiquities seal across the latch.\n\nTariq's authorisation is required to enter the active excavation zone after hours. The Ministry inspector runs a check every morning — you have been careful.\n\nThe anomalies from the three site problems are north of this fence. Your permit covers it. The lock is bureaucratic theater.";
     }, choices: [
@@ -1991,7 +1994,7 @@ const storyData = {
 
     'ch1_m1_descend_sample': {
         speaker: "System",
-        text: "You scrape two inches of sand into a field sample vial and seal it. Scientific. Methodical. You are an archaeologist.\n\nClimbing back out, you notice the handhold you used going down has changed. The indentation your left foot made in the soft clay wall is still there — but beside it, pressed into the same clay at the same depth, is the impression of a hand.\n\nFlat-palmed. Five fingers. The proportions are almost right. Almost.\n\nThe fingers are too long.",
+        text: "You scrape two inches of sand into a field sample vial and seal it. Scientific. Methodical. You are an archaeologist.\n\nClimbing back out, you notice the handhold you used going down has changed. The indentation your left foot made in the soft clay wall is still there — but beside it, pressed into the same clay at the same depth, is the impression of a hand.\n\nFlat-palmed. Seven fingers. Evenly spaced. The proportions are not almost right — they are deeply, fundamentally wrong.\n\nNothing alive should have seven fingers on one hand.",
         choices: [{
             text: "Don't mention this to anyone.",
             onSelect: () => {
