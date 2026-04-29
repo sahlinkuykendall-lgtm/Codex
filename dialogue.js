@@ -464,7 +464,7 @@ const storyData = {
     // ---- MINISTRY INSPECTOR — external pressure before the collapse ----
     'ch1_inspector': { speaker: "System", text: "A white Land Cruiser with Ministry plates is parked at the edge of the site. A man in a pressed khaki uniform is standing beside it, smoking, watching the camp. He has been there for at least an hour.\n\nInspectors do not drive out to illegal digs in the desert at 2 AM unless someone told them to.", choices: [
         { text: "Approach him directly.", onSelect: () => startDialogue('ch1_inspector_approach') },
-        { text: "Hide in the tent and wait him out.", onSelect: () => startDialogue('ch1_inspector_hide') },
+        { text: "Slip behind the guard booth and wait him out.", onSelect: () => startDialogue('ch1_inspector_hide') },
         { text: "Send Tariq to talk to him.", onSelect: () => {
             if (gameState.trustTariq >= 3) { startDialogue('ch1_inspector_tariq'); }
             else { startDialogue('ch1_inspector_tariq_refuses'); }
@@ -501,8 +501,8 @@ const storyData = {
         { text: "Nod.", onSelect: () => { gameState.repMinistry += 1; gameState.knowledgeCodex += 1; closeDialogue(); } }
     ]},
 
-    'ch1_inspector_hide': { speaker: "System", text: "You duck into the tent. The inspector finishes his cigarette, grinds it into the sand, and waits another twenty minutes.\n\nThen he knocks on the tent flap.\n\n'Doctor Vance. I know you are inside. This is unprofessional of both of us. Please come out.'", choices: [
-        { text: "Go out.", onSelect: () => startDialogue('ch1_inspector_approach') }
+    'ch1_inspector_hide': { speaker: "System", text: "You step behind the guard booth and stay still.\n\nThe inspector finishes his cigarette, grinds it into the sand, and waits. He lights a second cigarette. He checks his phone. He does not move toward the camp.\n\nAfter twenty minutes he walks directly to the guard booth, stops two meters away, and speaks at the wall without looking around it.\n\n'Doctor Vance. This is the part where you come out.'", choices: [
+        { text: "Come out.", onSelect: () => startDialogue('ch1_inspector_approach') }
     ]},
 
     'ch1_inspector_tariq': { speaker: "System", text: "Tariq walks out to the Land Cruiser without asking you what to say. He speaks with the inspector in Arabic for approximately four minutes. You cannot hear the words.\n\nAt one point they both laugh.\n\nThen Tariq walks back. The Land Cruiser leaves.\n\n'He is my cousin's wife's brother. We have reached an understanding. You owe him a bottle of Scotch next time you are in Cairo, and you owe me three hours of sleep, which I will collect on Saturday.'", choices: [
@@ -719,7 +719,7 @@ const storyData = {
         { text: "Take the map.", onSelect: () => { if(!gameState.inventory.includes("Samir's Map")) gameState.inventory.push("Samir's Map"); gameState.knowledgeAtlantean += 3; gameState.flags.samirTalked = true; updateHUD(); startDialogue('ch2_samir_exit'); } }
     ]},
     'ch2_samir_exit': { speaker: "Samir", text: "'Follow the amber channels. Not the bright ones — those are the city showing you what it wants you to see. The dim ones. The channels the light has almost abandoned.\n\n'When you find a junction where all channels dim equally, stop. There will be a floor stone that rings hollow when struck. That is your way forward.\n\n'Take this chisel. The stone was installed from below and can be leveraged up from below. Do not lose the chisel.'\n\nHe presses a heavy iron chisel into your hand. It's warm, inexplicably. Like it's been held.", choices: [
-        { text: "Take the chisel.", onSelect: () => { if(!gameState.inventory.includes('Chisel')) gameState.inventory.push('Chisel'); gameState.flags.samirTalked = true; decreaseSanity(0.5); updateHUD(); closeDialogue(); } }
+        { text: "Take the chisel.", onSelect: () => { if(!gameState.inventory.includes('Chisel')) gameState.inventory.push('Chisel'); gameState.flags.samirTalked = true; updateHUD(); closeDialogue(); } }
     ]},
 
     'ch2_mural': { speaker: "System", text: "The entire south wall of this chamber is painted. Not frescoed — painted, in pigments that should not have survived this long, in colours that should not exist in a pigment made from natural materials.\n\nThe subject is a city — specifically this city — in what appears to be its operational state. Thousands of small figures move through amber-lit corridors. But the scale is wrong. The figures are not human.\n\nThey are using humans. Guiding them, perhaps. Or farming them, perhaps. The ambiguity seems intentional.\n\nAt the bottom of the mural, painted in red ochre over the rest: 'Season 4 — Vance — found it.' Sam's handwriting.", choices: [
@@ -756,7 +756,7 @@ const storyData = {
 
     'ch2_stash': { speaker: "System", text: "A canvas military pack, half-buried under a collapsed section of wall. Someone left it here — or it landed here when they fell.\n\nInside: two tins of sardines, a hand-crank torch, a waterproof notebook with about thirty pages of diagrams — architectural floor plans of sections of this level, annotated in English — and a photograph of a smiling family outside a house somewhere coastal.", choices: [
         { text: "Take the food and torch.", onSelect: () => { increaseSanity(1.5); gameState.flags.ch2StashLooted = true; updateHUD(); startDialogue('ch2_stash_taken'); } },
-        { text: "Take the notebook too.", onSelect: () => { gameState.knowledgeAtlantean += 2; gameState.flags.ch2StashLooted = true; if(!gameState.inventory.includes('Abandoned Floor Plans')) gameState.inventory.push('Abandoned Floor Plans'); updateHUD(); startDialogue('ch2_stash_notebook'); } },
+        { text: "Take everything — food, torch, and the notebook.", onSelect: () => { increaseSanity(1.5); gameState.knowledgeAtlantean += 2; gameState.flags.ch2StashLooted = true; if(!gameState.inventory.includes('Abandoned Floor Plans')) gameState.inventory.push('Abandoned Floor Plans'); updateHUD(); startDialogue('ch2_stash_notebook'); } },
         { text: "Leave the pack — someone may need it more than you.", onSelect: () => { increaseSanity(0.5); closeDialogue(); } }
     ]},
     'ch2_stash_taken': { speaker: "System", text: "You eat a tin standing up. The torch works. The notebook you leave.\n\nThe photograph you set face-up on the wall above the pack. It felt like the right thing to do.", choices: [{ text: "Keep moving.", onSelect: () => closeDialogue() }]},
@@ -1491,11 +1491,28 @@ const storyData = {
 
     // puzzle_start_glyph_lock is defined in the Ch1 expansion section below
 
+    'trap_rest': {
+        speaker: "System",
+        text: "A shallow basin in the rock floor holds a still pool of amber-lit liquid — not water exactly, but close. No smell. The stone around it is warm.\n\nSomething about the light in this chamber is different. Lower. Steadier. Like a room that has been quiet for a long time and is not unhappy about it.\n\nYou sit at the edge for a few minutes. Your hands stop shaking.",
+        choices: [
+            { text: "Sit and rest a while.", onSelect: () => { increaseSanity(3.0); gameState.flags.trap_rest_used = true; updateHUD(); closeDialogue(); } },
+            { text: "Keep moving.", onSelect: () => closeDialogue() }
+        ]
+    },
+
+    'trap_inscription': {
+        speaker: "System",
+        text: "Scratched into the wall just above the floor plates, in a cramped modern hand — someone who was here before you:\n\n'Nested thing first. Then what nests it. Landing thing next. Then what catches it.'\n\nBelow that, in different handwriting, a single word: 'EYE.'",
+        choices: [
+            { text: "Note the sequence.", onSelect: () => { gameState.knowledgeAtlantean += 1; addJournalNote('Plate Sequence Hint', 'Nested thing (eye) → what nests it (serpent) → landing thing (bird) → what catches it (hand).'); updateHUD(); closeDialogue(); } },
+            { text: "Move on.", onSelect: () => closeDialogue() }
+        ]
+    },
+
     'puzzle_start_plates': {
         speaker: "System",
-        text: "Four stone pressure plates set into the tunnel floor, each carved with a different symbol. The wall above them shows a frieze — a serpent coiling around an eye, a bird landing on a hand.\n\nThe order matters. You can feel it.",
+        text: "Four stone pressure plates set into the tunnel floor, each carved with a different symbol: a serpent, an eye, a bird, a hand.\n\nThe wall ahead is sealed — no handle, no seam you can work with your fingers. The plates are the mechanism.\n\nThe order matters.",
         choices: [
-            { text: "Study the frieze first.", onSelect: () => { gameState.knowledgeAtlantean += 1; updateHUD(); closeDialogue(); setTimeout(() => startPuzzle('puzzle_plates'), 300); } },
             { text: "Step forward carefully.", onSelect: () => { closeDialogue(); startPuzzle('puzzle_plates'); } }
         ]
     },
@@ -1571,7 +1588,7 @@ const storyData = {
         speaker: "Ministry Guard",
         text: "'This area is restricted. Authorised personnel only beyond the yellow tape. Move back to the approved excavation zone now or I radio for assistance.' His hand rests on his radio, not his belt. Professional.\n\nHe hasn't touched you. He's giving you a way out.",
         choices: [
-            { text: "Comply and walk back.", onSelect: () => { gameState.repMinistry -= 1; gameState.flags.ministeryCar_called = true; updateHUD(); closeDialogue(); } },
+            { text: "'Understood.' Turn and walk back.", onSelect: () => { gameState.repMinistry -= 1; gameState.flags.ministeryCar_called = true; updateHUD(); startDialogue('hostile_ministry_guard_radios'); } },
             { text: "'I'm with the excavation team — Dr. Vance.'", onSelect: () => {
                 if (gameState.repMinistry >= 0) startDialogue('hostile_ministry_bluff_success');
                 else startDialogue('hostile_ministry_bluff_fail');
@@ -1581,6 +1598,12 @@ const storyData = {
                 else startDialogue('hostile_ministry_bluff_fail');
             }}
         ]
+    },
+
+    'hostile_ministry_guard_radios': {
+        speaker: "System",
+        text: "You walk back toward the excavation zone without arguing. Professional. Clean.\n\nBehind you, you hear the guard's radio click twice — the short double-tap that means he's filing a report, not calling for backup. Standard procedure for a flagged perimeter contact.\n\nYou don't look back. But somewhere to the east, a vehicle engine turns over.",
+        choices: [{ text: "Keep walking.", onSelect: () => closeDialogue() }]
     },
 
     'hostile_ministry_bluff_success': {

@@ -185,7 +185,7 @@ function spawnHostile(defKey, x, y, patrolPoints) {
 function clearHostiles() { hostiles = []; }
 
 // Ministry car drive-in animation state
-let ministeryCar = { active: false, parked: false, x: 2200, y: 2500, targetY: 1300, speed: 4.5, w: 90, h: 60 };
+let ministeryCar = { active: false, parked: false, x: 2200, y: 2500, targetY: 1300, speed: 3.4, w: 90, h: 60 };
 
 function spawnChapterOneHostiles() {
     if (!gameState.flags.inspector_dealt) {
@@ -487,10 +487,6 @@ function loadChapterTwo() {
         spawnHostile('worker_panicked', 800, 1200, [
             { x: 800, y: 1200 }, { x: 1200, y: 1200 }, { x: 1200, y: 1800 }, { x: 800, y: 1800 }
         ]);
-        // Samir is initially hostile in deeper sections
-        spawnHostile('samir_hostile', 1500, 2000, [
-            { x: 1500, y: 2000 }, { x: 1800, y: 2000 }
-        ]);
     } else if (gameState.currentRoute === 'CUTTHROAT') {
         WORLD = { width: 2500, height: 2500 }; player.x = 1200; player.y = 200;
         spawnHostile('figure_dark', 1150, 1000, [
@@ -693,7 +689,7 @@ function startGame() {
     document.getElementById('hud-bottomleft').classList.remove('hidden');
     document.getElementById('hud-hint').classList.remove('hidden');
     clearHostiles();
-    ministeryCar = { active: false, parked: false, x: 2200, y: 2500, targetY: 1300, speed: 4.5, w: 90, h: 60 };
+    ministeryCar = { active: false, parked: false, x: 2200, y: 2500, targetY: 1300, speed: 3.4, w: 90, h: 60 };
     spawnChapterOneHostiles();
     updateHUD();
     // Original opening: Ellis in tent with the Codex — scene1_start fires first
@@ -978,16 +974,18 @@ window.addEventListener('pointerdown', (e) => {
 
         // Dev chapter sub-menu (CP_Y=100, items at CP_Y+115 + i*40)
         if (gameState.devChapterMenuOpen) {
+            // Always clear interior state before jumping chapters to prevent NPC bleed
+            function devJump(fn) { interiorState.active = false; interiorState.pendingEnter = false; interiorState.pendingExit = false; interiorState.fadeAlpha = 0; clearHostiles(); fn(); }
             const devActions = [
-                () => { gameState.devChapterMenuOpen = false; gameState.isPaused = false; resetGameState(); startGame(); },
-                () => { gameState.devChapterMenuOpen = false; gameState.isPaused = false; gameState.currentRoute = 'TRAP'; gameState.currentScreen = 'GAME'; loadChapterTwo(); },
-                () => { gameState.devChapterMenuOpen = false; gameState.isPaused = false; gameState.currentRoute = 'SECRET'; gameState.currentScreen = 'GAME'; loadChapterTwo(); },
-                () => { gameState.devChapterMenuOpen = false; gameState.isPaused = false; gameState.currentRoute = 'CUTTHROAT'; gameState.currentScreen = 'GAME'; loadChapterTwo(); },
-                () => { gameState.devChapterMenuOpen = false; gameState.isPaused = false; gameState.currentScreen = 'GAME'; loadChapterThree(); },
-                () => { gameState.devChapterMenuOpen = false; gameState.isPaused = false; gameState.currentScreen = 'GAME'; loadChapterFour(); },
-                () => { gameState.devChapterMenuOpen = false; gameState.isPaused = false; gameState.currentScreen = 'GAME'; loadChapterFive(); },
-                () => { gameState.devChapterMenuOpen = false; gameState.isPaused = false; gameState.currentScreen = 'GAME'; loadChapterSix(); },
-                () => { gameState.devChapterMenuOpen = false; gameState.isPaused = false; gameState.currentScreen = 'GAME'; loadChapterSeven(); },
+                () => { gameState.devChapterMenuOpen = false; gameState.isPaused = false; devJump(() => { resetGameState(); startGame(); }); },
+                () => { gameState.devChapterMenuOpen = false; gameState.isPaused = false; gameState.currentRoute = 'TRAP';      gameState.currentScreen = 'GAME'; devJump(() => loadChapterTwo()); },
+                () => { gameState.devChapterMenuOpen = false; gameState.isPaused = false; gameState.currentRoute = 'SECRET';    gameState.currentScreen = 'GAME'; devJump(() => loadChapterTwo()); },
+                () => { gameState.devChapterMenuOpen = false; gameState.isPaused = false; gameState.currentRoute = 'CUTTHROAT'; gameState.currentScreen = 'GAME'; devJump(() => loadChapterTwo()); },
+                () => { gameState.devChapterMenuOpen = false; gameState.isPaused = false; gameState.currentScreen = 'GAME'; devJump(() => loadChapterThree()); },
+                () => { gameState.devChapterMenuOpen = false; gameState.isPaused = false; gameState.currentScreen = 'GAME'; devJump(() => loadChapterFour()); },
+                () => { gameState.devChapterMenuOpen = false; gameState.isPaused = false; gameState.currentScreen = 'GAME'; devJump(() => loadChapterFive()); },
+                () => { gameState.devChapterMenuOpen = false; gameState.isPaused = false; gameState.currentScreen = 'GAME'; devJump(() => loadChapterSix()); },
+                () => { gameState.devChapterMenuOpen = false; gameState.isPaused = false; gameState.currentScreen = 'GAME'; devJump(() => loadChapterSeven()); },
                 () => { gameState.devChapterMenuOpen = false; },
             ];
             const idx = Math.floor((canvasY - (100 + 115 - 20)) / 40);
@@ -1057,6 +1055,9 @@ function isObjectResolved(o) {
         if (o.interactScene === 'ch2_cutthroat_tariq'&& f.tariqUntied)        return true;
         if (o.interactScene === 'flavor_ch2_stash'   && f.ch2StashLooted)     return true;
         if (o.interactScene === 'flavor_ch2_chasm'   && f.ch2ChasmLooked)     return true;
+        if (o.interactScene === 'ch2_stash'           && f.ch2StashLooted)     return true;
+        if (o.interactScene === 'trap_rest'           && f.trap_rest_used)     return true;
+        if (o.interactScene === 'ch2_samir'           && f.samirTalked)        return true;
     }
 
     if (gameState.chapter === 4) {

@@ -582,7 +582,7 @@ const mapObjects = {
         // Satphone: inside compound near south entry
         { id: 'satphone',     x: 990,  y: 1620, w: 28,  h: 28,  color: '#1a1a1a', label: 'Satphone',           interactScene: 'ch1_satphone'    },
         // Tariq: at camp brazier
-        { id: 'tariq_talk',   x: 280,  y: 1610, w: 50,  h: 50,  color: '#4a3020', label: 'Tariq',              interactScene: 'ch1_tariq_talk'  },
+        { id: 'tariq_talk',   x: 370,  y: 1610, w: 60,  h: 55,  color: '#4a3020', label: 'Tariq',              interactScene: 'ch1_tariq_talk'  },
         { id: 'inspector',    x: 2200, y: 1300, w: 70,  h: 55,  color: '#2a2a4a', label: 'Ministry Car',       interactScene: 'ch1_inspector'   },
         { id: 'perimeter',    x: 1700, y: 1880, w: 70,  h: 35,  color: '#1a1610', label: 'Site Perimeter',     interactScene: 'ch1_night_watch' },
 
@@ -681,13 +681,15 @@ const mapObjects = {
     // CHAPTER 2 ROUTES
     // ============================================================
     'TRAP': [
-        { id: 'trap_mural',    x: 1200, y: 200,  w: 100, h: 100, color: '#4a3010', label: 'The Mural',         interactScene: 'ch2_mural'       },
-        { id: 'trap_stash',    x: 400,  y: 600,  w: 80,  h: 80,  color: '#2a2010', label: 'Hidden Stash',      interactScene: 'ch2_stash'       },
-        { id: 'trap_bones',    x: 700,  y: 1400, w: 60,  h: 40,  color: '#aaa',    label: 'Old Bones',         interactScene: 'ch2_bones'       },
-        { id: 'trap_samir',    x: 1500, y: 1500, w: 60,  h: 60,  color: '#4b3030', label: 'Samir',             interactScene: 'ch2_samir'       },
-        { id: 'trap_whispers', x: 600,  y: 2200, w: 80,  h: 80,  color: '#0a0a14', label: 'The Whispering',    interactScene: 'ch2_whispers'    },
-        { id: 'trap_gate',     x: 1200, y: 2700, w: 200, h: 80,  color: '#d4af37', label: 'The Gate',          interactScene: 'ch2_gate'        },
-        { id: 'puzzle_plates', x: 900,  y: 1800, w: 320, h: 60,  color: '#5c4a30', label: 'Stone Plates',      interactScene: 'puzzle_start_plates' },
+        { id: 'trap_mural',        x: 1200, y: 200,  w: 100, h: 100, color: '#4a3010', label: 'The Mural',          interactScene: 'ch2_mural'            },
+        { id: 'trap_stash',        x: 400,  y: 600,  w: 80,  h: 80,  color: '#2a2010', label: 'Hidden Stash',       interactScene: 'ch2_stash'            },
+        { id: 'trap_amber_pool',   x: 350,  y: 1050, w: 90,  h: 60,  color: '#d4af37', label: 'Amber Pool (Rest)',   interactScene: 'trap_rest'            },
+        { id: 'trap_bones',        x: 700,  y: 1400, w: 60,  h: 40,  color: '#aaa',    label: 'Old Bones',          interactScene: 'ch2_bones'            },
+        { id: 'trap_samir',        x: 1500, y: 1500, w: 60,  h: 60,  color: '#4b3030', label: 'Samir',              interactScene: 'ch2_samir'            },
+        { id: 'trap_inscription',  x: 880,  y: 1720, w: 140, h: 50,  color: '#2a2010', label: 'Wall Inscription',   interactScene: 'trap_inscription'     },
+        { id: 'puzzle_plates',     x: 900,  y: 1820, w: 320, h: 60,  color: '#5c4a30', label: 'Stone Plates',       interactScene: 'puzzle_start_plates'  },
+        { id: 'trap_whispers',     x: 600,  y: 2200, w: 80,  h: 80,  color: '#0a0a14', label: 'The Whispering',     interactScene: 'ch2_whispers'         },
+        { id: 'trap_gate',         x: 1200, y: 2700, w: 200, h: 80,  color: '#d4af37', label: 'The Gate',           interactScene: 'ch2_gate'             },
     ],
     'SECRET': [
         { id: 'secret_amber',   x: 1200, y: 400,  w: 100, h: 100, color: '#d4af37', label: 'Amber Formation',    interactScene: 'ch2_amber'              },
