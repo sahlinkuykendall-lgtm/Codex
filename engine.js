@@ -2026,6 +2026,13 @@ function gameLoop() {
 
     // Ministry car drive-in: triggered once guard mentions it
     if (gameState.chapter === 1 && !interiorState.active) {
+        // Snap-park: inspector arrived at guard post, no animation needed
+        if (gameState.flags.ministeryCar_snap && !ministeryCar.parked) {
+            ministeryCar.y = ministeryCar.targetY;
+            ministeryCar.parked = true;
+            ministeryCar.active = false;
+            gameState.flags.ministeryCar_snap = false;
+        }
         if (gameState.flags.ministeryCar_called && !ministeryCar.active && !ministeryCar.parked) {
             ministeryCar.active = true;
         }

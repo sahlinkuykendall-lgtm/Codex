@@ -763,15 +763,25 @@ const storyData = {
     'ch2_stash_notebook': { speaker: "System", text: "The floor plans are detailed and correct — you can verify two chambers against what you've already passed through. Whoever made these survived long enough to survey extensively.\n\nThe final page has a single sentence: 'Follow the cold air. There is always cold air near an exit.'\n\nYou tuck the notebook in your pack. The photograph you leave on the wall, face-up.", choices: [{ text: "Keep moving.", onSelect: () => closeDialogue() }]},
 
     'ch2_gate': { speaker: "System", text: () => {
-        let text = "A stone threshold. Beyond it: a narrow drainage pipe barely large enough to crawl through, angling upward at about fifteen degrees. A faint smell of open air — diesel, cardamom, exhaust, the particular dust smell of Cairo streets — drifts down.\n\nYou have been underground for ";
-        if (gameState.flags.trapWhispersHeard) text += "an indeterminate time. The whisper chamber took something from your sense of duration.";
-        else text += "what feels like six to ten hours.";
+        let text = "A sealed stone floor — no handle, no hinge visible. But when you crouch and strike the stone with your knuckle, one section rings hollow. Something empty beneath it.\n\nSamir was right. This is the way out.";
+        if (!gameState.inventory.includes('Chisel')) {
+            text += "\n\nThe stone is installed from below and can only be leveraged up from below — you can feel the seam, but you have nothing to lever it with. You need something iron, something heavy. Samir mentioned a chisel.";
+            return text;
+        }
+        text += "\n\nYou work the chisel into the seam. It takes three minutes and both hands. The stone lifts.";
+        text += "\n\nBeyond it: a narrow pipe angling upward at fifteen degrees. A faint smell of open air — diesel, cardamom, exhaust, the particular dust smell of Cairo streets — drifts down.";
+        if (gameState.flags.trapWhispersHeard) text += "\n\nYou have been underground for an indeterminate time. The whisper chamber took something from your sense of duration.";
+        else text += "\n\nYou have been underground for what feels like six to ten hours.";
         text += "\n\nThe pipe is forty meters of claustrophobic limestone. You can fit. You are not sure you will be able to turn around if you start.";
-        if (gameState.flags.samir_promised_out) text += "\n\nYou think of Samir, who has been down here five years. Who will be here when the pipe closes behind you. You file that thought away and climb in.";
+        if (gameState.flags.samir_promised_out) text += "\n\nYou think of Samir, who has been down here five years. Who will be here when the pipe closes behind you. You made a promise. You file that thought away and climb in.";
         return text;
     }, choices: [
-        { text: "Climb through.", onSelect: () => { gameState.flags.gateUnlocked = true; startDialogue('ch2_gate_crawl'); } }
+        { text: "Climb through.", onSelect: () => {
+            if (!gameState.inventory.includes('Chisel')) { startDialogue('ch2_gate_no_chisel'); return; }
+            gameState.flags.gateUnlocked = true; startDialogue('ch2_gate_crawl');
+        }}
     ]},
+    'ch2_gate_no_chisel': { speaker: "System", text: "The hollow stone won't budge with your hands alone. You need the chisel Samir mentioned — the iron one that lets you lever the stone up from below.\n\nFind Samir first.", choices: [{ text: "Step back.", onSelect: () => closeDialogue() }]},
     'ch2_gate_crawl': { speaker: "System", text: () => {
         let exit = "You drag yourself upward for forty minutes of pure claustrophobic dark. Your elbows are bleeding. Your knees are bleeding. Your torch runs out at the thirty-meter mark and you navigate the last ten by feel.\n\nThen: a rectangle of warm electric orange light. A crack in a stone floor. You push up with both hands and a heavy carpet peels back and you are looking at the underside of a rug in a quiet back room of the Khan el-Khalili market.";
         if (gameState.currentRoute === 'TRAP' && gameState.flags.sam_was_here_first) exit += "\n\nSam came out through here. You are certain of it. This was Sam's exit route. Sam sat in the market above you — possibly at the same tea stall, possibly in the same silence — and planned his return to Oxford and said nothing about any of it.";
@@ -965,11 +975,16 @@ const storyData = {
     'flavor_ch2_amber': { speaker: "System", text: "A metallic sconce embedded in the wall. The amber light it emits feels strangely warm, almost liquid to the touch.", choices: [{ text: "Touch the light.", onSelect: () => { if (!gameState.flags.ch2AmberTouched) { increaseSanity(1.5); gameState.knowledgeAtlantean += 1; gameState.flags.ch2AmberTouched = true; } closeDialogue(); } }, { text: "Leave it alone.", onSelect: () => closeDialogue() }] },
     
     // THE HOLLOW KING PUZZLE
-    'ch2_secret_altar': { speaker: "System", text: "A massive basalt statue of a 'Hollow King' sits in the center of the antechamber. On his lap, resting perfectly still, is a Second Tablet identical in material to your Codex.", choices: [ 
-        { text: "Speak to the king. 'I brought the Codex.'", onSelect: () => { if (gameState.knowledgeCodex >= 4 || gameState.flags.Codex_Is_Watching) { gameState.knowledgeCodex += 5; gameState.knowledgeAtlantean += 3; gameState.flags.Tablets_Resonated = true; gameState.flags.The_City_Is_Awake = true; if(!gameState.inventory.includes('Second Tablet')) gameState.inventory.push('Second Tablet'); startDialogue('ch2_hollow_king_success'); } else { alert("You don't have enough knowledge of the Codex to know what to say."); } } }, 
-        { text: "Leave it.", onSelect: () => closeDialogue() } 
+    'ch2_secret_altar': { speaker: "System", text: () => {
+        let text = "The chamber is the largest you have entered. The amber channels here are brighter — converging on the center from all four walls in a geometric sunburst pattern that meets at the figure.\n\nThe figure is three meters tall, carved from a single piece of black basalt, seated upright on a low stone throne. Its proportions are not human. The torso is too long. The head is too large. The hands rest open on its knees, palms up — and the hands are wrong. Not sculptor's error. The fingers are too long, too many-jointed. You count: seven joints per finger.\n\nThis is not a king. It is not a statue of a person who lived. It is a record of what something actually looked like.\n\nOn its open palms, resting as if placed there a moment ago: a flat stone tablet. The same dark material as your Codex. The same weight and proportion. It is not moving, but something about it feels ready.\n\nYour own Codex, in your pack, begins to pulse faster. It has gone from once every eight seconds to once every three. It recognizes what is in front of you.";
+        if (gameState.knowledgeAtlantean >= 3) text += "\n\nYou have read enough — the mural, the amber channel, Samir's description of the city — to understand what this is. The figure is not decorative. It was a priest-engineer of whatever built this place, in its final posture of service. It set itself here deliberately. It is still recording everything it can see, in a language that runs through the stone.\n\nThe tablet on its palms is the other half of what you are carrying. Your Codex asks a question. That tablet is the answer-form. They are a matched pair.";
+        return text;
+    }, choices: [
+        { text: "Hold the Codex out toward the figure.", onSelect: () => { if (gameState.knowledgeCodex >= 4 || gameState.flags.Codex_Is_Watching) { gameState.knowledgeCodex += 5; gameState.knowledgeAtlantean += 3; gameState.flags.Tablets_Resonated = true; gameState.flags.The_City_Is_Awake = true; if(!gameState.inventory.includes('Second Tablet')) gameState.inventory.push('Second Tablet'); startDialogue('ch2_hollow_king_success'); } else { startDialogue('ch2_altar_not_ready'); } } },
+        { text: "Step back. Don't touch anything yet.", onSelect: () => closeDialogue() }
     ]},
-    'ch2_hollow_king_success': { speaker: "System", text: "The king does not move. But the Second Tablet on his lap flares with light. The glyphs on it settle into a specific configuration and stop.\n\nYour own Codex, resting in your bag, pulses once in response. You take the Second Tablet.", choices: [{ text: "Step back.", onSelect: () => { gameState.flags.altarSolved = true; closeDialogue(); } }]},
+    'ch2_altar_not_ready': { speaker: "System", text: "You hold the Codex out.\n\nNothing happens. The figure does not move. The tablet on its palms does not respond. Your Codex pulses once and then returns to its normal rhythm.\n\nThe system is waiting for something you haven't learned yet. You don't have enough understanding of what you're carrying to complete this exchange.\n\nYou lower the Codex. The tablet on the figure's palms remains still.", choices: [{ text: "Step back.", onSelect: () => closeDialogue() }]},
+    'ch2_hollow_king_success': { speaker: "System", text: "The figure does not move.\n\nBut the tablet on its palms responds. The glyphs carved into it brighten — amber, then gold, then settle into a specific pattern and hold there.\n\nYour Codex pulses once in answer. A single beat, stronger than anything it has done before.\n\nThen the figure's fingers — very slowly, as if performing an action it has been holding in reserve for a very long time — close around nothing, and open again. The tablet is free. It belongs to you now.\n\nYou take it. It is heavier than it looks and warmer than the stone around it. Together, the two tablets in your pack shift slightly against each other, finding a rhythm: four beats, four beats, four beats.", choices: [{ text: "Step back.", onSelect: () => { gameState.flags.altarSolved = true; closeDialogue(); } }]},
     
     'ch2_secret_door_w': { speaker: "System", text: "A heavy stone door blocks the path. It has no keyhole, but it seems to react to the shifting energy in the room.", choices: [ { text: "Approach with both Tablets.", onSelect: () => { if (gameState.flags.Tablets_Resonated) { startDialogue('ch2_secret_bridge'); } else { startDialogue('door_fail'); } } }, { text: "Step away.", onSelect: () => closeDialogue() } ]},
     'door_fail': { speaker: "System", text: "The door remains sealed. It needs the tablets to resonate together.", choices: [{ text: "Step away.", onSelect: () => closeDialogue() }]},
@@ -1623,15 +1638,15 @@ const storyData = {
 
     'hostile_ministry_inspector_arrives': {
         speaker: "System",
-        text: "Two minutes later, a white Land Cruiser rolls up along the perimeter track, headlights cutting across the sand. A man in a pressed khaki uniform steps out and walks toward you without hurry.\n\nThe guard steps aside.\n\nThe inspector stops three meters from you and takes his time lighting a cigarette before he speaks.",
+        text: "Two minutes later, a white Land Cruiser with Ministry plates rolls up along the perimeter track. The headlights sweep across the sand and cut off.\n\nA man in a pressed khaki uniform steps out. He doesn't hurry. He closes the vehicle door carefully. He straightens his jacket. He lights a cigarette and looks at the camp for a moment before he looks at you.\n\nThe guard steps back. This is not his conversation anymore.\n\nThe inspector has not spoken. He is giving you time to compose yourself. This is a deliberate choice on his part.",
         choices: [
-            { text: "Wait for him to speak.", onSelect: () => {
-                // Force the inspector arc to trigger at a disadvantage — Ellis didn't come to the Land Cruiser;
-                // the Land Cruiser came to him, publicly.
+            { text: "Walk toward him.", onSelect: () => {
                 gameState.repMinistry -= 2;
                 gameState.flags.inspector_summoned_to_guard = true;
+                gameState.flags.ministeryCar_parked = true;
+                gameState.flags.ministeryCar_snap = true;
                 updateHUD();
-                startDialogue('ch1_inspector_approach');
+                startDialogue('ch1_inspector');
             }}
         ]
     },
