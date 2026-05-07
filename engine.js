@@ -836,35 +836,27 @@ function drawStartScreen() {
     ctx.fillText('V2  —  ACT I', 640, 500);
     ctx.restore();
 
-    // 13 — Camel (bottom-right corner)
+    // 13 — Smiley face with hair (bottom-right corner)
     ctx.save();
-    const sx = canvas.width - 30, sy = canvas.height - 30;
-    const cc = '#C19A6B', cs = '#8B6914';
-    ctx.fillStyle = cc; ctx.strokeStyle = cs; ctx.lineWidth = 1.2;
-    // Body
-    ctx.beginPath(); ctx.ellipse(sx - 2, sy + 3, 12, 6, 0, 0, Math.PI * 2);
-    ctx.fill(); ctx.stroke();
-    // Hump
-    ctx.beginPath(); ctx.arc(sx - 4, sy - 1, 5, Math.PI, 2 * Math.PI);
-    ctx.lineTo(sx + 1, sy + 2); ctx.lineTo(sx - 9, sy + 2); ctx.closePath();
-    ctx.fill(); ctx.stroke();
-    // Neck
-    ctx.lineWidth = 3.5; ctx.strokeStyle = cc;
-    ctx.beginPath(); ctx.moveTo(sx + 8, sy + 1); ctx.lineTo(sx + 11, sy - 4); ctx.stroke();
-    ctx.lineWidth = 1.2; ctx.strokeStyle = cs;
-    ctx.beginPath(); ctx.moveTo(sx + 8, sy + 1); ctx.lineTo(sx + 11, sy - 4); ctx.stroke();
-    // Head
-    ctx.fillStyle = cc;
-    ctx.beginPath(); ctx.ellipse(sx + 13, sy - 6, 4, 3, -0.3, 0, Math.PI * 2);
-    ctx.fill(); ctx.stroke();
-    // Legs
-    ctx.lineWidth = 1.5;
-    [-8, -3, 3, 8].forEach(dx => {
-        ctx.beginPath(); ctx.moveTo(sx + dx, sy + 9); ctx.lineTo(sx + dx, sy + 15); ctx.stroke();
+    const sx = canvas.width - 30, sy = canvas.height - 30, sr = 16;
+    // Hair drawn first so face covers the roots
+    ctx.strokeStyle = '#6B3A2A'; ctx.lineWidth = 2.5;
+    [-0.55, -0.28, 0, 0.28, 0.55].forEach(a => {
+        const angle = 3 * Math.PI / 2 + a;
+        ctx.beginPath();
+        ctx.moveTo(sx + (sr - 3) * Math.cos(angle), sy + (sr - 3) * Math.sin(angle));
+        ctx.lineTo(sx + (sr + 7) * Math.cos(angle), sy + (sr + 7) * Math.sin(angle));
+        ctx.stroke();
     });
-    // Eye
+    // Face
+    ctx.beginPath(); ctx.arc(sx, sy, sr, 0, Math.PI * 2);
+    ctx.fillStyle = '#FFE600'; ctx.fill();
+    ctx.strokeStyle = '#CC9900'; ctx.lineWidth = 1.5; ctx.stroke();
     ctx.fillStyle = '#333';
-    ctx.beginPath(); ctx.arc(sx + 14, sy - 7, 1, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(sx - 5, sy - 5, 2, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(sx + 5, sy - 5, 2, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(sx, sy + 1, 8, 0.15 * Math.PI, 0.85 * Math.PI);
+    ctx.strokeStyle = '#333'; ctx.lineWidth = 2; ctx.stroke();
     ctx.restore();
 
     // 14 — Overlay for fade transitions
