@@ -53,6 +53,56 @@ function resizeRendererIfNeeded() {
 // return to menu). Cheap enough to rebuild from scratch each time.
 let worldGroup = null;
 let builtSignature = null;
+let gateMeshes = [];   // { mesh, gateFlag } — hidden once their flag is set
+let objectEntries = []; // { o, mesh, label } — synced against isObjectResolved()
+
+// Floating text label rendered to a canvas texture, shown above interactables
+function makeLabelSprite(text, colorHex) {
+    const lc = document.createElement('canvas');
+    const lctx = lc.getContext('2d');
+    lctx.font = 'bold 22px Courier New';
+    const tw = Math.ceil(lctx.measureText(text).width);
+    lc.width = tw + 16;
+    lc.height = 34;
+    lctx.font = 'bold 22px Courier New';
+    lctx.textBaseline = 'middle';
+    lctx.fillStyle = 'rgba(0,0,0,0.55)';
+    lctx.fillRect(0, 0, lc.width, lc.height);
+    lctx.fillStyle = colorHex || '#f4e4b0';
+    lctx.fillText(text, 8, lc.height / 2 + 1);
+    const tex = new THREE.CanvasTexture(lc);
+    tex.minFilter = THREE.LinearFilter;
+    const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true }));
+    // World scale: keep labels readable but not billboard-huge
+    const scale = 0.55;
+    sprite.scale.set(lc.width * scale, lc.height * scale, 1);
+    return sprite;
+}
+
+// Height heuristics for extruding 2D rectangles into graybox boxes
+function wallHeightFor(wall) {
+    const touchesEdge = wall.x <= 0 || wall.y <= 0 ||
+        wall.x + wall.w >= WORLD.width || wall.y + wall.h >= WORLD.height;
+    if (touchesEdge && (wall.w >= WORLD.width * 0.8 || wall.h >= WORLD.height * 0.8)) {
+        return WALL_HEIGHT_BORDER;
+    }
+    if (Math.min(wall.w, wall.h) <= 25) return WALL_HEIGHT_LOW;
+    return WALL_HEIGHT_DEFAULT;
+}
+
+function objectHeightFor(o) {
+    if (o.id && /_bldg$/.test(o.id)) return 115;           // enterable building shells
+    if (o.interactScene && /^door_/.test(o.interactScene)) return 8; // door mats stay flat
+    const base = Math.min(o.w, o.h);
+    return Math.max(16, Math.min(75, Math.round(base * 1.1)));
+}
+
+function addBoxAt(group, x, y, w, d, h, material) {
+    const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), material);
+    mesh.position.set(x + w / 2, h / 2, y + d / 2);
+    group.add(mesh);
+    return mesh;
+}
 
 function currentWorldSignature() {
     return currentMapKey + '|' + WORLD.width + 'x' + WORLD.height + '|ch' + gameState.chapter;
@@ -116,12 +166,49 @@ function buildWorld() {
     const warmFill = new THREE.AmbientLight(0xd4af37, 0.08);
     worldGroup.add(warmFill);
 
+    // --- Walls (extruded from mapWalls; same data the collision uses) ---
+    gateMeshes = [];
+    const wallMat = new THREE.MeshLambertMaterial({ color: new THREE.Color(palette.wallFill).lerp(new THREE.Color('#888'), 0.25) });
+    const gateMat = new THREE.MeshLambertMaterial({ color: 0x8b6914 });
+    for (const wall of (mapWalls[currentMapKey] || [])) {
+        const h = wallHeightFor(wall);
+        const mesh = addBoxAt(worldGroup, wall.x, wall.y, wall.w, wall.h, h, wall.isGate ? gateMat : wallMat);
+        if (wall.isGate) gateMeshes.push({ mesh, gateFlag: wall.gateFlag });
+    }
+
+    // --- Map objects (interactables get labels, decoratives are plain) ---
+    objectEntries = [];
+    for (const o of (activeMapObjects || [])) {
+        const h = objectHeightFor(o);
+        const mat = new THREE.MeshLambertMaterial({ color: new THREE.Color(o.color || '#777') });
+        const mesh = addBoxAt(worldGroup, o.x, o.y, o.w, o.h, h, mat);
+        let label = null;
+        if (!o.decorative && o.interactScene) {
+            label = makeLabelSprite(o.label || o.id, '#f4e4b0');
+            label.position.set(o.x + o.w / 2, h + 26, o.y + o.h / 2);
+            worldGroup.add(label);
+        }
+        objectEntries.push({ o, mesh, label });
+    }
+
     scene3.add(worldGroup);
     builtSignature = currentWorldSignature();
 }
 
 function ensureWorldBuilt() {
     if (builtSignature !== currentWorldSignature()) buildWorld();
+}
+
+// Per-frame: hide resolved objects and opened gates (mirrors the 2D draw filters)
+function syncWorldVisibility() {
+    for (const g of gateMeshes) {
+        g.mesh.visible = !gameState.flags[g.gateFlag];
+    }
+    for (const e of objectEntries) {
+        const hidden = isObjectResolved(e.o);
+        e.mesh.visible = !hidden;
+        if (e.label) e.label.visible = !hidden;
+    }
 }
 
 // ---- CAMERA PLACEMENT ----
@@ -179,6 +266,7 @@ function gameLoop3d() {
     }
 
     ensureWorldBuilt();
+    syncWorldVisibility();
     updateCamera();      // keeps the 2D camera roughly centered for overlay draw math
     positionCamera();
     renderer3.render(scene3, cam3);
