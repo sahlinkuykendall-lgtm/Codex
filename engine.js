@@ -377,8 +377,11 @@ function enterBuilding(interiorKey, exitX, exitY) {
     const def = MAJOR_INTERIORS[interiorKey];
     if (!def) return;
     interiorState.returnMapKey = currentMapKey;
-    interiorState.returnX = exitX || player.x;
-    interiorState.returnY = exitY || player.y;
+    // Always return the player to where they stood when entering. The
+    // exitX/exitY passed by door scenes predate the current map layouts
+    // and dropped the player at wrong (sometimes walled-in) positions.
+    interiorState.returnX = player.x;
+    interiorState.returnY = player.y;
     interiorState.mapKey = interiorKey;
     interiorState.label = def.label;
     interiorState.type = 'major';

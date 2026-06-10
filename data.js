@@ -371,7 +371,10 @@ const mapWalls = {
         { x: 0,    y: 0,    w: 4000, h: 80   }, { x: 0,    y: 0,    w: 80,   h: 4000 },
         { x: 0,    y: 3920, w: 4000, h: 80   }, { x: 3920, y: 0,    w: 80,   h: 4000 },
         // Central district walls
-        { x: 800,  y: 800,  w: 2400, h: 80   },
+        // North wall split: doorway at x:1860-2060 leads into the inner
+        // sanctum (The Heart / Heart Altar were walled off and unreachable)
+        { x: 800,  y: 800,  w: 1060, h: 80   },
+        { x: 2060, y: 800,  w: 1140, h: 80   },
         { x: 800,  y: 800,  w: 80,   h: 2400 },
         { x: 3120, y: 800,  w: 80,   h: 2400 },
         { x: 800,  y: 3120, w: 1160, h: 80   },
