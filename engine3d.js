@@ -192,6 +192,7 @@ function buildWorld() {
     }
 
     scene3.add(worldGroup);
+    buildMinistryCar(); // scene was recreated; re-add dynamic meshes
     builtSignature = currentWorldSignature();
     // New map: face "north" (2D up) — every spawn point enters from the south
     camYaw = 0;
@@ -316,6 +317,91 @@ function updatePlayer3d() {
     player.y = Math.max(0, Math.min(player.y, WORLD.height - player.size));
 }
 
+// ---- INTERACTION BRIDGE ----
+// Same proximity rule as the 2D build (player center within 60px of the
+// object rect). Sets gameState.activeInteractableId, which the existing
+// SPACE keydown handler in engine.js feeds into startDialogue().
+function updateInteractions3d() {
+    let interacting = null;
+    const px = player.x + player.size / 2;
+    const py = player.y + player.size / 2;
+
+    activeMapObjects.forEach(o => {
+        if (o.decorative || !o.interactScene) return;
+        if (isObjectResolved(o)) return;
+        if (px > o.x - 60 && px < o.x + o.w + 60 && py > o.y - 60 && py < o.y + o.h + 60) {
+            interacting = o.interactScene;
+        }
+    });
+
+    // Parked ministry car becomes interactable (mirrors 2D gameLoop)
+    if (ministeryCar.parked && !gameState.flags.inspector_dealt && gameState.chapter === 1 && !interiorState.active) {
+        if (px > ministeryCar.x - 60 && px < ministeryCar.x + ministeryCar.w + 60 &&
+            py > ministeryCar.y - 60 && py < ministeryCar.y + ministeryCar.h + 60) {
+            interacting = 'ch1_inspector';
+        }
+    }
+
+    gameState.activeInteractableId = interacting;
+    document.getElementById('interaction-prompt').classList.toggle(
+        'hidden',
+        !interacting || gameState.isDialogueActive || !!activePuzzle
+    );
+}
+
+// ---- MINISTRY CAR (Chapter 1 drive-in) ----
+let carGroup = null;
+
+function buildMinistryCar() {
+    carGroup = new THREE.Group();
+    const body = new THREE.Mesh(
+        new THREE.BoxGeometry(ministeryCar.w, 26, ministeryCar.h),
+        new THREE.MeshLambertMaterial({ color: 0x1e2a3a })
+    );
+    body.position.y = 13;
+    carGroup.add(body);
+    const roof = new THREE.Mesh(
+        new THREE.BoxGeometry(ministeryCar.w - 24, 16, ministeryCar.h - 16),
+        new THREE.MeshLambertMaterial({ color: 0x2d3e52 })
+    );
+    roof.position.y = 26 + 8;
+    carGroup.add(roof);
+    const label = makeLabelSprite('Ministry Car', '#f4e4b0');
+    label.position.y = 60;
+    carGroup.add(label);
+    carGroup.visible = false;
+    scene3.add(carGroup);
+}
+
+function updateMinistryCar3d() {
+    if (!carGroup) return;
+    if (gameState.chapter !== 1 || interiorState.active) {
+        carGroup.visible = false;
+        return;
+    }
+    // Drive-in state machine — ported from the 2D gameLoop
+    if (gameState.flags.ministeryCar_snap && !ministeryCar.parked) {
+        ministeryCar.y = ministeryCar.targetY;
+        ministeryCar.parked = true;
+        ministeryCar.active = false;
+        gameState.flags.ministeryCar_snap = false;
+    }
+    if (gameState.flags.ministeryCar_called && !ministeryCar.active && !ministeryCar.parked) {
+        ministeryCar.active = true;
+    }
+    if (ministeryCar.active && !ministeryCar.parked) {
+        ministeryCar.y -= ministeryCar.speed;
+        if (ministeryCar.y <= ministeryCar.targetY) {
+            ministeryCar.y = ministeryCar.targetY;
+            ministeryCar.parked = true;
+            ministeryCar.active = false;
+            gameState.flags.ministeryCar_parked = true;
+        }
+    }
+    carGroup.visible = ministeryCar.active || ministeryCar.parked;
+    carGroup.position.set(ministeryCar.x + ministeryCar.w / 2, 0, ministeryCar.y + ministeryCar.h / 2);
+}
+
 // ---- CAMERA PLACEMENT ----
 function positionCamera() {
     const cx = player.x + player.size / 2;
@@ -341,6 +427,22 @@ function syncSanityFilter() {
 
 // ---- OVERLAY DRAWING (reuses engine.js draw functions on #gameCanvas) ----
 function drawOverlays() {
+    // Rest progress bar — screen-centered (the 2D build draws it over the player)
+    if (gameState.isResting) {
+        const progress = Math.min(1, gameState.restTimer / 180);
+        const barW = 140, barH = 8;
+        const barX = canvas.width / 2 - barW / 2;
+        const barY = canvas.height * 0.6;
+        ctx.fillStyle = 'rgba(0,0,0,0.7)';
+        ctx.fillRect(barX, barY, barW, barH);
+        ctx.fillStyle = '#d4af37';
+        ctx.fillRect(barX, barY, barW * progress, barH);
+        ctx.font = '14px Courier New';
+        ctx.textAlign = 'center';
+        ctx.fillText('Resting...', canvas.width / 2, barY - 8);
+        ctx.textAlign = 'left';
+    }
+
     // Interior enter/exit fade — also advances the transition state machine
     drawInteriorFade();
 
@@ -380,6 +482,8 @@ function gameLoop3d() {
     ensureWorldBuilt();
     syncPointerLock();
     updatePlayer3d();
+    updateMinistryCar3d();
+    updateInteractions3d();
     syncWorldVisibility();
     updateCamera();      // keeps the 2D camera roughly centered for overlay draw math
     positionCamera();
