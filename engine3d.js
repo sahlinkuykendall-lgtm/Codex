@@ -193,6 +193,7 @@ function buildWorld() {
 
     scene3.add(worldGroup);
     buildMinistryCar(); // scene was recreated; re-add dynamic meshes
+    hostileMeshes = new Map(); // hostile meshes were dropped with the old scene
     builtSignature = currentWorldSignature();
     // New map: face "north" (2D up) — every spawn point enters from the south
     camYaw = 0;
@@ -402,6 +403,45 @@ function updateMinistryCar3d() {
     carGroup.position.set(ministeryCar.x + ministeryCar.w / 2, 0, ministeryCar.y + ministeryCar.h / 2);
 }
 
+// ---- HOSTILES (3D bodies for the existing patrol/chase AI) ----
+let hostileMeshes = new Map(); // hostile object -> { group, bodyMat, baseColor }
+
+function syncHostiles3d() {
+    // Create meshes for new hostiles
+    for (const h of hostiles) {
+        if (hostileMeshes.has(h)) continue;
+        const group = new THREE.Group();
+        const bodyMat = new THREE.MeshLambertMaterial({ color: new THREE.Color(h.def.color) });
+        const body = new THREE.Mesh(new THREE.BoxGeometry(h.def.size, 55, h.def.size), bodyMat);
+        body.position.y = 27.5;
+        group.add(body);
+        const label = makeLabelSprite(h.def.label, '#cccccc');
+        label.position.y = 72;
+        group.add(label);
+        scene3.add(group);
+        hostileMeshes.set(h, { group, bodyMat, baseColor: new THREE.Color(h.def.color) });
+    }
+    // Remove meshes whose hostiles are gone (clearHostiles replaces the array)
+    for (const [h, entry] of hostileMeshes) {
+        if (!hostiles.includes(h)) {
+            scene3.remove(entry.group);
+            hostileMeshes.delete(h);
+        }
+    }
+    // Position + chase flicker
+    for (const [h, entry] of hostileMeshes) {
+        const bob = Math.sin(h.bobPhase) * 2;
+        entry.group.position.set(h.x + h.def.size / 2, bob, h.y + h.def.size / 2);
+        if (h.state === 'chase') {
+            const pulse = 0.7 + Math.sin(h.bobPhase * 2) * 0.3;
+            entry.bodyMat.color.setRGB(0.71 * pulse, 0.12 * pulse, 0.12 * pulse);
+        } else {
+            entry.bodyMat.color.copy(entry.baseColor);
+        }
+        entry.group.visible = h.state !== 'idle';
+    }
+}
+
 // ---- CAMERA PLACEMENT ----
 function positionCamera() {
     const cx = player.x + player.size / 2;
@@ -427,6 +467,31 @@ function syncSanityFilter() {
 
 // ---- OVERLAY DRAWING (reuses engine.js draw functions on #gameCanvas) ----
 function drawOverlays() {
+    const palette = getChapterPalette();
+
+    // Screen-space atmosphere reused from engine.js: hallucination phantoms,
+    // drifting dust motes, vignette (all canvas-space, engine-agnostic)
+    drawPhantoms();
+    drawAmbientDust(palette.ambientDust);
+
+    const vigCX = canvas.width / 2, vigCY = canvas.height / 2;
+    const vig = ctx.createRadialGradient(vigCX, vigCY, Math.min(canvas.width, canvas.height) * 0.25,
+                                         vigCX, vigCY, Math.min(canvas.width, canvas.height) * 0.72);
+    vig.addColorStop(0, 'rgba(0,0,0,0)');
+    vig.addColorStop(1, `rgba(0,0,0,${palette.vignette})`);
+    ctx.fillStyle = vig;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Clarity flash (E key) — expanding ring from screen center
+    if (clarityTimer > 0) {
+        const ct = clarityTimer / 40;
+        ctx.strokeStyle = `rgba(212,175,55,${ct * 0.5})`;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(vigCX, vigCY, 50 + (1 - ct) * 80, 0, Math.PI * 2);
+        ctx.stroke();
+    }
+
     // Rest progress bar — screen-centered (the 2D build draws it over the player)
     if (gameState.isResting) {
         const progress = Math.min(1, gameState.restTimer / 180);
@@ -482,8 +547,11 @@ function gameLoop3d() {
     ensureWorldBuilt();
     syncPointerLock();
     updatePlayer3d();
+    updateHostiles();    // existing patrol/chase/catch AI, unchanged
+    updatePhantoms();    // existing sanity hallucination logic, unchanged
     updateMinistryCar3d();
     updateInteractions3d();
+    syncHostiles3d();
     syncWorldVisibility();
     updateCamera();      // keeps the 2D camera roughly centered for overlay draw math
     positionCamera();
