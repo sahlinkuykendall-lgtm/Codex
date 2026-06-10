@@ -193,6 +193,9 @@ function buildWorld() {
 
     scene3.add(worldGroup);
     builtSignature = currentWorldSignature();
+    // New map: face "north" (2D up) — every spawn point enters from the south
+    camYaw = 0;
+    camPitch = 0;
 }
 
 function ensureWorldBuilt() {
@@ -211,11 +214,120 @@ function syncWorldVisibility() {
     }
 }
 
+// ---- MOUSE LOOK (POINTER LOCK) ----
+function gameplayInputActive() {
+    return gameState.currentScreen === 'GAME' && !gameState.isDialogueActive &&
+           !gameState.isPaused && !activePuzzle;
+}
+
+glCanvas.addEventListener('click', () => {
+    if (gameplayInputActive() && document.pointerLockElement !== glCanvas) {
+        glCanvas.requestPointerLock();
+    }
+});
+
+document.addEventListener('mousemove', e => {
+    if (document.pointerLockElement !== glCanvas) return;
+    camYaw   -= e.movementX * 0.0022;
+    camPitch -= e.movementY * 0.0022;
+    camPitch = Math.max(-1.45, Math.min(1.45, camPitch));
+});
+
+// Release the mouse whenever a UI surface takes over (dialogue choices,
+// pause menu, puzzles, start menu) so the cursor is usable.
+function syncPointerLock() {
+    if (document.pointerLockElement === glCanvas && !gameplayInputActive()) {
+        document.exitPointerLock();
+    }
+}
+
+// ---- PLAYER UPDATE (movement, sprint, rest — mirrors the 2D gameLoop) ----
+function updatePlayer3d() {
+    // Sprint — exhaustion flag prevents oscillation when stamina hits 0
+    if (gameState.stamina <= 0) gameState.staminaExhausted = true;
+    if (gameState.staminaExhausted && gameState.stamina >= 2.0) gameState.staminaExhausted = false;
+
+    gameState.isSprinting = shiftHeld && !gameState.staminaExhausted && gameState.stamina > 0 && !gameState.isDialogueActive;
+    if (gameState.isSprinting) {
+        gameState.stamina = Math.max(0, gameState.stamina - 0.04);
+    } else if (gameState.stamina < gameState.maxStamina) {
+        const regenRate = gameState.inventory.includes('Karkadeh') ? 0.10
+            : gameState.inventory.includes('Mint Tea') ? 0.08 : 0.04;
+        gameState.stamina = Math.min(gameState.maxStamina, gameState.stamina + regenRate);
+    }
+    {
+        const pct = (gameState.stamina / gameState.maxStamina) * 100;
+        const bar = document.getElementById('stamina-bar-fill');
+        const txt = document.getElementById('stat-stamina');
+        if (bar) bar.style.width = pct + '%';
+        if (txt) txt.innerText = gameState.stamina.toFixed(1);
+    }
+
+    // Rest — takes ~3 seconds, restores 5 sanity (same numbers as 2D)
+    if (gameState.isResting) {
+        gameState.restTimer++;
+        if (gameState.restTimer >= 180) {
+            increaseSanity(5.0);
+            gameState.restTimer = 0;
+            gameState.isResting = false;
+        }
+    }
+
+    if (gameState.isDialogueActive || gameState.isResting || gameState.isPaused || activePuzzle) return;
+
+    // Keyboard turning (mouse-free fallback)
+    if (isHeld('arrowleft'))  camYaw += 0.045;
+    if (isHeld('arrowright')) camYaw -= 0.045;
+
+    let moveF = 0, moveR = 0;
+    if (isHeld('w') || isHeld('arrowup'))   moveF += 1;
+    if (isHeld('s') || isHeld('arrowdown')) moveF -= 1;
+    if (isHeld('a')) moveR -= 1;
+    if (isHeld('d')) moveR += 1;
+    if (moveF === 0 && moveR === 0) return;
+
+    const speed = player.speed * (gameState.isSprinting ? 2 : 1);
+    // Camera-relative directions on the ground plane (yaw 0 faces -z / "2D north")
+    const fx = -Math.sin(camYaw), fz = -Math.cos(camYaw);
+    const rx =  Math.cos(camYaw), rz = -Math.sin(camYaw);
+    let dx = fx * moveF + rx * moveR;
+    let dz = fz * moveF + rz * moveR;
+    const len = Math.hypot(dx, dz);
+    dx = dx / len * speed;
+    dz = dz / len * speed;
+
+    gameState.walkBobPhase += 0.15 * (gameState.isSprinting ? 1.4 : 1);
+
+    // Axis-separated AABB collision — identical rules to the 2D build
+    const currentWalls = (mapWalls[currentMapKey] || []).filter(w => !w.isGate || !gameState.flags[w.gateFlag]);
+    const testX = player.x + dx;
+    const testY = player.y + dz;
+    let blockedX = false, blockedY = false;
+    for (const wall of currentWalls) {
+        if (testX < wall.x + wall.w && testX + player.size > wall.x &&
+            player.y < wall.y + wall.h && player.y + player.size > wall.y) { blockedX = true; }
+        if (player.x < wall.x + wall.w && player.x + player.size > wall.x &&
+            testY < wall.y + wall.h && testY + player.size > wall.y) { blockedY = true; }
+    }
+    if (!blockedX) player.x = testX;
+    if (!blockedY) player.y = testY;
+
+    player.x = Math.max(0, Math.min(player.x, WORLD.width  - player.size));
+    player.y = Math.max(0, Math.min(player.y, WORLD.height - player.size));
+}
+
 // ---- CAMERA PLACEMENT ----
 function positionCamera() {
     const cx = player.x + player.size / 2;
     const cz = player.y + player.size / 2;
-    cam3.position.set(cx, EYE_HEIGHT, cz);
+    const bob = Math.sin(gameState.walkBobPhase) * 1.6;
+    let shakeX = 0, shakeY = 0, shakeZ = 0;
+    if (gameState.sanityState === 'FRACTURED') {
+        shakeX = (Math.random() - 0.5) * 3;
+        shakeY = (Math.random() - 0.5) * 2;
+        shakeZ = (Math.random() - 0.5) * 3;
+    }
+    cam3.position.set(cx + shakeX, EYE_HEIGHT + bob + shakeY, cz + shakeZ);
     cam3.rotation.y = camYaw;
     cam3.rotation.x = camPitch;
 }
@@ -266,6 +378,8 @@ function gameLoop3d() {
     }
 
     ensureWorldBuilt();
+    syncPointerLock();
+    updatePlayer3d();
     syncWorldVisibility();
     updateCamera();      // keeps the 2D camera roughly centered for overlay draw math
     positionCamera();
