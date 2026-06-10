@@ -74,7 +74,7 @@ function makeLabelSprite(text, colorHex) {
     tex.minFilter = THREE.LinearFilter;
     const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true }));
     // World scale: keep labels readable but not billboard-huge
-    const scale = 0.55;
+    const scale = 0.3;
     sprite.scale.set(lc.width * scale, lc.height * scale, 1);
     return sprite;
 }
@@ -209,10 +209,23 @@ function syncWorldVisibility() {
     for (const g of gateMeshes) {
         g.mesh.visible = !gameState.flags[g.gateFlag];
     }
+    const px = player.x + player.size / 2;
+    const py = player.y + player.size / 2;
     for (const e of objectEntries) {
         const hidden = isObjectResolved(e.o);
         e.mesh.visible = !hidden;
-        if (e.label) e.label.visible = !hidden;
+        if (e.label) {
+            // Distance fade: invisible when too close (would fill the screen)
+            // or too far (horizon clutter); full strength in the mid band
+            const dist = Math.hypot(e.o.x + e.o.w / 2 - px, e.o.y + e.o.h / 2 - py);
+            let alpha = 1;
+            if (dist < 60) alpha = 0;
+            else if (dist < 140) alpha = (dist - 60) / 80;
+            else if (dist > 1100) alpha = 0;
+            else if (dist > 800) alpha = 1 - (dist - 800) / 300;
+            e.label.material.opacity = alpha;
+            e.label.visible = !hidden && alpha > 0.02;
+        }
     }
 }
 
