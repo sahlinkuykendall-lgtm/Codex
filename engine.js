@@ -1028,7 +1028,8 @@ window.addEventListener('pointerdown', (e) => {
     if (gameState.currentScreen === 'START_MENU' && menuPhase === 'IDLE') {
         menuPhase = 'FADEOUT';
         overlayAlpha = 0;
-    } else if (!gameState.isDialogueActive && gameState.activeInteractableId) {
+    } else if (!window.RENDER_MODE_3D && !gameState.isDialogueActive && gameState.activeInteractableId) {
+        // Tap-to-interact is 2D-only; in 3D mode clicks are used for mouse-look pointer lock
         startDialogue(gameState.activeInteractableId);
     }
 });
@@ -2433,4 +2434,6 @@ function gameLoop() {
     requestAnimationFrame(gameLoop);
 }
 
-gameLoop();
+// In 3D mode (index3d.html) engine3d.js drives its own loop and reuses the
+// logic functions above; the 2D render loop must not start.
+if (!window.RENDER_MODE_3D) gameLoop();
