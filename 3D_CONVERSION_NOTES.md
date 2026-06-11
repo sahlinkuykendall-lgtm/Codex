@@ -31,11 +31,16 @@
   implemented endings reachable.
 - 5 orphaned finished scenes were wired into maps (water barrels, TRAP
   false door, CUTTHROAT blood/radio, market coffeehouse).
-- **Known content gaps vs the lore docs** (not wired, needs writing):
-  Father Matthias / the Asfour archive, Inspector Nadia Kareem, the
-  Severance and Departure secret endings, and deep-lore fragments
-  (Tibesti/Nazca/Aksum, Zep Tepi, the Perennial Concern by name, the
-  dimming). ~44 superseded draft scenes remain in dialogue.js (harmless).
+- **Content gaps closed (commit 096dd06):** Father Matthias + the Order
+  archive (Ch3), Inspector Nadia Kareem (Ch3 + Indictment echo), Iry's
+  other-Hearts/dimming/chant branches (Ch4), and the Severance and
+  Departure secret endings (Ch7, 8 endings total). Deep lore now in
+  game: Tibesti/Nazca/Aksum, Zep Tepi, the Perennial Concern, the
+  dimming, the Fayyum Papyrus.
+- **Still absent from the lore docs:** Kostas Lemaire (Ch4 trapped
+  scholar — a full side-quest's worth of content) and any minor NPCs
+  beyond him in NEW_CHARACTERS.md. ~44 superseded draft scenes remain
+  in dialogue.js (harmless).
 
 ## Atmosphere (engine3d.js, `MAP_ATMOS`)
 
