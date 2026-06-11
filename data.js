@@ -3,6 +3,18 @@ let WORLD = { width: 3840, height: 3520 }; // Ch1 size after map scaling (see MA
 // currentMapKey drives wall & object lookups. Set by each loadChapter function.
 let currentMapKey = 1;
 
+// Stamina tuning, shared by both engine loops (2D gameLoop and 3D
+// updatePlayer3d). Bigger pool that drains AND rebuilds slowly: ~13s of
+// sprint from full, ~17s to refill from empty.
+const STAMINA = {
+    max: 20.0,
+    drain: 0.025,          // per frame while sprinting
+    regen: 0.02,           // per frame baseline
+    regenTea: 0.04,        // with Mint Tea
+    regenKarkadeh: 0.05,   // with Karkadeh
+    recoverAt: 3.0         // exhausted until stamina climbs back here
+};
+
 const gameState = {
     currentScreen: 'START_MENU', chapter: 1, sanity: 10.0, maxSanity: 10.0, sanityState: 'CALM', isResting: false, restTimer: 0,
     // Reputation tracks (all three from the Bible)
@@ -17,7 +29,7 @@ const gameState = {
     // Inventory & consumables
     inventory: ['Field Journal'], mintTeaCount: 0, usedRestSites: [],
     // Stamina system
-    stamina: 10.0, maxStamina: 10.0, isSprinting: false,
+    stamina: STAMINA.max, maxStamina: STAMINA.max, isSprinting: false,
     // Walking bob (animation)
     walkBobPhase: 0,
     // Pause menu state

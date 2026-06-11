@@ -874,14 +874,14 @@ function syncPointerLock() {
 function updatePlayer3d() {
     // Sprint — exhaustion flag prevents oscillation when stamina hits 0
     if (gameState.stamina <= 0) gameState.staminaExhausted = true;
-    if (gameState.staminaExhausted && gameState.stamina >= 2.0) gameState.staminaExhausted = false;
+    if (gameState.staminaExhausted && gameState.stamina >= STAMINA.recoverAt) gameState.staminaExhausted = false;
 
     gameState.isSprinting = shiftHeld && !gameState.staminaExhausted && gameState.stamina > 0 && !gameState.isDialogueActive;
     if (gameState.isSprinting) {
-        gameState.stamina = Math.max(0, gameState.stamina - 0.04);
+        gameState.stamina = Math.max(0, gameState.stamina - STAMINA.drain);
     } else if (gameState.stamina < gameState.maxStamina) {
-        const regenRate = gameState.inventory.includes('Karkadeh') ? 0.10
-            : gameState.inventory.includes('Mint Tea') ? 0.08 : 0.04;
+        const regenRate = gameState.inventory.includes('Karkadeh') ? STAMINA.regenKarkadeh
+            : gameState.inventory.includes('Mint Tea') ? STAMINA.regenTea : STAMINA.regen;
         gameState.stamina = Math.min(gameState.maxStamina, gameState.stamina + regenRate);
     }
     {

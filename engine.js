@@ -682,7 +682,7 @@ function resetGameState() {
     gameState.currentRoute = null;
     gameState.trustTariq = 0; gameState.trustMaren = 0; gameState.trustIry = 0; gameState.trustYusra = 0;
     gameState.inventory = ['Field Journal']; gameState.mintTeaCount = 0; gameState.usedRestSites = []; gameState.restCooldowns = {};
-    gameState.stamina = 10.0; gameState.maxStamina = 10.0; gameState.isSprinting = false; gameState.staminaExhausted = false;
+    gameState.stamina = STAMINA.max; gameState.maxStamina = STAMINA.max; gameState.isSprinting = false; gameState.staminaExhausted = false;
     gameState.journalNotes = []; gameState.devChapterMenuOpen = false;
     gameState.walkBobPhase = 0; gameState.isPaused = false;
     gameState.isDialogueActive = false; gameState.activeInteractableId = null;
@@ -804,6 +804,9 @@ function loadGame() {
     const savedFlags = data.gameState.flags || {};
     Object.assign(gameState, data.gameState, { flags: gameState.flags });
     Object.assign(gameState.flags, savedFlags);
+    // Migrate saves made under older stamina tuning to the current pool
+    gameState.maxStamina = STAMINA.max;
+    gameState.stamina = Math.min(gameState.stamina, STAMINA.max);
 
     // Restore map context directly — no chapter loader, so the chapter
     // intro dialogue does not re-fire.
@@ -2474,14 +2477,14 @@ function gameLoop() {
 
     // Sprint — exhaustion flag prevents oscillation when stamina hits 0
     if (gameState.stamina <= 0) gameState.staminaExhausted = true;
-    if (gameState.staminaExhausted && gameState.stamina >= 2.0) gameState.staminaExhausted = false;
+    if (gameState.staminaExhausted && gameState.stamina >= STAMINA.recoverAt) gameState.staminaExhausted = false;
 
     gameState.isSprinting = shiftHeld && !gameState.staminaExhausted && gameState.stamina > 0 && !gameState.isDialogueActive;
     if (gameState.isSprinting) {
-        gameState.stamina = Math.max(0, gameState.stamina - 0.04);
+        gameState.stamina = Math.max(0, gameState.stamina - STAMINA.drain);
     } else if (gameState.stamina < gameState.maxStamina) {
-        const regenRate = gameState.inventory.includes('Karkadeh') ? 0.10
-            : gameState.inventory.includes('Mint Tea') ? 0.08 : 0.04;
+        const regenRate = gameState.inventory.includes('Karkadeh') ? STAMINA.regenKarkadeh
+            : gameState.inventory.includes('Mint Tea') ? STAMINA.regenTea : STAMINA.regen;
         gameState.stamina = Math.min(gameState.maxStamina, gameState.stamina + regenRate);
     }
     // Update stamina bar every frame
