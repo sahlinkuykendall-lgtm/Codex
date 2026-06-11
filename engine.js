@@ -201,6 +201,57 @@ function spawnChapterOneHostiles() {
     }
 }
 
+// Respawn the patrols that belong to the current chapter/route. Called
+// by the chapter loaders and by loadGame() (so a restored game gets its
+// hostiles back without re-firing the chapter intro dialogue).
+function spawnHostilesForLocation() {
+    clearHostiles();
+    if (interiorState.active) return; // no patrols indoors
+    switch (gameState.chapter) {
+        case 1:
+            spawnChapterOneHostiles();
+            break;
+        case 2:
+            if (gameState.currentRoute === 'TRAP') {
+                // Panicked worker patrols the trap tunnel
+                spawnHostile('worker_panicked', 1120, 1680, [
+                    { x: 1120, y: 1680 }, { x: 1680, y: 1680 }, { x: 1680, y: 2520 }, { x: 1120, y: 2520 }
+                ]);
+            } else if (gameState.currentRoute === 'CUTTHROAT') {
+                spawnHostile('figure_dark', 1610, 1400, [
+                    { x: 1610, y: 1400 }, { x: 1890, y: 1680 }, { x: 1610, y: 2100 }
+                ]);
+            }
+            break;
+        case 3:
+            // Ministry informant patrols the market
+            spawnHostile('guard_ministry', 2860, 3120, [
+                { x: 2860, y: 3120 }, { x: 3640, y: 3120 }, { x: 3640, y: 2340 }, { x: 2860, y: 2340 }
+            ]);
+            break;
+        case 4:
+            // Dark figures patrol city outskirts — the city watching
+            spawnHostile('figure_dark', 900, 3000, [
+                { x: 900, y: 3000 }, { x: 900, y: 1500 }, { x: 1500, y: 900 }
+            ]);
+            spawnHostile('figure_dark', 5100, 3000, [
+                { x: 5100, y: 3000 }, { x: 5100, y: 1500 }, { x: 4500, y: 900 }
+            ]);
+            break;
+        case 5:
+            // Airfield guards patrolling perimeter
+            spawnHostile('guard_ministry', 1120, 1680, [
+                { x: 1120, y: 1680 }, { x: 3360, y: 1680 }
+            ]);
+            break;
+        case 6:
+            // Two dark figures flank the approach
+            spawnHostile('figure_dark', 600, 3000, [{ x: 600, y: 3000 }, { x: 600, y: 1800 }]);
+            spawnHostile('figure_dark', 4200, 3000, [{ x: 4200, y: 3000 }, { x: 4200, y: 1800 }]);
+            break;
+    }
+}
+
 function updateHostiles() {
     if (gameState.isPaused || gameState.isDialogueActive || activePuzzle) return;
 
@@ -409,6 +460,7 @@ function _completeEnter() {
         gameState.flags._pendingTentCodexScene = false;
         startDialogue('ch1_all_missions_complete');
     }
+    autosave();
 }
 
 function exitBuilding() {
@@ -434,16 +486,13 @@ function _completeExit() {
     player.y = interiorState.returnY;
     // Restore map objects for the outer map
     activeMapObjects = mapObjects[currentMapKey] || [];
-    // Respawn hostiles for ch1 exterior
-    if (currentMapKey === 1) {
-        clearHostiles();
-        spawnChapterOneHostiles();
-    }
+    // Respawn the chapter's patrols (cleared on interior enter)
+    spawnHostilesForLocation();
     // Restore bg color
-    const bgColors = { 1: '#1a1a1a', 'MARKET': '#1a1410', 'CITY': '#050510', 'AIRFIELD': '#111', 'GATE': '#030305' };
-    canvas.style.backgroundColor = bgColors[currentMapKey] || '#111';
+    canvas.style.backgroundColor = MAP_BG_COLORS[currentMapKey] || '#111';
     interiorState.fadeDir = -1;
     updateHUD();
+    autosave();
 }
 
 // Fade into tent interior before showing the ch1_all_missions_complete scene
@@ -484,84 +533,62 @@ function drawInteriorFade() {
 
 function loadChapterTwo() {
     gameState.chapter = 2;
-    clearHostiles();
     if (gameState.currentRoute === 'TRAP') {
         WORLD = { width: 4200, height: 4200 }; player.x = 420; player.y = 280;
-        // Panicked worker patrols the trap tunnel
-        spawnHostile('worker_panicked', 1120, 1680, [
-            { x: 1120, y: 1680 }, { x: 1680, y: 1680 }, { x: 1680, y: 2520 }, { x: 1120, y: 2520 }
-        ]);
-    } else if (gameState.currentRoute === 'CUTTHROAT') {
-        WORLD = { width: 3500, height: 3500 }; player.x = 1680; player.y = 280;
-        spawnHostile('figure_dark', 1610, 1400, [
-            { x: 1610, y: 1400 }, { x: 1890, y: 1680 }, { x: 1610, y: 2100 }
-        ]);
     } else {
         WORLD = { width: 3500, height: 3500 }; player.x = 1680; player.y = 280;
     }
+    spawnHostilesForLocation();
     currentMapKey = gameState.currentRoute;
     activeMapObjects = mapObjects[gameState.currentRoute] || [];
     canvas.style.backgroundColor = '#050505';
     updateHUD();
     startDialogue('ch2_start_' + gameState.currentRoute.toLowerCase());
+    autosave();
 }
 
 function loadChapterThree() {
     gameState.chapter = 3;
-    clearHostiles();
     currentMapKey = 'MARKET';
     WORLD = { width: 4680, height: 4160 }; player.x = 2340; player.y = 3900;
     activeMapObjects = mapObjects['MARKET'];
-    // Ministry informant patrols the market
-    spawnHostile('guard_ministry', 2860, 3120, [
-        { x: 2860, y: 3120 }, { x: 3640, y: 3120 }, { x: 3640, y: 2340 }, { x: 2860, y: 2340 }
-    ]);
+    spawnHostilesForLocation();
     canvas.style.backgroundColor = '#1a1410';
     updateHUD(); startDialogue('ch3_start');
+    autosave();
 }
 
 function loadChapterFour() {
     gameState.chapter = 4;
-    clearHostiles();
     currentMapKey = 'CITY';
     WORLD = { width: 6000, height: 6000 }; player.x = 3000; player.y = 5550;
     activeMapObjects = mapObjects['CITY'];
-    // Dark figure patrols city outskirts — the city watching
-    spawnHostile('figure_dark', 900, 3000, [
-        { x: 900, y: 3000 }, { x: 900, y: 1500 }, { x: 1500, y: 900 }
-    ]);
-    spawnHostile('figure_dark', 5100, 3000, [
-        { x: 5100, y: 3000 }, { x: 5100, y: 1500 }, { x: 4500, y: 900 }
-    ]);
+    spawnHostilesForLocation();
     canvas.style.backgroundColor = '#050510';
     updateHUD(); startDialogue('ch4_start');
+    autosave();
 }
 
 function loadChapterFive() {
     gameState.chapter = 5;
-    clearHostiles();
     currentMapKey = 'AIRFIELD';
     WORLD = { width: 5040, height: 4480 }; player.x = 2520; player.y = 4200;
     activeMapObjects = mapObjects['AIRFIELD'];
-    // Airfield guards patrolling perimeter
-    spawnHostile('guard_ministry', 1120, 1680, [
-        { x: 1120, y: 1680 }, { x: 3360, y: 1680 }
-    ]);
+    spawnHostilesForLocation();
     canvas.style.backgroundColor = '#111';
     updateHUD(); startDialogue('ch5_start');
+    autosave();
 }
 
 function loadChapterSix() {
     gameState.chapter = 6;
-    clearHostiles();
     currentMapKey = 'GATE';
     WORLD = { width: 4800, height: 4800 }; player.x = 2400; player.y = 4500;
     activeMapObjects = mapObjects['GATE'];
-    // Two dark figures flank the approach
-    spawnHostile('figure_dark', 600, 3000, [{ x: 600, y: 3000 }, { x: 600, y: 1800 }]);
-    spawnHostile('figure_dark', 4200, 3000, [{ x: 4200, y: 3000 }, { x: 4200, y: 1800 }]);
+    spawnHostilesForLocation();
     canvas.style.backgroundColor = '#030305';
     updateHUD(); startDialogue('ch6_start');
+    autosave();
 }
 
 function loadChapterSeven() {
@@ -572,6 +599,7 @@ function loadChapterSeven() {
     activeMapObjects = mapObjects['FINAL'];
     canvas.style.backgroundColor = '#000';
     updateHUD(); startDialogue('ch7_start');
+    autosave();
 }
 
 // ---- SANITY & REST ----
@@ -702,6 +730,124 @@ function startGame() {
     menuPhase = 'GAMEFADEIN';
 }
 
+// ---- SAVE / LOAD (localStorage, single slot) ----
+// The save captures gameState (flags, stats, inventory, trust, route),
+// the player's position and map context, and the ministry car. Hostiles
+// are respawned from spawnHostilesForLocation() on load, and transient
+// UI state (dialogue, pause, fades) is stripped so loading is always a
+// clean resume standing in the world.
+const SAVE_KEY = 'codexOfGiza_save_v1';
+let saveFlash = 0; // frames left to show "Saved" feedback in the pause menu
+
+const MAP_BG_COLORS = {
+    1: '#1a1a1a', 'TRAP': '#050505', 'SECRET': '#050505', 'CUTTHROAT': '#050505',
+    'MARKET': '#1a1410', 'CITY': '#050510', 'AIRFIELD': '#111', 'GATE': '#030305', 'FINAL': '#000'
+};
+
+function hasSave() {
+    try { return !!localStorage.getItem(SAVE_KEY); } catch (e) { return false; }
+}
+
+function saveGame() {
+    if (gameState.currentScreen !== 'GAME') return false;
+    try {
+        // Resolve a mid-fade interior transition to its end state
+        const inInterior = interiorState.pendingExit
+            ? false
+            : (interiorState.active || interiorState.pendingEnter);
+        const data = {
+            v: 1,
+            savedAt: Date.now(),
+            gameState: JSON.parse(JSON.stringify(gameState)),
+            player: { x: player.x, y: player.y },
+            currentMapKey: currentMapKey,
+            world: { width: WORLD.width, height: WORLD.height },
+            interior: inInterior ? {
+                mapKey: interiorState.mapKey,
+                returnMapKey: interiorState.returnMapKey,
+                returnX: interiorState.returnX,
+                returnY: interiorState.returnY
+            } : null,
+            car: {
+                active: ministeryCar.active, parked: ministeryCar.parked,
+                x: ministeryCar.x, y: ministeryCar.y
+            }
+        };
+        Object.assign(data.gameState, {
+            currentScreen: 'GAME', isPaused: false, isResting: false, restTimer: 0,
+            isDialogueActive: false, activeInteractableId: null, isSprinting: false,
+            devChapterMenuOpen: false
+        });
+        localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+        return true;
+    } catch (e) {
+        console.warn('Save failed:', e);
+        return false;
+    }
+}
+
+// Checkpoint write — called on dialogue close, chapter load, interior
+// enter/exit. Silently skips when there's nothing sensible to save.
+function autosave() {
+    if (gameState.currentScreen === 'GAME' && !activePuzzle) saveGame();
+}
+
+function loadGame() {
+    let data = null;
+    try { data = JSON.parse(localStorage.getItem(SAVE_KEY)); } catch (e) { data = null; }
+    if (!data || data.v !== 1 || !data.gameState) return false;
+
+    resetGameState();
+
+    // Restore stats/flags. Flags merge into the (just reset) flag table so
+    // flags added to the game after this save keep their defaults.
+    const savedFlags = data.gameState.flags || {};
+    Object.assign(gameState, data.gameState, { flags: gameState.flags });
+    Object.assign(gameState.flags, savedFlags);
+
+    // Restore map context directly — no chapter loader, so the chapter
+    // intro dialogue does not re-fire.
+    if (data.interior && MAJOR_INTERIORS[data.interior.mapKey]) {
+        const def = MAJOR_INTERIORS[data.interior.mapKey];
+        interiorState.active = true;
+        interiorState.mapKey = data.interior.mapKey;
+        interiorState.returnMapKey = data.interior.returnMapKey;
+        interiorState.returnX = data.interior.returnX;
+        interiorState.returnY = data.interior.returnY;
+        interiorState.label = def.label;
+        interiorState.type = 'major';
+        currentMapKey = data.interior.mapKey;
+        WORLD = { width: def.worldW, height: def.worldH };
+        canvas.style.backgroundColor = def.bgColor;
+        clearHostiles();
+    } else {
+        currentMapKey = data.currentMapKey;
+        WORLD = { width: data.world.width, height: data.world.height };
+        canvas.style.backgroundColor = MAP_BG_COLORS[currentMapKey] || '#111';
+        spawnHostilesForLocation();
+    }
+    activeMapObjects = mapObjects[currentMapKey] || [];
+    player.x = data.player.x;
+    player.y = data.player.y;
+
+    ministeryCar = { active: false, parked: false, x: 3520, y: 4000, targetY: 2080, speed: 5.4, w: 90, h: 60 };
+    if (data.car) {
+        ministeryCar.active = data.car.active;
+        ministeryCar.parked = data.car.parked;
+        ministeryCar.x = data.car.x;
+        ministeryCar.y = data.car.y;
+    }
+
+    gameState.currentScreen = 'GAME';
+    document.getElementById('hud').classList.remove('hidden');
+    document.getElementById('hud-bottomleft').classList.remove('hidden');
+    document.getElementById('hud-hint').classList.remove('hidden');
+    updateHUD();
+    overlayAlpha = 1.0;
+    menuPhase = 'GAMEFADEIN';
+    return true;
+}
+
 // ---- START SCREEN DRAWING ----
 function drawStartScreen() {
     menuTime++;
@@ -824,6 +970,11 @@ function drawStartScreen() {
     ctx.fillStyle = `rgba(212, 175, 55, ${pulse})`;
     ctx.font = '16px Courier New';
     ctx.fillText('PRESS SPACE TO BEGIN', 640, 440);
+    if (hasSave()) {
+        ctx.fillStyle = 'rgba(212, 175, 55, 0.55)';
+        ctx.font = '12px Courier New';
+        ctx.fillText('PRESS C TO CONTINUE', 640, 462);
+    }
     ctx.restore();
 
     // 11 — Bottom rule
@@ -918,6 +1069,7 @@ function startDialogue(id) {
 function closeDialogue() {
     gameState.isDialogueActive = false;
     document.getElementById('ui-overlay').classList.add('hidden');
+    autosave(); // dialogue close = story progress committed (flags set)
 }
 
 // ---- INPUTS ----
@@ -940,6 +1092,10 @@ window.addEventListener('keydown', e => {
     }
     if (e.key === ' ' && gameState.currentScreen === 'START_MENU' && menuPhase === 'IDLE') {
         menuPhase = 'FADEOUT'; overlayAlpha = 0;
+    }
+    // Continue from the last save (2D start screen; the 3D menu has a button)
+    if (k === 'c' && gameState.currentScreen === 'START_MENU' && menuPhase === 'IDLE' && hasSave()) {
+        loadGame();
     }
     if (e.key === ' ' && gameState.currentScreen === 'GAME' && !gameState.isDialogueActive && gameState.activeInteractableId) {
         sndInteract();
@@ -1007,23 +1163,28 @@ window.addEventListener('pointerdown', (e) => {
             return;
         }
 
-        // Normal pause menu — buttons drawn at CP_Y+115=215, +170=270, +225=325, +280=380, +350=450
+        // Normal pause menu — buttons drawn at CP_Y+115=215, +170=270, +225=325, +280=380, +335=435, +390=490
         if (canvasY > 195 && canvasY < 245)  { gameState.isPaused = false; return; }
         if (canvasY > 250 && canvasY < 295) {
+            if (saveGame()) saveFlash = 120;
+            return;
+        }
+        if (canvasY > 305 && canvasY < 350) {
             const gc = document.getElementById('game-container');
             if (!document.fullscreenElement) gc.requestFullscreen().catch(err => console.log(err));
             else document.exitFullscreen();
             return;
         }
-        if (canvasY > 305 && canvasY < 350) {
+        if (canvasY > 360 && canvasY < 405) {
+            saveGame();
             resetGameState(); menuPhase = 'FADEIN'; overlayAlpha = 1.0;
             gameState.isPaused = false; gameState.currentScreen = 'START_MENU'; return;
         }
-        if (canvasY > 360 && canvasY < 405) {
-            if (confirm('Quit to desktop?')) window.location.reload();
+        if (canvasY > 415 && canvasY < 460) {
+            if (confirm('Quit to desktop?')) { saveGame(); window.location.reload(); }
             return;
         }
-        if (canvasY > 430 && canvasY < 475) {
+        if (canvasY > 470 && canvasY < 515) {
             gameState.devChapterMenuOpen = true; return;
         }
         return; // swallow all other clicks while paused
@@ -1662,15 +1823,17 @@ function drawPauseMenu() {
             ctx.fillText(label, CP_X + CP_W / 2, dy);
         });
     } else {
+        if (saveFlash > 0) saveFlash--;
         const options = [
             { text: 'Resume',              sub: 'ESC or ENTER',   y: CP_Y + 115 },
-            { text: 'Fullscreen',          sub: 'Toggle',         y: CP_Y + 170 },
-            { text: 'Return to Menu',      sub: 'Go to start',    y: CP_Y + 225 },
-            { text: 'Quit',               sub: 'Reload page',    y: CP_Y + 280 },
-            { text: '— DEV: Skip Chapter —', sub: 'Jump to any chapter', y: CP_Y + 350 },
+            { text: saveFlash > 0 ? 'Saved.' : 'Save Game', sub: 'Single slot, this browser', y: CP_Y + 170, gold: saveFlash > 0 },
+            { text: 'Fullscreen',          sub: 'Toggle',         y: CP_Y + 225 },
+            { text: 'Return to Menu',      sub: 'Saves first',    y: CP_Y + 280 },
+            { text: 'Quit',               sub: 'Saves first — reload page', y: CP_Y + 335 },
+            { text: '— DEV: Skip Chapter —', sub: 'Jump to any chapter', y: CP_Y + 390 },
         ];
         options.forEach(opt => {
-            ctx.fillStyle = opt.text.startsWith('—') ? '#666' : '#e0e0e0';
+            ctx.fillStyle = opt.gold ? '#d4af37' : opt.text.startsWith('—') ? '#666' : '#e0e0e0';
             ctx.font = opt.text.startsWith('—') ? '14px Courier New' : '20px Courier New';
             ctx.textAlign = 'center';
             ctx.fillText(opt.text, CP_X + CP_W / 2, opt.y);

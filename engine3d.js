@@ -1216,12 +1216,25 @@ function drawOverlays() {
 
 // ---- MAIN MENU (3D vista + DOM overlay) ----
 const menuOverlayEl = document.getElementById('menu-overlay');
+const menuContinueEl = document.getElementById('menu-continue');
 
 function begin3dGame() {
     if (gameState.currentScreen !== 'START_MENU') return;
     menuOverlayEl.classList.add('hidden');
     startGame(); // sets GAMEFADEIN + overlayAlpha for the fade-in
 }
+
+// Continue button appears only when a save exists; checked whenever the
+// menu is (re)shown rather than every frame.
+function syncContinueButton() {
+    menuContinueEl.classList.toggle('hidden', !hasSave());
+}
+syncContinueButton();
+
+menuContinueEl.addEventListener('click', () => {
+    if (gameState.currentScreen !== 'START_MENU') return;
+    if (loadGame()) menuOverlayEl.classList.add('hidden');
+});
 
 document.getElementById('menu-start').addEventListener('click', begin3dGame);
 document.getElementById('menu-controls').addEventListener('click', () => {
@@ -1267,7 +1280,10 @@ function gameLoop3d() {
 
     if (gameState.currentScreen === 'START_MENU') {
         // Live vista: slow orbit over the night camp behind the DOM menu
-        if (menuOverlayEl.classList.contains('hidden')) menuOverlayEl.classList.remove('hidden');
+        if (menuOverlayEl.classList.contains('hidden')) {
+            menuOverlayEl.classList.remove('hidden');
+            syncContinueButton(); // returning to menu — a save may now exist
+        }
         ensureWorldBuilt();
         for (const e of objectEntries) if (e.label) e.label.visible = false;
         updateAtmosphere3d();

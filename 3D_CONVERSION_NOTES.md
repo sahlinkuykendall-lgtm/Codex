@@ -1,6 +1,6 @@
 # 3D CONVERSION — BRANCH NOTES
 
-**Branch:** `3d-conversion` · **Status:** walkable full-game graybox with lighting/atmosphere pass + character figures + jump
+**Branch:** `3d-conversion` · **Status:** walkable full-game graybox with lighting/atmosphere pass + character figures + jump + save/load
 
 ## Entry points (renamed)
 
@@ -23,6 +23,27 @@
   Custodian never turns — its cone of attention is fixed). Hostiles
   walk with limb swing, face their movement direction, and their
   clothes flush red while chasing (same pulse rhythm as 2D).
+
+## Save / load (step 8)
+
+- Single-slot save in `localStorage` (`codexOfGiza_save_v1`), engine.js
+  so both builds get it. The blob: full `gameState` (flags, stats,
+  inventory, trust, route, journal, rest cooldowns), player position,
+  map key + world size, interior state, ministry car. Transient UI
+  state (dialogue, pause, fades) is stripped on write, so loading is
+  always a clean resume standing in the world.
+- **Autosave** on every dialogue close (story progress = flags set),
+  chapter load, and interior enter/exit. **Manual save** from the pause
+  menu ("Save Game", with "Saved." feedback); Return to Menu and Quit
+  save first.
+- **Load:** the 3D menu shows a CONTINUE button when a save exists; the
+  2D start screen accepts C ("press C to continue"). Loading restores
+  the map context directly — chapter intro dialogue does not re-fire —
+  and respawns patrols via `spawnHostilesForLocation()` (the hostile
+  spawns were factored out of the chapter loaders for this; exiting an
+  interior now respawns patrols in every chapter, not just Ch1).
+- Old saves stay forward-compatible: flags merge into the current flag
+  table, so flags added later keep their defaults.
 
 ## Jump (step 7)
 
@@ -150,4 +171,3 @@ hostiles spawned → pause menu, with zero console errors.
 
 1. Asset replacement chapter by chapter (Ch1 camp first); shader
    silhouette for Iry if she ever gets an on-map presence
-2. Save/load (`gameState` → localStorage)
