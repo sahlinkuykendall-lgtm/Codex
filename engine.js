@@ -1055,21 +1055,27 @@ function isObjectResolved(o) {
         if (o.interactScene === 'ch1_night_watch' && f.night_watch_done)     return true;
         // Codex — only interactable once (scene1_start), afterwards becomes flavor
         if (o.interactScene === 'scene1_start'    && f.Codex_Pulse_Felt || o.interactScene === 'scene1_start' && f.Crystalline_Structure_Noted || o.interactScene === 'scene1_start' && f.Codex_Sketch_Captured) return true;
+        if (o.interactScene === 'puzzle_start_glyph_lock' && f.glyph_lock_solved) return true;
         // Satphone and Tariq-talk remain available for repeated interactions
     }
 
+    if (gameState.chapter === 3) {
+        if (o.interactScene === 'puzzle_start_cipher' && f.cipher_solved) return true;
+    }
+
     if (gameState.chapter === 2) {
-        if (o.interactScene === 'flavor_ch2_bones'   && f.ch2BonesChecked)    return true;
-        if (o.interactScene === 'trap_pressure_1'    && f.trapPlate1Sprung)   return true;
-        if (o.interactScene === 'trap_pressure_2'    && f.trapPlate2Sprung)   return true;
-        if (o.interactScene === 'trap_whisper'       && f.trapWhispersHeard)  return true;
-        if (o.interactScene === 'trap_mural'         && f.trapMuralRead)      return true;
+        // (ids updated to the current scene names — the old trap_*/flavor_ch2_*
+        // checks pointed at superseded scenes no object uses anymore)
+        if (o.interactScene === 'ch2_bones'          && f.ch2BonesChecked)    return true;
+        if (o.interactScene === 'ch2_whispers'       && f.trapWhispersHeard)  return true;
+        if (o.interactScene === 'ch2_mural'          && f.trapMuralRead)      return true;
+        if (o.interactScene === 'trap_false_door'    && f.trapDoorChecked)    return true;
+        if (o.interactScene === 'puzzle_start_plates'    && f.trap_plates_solved) return true;
+        if (o.interactScene === 'puzzle_start_resonance' && f.resonance_solved)   return true;
         if (o.interactScene === 'ch2_secret_altar'   && f.altarSolved)        return true;
-        if (o.interactScene === 'flavor_ch2_mural'   && f.ch2MuralRead)       return true;
-        if (o.interactScene === 'flavor_ch2_amber'   && f.ch2AmberTouched)    return true;
+        if (o.interactScene === 'ch2_amber'          && f.ch2AmberTouched)    return true;
         if (o.interactScene === 'ch2_cutthroat_tariq'&& f.tariqUntied)        return true;
-        if (o.interactScene === 'flavor_ch2_stash'   && f.ch2StashLooted)     return true;
-        if (o.interactScene === 'flavor_ch2_chasm'   && f.ch2ChasmLooked)     return true;
+        if (o.interactScene === 'ch2_chasm'          && f.ch2ChasmLooked)     return true;
         if (o.interactScene === 'ch2_stash'           && f.ch2StashLooted)     return true;
         if (o.interactScene === 'trap_rest'           && f.trap_rest_used)     return true;
         if (o.interactScene === 'ch2_samir'           && f.samirTalked)        return true;
@@ -1077,6 +1083,7 @@ function isObjectResolved(o) {
 
     if (gameState.chapter === 4) {
         if (o.interactScene === 'ch4_rest_hearth' && gameState.usedRestSites.includes('ch4_rest_hearth')) return true;
+        if (o.interactScene === 'puzzle_start_heart_altar' && f.heart_altar_solved) return true;
     }
 
     if (gameState.chapter === 5) {

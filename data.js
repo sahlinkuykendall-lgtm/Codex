@@ -621,7 +621,8 @@ const mapObjects = {
 
         // --- DECORATIVE (no interaction, green labels) ---
         deco('d_cooking',   90,  1480, 250, 20,  '#5c3010', 'Cooking Table'   ),
-        deco('d_barrels1',  560, 1270, 70,  70,  '#1e3f66', 'Water Barrels'   ),
+        // Water barrels — interactable: workers whisper here (flavor_water was orphaned)
+        { id: 'water_barrels', x: 560, y: 1270, w: 70, h: 70, color: '#1e3f66', label: 'Water Barrels', interactScene: 'flavor_water' },
         deco('d_crates1',   70,  1580, 100, 70,  '#5c4030', 'Crates'          ),
         deco('d_truck1',    200, 2070, 180, 80,  '#2d3436', 'Supply Truck'    ),
         deco('d_truck2',    450, 2070, 180, 80,  '#2d3436', 'Supply Truck'    ),
@@ -697,6 +698,8 @@ const mapObjects = {
         { id: 'trap_inscription',  x: 880,  y: 1720, w: 140, h: 50,  color: '#2a2010', label: 'Wall Inscription',   interactScene: 'trap_inscription'     },
         { id: 'puzzle_plates',     x: 900,  y: 1820, w: 320, h: 60,  color: '#5c4a30', label: 'Stone Plates',       interactScene: 'puzzle_start_plates'  },
         { id: 'trap_whispers',     x: 600,  y: 2200, w: 80,  h: 80,  color: '#0a0a14', label: 'The Whispering',     interactScene: 'ch2_whispers'         },
+        // The false door — the city baits Ellis with his Oxford study (scene was orphaned)
+        { id: 'trap_false_door',   x: 1120, y: 950,  w: 80,  h: 110, color: '#3a3050', label: 'A Familiar Door',    interactScene: 'trap_false_door'      },
         { id: 'trap_gate',         x: 1200, y: 2700, w: 200, h: 80,  color: '#d4af37', label: 'The Gate',           interactScene: 'ch2_gate'             },
     ],
     'SECRET': [
@@ -717,6 +720,9 @@ const mapObjects = {
         { id: 'cut_boros',     x: 1060, y: 700,  w: 60,  h: 60,  color: '#1a1a4a', label: 'Boros',             interactScene: 'ch2_boros'       },
         { id: 'cut_tariq',     x: 1100, y: 1200, w: 60,  h: 60,  color: '#3a3a50', label: 'Tariq',             interactScene: 'ch2_cutthroat_tariq' },
         { id: 'cut_scaff',     x: 1020, y: 1400, w: 320, h: 60,  color: '#4a4a4a', label: 'Scaffolding',       interactScene: 'ch2_scaffolding' },
+        // Evidence of Maren's crew's descent (scenes were orphaned)
+        { id: 'cut_blood',     x: 1180, y: 550,  w: 60,  h: 40,  color: '#3a1010', label: 'Dark Stain',        interactScene: 'flavor_ch2_blood' },
+        { id: 'cut_gear',      x: 1060, y: 1700, w: 70,  h: 50,  color: '#4a3820', label: 'Crushed Radio',     interactScene: 'flavor_ch2_gear'  },
         { id: 'cut_gate',      x: 1050, y: 2200, w: 200, h: 80,  color: '#d4af37', label: 'The Gate',          interactScene: 'ch2_gate'        },
     ],
 
@@ -749,6 +755,8 @@ const mapObjects = {
 
         // --- REST SITE ---
         { id: 'rest_stall',     x: 1800, y: 2500, w: 80,  h: 80,  color: '#d4af37', label: 'Tea Corner (Rest)',  interactScene: 'ch3_rest_stall'      },
+        // Closed coffeehouse near the lounge — bouncer + brazier (scene was orphaned)
+        { id: 'coffee_stall',   x: 2750, y: 700,  w: 70,  h: 60,  color: '#6b4423', label: 'Closed Coffeehouse', interactScene: 'ch3_coffee_stall'    },
 
         // --- DECORATIVE ---
         deco('d_palm1', 1300, 2600, 25, 25, '#2d5a1b', 'Palm Tree'    ),
