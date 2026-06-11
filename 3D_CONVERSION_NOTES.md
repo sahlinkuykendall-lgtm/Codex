@@ -1,6 +1,31 @@
 # 3D CONVERSION — BRANCH NOTES
 
-**Branch:** `3d-conversion` · **Status:** walkable full-game graybox
+**Branch:** `3d-conversion` · **Status:** walkable full-game graybox with lighting/atmosphere pass
+
+## Map expansion & layout changes (affects 2D build too)
+
+- All maps scale up via `MAP_SCALE` in data.js (Ch1 1.6x … final chamber
+  2.5x). Uniform scaling keeps walls/objects/door-gaps aligned; engine
+  spawn/patrol/world-size literals were updated to match. Walk speed and
+  hostile speeds/ranges retuned so pacing feels the same.
+- **Bug fix:** Ch4's inner sanctum (The Heart) was walled off and
+  unreachable — the great hall's north wall now has a doorway.
+- **Bug fix:** building exits used stale hardcoded coordinates; you now
+  exit where you entered.
+- New story-grounded light props: Ch1 work lamps, market lanterns, city
+  amber channels + sanctum braziers, Gate colonnade + braziers, airfield
+  floodlights, final-chamber braziers.
+
+## Atmosphere (engine3d.js, `MAP_ATMOS`)
+
+- Underground chapters get rock ceilings, tunnel-height walls, dense fog;
+  exteriors get moon + hemisphere + star field; interiors a warm ceiling lamp.
+- Light props become real point lights (≤14/map, flame flicker on warm
+  ones); amber objects glow emissively; Ellis carries a lantern
+  underground/indoors.
+- The Heart: Ch7 cathedral-dome sphere pulsing on the Codex's 8-second
+  rhythm above the pedestal; Ch4 sanctum orb breathes slowly.
+- Fog closes in as sanity drops (CALM → STRAINED → FRACTURED).
 
 ## How to run
 
