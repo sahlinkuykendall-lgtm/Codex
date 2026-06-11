@@ -634,30 +634,58 @@ function attemptRest(id) {
     }
 }
 
+// Sanity tuning. Story beats in dialogue.js author their full values;
+// the global scale softens every hit so the pool doesn't bottom out too
+// fast. Ambient recovery slowly climbs back to UNEASY (never CALM) when
+// nothing is hunting you — rest sites and story moments restore the rest.
+const SANITY_DAMAGE_SCALE = 0.65;
+const SANITY_AMBIENT_CEILING = 6.0;
+const SANITY_AMBIENT_REGEN = 0.001; // per frame ≈ 1 point per ~17s
+
 function increaseSanity(amount) {
     gameState.sanity = Math.min(gameState.maxSanity || 10.0, gameState.sanity + amount);
     updateHUD();
 }
 
 function decreaseSanity(amount) {
-    gameState.sanity = Math.max(0.0, gameState.sanity - amount);
+    gameState.sanity = Math.max(0.0, gameState.sanity - amount * SANITY_DAMAGE_SCALE);
+    updateHUD();
+}
+
+// Called once per frame by both game loops
+function updateSanityAmbient() {
+    if (gameState.currentScreen !== 'GAME' || gameState.isPaused ||
+        gameState.isDialogueActive || gameState.isResting) return;
+    if (gameState.sanity >= SANITY_AMBIENT_CEILING) return;
+    if (hostiles.some(h => h.state === 'chase')) return; // not while hunted
+    gameState.sanity = Math.min(SANITY_AMBIENT_CEILING, gameState.sanity + SANITY_AMBIENT_REGEN);
     updateHUD();
 }
 
 // ---- HUD ----
+// Four sanity tiers. CALM and UNEASY are everyday range; STRAINED turns
+// the screws; FRACTURED (below 2.5) is the genuinely bad place.
+const SANITY_TIER_COLORS = { CALM: '#7fbf6f', UNEASY: '#d4cf8a', STRAINED: '#ff8844', FRACTURED: '#cc2222' };
+
 function updateHUD() {
-    if (gameState.sanity >= 8.0) {
+    if (gameState.sanity >= 7.5) {
         gameState.sanityState = 'CALM';
     } else if (gameState.sanity >= 5.0) {
+        gameState.sanityState = 'UNEASY';
+    } else if (gameState.sanity >= 2.5) {
         gameState.sanityState = 'STRAINED';
     } else {
         gameState.sanityState = 'FRACTURED';
     }
-    document.getElementById('stat-sanity').innerText = gameState.sanityState;
+    const sanEl = document.getElementById('stat-sanity');
+    sanEl.innerText = gameState.sanityState;
+    sanEl.style.color = SANITY_TIER_COLORS[gameState.sanityState];
     const staminaPercent = (gameState.stamina / gameState.maxStamina) * 100;
     document.getElementById('stat-stamina').innerText = gameState.stamina.toFixed(1);
     document.getElementById('stamina-bar-fill').style.width = staminaPercent + '%';
     document.getElementById('stat-funds').innerText = gameState.funds;
+    // 2D build keeps the CSS filter classes; the 3D build drives a
+    // continuous filter on the WebGL canvas instead (engine3d.js)
     canvas.className = gameState.sanityState === 'STRAINED'
         ? 'strained-filter'
         : (gameState.sanityState === 'FRACTURED' ? 'fractured-filter' : '');
@@ -1598,13 +1626,13 @@ function spawnPhantom() {
 function updatePhantoms() {
     if (clarityTimer > 0) clarityTimer--;
 
-    // Don't spawn during dialogue or if fully sane
-    if (gameState.isDialogueActive || gameState.sanityState === 'CALM') {
+    // Don't spawn during dialogue or in the everyday range (CALM/UNEASY)
+    if (gameState.isDialogueActive || gameState.sanityState === 'CALM' || gameState.sanityState === 'UNEASY') {
         // Let existing phantoms fade out
         phantoms.forEach(p => { p.life = Math.min(p.maxLife, p.life + 2); });
     } else {
-        const spawnRate = gameState.sanityState === 'FRACTURED' ? 0.015 : 0.005;
-        if (phantoms.length < (gameState.sanityState === 'FRACTURED' ? 5 : 2) && Math.random() < spawnRate) {
+        const spawnRate = gameState.sanityState === 'FRACTURED' ? 0.012 : 0.004;
+        if (phantoms.length < (gameState.sanityState === 'FRACTURED' ? 4 : 2) && Math.random() < spawnRate) {
             spawnPhantom();
         }
     }
@@ -1742,7 +1770,7 @@ function drawPauseMenu() {
     ctx.fillText('Sanity', LP_X + 15, lY);
     lY += 20;
     const sanityPct = (gameState.sanity / gameState.maxSanity);
-    const sanityColor = gameState.sanityState === 'FRACTURED' ? '#cc2222' : gameState.sanityState === 'STRAINED' ? '#ff8844' : '#44aa44';
+    const sanityColor = SANITY_TIER_COLORS[gameState.sanityState] || '#44aa44';
     ctx.fillStyle = 'rgba(40,40,40,0.8)';
     ctx.fillRect(LP_X + 15, lY, 270, 16);
     ctx.fillStyle = sanityColor;
@@ -2315,6 +2343,7 @@ function gameLoop() {
 
     // Update hostile NPCs
     updateHostiles();
+    updateSanityAmbient();
 
     // Ministry car drive-in: triggered once guard mentions it
     if (gameState.chapter === 1 && !interiorState.active) {

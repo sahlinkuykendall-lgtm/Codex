@@ -765,6 +765,8 @@ function buildWorld() {
     scene3.add(worldGroup);
     buildMinistryCar(); // scene was recreated; re-add dynamic meshes
     hostileMeshes = new Map(); // hostile meshes were dropped with the old scene
+    halluc3d = [];             // hallucination figures too
+    hallucNextAt = 0;
     builtSignature = currentWorldSignature();
     // Face into the map: Ch1+ spawns enter from the south looking north,
     // the Ch2 descent routes enter from the north looking south
@@ -1091,15 +1093,22 @@ function positionCamera() {
     const cx = player.x + player.size / 2;
     const cz = player.y + player.size / 2;
     const bob = isAirborne ? 0 : Math.sin(gameState.walkBobPhase) * 1.6;
+    // Slow drunken sway grows with dread; a fine random tremor only
+    // appears deep in FRACTURED (replaces the old constant jitter)
+    const t = performance.now() / 1000;
+    const low = sanityLowFactor();
+    const sway = (Math.sin(t * 0.9) * 0.011 + Math.sin(t * 1.7) * 0.006) * dreadSmooth;
     let shakeX = 0, shakeY = 0, shakeZ = 0;
-    if (gameState.sanityState === 'FRACTURED') {
-        shakeX = (Math.random() - 0.5) * 3;
-        shakeY = (Math.random() - 0.5) * 2;
-        shakeZ = (Math.random() - 0.5) * 3;
+    if (low > 0) {
+        const tremor = low * 1.8;
+        shakeX = (Math.random() - 0.5) * tremor;
+        shakeY = (Math.random() - 0.5) * tremor * 0.6;
+        shakeZ = (Math.random() - 0.5) * tremor;
     }
     cam3.position.set(cx + shakeX, EYE_HEIGHT + jumpY + bob + shakeY, cz + shakeZ);
     cam3.rotation.y = camYaw;
-    cam3.rotation.x = camPitch;
+    cam3.rotation.x = camPitch + Math.sin(t * 1.3) * 0.004 * dreadSmooth;
+    cam3.rotation.z = sway;
     if (playerLamp) {
         // Carried slightly ahead and below eye level, with a faint sway
         playerLamp.position.set(
@@ -1110,11 +1119,137 @@ function positionCamera() {
     }
 }
 
+// ---- SANITY PRESENTATION (3D) ----
+// Effects ramp continuously with the sanity value instead of snapping
+// between states: desaturation, closing fog, a slow camera sway — and
+// only below 2.5 (FRACTURED) the heartbeat: FOV pump, red vignette
+// pulse, tremor. dreadSmooth eases visual changes over ~1s so a sudden
+// story hit doesn't pop the screen.
+let dreadSmooth = 0;     // 0 = calm … 1 = sanity zero
+let heartbeatPhase = 0;  // advances faster the lower sanity gets
+
+function sanityDreadTarget() {
+    return 1 - Math.max(0, Math.min(1, gameState.sanity / 7.5));
+}
+
+// 0 → 1 only inside FRACTURED (sanity 2.5 → 0)
+function sanityLowFactor() {
+    return Math.max(0, Math.min(1, 1 - gameState.sanity / 2.5));
+}
+
+function updateSanityFX3d() {
+    dreadSmooth += (sanityDreadTarget() - dreadSmooth) * 0.02;
+    const low = sanityLowFactor();
+    heartbeatPhase += (0.9 + low * 0.9) / 60; // 0.9 Hz calm-low … 1.8 Hz at zero
+
+    // Continuous color grade on the WebGL canvas (replaces the binary
+    // CSS filter classes the 2D build uses)
+    if (dreadSmooth > 0.02) {
+        const f = `saturate(${(1 - 0.45 * dreadSmooth).toFixed(3)})` +
+                  ` contrast(${(1 + 0.16 * dreadSmooth).toFixed(3)})` +
+                  (low > 0 ? ` hue-rotate(${Math.round(-10 * low)}deg) brightness(${(1 - 0.08 * low).toFixed(3)})` : '');
+        if (glCanvas.style.filter !== f) glCanvas.style.filter = f;
+    } else if (glCanvas.style.filter) {
+        glCanvas.style.filter = '';
+    }
+    // The 2D overlay canvas keeps no filter in 3D mode (updateHUD sets
+    // one for the 2D build; it would double-tint our overlays)
+    if (canvas.className) canvas.className = '';
+
+    // Heartbeat FOV pump, only when genuinely low
+    const beat = Math.pow(Math.max(0, Math.sin(heartbeatPhase * Math.PI * 2)), 6);
+    const fovTarget = 70 + beat * 1.6 * low;
+    if (Math.abs(cam3.fov - fovTarget) > 0.01) {
+        cam3.fov = fovTarget;
+        cam3.updateProjectionMatrix();
+    }
+}
+
+// ---- HALLUCINATIONS (world-space phantom figures) ----
+// Replaces the 2D corner-dot phantoms in the 3D build: a dark figure
+// stands in the middle distance, in or near your view, and dissolves
+// when stared at directly (or after a few seconds, or on E/clarity).
+let halluc3d = [];      // { group, born, ttl, gaze, dissolveAt }
+let hallucNextAt = 0;   // ms timestamp of the next spawn window
+
+const HALLUC_TIERS = {
+    STRAINED:  { min: 22000, max: 45000, cap: 1 },
+    FRACTURED: { min: 9000,  max: 18000, cap: 2 },
+};
+
+function spawnHallucination3d() {
+    const pcx = player.x + player.size / 2;
+    const pcy = player.y + player.size / 2;
+    const walls = (mapWalls[currentMapKey] || []);
+    for (let attempt = 0; attempt < 6; attempt++) {
+        const a = camYaw + (Math.random() - 0.5) * 1.8; // roughly in/near the view cone
+        const dist = 340 + Math.random() * 320;
+        const hx = pcx - Math.sin(a) * dist;
+        const hz = pcy - Math.cos(a) * dist;
+        if (hx < 60 || hz < 60 || hx > WORLD.width - 60 || hz > WORLD.height - 60) continue;
+        if (walls.some(w => hx > w.x && hx < w.x + w.w && hz > w.y && hz < w.y + w.h)) continue;
+        const fig = makeHumanoid({
+            skin: '#050505', shirt: '#050505', pants: '#030303',
+            scale: 1.0 + Math.random() * 0.18
+        });
+        fig.position.set(hx, 0, hz);
+        fig.rotation.y = Math.atan2(pcx - hx, pcy - hz); // it faces you
+        fig.traverse(o => {
+            if (o.material) { o.material.transparent = true; o.material.opacity = 0; }
+        });
+        scene3.add(fig);
+        halluc3d.push({ group: fig, born: performance.now(), ttl: 5000 + Math.random() * 3000, gaze: 0, dissolveAt: 0 });
+        return;
+    }
+}
+
+function updateHallucinations3d() {
+    if (clarityTimer > 0) clarityTimer--; // E key: brief clarity window
+    const now = performance.now();
+    const tier = HALLUC_TIERS[gameState.sanityState];
+
+    if (tier && gameplayInputActive()) {
+        if (!hallucNextAt) hallucNextAt = now + tier.min + Math.random() * (tier.max - tier.min);
+        if (now >= hallucNextAt && halluc3d.length < tier.cap) {
+            spawnHallucination3d();
+            hallucNextAt = now + tier.min + Math.random() * (tier.max - tier.min);
+        }
+    } else {
+        hallucNextAt = 0;
+    }
+
+    if (!halluc3d.length) return;
+    const fx = -Math.sin(camYaw), fz = -Math.cos(camYaw); // camera forward
+    const pcx = player.x + player.size / 2;
+    const pcy = player.y + player.size / 2;
+
+    for (let i = halluc3d.length - 1; i >= 0; i--) {
+        const h = halluc3d[i];
+        const age = now - h.born;
+        // Staring straight at it banishes it
+        const dx = h.group.position.x - pcx, dz = h.group.position.z - pcy;
+        const d = Math.hypot(dx, dz) || 1;
+        if ((dx / d) * fx + (dz / d) * fz > 0.97) h.gaze += 16.7; else h.gaze = Math.max(0, h.gaze - 33);
+        if (!h.dissolveAt && (age > h.ttl || h.gaze > 420 || clarityTimer > 0 || !tier || gameState.isDialogueActive)) {
+            h.dissolveAt = now;
+        }
+        let opacity;
+        if (h.dissolveAt) {
+            opacity = Math.max(0, 0.85 * (1 - (now - h.dissolveAt) / 700));
+        } else {
+            opacity = Math.min(0.85, age / 600 * 0.85) * (0.9 + 0.1 * Math.sin(now / 90));
+        }
+        h.group.traverse(o => { if (o.material) o.material.opacity = opacity; });
+        if (h.dissolveAt && opacity <= 0) {
+            scene3.remove(h.group);
+            halluc3d.splice(i, 1);
+        }
+    }
+}
+
 // ---- ATMOSPHERE ANIMATION ----
 // Flame flicker on warm lights, the Heart's 8-second witness ping
 // (same rhythm as the Codex pulse), and fog that closes in as sanity slips.
-const SANITY_FOG_MUL = { CALM: 1.0, STRAINED: 0.6, FRACTURED: 0.38 };
-
 function updateAtmosphere3d() {
     const t = performance.now() / 1000;
 
@@ -1140,26 +1275,19 @@ function updateAtmosphere3d() {
     }
 
     if (scene3.fog) {
-        const mul = SANITY_FOG_MUL[gameState.sanityState] || 1.0;
+        // Fog closes in smoothly as sanity slips (full squeeze ≈ 0.35x)
+        const mul = 1 - 0.65 * Math.pow(dreadSmooth, 1.4);
         scene3.fog.near += (fogBase[0] * mul - scene3.fog.near) * 0.03;
         scene3.fog.far  += (fogBase[1] * mul - scene3.fog.far)  * 0.03;
     }
-}
-
-// ---- SANITY FILTER MIRROR ----
-// updateHUD() applies the CSS filter class to the 2D canvas; mirror it
-// onto the WebGL canvas so STRAINED/FRACTURED tint the 3D view.
-function syncSanityFilter() {
-    if (glCanvas.className !== canvas.className) glCanvas.className = canvas.className;
 }
 
 // ---- OVERLAY DRAWING (reuses engine.js draw functions on #gameCanvas) ----
 function drawOverlays() {
     const palette = getChapterPalette();
 
-    // Screen-space atmosphere reused from engine.js: hallucination phantoms,
-    // drifting dust motes, vignette (all canvas-space, engine-agnostic)
-    drawPhantoms();
+    // Drifting dust motes (canvas-space, engine-agnostic). The 2D dot
+    // phantoms are not drawn in 3D — hallucinations are world-space here.
     drawAmbientDust(palette.ambientDust);
 
     const vigCX = canvas.width / 2, vigCY = canvas.height / 2;
@@ -1169,6 +1297,19 @@ function drawOverlays() {
     vig.addColorStop(1, `rgba(0,0,0,${palette.vignette})`);
     ctx.fillStyle = vig;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Heartbeat vignette — only deep in FRACTURED, pulsing with the FOV
+    const lowFx = sanityLowFactor();
+    if (lowFx > 0 && gameState.currentScreen === 'GAME') {
+        const beat = Math.pow(Math.max(0, Math.sin(heartbeatPhase * Math.PI * 2)), 6);
+        const alpha = lowFx * (0.10 + 0.16 * beat);
+        const hb = ctx.createRadialGradient(vigCX, vigCY, Math.min(canvas.width, canvas.height) * 0.32,
+                                            vigCX, vigCY, Math.min(canvas.width, canvas.height) * 0.75);
+        hb.addColorStop(0, 'rgba(90,8,8,0)');
+        hb.addColorStop(1, `rgba(90,8,8,${alpha.toFixed(3)})`);
+        ctx.fillStyle = hb;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
 
     // Clarity flash (E key) — expanding ring from screen center
     if (clarityTimer > 0) {
@@ -1295,7 +1436,7 @@ function gameLoop3d() {
         cam3.lookAt(cx, 30, cz);
         renderer3.render(scene3, cam3);
         drawMenuSmiley();
-        syncSanityFilter();
+        if (glCanvas.style.filter) glCanvas.style.filter = ''; // menu is always clear-eyed
         return;
     }
     if (!menuOverlayEl.classList.contains('hidden')) menuOverlayEl.classList.add('hidden');
@@ -1304,19 +1445,20 @@ function gameLoop3d() {
     syncPointerLock();
     updatePlayer3d();
     updateHostiles();    // existing patrol/chase/catch AI, unchanged
-    updatePhantoms();    // existing sanity hallucination logic, unchanged
+    updateSanityAmbient();
     updateMinistryCar3d();
     updateInteractions3d();
     syncHostiles3d();
     syncWorldVisibility();
     updatePersons3d();
     updateAtmosphere3d();
+    updateSanityFX3d();
+    updateHallucinations3d();
     updateCamera();      // keeps the 2D camera roughly centered for overlay draw math
     positionCamera();
     renderer3.render(scene3, cam3);
 
     drawOverlays();
-    syncSanityFilter();
 }
 
 gameLoop3d();
