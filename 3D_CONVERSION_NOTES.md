@@ -1,6 +1,37 @@
 # 3D CONVERSION — BRANCH NOTES
 
-**Branch:** `3d-conversion` · **Status:** walkable full-game graybox with lighting/atmosphere pass
+**Branch:** `3d-conversion` · **Status:** walkable full-game graybox with lighting/atmosphere pass + character figures + jump
+
+## Entry points (renamed)
+
+- `index.html` is now the **3D build** (the default way to play).
+- `index2d.html` is the original 2D build, unchanged.
+
+## Character figures (step 7)
+
+- NPCs and hostiles are procedural humanoids (`makeHumanoid` in
+  engine3d.js) built from primitives — no external assets, still no
+  build step. Shared rig: hip/shoulder pivots for walk/idle swings.
+- Looks are grounded in the lore docs: Tariq's head wrap, Samir/Yusra/
+  Layla robed, Lei at 14-year-old scale, Kostas gaunt with the faint
+  underground glow, Halberd in a charcoal suit with a shirt front, the
+  dark figure black with faint amber eye-pinpricks, the Ch2 SECRET
+  statue an elongated stone Uarha Custodian in the set-down posture
+  (bowed head, hands met). `PERSON_OBJECTS` maps object ids → styles;
+  the Ch5 hangar standoff renders one figure per faction.
+- NPCs breathe and turn to watch Ellis when he comes near (the
+  Custodian never turns — its cone of attention is fixed). Hostiles
+  walk with limb swing, face their movement direction, and their
+  clothes flush red while chasing (same pulse rhythm as 2D).
+
+## Jump (step 7)
+
+- SPACE jumps when no interactable is in range; near an interactable
+  SPACE still interacts (the two handlers are mutually exclusive on
+  `gameState.activeInteractableId`). Costs 0.4 stamina; blocked while
+  exhausted. Peak ~1.5m, ~0.5s airtime; the carried lantern rises with
+  the camera. The jump is vertical only — wall collision stays
+  identical to the 2D build, so nothing can be sequence-broken.
 
 ## Map expansion & layout changes (affects 2D build too)
 
@@ -62,8 +93,8 @@
 
 ## How to run
 
-- **3D build:** open `index3d.html` in a browser. No server or build step needed.
-- **2D build:** open `index.html` — completely unchanged, still works.
+- **3D build:** open `index.html` in a browser. No server or build step needed.
+- **2D build:** open `index2d.html` — completely unchanged, still works.
 
 ## Controls (3D)
 
@@ -74,7 +105,7 @@
 | A / D | Strafe |
 | ← / → | Turn (mouse-free fallback) |
 | SHIFT | Sprint (same stamina rules as 2D) |
-| SPACE | Interact |
+| SPACE | Interact when a prompt is shown; otherwise Jump |
 | E | Focus / clear phantoms |
 | TAB | Toggle stats |
 | ESC | Pause (may need two presses while mouse is captured — the first exits mouse look, a browser rule) |
@@ -109,13 +140,14 @@ hostiles spawned → pause menu, with zero console errors.
 
 - The dig-gate label stays "LOCKED" in 3D (labels are static textures);
   the gate itself opens correctly.
-- Hostiles/NPCs are colored boxes; ministry car is a two-box stand-in.
+- Ministry car is a two-box stand-in. Character figures are stylized
+  primitive humanoids (no faces except the dark figure's eyes); fine
+  for graybox, replaceable later without touching the rig hooks.
 - Layouts were authored top-down; some spaces will feel sparse at eye
   level and want re-spacing during the art pass.
 
 ## Next steps (per the approved plan)
 
-1. Lighting/atmosphere pass per chapter (lantern point lights, fog tuning)
-2. Mixamo characters for NPCs, shader silhouette for Iry
-3. Asset replacement chapter by chapter (Ch1 camp first)
-4. Save/load (`gameState` → localStorage)
+1. Asset replacement chapter by chapter (Ch1 camp first); shader
+   silhouette for Iry if she ever gets an on-map presence
+2. Save/load (`gameState` → localStorage)

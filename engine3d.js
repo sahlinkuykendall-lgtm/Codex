@@ -56,6 +56,7 @@ let worldGroup = null;
 let builtSignature = null;
 let gateMeshes = [];   // { mesh, gateFlag } — hidden once their flag is set
 let objectEntries = []; // { o, mesh, label } — synced against isObjectResolved()
+let personEntries = []; // { o, fig } — NPC figures, animated in updatePersons3d
 let flickerLights = []; // { light, base, phase, steady } — animated in updateAtmosphere3d
 let heartFX = null;     // { mesh, mat, light, mode } — the pulsing Heart
 let fogBase = [500, 3000]; // CALM-state fog distances for the current map
@@ -82,6 +83,209 @@ function makeLabelSprite(text, colorHex) {
     const scale = 0.3;
     sprite.scale.set(lc.width * scale, lc.height * scale, 1);
     return sprite;
+}
+
+// ---- CHARACTER FIGURES ----
+// Procedural humanoids built from primitives (the project stays
+// asset-free / no-build). Every figure shares a rig: hip and shoulder
+// pivot groups for walk/idle swings, userData.tint for the hostile
+// chase flush. A standard figure is ~62 units tall before scale
+// (player eye height is 52).
+function clothMat(color) {
+    return new THREE.MeshLambertMaterial({ color: new THREE.Color(color) });
+}
+
+function angleDiff(target, current) {
+    return ((target - current + Math.PI) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2) - Math.PI;
+}
+
+function makeHumanoid(style) {
+    const s = style || {};
+    const g = new THREE.Group();
+    const tint = [];
+    const arms = [], legs = [];
+
+    const skinMat = s.stone
+        ? new THREE.MeshPhongMaterial({ color: 0x6a6155, shininess: 4, specular: 0x111111 })
+        : new THREE.MeshLambertMaterial({ color: new THREE.Color(s.skin || '#b08a5f') });
+    if (s.skinGlow) { // Kostas's faint amber-light cast after six years below
+        skinMat.emissive = new THREE.Color('#a8b89a');
+        skinMat.emissiveIntensity = s.skinGlow;
+    }
+    const shirtMat = s.stone ? skinMat : clothMat(s.shirt || '#555');
+    const pantsMat = s.stone ? skinMat : clothMat(s.pants || '#333');
+    if (!s.stone) {
+        tint.push({ mat: shirtMat, base: shirtMat.color.clone() },
+                  { mat: pantsMat, base: pantsMat.color.clone() });
+    }
+
+    const elong = s.elongated ? 1.3 : 1; // Uarha proportions: long torso, domed head
+    const legH = 26, torsoH = 22 * elong;
+    const torsoW = s.gaunt ? 14 : 17, torsoD = s.gaunt ? 8 : 10;
+    const shoulderY = legH + torsoH;
+
+    if (s.robe) {
+        const robe = new THREE.Mesh(
+            new THREE.CylinderGeometry(torsoW * 0.42, torsoW * 0.7, legH + 2, 8), pantsMat);
+        robe.position.y = (legH + 2) / 2;
+        g.add(robe);
+    } else {
+        for (const side of [-1, 1]) {
+            const hip = new THREE.Group();
+            hip.position.set(side * 4.4, legH, 0);
+            const leg = new THREE.Mesh(new THREE.BoxGeometry(6.5, legH, 7), pantsMat);
+            leg.position.y = -legH / 2;
+            hip.add(leg);
+            g.add(hip);
+            legs.push(hip);
+        }
+    }
+
+    const torso = new THREE.Mesh(new THREE.BoxGeometry(torsoW, torsoH, torsoD), shirtMat);
+    torso.position.y = legH + torsoH / 2;
+    g.add(torso);
+    if (s.suit) { // shirt-front panel so the suit reads as a suit
+        const panel = new THREE.Mesh(new THREE.BoxGeometry(torsoW * 0.4, torsoH * 0.8, 1.4), clothMat('#cfc6b4'));
+        panel.position.set(0, legH + torsoH * 0.55, torsoD / 2 + 0.4);
+        g.add(panel);
+    }
+
+    const armLen = (torsoH + 2) * (s.elongated ? 1.15 : 1);
+    for (const side of [-1, 1]) {
+        const shoulder = new THREE.Group();
+        shoulder.position.set(side * (torsoW / 2 + 2.6), shoulderY - 2, 0);
+        const arm = new THREE.Mesh(new THREE.BoxGeometry(5, armLen, 5.5), shirtMat);
+        arm.position.y = -armLen / 2;
+        shoulder.add(arm);
+        const hand = new THREE.Mesh(
+            new THREE.BoxGeometry(4.4, s.elongated ? 9 : 5, 4.6), skinMat);
+        hand.position.y = -armLen - (s.elongated ? 4 : 2);
+        shoulder.add(hand);
+        g.add(shoulder);
+        arms.push(shoulder);
+    }
+
+    const headR = 6.2 * (s.elongated ? 1.1 : 1);
+    const head = new THREE.Mesh(new THREE.SphereGeometry(headR, 10, 8), skinMat);
+    if (s.elongated) head.scale.y = 1.35; // the cranial dome
+    head.position.y = shoulderY + headR + 1.5;
+    g.add(head);
+
+    if (s.eyes) { // faint watching pinpricks (the dark figure)
+        const eyeMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(s.eyes) });
+        for (const side of [-1, 1]) {
+            const eye = new THREE.Mesh(new THREE.SphereGeometry(0.9, 6, 5), eyeMat);
+            eye.position.set(side * 2.4, head.position.y + 1, headR * 0.95);
+            g.add(eye);
+        }
+    }
+
+    if (s.headwear === 'cap') {
+        const capCol = s.capColor || '#333';
+        const cap = new THREE.Mesh(new THREE.CylinderGeometry(headR * 0.95, headR * 1.02, 3.4, 10), clothMat(capCol));
+        cap.position.y = head.position.y + headR * 0.78;
+        g.add(cap);
+        const brim = new THREE.Mesh(new THREE.BoxGeometry(7, 1, 4.5), clothMat(capCol));
+        brim.position.set(0, head.position.y + headR * 0.62, headR * 0.9);
+        g.add(brim);
+    } else if (s.headwear === 'wrap') {
+        const wrap = new THREE.Mesh(new THREE.CylinderGeometry(headR * 1.1, headR * 1.12, 5, 10), clothMat(s.wrapColor || '#b8a888'));
+        wrap.position.y = head.position.y + headR * 0.55;
+        g.add(wrap);
+    } else if (s.headwear === 'hood') {
+        const hood = new THREE.Mesh(new THREE.ConeGeometry(headR * 1.45, headR * 2.6, 8), clothMat(s.hoodColor || s.pants || '#333'));
+        hood.position.y = head.position.y + headR * 0.35;
+        g.add(hood);
+    } else if (s.hair) {
+        const hair = new THREE.Mesh(
+            new THREE.SphereGeometry(headR * 1.02, 10, 6, 0, Math.PI * 2, 0, Math.PI * 0.45), clothMat(s.hair));
+        hair.position.y = head.position.y;
+        g.add(hair);
+    }
+
+    if (s.accessory === 'book') {
+        const book = new THREE.Mesh(new THREE.BoxGeometry(7, 2.2, 9), clothMat('#7a6a4a'));
+        book.position.set(torsoW / 2 + 5, legH + torsoH * 0.45, 4);
+        g.add(book);
+    }
+
+    if (s.stone) { // the Custodian's set-down posture: head bowed, hands met
+        head.rotation.x = 0.35;
+        arms[0].rotation.x = arms[1].rotation.x = -0.85;
+        arms[0].rotation.z = 0.30;
+        arms[1].rotation.z = -0.30;
+    }
+
+    if (s.scale) g.scale.setScalar(s.scale);
+    g.userData = {
+        arms, legs, tint,
+        height: (shoulderY + headR * 2 + 4) * (s.scale || 1),
+        staticPose: !!s.stone,
+        phase: Math.random() * Math.PI * 2
+    };
+    return g;
+}
+
+// Character looks, grounded in MASTER_LORE_BIBLE / NEW_CHARACTERS:
+// Tariq the foreman in a head wrap, Samir and Yusra robed, Lei a
+// 14-year-old (smaller), Kostas gaunt with the faint underground cast,
+// Halberd a bureaucrat in a charcoal suit, the SECRET statue a petrified
+// Uarha Custodian (elongated, stone, set down).
+const PERSON_STYLES = {
+    tariq:     { skin: '#8a5a32', shirt: '#4a3a26', pants: '#33291d', headwear: 'wrap', wrapColor: '#b8a888' },
+    samir:     { skin: '#7d5b3a', shirt: '#4b3030', pants: '#352020', robe: true, gaunt: true },
+    maren:     { skin: '#c79d72', shirt: '#7a1f1f', pants: '#26262c', headwear: 'cap', capColor: '#3a3a3a' },
+    boros:     { skin: '#c2a37e', shirt: '#23234d', pants: '#1c1c30', accessory: 'book' },
+    yusra:     { skin: '#9a6c42', shirt: '#4b0082', pants: '#37005e', robe: true, headwear: 'hood', hoodColor: '#3a0066' },
+    vendor:    { skin: '#8a5a32', shirt: '#2e6b47', pants: '#3a2f20', headwear: 'cap', capColor: '#5a4a30' },
+    lei:       { skin: '#9a6c42', shirt: '#c46d2a', pants: '#4a3a2a', scale: 0.78 },
+    kostas:    { skin: '#cbc4ae', shirt: '#26323a', pants: '#202a30', gaunt: true, skinGlow: 0.18 },
+    halberd:   { skin: '#c9a98a', shirt: '#2d3436', pants: '#23282b', suit: true, hair: '#b5b0a6' },
+    layla:     { skin: '#8a5a32', shirt: '#3a2a1a', pants: '#2c2014', robe: true, headwear: 'hood', hoodColor: '#5a4632' },
+    host:      { skin: '#8a5a32', shirt: '#4a0082', pants: '#2a1a3a', headwear: 'cap', capColor: '#2a1a3a' },
+    stranger:  { skin: '#7c6b58', shirt: '#2a1a2a', pants: '#1a101a', headwear: 'hood', hoodColor: '#241424' },
+    worker:    { skin: '#7a5230', shirt: '#5c3a1a', pants: '#3a2a18' },
+    guard:     { skin: '#9a7050', shirt: '#2a2a8a', pants: '#1d1d50', headwear: 'cap', capColor: '#1d1d50' },
+    figure:    { skin: '#0a0a0a', shirt: '#0a0a0a', pants: '#060606', eyes: '#d4af37', scale: 1.06 },
+    custodian: { stone: true, elongated: true, scale: 1.18 },
+};
+
+// Map-object ids that are people (rendered as figures, not boxes)
+const PERSON_OBJECTS = {
+    tariq_talk: 'tariq', cut_tariq: 'tariq', tf_tariq: 'tariq',
+    trap_samir: 'samir',
+    cut_maren: 'maren', cut_boros: 'boros',
+    yusra_meet: 'yusra', yusra: 'yusra', sf_yusra: 'yusra',
+    ch3_vendor: 'vendor', ch3_lei: 'lei',
+    kostas_ch5: 'kostas',
+    halberd_farewell: 'halberd', hlb_halberd: 'halberd',
+    tf_sister: 'layla',
+    hk_host: 'host', hk_stranger: 'stranger',
+    dorm_awake: 'worker',
+    secret_statue: 'custodian',
+    hng_standoff: 'standoff',
+};
+
+const HOSTILE_STYLES = {
+    guard_ministry:  PERSON_STYLES.guard,
+    figure_dark:     PERSON_STYLES.figure,
+    worker_panicked: PERSON_STYLES.worker,
+    samir_hostile:   PERSON_STYLES.samir,
+};
+
+// The Ch5 hangar standoff: one figure per faction, squared off
+function makeStandoffGroup() {
+    const group = new THREE.Group();
+    const factions = [PERSON_STYLES.guard, PERSON_STYLES.figure, PERSON_STYLES.halberd, PERSON_STYLES.yusra];
+    factions.forEach((st, i) => {
+        const fig = makeHumanoid(st);
+        const a = (i / factions.length) * Math.PI * 2 + 0.5;
+        fig.position.set(Math.cos(a) * 55, 0, Math.sin(a) * 45);
+        fig.rotation.y = Math.atan2(-Math.cos(a), -Math.sin(a)); // face the circle's center
+        group.add(fig);
+    });
+    group.userData = { arms: [], legs: [], tint: [], height: 72, staticPose: true, phase: 0 };
+    return group;
 }
 
 // ---- PER-MAP ATMOSPHERE ----
@@ -398,8 +602,77 @@ function buildWorld() {
 
     // --- Map objects (interactables get labels, decoratives are plain) ---
     objectEntries = [];
+    personEntries = [];
     const lightBudget = [];
     for (const o of (activeMapObjects || [])) {
+        // People stand as figures, not boxes
+        const personKey = PERSON_OBJECTS[o.id];
+        if (personKey) {
+            const fig = personKey === 'standoff'
+                ? makeStandoffGroup()
+                : makeHumanoid(PERSON_STYLES[personKey]);
+            const cx = o.x + o.w / 2, cz = o.y + o.h / 2;
+            fig.position.set(cx, 0, cz);
+            // Default facing: into the map (rotation 0 faces 2D "south" / +z)
+            fig.rotation.y = cz < WORLD.height / 2 ? 0 : Math.PI;
+            worldGroup.add(fig);
+            let label = null;
+            if (!o.decorative && o.interactScene) {
+                label = makeLabelSprite(o.label || o.id, '#f4e4b0');
+                label.position.set(cx, fig.userData.height + 18, cz);
+                worldGroup.add(label);
+            }
+            objectEntries.push({ o, mesh: fig, label });
+            personEntries.push({ o, fig });
+            continue;
+        }
+        // Ground features (trench, chasm) read as openings in the earth,
+        // not raised boxes: black floor cut + broken rim + amber underglow
+        if (/trench|chasm|crack|fissure/i.test(o.label || '')) {
+            const feature = new THREE.Group();
+            const pitMat = new THREE.MeshBasicMaterial({ color: 0x010101 });
+            const pit = new THREE.Mesh(new THREE.PlaneGeometry(o.w, o.h), pitMat);
+            pit.rotation.x = -Math.PI / 2;
+            pit.position.set(o.x + o.w / 2, 1.5, o.y + o.h / 2);
+            feature.add(pit);
+            // Faint warm glow seeping up from below (the ground breathes)
+            const glow = new THREE.Mesh(
+                new THREE.BoxGeometry(o.w * 0.6, 1.5, o.h * 0.3),
+                new THREE.MeshPhongMaterial({ color: 0x1a1206, emissive: 0xd4af37, emissiveIntensity: 0.35 })
+            );
+            glow.position.set(o.x + o.w / 2, 2.2, o.y + o.h / 2);
+            feature.add(glow);
+            const pitLight = new THREE.PointLight(0xd4af37, 0.7, 340, 2);
+            pitLight.position.set(o.x + o.w / 2, 26, o.y + o.h / 2);
+            feature.add(pitLight);
+            flickerLights.push({ light: pitLight, base: 0.7, phase: Math.random() * 10, steady: false });
+            // Broken rim debris along the long edges
+            const along = o.w >= o.h ? 'x' : 'z';
+            const len = Math.max(o.w, o.h);
+            const pieces = Math.max(4, Math.round(len / 70));
+            for (let i = 0; i < pieces; i++) {
+                const t = (i + 0.5) / pieces + (((i * 7) % 3) - 1) * 0.04;
+                const ph = 5 + ((i * 13) % 9);
+                const pw = 18 + ((i * 31) % 22);
+                const rim = new THREE.Mesh(new THREE.BoxGeometry(pw, ph, pw * 0.7),
+                    new THREE.MeshPhongMaterial({ color: new THREE.Color(palette.wallFill).lerp(new THREE.Color('#776a50'), 0.35) }));
+                if (along === 'x') {
+                    rim.position.set(o.x + t * o.w, ph / 2, o.y + ((i % 2) ? -6 : o.h + 6));
+                } else {
+                    rim.position.set(o.x + ((i % 2) ? -6 : o.w + 6), ph / 2, o.y + t * o.h);
+                }
+                feature.add(rim);
+            }
+            worldGroup.add(feature);
+            let label = null;
+            if (!o.decorative && o.interactScene) {
+                label = makeLabelSprite(o.label || o.id, '#f4e4b0');
+                label.position.set(o.x + o.w / 2, 42, o.y + o.h / 2);
+                worldGroup.add(label);
+            }
+            objectEntries.push({ o, mesh: feature, label });
+            continue;
+        }
         const h = objectHeightFor(o, atmos);
         const matOpts = { color: new THREE.Color(o.color || '#777'), shininess: 6, specular: 0x0d0d0d };
         const emissive = EMISSIVE_COLORS[o.color];
@@ -515,15 +788,40 @@ function syncWorldVisibility() {
         e.mesh.visible = !hidden;
         if (e.label) {
             // Distance fade: invisible when too close (would fill the screen)
-            // or too far (horizon clutter); full strength in the mid band
+            // or too far (horizon clutter); full strength in the mid band.
+            // Ranges sized for the expanded (1.4-1.6x) maps.
             const dist = Math.hypot(e.o.x + e.o.w / 2 - px, e.o.y + e.o.h / 2 - py);
             let alpha = 1;
             if (dist < 60) alpha = 0;
             else if (dist < 140) alpha = (dist - 60) / 80;
-            else if (dist > 1100) alpha = 0;
-            else if (dist > 800) alpha = 1 - (dist - 800) / 300;
+            else if (dist > 1700) alpha = 0;
+            else if (dist > 1250) alpha = 1 - (dist - 1250) / 450;
             e.label.material.opacity = alpha;
             e.label.visible = !hidden && alpha > 0.02;
+        }
+    }
+}
+
+// ---- NPC FIGURE ANIMATION ----
+// Gentle breathing sway, and people turn to watch Ellis as he gets
+// close (everyone in this story is watching him). The petrified
+// Custodian never turns — its cone of attention was fixed centuries ago.
+function updatePersons3d() {
+    const t = performance.now() / 1000;
+    const px = player.x + player.size / 2;
+    const py = player.y + player.size / 2;
+    for (const p of personEntries) {
+        const u = p.fig.userData;
+        if (u.staticPose || !p.fig.visible) continue;
+        for (let i = 0; i < u.arms.length; i++) {
+            u.arms[i].rotation.x = Math.sin(t * 1.3 + u.phase + i * Math.PI) * 0.06;
+        }
+        p.fig.position.y = Math.sin(t * 1.1 + u.phase) * 0.6;
+        const dx = px - p.fig.position.x;
+        const dz = py - p.fig.position.z;
+        const dist = Math.hypot(dx, dz);
+        if (dist < 560 && dist > 1) {
+            p.fig.rotation.y += angleDiff(Math.atan2(dx, dz), p.fig.rotation.y) * 0.06;
         }
     }
 }
@@ -545,6 +843,23 @@ document.addEventListener('mousemove', e => {
     camYaw   -= e.movementX * 0.0022;
     camPitch -= e.movementY * 0.0022;
     camPitch = Math.max(-1.45, Math.min(1.45, camPitch));
+});
+
+// ---- JUMP ----
+// SPACE jumps when no interactable is in range (the engine.js SPACE
+// handler only fires when gameState.activeInteractableId is set, so the
+// two never collide). The jump is vertical only — ground collision
+// rules stay identical to the 2D build.
+let jumpY = 0, jumpVel = 0, isAirborne = false;
+const JUMP_VELOCITY = 6.6, JUMP_GRAVITY = 0.44; // peak ~50 units (~1.5m), ~0.5s airtime
+
+window.addEventListener('keydown', e => {
+    if (e.code !== 'Space') return;
+    if (!gameplayInputActive() || gameState.activeInteractableId || gameState.isResting) return;
+    if (isAirborne || gameState.staminaExhausted) return;
+    isAirborne = true;
+    jumpVel = JUMP_VELOCITY;
+    gameState.stamina = Math.max(0, gameState.stamina - 0.4);
 });
 
 // Release the mouse whenever a UI surface takes over (dialogue choices,
@@ -585,6 +900,13 @@ function updatePlayer3d() {
             gameState.restTimer = 0;
             gameState.isResting = false;
         }
+    }
+
+    // Jump arc — integrates even during dialogue so a jump always lands
+    if (isAirborne && !gameState.isPaused) {
+        jumpY += jumpVel;
+        jumpVel -= JUMP_GRAVITY;
+        if (jumpY <= 0) { jumpY = 0; jumpVel = 0; isAirborne = false; }
     }
 
     if (gameState.isDialogueActive || gameState.isResting || gameState.isPaused || activePuzzle) return;
@@ -716,39 +1038,49 @@ function updateMinistryCar3d() {
 }
 
 // ---- HOSTILES (3D bodies for the existing patrol/chase AI) ----
-let hostileMeshes = new Map(); // hostile object -> { group, bodyMat, baseColor }
+let hostileMeshes = new Map(); // hostile object -> { group, lastX, lastY, facing }
 
 function syncHostiles3d() {
-    // Create meshes for new hostiles
+    // Create figures for new hostiles
     for (const h of hostiles) {
         if (hostileMeshes.has(h)) continue;
-        const group = new THREE.Group();
-        const bodyMat = new THREE.MeshLambertMaterial({ color: new THREE.Color(h.def.color) });
-        const body = new THREE.Mesh(new THREE.BoxGeometry(h.def.size, 55, h.def.size), bodyMat);
-        body.position.y = 27.5;
-        group.add(body);
+        const group = makeHumanoid(HOSTILE_STYLES[h.defKey] ||
+            { shirt: h.def.color, pants: h.def.color });
         const label = makeLabelSprite(h.def.label, '#cccccc');
-        label.position.y = 72;
+        label.position.y = group.userData.height + 14;
         group.add(label);
         scene3.add(group);
-        hostileMeshes.set(h, { group, bodyMat, baseColor: new THREE.Color(h.def.color) });
+        hostileMeshes.set(h, { group, lastX: h.x, lastY: h.y, facing: 0 });
     }
-    // Remove meshes whose hostiles are gone (clearHostiles replaces the array)
+    // Remove figures whose hostiles are gone (clearHostiles replaces the array)
     for (const [h, entry] of hostileMeshes) {
         if (!hostiles.includes(h)) {
             scene3.remove(entry.group);
             hostileMeshes.delete(h);
         }
     }
-    // Position + chase flicker
+    // Walk cycle, facing, and chase flush
     for (const [h, entry] of hostileMeshes) {
-        const bob = Math.sin(h.bobPhase) * 2;
+        const u = entry.group.userData;
+        const mx = h.x - entry.lastX, my = h.y - entry.lastY;
+        entry.lastX = h.x;
+        entry.lastY = h.y;
+        const moving = Math.hypot(mx, my) > 0.05;
+        const swing = moving ? Math.sin(h.bobPhase * 2.4) * 0.55 : 0;
+        for (let i = 0; i < u.arms.length; i++) u.arms[i].rotation.x = (i ? swing : -swing) * 0.8;
+        for (let i = 0; i < u.legs.length; i++) u.legs[i].rotation.x = i ? -swing : swing;
+        if (moving) entry.facing = Math.atan2(mx, my);
+        entry.group.rotation.y += angleDiff(entry.facing, entry.group.rotation.y) * 0.18;
+        const bob = moving ? Math.abs(Math.sin(h.bobPhase * 2.4)) * 1.6 : 0;
         entry.group.position.set(h.x + h.def.size / 2, bob, h.y + h.def.size / 2);
         if (h.state === 'chase') {
+            // Clothes flush red while chasing (same pulse rhythm as 2D)
             const pulse = 0.7 + Math.sin(h.bobPhase * 2) * 0.3;
-            entry.bodyMat.color.setRGB(0.71 * pulse, 0.12 * pulse, 0.12 * pulse);
+            for (const tn of u.tint) {
+                tn.mat.color.setRGB(0.62 * pulse + tn.base.r * 0.25, tn.base.g * 0.2, tn.base.b * 0.2);
+            }
         } else {
-            entry.bodyMat.color.copy(entry.baseColor);
+            for (const tn of u.tint) tn.mat.color.copy(tn.base);
         }
         entry.group.visible = h.state !== 'idle';
     }
@@ -758,21 +1090,21 @@ function syncHostiles3d() {
 function positionCamera() {
     const cx = player.x + player.size / 2;
     const cz = player.y + player.size / 2;
-    const bob = Math.sin(gameState.walkBobPhase) * 1.6;
+    const bob = isAirborne ? 0 : Math.sin(gameState.walkBobPhase) * 1.6;
     let shakeX = 0, shakeY = 0, shakeZ = 0;
     if (gameState.sanityState === 'FRACTURED') {
         shakeX = (Math.random() - 0.5) * 3;
         shakeY = (Math.random() - 0.5) * 2;
         shakeZ = (Math.random() - 0.5) * 3;
     }
-    cam3.position.set(cx + shakeX, EYE_HEIGHT + bob + shakeY, cz + shakeZ);
+    cam3.position.set(cx + shakeX, EYE_HEIGHT + jumpY + bob + shakeY, cz + shakeZ);
     cam3.rotation.y = camYaw;
     cam3.rotation.x = camPitch;
     if (playerLamp) {
         // Carried slightly ahead and below eye level, with a faint sway
         playerLamp.position.set(
             cx - Math.sin(camYaw) * 30,
-            EYE_HEIGHT - 10 + bob,
+            EYE_HEIGHT - 10 + jumpY + bob,
             cz - Math.cos(camYaw) * 30
         );
     }
@@ -960,6 +1292,7 @@ function gameLoop3d() {
     updateInteractions3d();
     syncHostiles3d();
     syncWorldVisibility();
+    updatePersons3d();
     updateAtmosphere3d();
     updateCamera();      // keeps the 2D camera roughly centered for overlay draw math
     positionCamera();
