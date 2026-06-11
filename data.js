@@ -61,6 +61,11 @@ const gameState = {
         matthias_chant_heard: false,
         // Inspector Nadia Kareem (Ministry of Antiquities)
         nadia_met: false, nadia_warned: false, nadia_honest: false,
+        // Leila "Lei" Mansour (street informant) & her brother Khaled
+        lei_met: false, lei_dismissed: false, lei_hired: false,
+        lei_brother_concerned: false, lei_family_safe: false,
+        lei_surveil_pending: false, lei_was_hurt: false, lei_map_given: false,
+        lei_note_read: false,
         // --- Chapter 4 ---
         iryQuestionAccepted: false, iryQuestionRefused: false, iryRevealedNature: false,
         iryCompanionUsed: false,
@@ -752,6 +757,8 @@ const mapObjects = {
         { id: 'matthias_church',x: 220,  y: 710,  w: 90,  h: 70,  color: '#3a2a40', label: 'Old Church Door',    interactScene: 'ch3_matthias_door'},
         // Inspector Kareem's sedan, parked where the market meets the road
         { id: 'nadia_car',      x: 2050, y: 2780, w: 90,  h: 60,  color: '#2a2a4a', label: 'Ministry Sedan',     interactScene: 'ch3_nadia_meet'   },
+        // Lei — watching the south entry, where she watches everyone
+        { id: 'ch3_lei',        x: 1560, y: 2880, w: 40,  h: 45,  color: '#c46d2a', label: 'Street Kid',         interactScene: 'ch3_lei'          },
 
         // --- CENTRAL PLAZA ---
         { id: 'fountain',       x: 1540, y: 1940, w: 120, h: 120, color: '#1e3f66', label: 'Fountain',           interactScene: 'flavor_ch3_fountain' },
@@ -846,6 +853,8 @@ const mapObjects = {
         { id: 'hangar_barrel',   x: 700,  y: 2400, w: 60,  h: 60,  color: '#8b3a3a', label: 'Fire Barrel',     interactScene: 'ch5_hangar_rest' },
         // Kostas (only present if rescued in Ch4) — stands in the hangar's shadow
         { id: 'kostas_ch5',      x: 1320, y: 760,  w: 50,  h: 55,  color: '#26323a', label: 'Kostas',          interactScene: 'ch5_kostas'      },
+        // A note thrown over the fence — Lei's message (only if you know her)
+        { id: 'ch5_lei_note',    x: 1700, y: 2950, w: 40,  h: 35,  color: '#b89a5a', label: 'Folded Note',     interactScene: 'ch5_lei_note'    },
         { id: 'flavor_plane',    x: 1000, y: 900,  w: 300, h: 80,  color: '#1a1a2e', label: 'Grounded Plane',  interactScene: 'flavor_ch5_plane'},
         { id: 'flavor_crates',   x: 700,  y: 2400, w: 100, h: 80,  color: '#2d2010', label: 'Cargo Crates',    interactScene: 'flavor_ch5_crates'},
         deco('d_plane2', 2000, 900, 300, 80, '#1a1a2e', 'Grounded Plane'),

@@ -1175,6 +1175,143 @@ const storyData = {
     }, choices: [
         { text: "Nod and move on.", onSelect: () => closeDialogue() }
     ]},
+
+    // --- LEILA "LEI" MANSOUR — street informant, south entry ---
+    'ch3_lei': { speaker: "System", text: "A kid is sitting on an upturned crate by the south entry, sharing a flatbread with a cat that clearly works for her. Fourteen, maybe. She has been watching you since you entered the market — not hiding it, either.\n\nWhen you look at her, she grins like you've already lost a bet you didn't know you'd made.", choices: [
+        { text: "Walk over.", onSelect: () => {
+            if (gameState.flags.lei_surveil_pending) { startDialogue('ch3_lei_delivers'); }
+            else if (gameState.flags.lei_met) { startDialogue('ch3_lei_hub'); }
+            else { startDialogue('ch3_lei_meet'); }
+        }},
+        { text: "Ignore her.", onSelect: () => closeDialogue() }
+    ]},
+
+    'ch3_lei_meet': { speaker: "Lei", text: "She hops off the crate before you're halfway there — a quick, knock-kneed gait that doesn't slow her down at all.\n\n'Doctor, yes? Dr. Vance, yes? Don't look surprised. You have the face of a man who pays too much for coffee. No, no — don't pay me to tell you the good coffee places, I have my principles. You want to know where the Order of the Unshut Eye meets? That I will tell you. That I have a price for.'\n\nShe sticks out her hand.\n\n'Lei. Information, errands, introductions. Très professionnelle. The cat is not included.'", choices: [
+        { text: "Shake her hand.", onSelect: () => { gameState.flags.lei_met = true; startDialogue('ch3_lei_hub'); } },
+        { text: "'How do you know my name?'", onSelect: () => { gameState.flags.lei_met = true; startDialogue('ch3_lei_knows'); } },
+        { text: "'Run along, kid. This isn't a game.'", onSelect: () => { gameState.flags.lei_dismissed = true; startDialogue('ch3_lei_dismissed'); } }
+    ]},
+
+    'ch3_lei_knows': { speaker: "Lei", text: "'I know everyone's name. That is the job. You came in through the south road at a quarter past two, you looked at the fountain like it owed you money, and you have been to the tea vendor but not the good tea vendor.'\n\nShe shrugs.\n\n'Nobody hired me to watch you. I watch everyone. Then I decide for myself who is worth walking over to. Congratulations.'", choices: [
+        { text: "'Alright. What are you selling?'", onSelect: () => startDialogue('ch3_lei_hub') }
+    ]},
+
+    'ch3_lei_dismissed': { speaker: "Lei", text: "Something shutters behind her eyes — fast, practiced, like a stall closing ahead of rain.\n\n'Okay, mister doctor. Enjoy the market. The coffee on the east side is excellent —' she's already walking — 'it is also nowhere near the east side. Bonne chance.'\n\nShe doesn't look back. The cat gives you a long look that you have definitely earned, and follows her.", choices: [{ text: "Let her go.", onSelect: () => closeDialogue() }]},
+
+    'ch3_lei_hub': { speaker: "Lei", text: () => {
+        if (gameState.flags.lei_was_hurt) return "She's back on her crate. The bruise along her cheekbone has gone yellow-green at the edges. She is exactly as fast and exactly as funny as before, and it is exactly not the same.\n\n'Doctor. What does Lei find for you today? Prices have gone up. Overheads.'";
+        if (gameState.flags.lei_map_given) return "'Doctor! You are still the worst bargainer in Cairo, and I am still the best thing that has happened to your research. What do you need?'";
+        return "'Okay. Menu.' She counts on her fingers, fast.\n\n'Where certain people meet — that I know. Who you should be talking to — that I can arrange. Who is following you around this market like a bad smell — that I can find out, for the right price. And directions to coffee, which are free, because principles.'";
+    }, choices: [
+        { text: "'Where does the Order meet?' (100 EGP)", onSelect: () => {
+            if (gameState.flags.marketPassword) { startDialogue('ch3_lei_order_known'); }
+            else if (gameState.funds >= 100) { gameState.funds -= 100; gameState.flags.marketPassword = true; gameState.flags.lei_hired = true; updateHUD(); startDialogue('ch3_lei_order'); }
+            else { alert("Not enough funds!"); }
+        }},
+        { text: "'Get me in front of Madame Yusra.' (150 EGP)", onSelect: () => {
+            if (gameState.funds >= 150) { gameState.funds -= 150; gameState.trustYusra += 1; gameState.flags.marketPassword = true; gameState.flags.lei_hired = true; updateHUD(); startDialogue('ch3_lei_yusra'); }
+            else { alert("Not enough funds!"); }
+        }},
+        { text: "'Someone's watching me. Find out who.' (200 EGP)", onSelect: () => {
+            if (gameState.flags.lei_was_hurt) { alert("She already did this job. It cost more than you paid."); }
+            else if (gameState.funds >= 200) { gameState.funds -= 200; gameState.flags.lei_hired = true; updateHUD(); startDialogue('ch3_lei_surveil'); }
+            else { alert("Not enough funds!"); }
+        }},
+        { text: "Ask about her family.", onSelect: () => startDialogue('ch3_lei_family') },
+        { text: "'The map, Lei. I know you keep one of your own.'", onSelect: () => {
+            if (gameState.flags.lei_map_given) { alert("She already gave it to you. It's the most valuable thing in your bag."); }
+            else if (gameState.flags.lei_brother_concerned && gameState.flags.lei_family_safe && gameState.flags.lei_hired) { startDialogue('ch3_lei_map'); }
+            else { startDialogue('ch3_lei_map_deflect'); }
+        }},
+        { text: "Leave her to her work.", onSelect: () => closeDialogue() }
+    ]},
+
+    'ch3_lei_order': { speaker: "Lei", text: "You hold out the notes. She takes them, recounts them in front of you — slowly, insultingly — and sighs.\n\n'You are the worst bargainer I have ever met. I am embarrassed for you. I am taking this money because if I don't, my reputation suffers.'\n\nThe money disappears somewhere instantaneous.\n\n'The Hub. North side, the big block with the courtyard. You knock, you say you are expected for the late prayer. That is the whole password — being expected. Now you are.'\n\nShe's already looking past you, scanning the market.\n\n'I will find a way to spend this that makes me useful to you. Wait here. Don't look like a foreigner. Oh — too late.'", choices: [
+        { text: "Anything else.", onSelect: () => startDialogue('ch3_lei_hub') }
+    ]},
+
+    'ch3_lei_order_known': { speaker: "Lei", text: "'You already know where they meet. You want to pay me a hundred pounds to hear it again?' She holds out a flat palm anyway, deadpan.\n\n'No? Tragique. Ask me something hard.'", choices: [
+        { text: "Something else, then.", onSelect: () => startDialogue('ch3_lei_hub') }
+    ]},
+
+    'ch3_lei_yusra': { speaker: "Lei", text: "'Yusra. Good choice. Most foreigners ask for the wrong people first and end up in the wrong rooms.'\n\nShe whistles — two notes — and a boy you never noticed peels off a wall and disappears north.\n\n'By the time you reach the Hub, she will know your name, your face, and that Lei says you are probably not an idiot. That last part is the expensive part. It is my professional reputation on the loan.'", choices: [
+        { text: "Anything else.", onSelect: () => startDialogue('ch3_lei_hub') }
+    ]},
+
+    'ch3_lei_surveil': { speaker: "Lei", text: "For the first time since you met her, she doesn't answer fast.\n\n'The men watching you are not market men. Market men I know by their shoes. These ones have hotel shoes and they stand like they are owed something.'\n\nShe takes the money anyway. Of course she takes the money.\n\n'Two hundred buys you: where they sleep, who they talk to, what cars. Come find me later, Doctor. And if the cat comes to find you instead —' the grin comes back, but it has to be sent for — 'it means come faster.'", choices: [
+        { text: "'Be careful, Lei.'", onSelect: () => { gameState.flags.lei_surveil_pending = true; closeDialogue(); } },
+        { text: "Just nod.", onSelect: () => { gameState.flags.lei_surveil_pending = true; closeDialogue(); } }
+    ]},
+
+    'ch3_lei_delivers': { speaker: "Lei", text: "She's on her crate. Sitting differently — too straight, the way you sit when leaning is expensive. There is a bruise along her cheekbone and a split at the corner of her mouth, and her grin comes up a half-second late, like a shopfront with one hinge gone.\n\n'Before you make a speech: I am fine, you should see the wall I fell into, and the job is done.'\n\nShe recites it flat and fast, like she's been holding it in her teeth:\n\n'Villa, north of the old aqueduct. Green gate. Three cars, one with diplomatic plates that visit nobody diplomatic. The men with the hotel shoes report there at dawn. The one who pays them is called by everyone only the accountant.'\n\nShe holds out her hand for nothing — the money was already paid — then puts it back in her lap.\n\n'They saw me on the second night. That is my mistake, not yours. I am telling you that so you don't get to carry it. It is mine.'", choices: [
+        { text: "'Lei—'", onSelect: () => {
+            gameState.flags.lei_was_hurt = true; gameState.flags.lei_surveil_pending = false;
+            gameState.knowledgeHermetic += 2; decreaseSanity(2.5);
+            addJournalNote("The Concern's Safehouse", "Villa north of the old aqueduct, green gate. Diplomatic plates. Staff report at dawn; the paymaster is called 'the accountant.' Lei was beaten getting this. She delivered it anyway, then closed the subject like a door.");
+            startDialogue('ch3_lei_after_hurt');
+        }}
+    ]},
+
+    'ch3_lei_after_hurt': { speaker: "Lei", text: "'No.' She says it before you've picked a sentence. 'Whatever it was — no. We are professionals, you and me. You paid, I delivered, the ledger is clean.'\n\nShe breaks off a piece of flatbread and gives it to the cat, who accepts it like rent.\n\n'Next time bring a harder job. The easy ones are the ones that go wrong.'", choices: [
+        { text: "Leave her be.", onSelect: () => closeDialogue() }
+    ]},
+
+    'ch3_lei_family': { speaker: "Lei", text: "'My brother does things he should not do for people he should not do them for. My father sews shirts. My mother was a good cook. That is my family. Next question.'\n\nBut she doesn't move on. She looks at you for a second too long, and when she speaks again it is quieter, and for once it is not fast at all.\n\n'Do you know Khaled? Khaled is my brother. He is — he used to be — a good brother. He carries messages for men who carry messages for the people you are digging into. I am watching you because I want to know if you are the man who will make Khaled make a bad choice.'\n\nShe holds your eyes.\n\n'Tell me. Are you?'", choices: [
+        { text: "'I don't know. I might be. I'll try not to be.'", onSelect: () => { gameState.flags.lei_brother_concerned = true; increaseSanity(0.5); startDialogue('ch3_lei_khaled_help'); } },
+        { text: "'Your brother makes his own choices.'", onSelect: () => { gameState.repLocal -= 1; startDialogue('ch3_lei_cold'); } }
+    ]},
+
+    'ch3_lei_cold': { speaker: "Lei", text: "'Mm.' She nods slowly, like she's filing an invoice.\n\n'You know who else says that? The men he works for. Word for word. You should compare notes.'\n\nIt's a cheap shot and she knows it and she does not take it back. The menu of services is open again before you can answer; the other conversation is closed.", choices: [
+        { text: "Back to business.", onSelect: () => startDialogue('ch3_lei_hub') }
+    ]},
+
+    'ch3_lei_khaled_help': { speaker: "Lei", text: "She blinks. Whatever answer she had pre-loaded — for the lie, for the speech — she has to put it away unused.\n\n''I'll try not to be.'' She repeats it, testing the weight. 'Okay. That is a strange answer. I like strange answers; the rehearsed ones are the dangerous ones.'\n\nShe leans in.\n\n'Then help me with something real. Khaled owes his network one more season of work — it is in their book, three hundred pounds of debt that grows like a debt grows. If the book closes, he is just my stupid brother again, fixing radios. If it doesn't, then one night soon they will hand him something heavier than a message.'", choices: [
+        { text: "'Tell Inspector Kareem about the network. Khaled gets swept up on something small — before the heavy night comes.'", onSelect: () => {
+            if (gameState.flags.nadia_met) { startDialogue('ch3_lei_khaled_nadia'); }
+            else { alert("You don't know anyone at the Ministry you could trust with this."); }
+        }},
+        { text: "Pay the debt out of the book. (300 EGP)", onSelect: () => {
+            if (gameState.funds >= 300) { gameState.funds -= 300; updateHUD(); startDialogue('ch3_lei_khaled_paid'); }
+            else { alert("Not enough funds!"); }
+        }},
+        { text: "'I can't fix this one, Lei.'", onSelect: () => startDialogue('ch3_lei_hub') }
+    ]},
+
+    'ch3_lei_khaled_nadia': { speaker: "Lei", text: "She listens to the idea with her head tilted, then nods, slowly, twice.\n\n'A police answer. I hate it.' A beat. 'It works. That is why I hate it.'\n\nTwo nights later you hear it through the market the way you hear everything in the market: a customs sweep, six couriers held overnight on paperwork, released into a network that no longer trusts them with anything heavier than bread. Among the names: Mansour, K.\n\nLei finds you the next day and doesn't say thank you. She gives you a packet of dried hibiscus 'from a customer who couldn't pay' and stands there while you take it, which is the same thing said in a language with no word for owing.", choices: [
+        { text: "Take the hibiscus.", onSelect: () => { gameState.flags.lei_family_safe = true; gameState.repLocal += 2; increaseSanity(1.0); if (!gameState.inventory.includes('Karkadeh')) gameState.inventory.push('Karkadeh'); updateHUD(); startDialogue('ch3_lei_hub'); } }
+    ]},
+
+    'ch3_lei_khaled_paid': { speaker: "Lei", text: "She watches you count out the notes and for once she doesn't haggle, doesn't joke, doesn't perform anything at all. That is how you know what it costs her to take it.\n\n'This is a loan,' she says, which you both know is a lie, which makes it the most honest thing she's said all night. 'Lei pays her debts. It is in my book now. My book is better kept than theirs.'\n\nThe next evening the cat finds you by the fountain and walks a full circle around your feet — which you will learn, eventually, was Lei's highest compliment passing through an intermediary. The book is closed. Khaled is fixing radios.", choices: [
+        { text: "Good.", onSelect: () => { gameState.flags.lei_family_safe = true; gameState.repLocal += 1; increaseSanity(1.0); startDialogue('ch3_lei_hub'); } }
+    ]},
+
+    'ch3_lei_map_deflect': { speaker: "Lei", text: "'Map? What map. I cannot read, Doctor, I am a poor street child.' She says it with the straightest face in Cairo, while absent-mindedly correcting the change a vendor hands her at a distance of four stalls.\n\n'If — if — such a map existed, it would belong to someone who only gives it to people she trusts with her family. C'est tout. Coffee directions remain free.'", choices: [
+        { text: "Back to business.", onSelect: () => startDialogue('ch3_lei_hub') }
+    ]},
+
+    'ch3_lei_map': { speaker: "Lei", text: "She looks at you for a long moment. Then she reaches into the crate she's been sitting on all this time — the crate, the whole time — and pulls out a school exercise book, the kind with sums on the back cover.\n\nInside, in pencil, in a careful hand that has clearly been kept secret from her own handwriting: every Waking-faction stop in Cairo. Couriers' corners. Hotel rooms by week. Two warehouses. A page held by a hairpin, marked with a green square: the villa by the aqueduct, and every route in and out of it.\n\n'I started it to know where Khaled was. Then I kept going, because nobody ever suspects that the street kid doing sums is doing sums.'\n\nShe presses it into your hands fast, before either of you can make it a ceremony.\n\n'Don't lose it. Don't tell anyone a child gave it to you — say you bought it from a dangerous man, it will be better for both our reputations.'", choices: [
+        { text: "Take the exercise book.", onSelect: () => {
+            gameState.flags.lei_map_given = true; gameState.knowledgeHermetic += 3;
+            if (!gameState.inventory.includes("Lei's Exercise Book")) gameState.inventory.push("Lei's Exercise Book");
+            addJournalNote("Lei's Exercise Book", "A school notebook holding the Waking faction's entire Cairo footprint, in pencil, in a 14-year-old's secret-careful hand. Couriers, hotels, warehouses — and the Concern's villa by the aqueduct with every route in and out. The most valuable document I own. 'Say you bought it from a dangerous man.'");
+            updateHUD(); startDialogue('ch3_lei_hub');
+        }}
+    ]},
+
+    // Lei's message reaches the airfield (Ch5)
+    'ch5_lei_note': { speaker: "System", text: () => {
+        let body;
+        if (gameState.flags.lei_was_hurt) {
+            body = "'Doctor. The accountant moved out of the villa two days after you left the market. They burn what they cannot carry. Consider the account settled in full, both directions. — L.M.'\n\nFormal. Paid-in-full. A receipt from a stranger.";
+        } else if (gameState.flags.lei_family_safe) {
+            body = "'DOCTOR. The hotel-shoe men left the market in a hurry and forgot to pay three tabs, which tells you everything about their organization. Khaled fixed our neighbor's radio. It only plays one station now, but it is the good station.\n\nDo not die at the airport, it would be very inconvenient for my reputation, since I told Yusra you are probably not an idiot. — Lei. The cat also says something but it is rude.'";
+        } else {
+            body = "'Doctor. The men with hotel shoes have stopped watching the market and started watching the roads out of it. You are the roads out of it. Walk like you owe nothing. — L.M.'";
+        }
+        return "A kid on a bicycle rattles past the fence, and something arcs over the wire and lands at your feet: a stone, wrapped in paper, tied with string.\n\nYour name is on the paper in pencil.\n\n" + body;
+    }, choices: [
+        { text: "Pocket the note.", onSelect: () => { gameState.flags.lei_note_read = true; if (gameState.flags.lei_family_safe) increaseSanity(1.0); closeDialogue(); } }
+    ]},
     'ch3_coffee_fail': { speaker: "Bouncer", text: "'I don't know what you're talking about, tourist. Beat it before I break your jaw.'", choices: [{ text: "Leave.", onSelect: () => closeDialogue() }] },
     'ch3_coffee_open': { speaker: "Old Man", text: "The bouncer steps aside, revealing an old man holding a brass kettle.\n\n'Ah, Doctor Vance. She is waiting for you in the Safehouse.'", choices: [{ text: "Enter.", onSelect: () => { activeMapObjects = mapObjects['SAFEHOUSE']; canvas.style.backgroundColor = '#2a1f1a'; closeDialogue(); startDialogue('ch3_yusra_meet'); } }] },
     
@@ -1806,7 +1943,13 @@ const storyData = {
         } else if (gameState.flags.kostas_left) {
             kostasBeat = "\n\nSomewhere below and west of you, in a chamber of chalk, a man who answered the question before you did adds a footnote to a wall. The city keeps him the way he asked to be kept: unfiled.";
         }
-        return "ENDING 7 — THE DEPARTURE\n\nYou take your hand off the stone.\n\nYou do not write. You do not take the Codex. You do not collapse anything, claim anything, or close anything. You simply turn, and walk back the way you came, while the Heart is still alive behind you.\n\n" + iryBeat + kostasBeat + "\n\nThe amber lights the corridor ahead of you all the way up — every channel brightening just before you reach it, dimming just after you pass. The city walking you to the door.\n\nAt the threshold the Codex pulses once, somewhere far behind you, at its eight-second interval. It does not follow. The next person who finds it will feel an inexplicable reluctance to part with it.\n\nOn the surface, dawn. Tariq's question, when you reach the camp, is the only debrief you will ever submit:\n\n'Did you find what was down there, Doctor?'\n\n'Yes.'\n\n'And?'\n\n'It's still down there.'\n\nThe dig closes within the month. You go home. Some nights, at exactly eight-second intervals, you almost hear it — and every time, you are almost, almost certain you made the right choice.\n\nThe Heart records your refusal as a valid response. The question remains open.\n\nSomeone will come. Someone will write the next line.";
+        let leiBeat = "";
+        if (gameState.flags.lei_family_safe) {
+            leiBeat = "\n\nMonths later, a letter reaches you in careful pencil: 'Doctor. Khaled is boring now, which was the plan. The cat is fat. A German paid me forty euro for coffee directions, so business is excellent and the directions were even real. You still owe me a hard job. — Lei.' You read it four times.";
+        } else if (gameState.flags.lei_was_hurt) {
+            leiBeat = "\n\nMonths later, a letter reaches you, typed: 'Dr. Vance. I trust your work concluded satisfactorily. Our accounts are settled in full. — L. Mansour.' There is no joke in it anywhere. You look for one for a long time.";
+        }
+        return "ENDING 7 — THE DEPARTURE\n\nYou take your hand off the stone.\n\nYou do not write. You do not take the Codex. You do not collapse anything, claim anything, or close anything. You simply turn, and walk back the way you came, while the Heart is still alive behind you.\n\n" + iryBeat + kostasBeat + leiBeat + "\n\nThe amber lights the corridor ahead of you all the way up — every channel brightening just before you reach it, dimming just after you pass. The city walking you to the door.\n\nAt the threshold the Codex pulses once, somewhere far behind you, at its eight-second interval. It does not follow. The next person who finds it will feel an inexplicable reluctance to part with it.\n\nOn the surface, dawn. Tariq's question, when you reach the camp, is the only debrief you will ever submit:\n\n'Did you find what was down there, Doctor?'\n\n'Yes.'\n\n'And?'\n\n'It's still down there.'\n\nThe dig closes within the month. You go home. Some nights, at exactly eight-second intervals, you almost hear it — and every time, you are almost, almost certain you made the right choice.\n\nThe Heart records your refusal as a valid response. The question remains open.\n\nSomeone will come. Someone will write the next line.";
     }, choices: [{ text: "[ END ]", onSelect: () => alert("ENDING 7: THE DEPARTURE — Complete. The question remains open. Thank you for playing.") }]},
 
     // =========================================================

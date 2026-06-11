@@ -1061,6 +1061,8 @@ function isObjectResolved(o) {
 
     if (gameState.chapter === 3) {
         if (o.interactScene === 'puzzle_start_cipher' && f.cipher_solved) return true;
+        // Lei leaves for good if Ellis dismisses her
+        if (o.interactScene === 'ch3_lei' && f.lei_dismissed) return true;
     }
 
     if (gameState.chapter === 2) {
@@ -1093,6 +1095,8 @@ function isObjectResolved(o) {
         if (o.interactScene === 'ch5_standoff' && f.standoffResolved) return true;
         // Kostas only stands at the airfield if Ellis brought him out
         if (o.interactScene === 'ch5_kostas' && !f.kostas_rescued)    return true;
+        // Lei's note only arrives if you know her (and only reads once)
+        if (o.interactScene === 'ch5_lei_note' && (!f.lei_met || f.lei_dismissed || f.lei_note_read)) return true;
     }
 
     if (gameState.chapter === 6) {
