@@ -37,10 +37,14 @@
   Departure secret endings (Ch7, 8 endings total). Deep lore now in
   game: Tibesti/Nazca/Aksum, Zep Tepi, the Perennial Concern, the
   dimming, the Fayyum Papyrus.
-- **Still absent from the lore docs:** Kostas Lemaire (Ch4 trapped
-  scholar — a full side-quest's worth of content) and any minor NPCs
-  beyond him in NEW_CHARACTERS.md. ~44 superseded draft scenes remain
-  in dialogue.js (harmless).
+- **Kostas Lemaire added (commit cf9af07):** Ch4 discovery + three-
+  outcome rescue side quest, the second Heart-node secret, Ch5 standoff
+  presence, Ch7 Departure echoes.
+- **Still absent from the lore docs:** minor NPCs after Kostas in
+  NEW_CHARACTERS.md (e.g. Leila "Lei" Mansour, and the doc was cut off
+  mid-list — the missing TECHNICAL_HANDOFF/STORY_BIBLE files may name
+  more). The second Heart-node area itself awaits SIDE_MAPS.md, which
+  was never delivered. ~44 superseded draft scenes remain (harmless).
 
 ## Atmosphere (engine3d.js, `MAP_ATMOS`)
 
