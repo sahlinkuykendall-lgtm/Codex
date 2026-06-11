@@ -1,4 +1,4 @@
-let WORLD = { width: 2400, height: 2200 };
+let WORLD = { width: 3840, height: 3520 }; // Ch1 size after map scaling (see MAP_SCALE)
 
 // currentMapKey drives wall & object lookups. Set by each loadChapter function.
 let currentMapKey = 1;
@@ -893,5 +893,30 @@ const mapObjects = {
         { id: 'hlb_exit',      x: 200, y: 460, w: 100, h: 28,  color: '#1a1a2e', label: '[ Exit ]',        interactScene: 'int_exit'        },
     ],
 };
+
+// ============================================================
+// MAP EXPANSION — per-map scale factors
+// Layouts were authored for the 2D top-down build and feel cramped at
+// first-person eye level. Walls and objects scale uniformly so door
+// gaps, building shells and collision stay perfectly aligned.
+// Spawn points, patrol routes and world sizes in engine.js use the
+// scaled coordinates. Interiors are human-scale already - not scaled.
+// ============================================================
+const MAP_SCALE = {
+    1: 1.6,
+    'TRAP': 1.4, 'SECRET': 1.4, 'CUTTHROAT': 1.4,
+    'MARKET': 1.3,
+    'CITY': 1.5,
+    'AIRFIELD': 1.4,
+    'GATE': 1.5,
+    'FINAL': 2.5
+};
+(function applyMapScale() {
+    for (const key in MAP_SCALE) {
+        const f = MAP_SCALE[key];
+        (mapWalls[key] || []).forEach(w => { w.x *= f; w.y *= f; w.w *= f; w.h *= f; });
+        (mapObjects[key] || []).forEach(o => { o.x *= f; o.y *= f; o.w *= f; o.h *= f; });
+    }
+})();
 
 let activeMapObjects = mapObjects[1];

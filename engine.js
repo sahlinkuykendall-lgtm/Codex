@@ -34,7 +34,7 @@ const ctx = canvas.getContext('2d');
 canvas.width = 1280; canvas.height = 720;
 
 let camera = { x: 0, y: 0, w: 1280, h: 720 };
-let player = { x: 1000, y: 1000, size: 30, speed: 2, color: '#d4af37' };
+let player = { x: 1000, y: 1000, size: 30, speed: 2.6, color: '#d4af37' };
 
 // ---- INPUT SYSTEM ----
 // Use a Set for held keys — immune to case issues, sticky-key bugs, and repeat events.
@@ -147,21 +147,22 @@ function closePuzzle() { activePuzzle = null; }
 // ============================================================
 let hostiles = [];
 
+// Speeds and ranges tuned up ~1.4x to match the expanded map scale
 const HOSTILE_DEFS = {
     'guard_ministry': {
-        color: '#2a2a8a', size: 28, speed: 1.8, detectRange: 180, chaseRange: 400,
+        color: '#2a2a8a', size: 28, speed: 2.4, detectRange: 260, chaseRange: 560,
         label: 'Ministry Guard', catchScene: 'hostile_ministry_caught', sanityDmg: 1.5, oneTimeCatch: true,
     },
     'figure_dark': {
-        color: '#0a0a0a', size: 24, speed: 1.4, detectRange: 220, chaseRange: 500,
+        color: '#0a0a0a', size: 24, speed: 1.9, detectRange: 300, chaseRange: 700,
         label: '???', catchScene: 'hostile_figure_caught', sanityDmg: 2.5,
     },
     'worker_panicked': {
-        color: '#5c3a1a', size: 26, speed: 2.2, detectRange: 120, chaseRange: 250,
+        color: '#5c3a1a', size: 26, speed: 2.9, detectRange: 170, chaseRange: 350,
         label: 'Panicked Worker', catchScene: 'hostile_worker_caught', sanityDmg: 0.5, oneTimeCatch: true,
     },
     'samir_hostile': {
-        color: '#4b3030', size: 28, speed: 1.6, detectRange: 200, chaseRange: 380,
+        color: '#4b3030', size: 28, speed: 2.1, detectRange: 280, chaseRange: 530,
         label: 'Samir', catchScene: 'hostile_samir_caught', sanityDmg: 1.0,
     },
 };
@@ -185,17 +186,17 @@ function spawnHostile(defKey, x, y, patrolPoints) {
 function clearHostiles() { hostiles = []; }
 
 // Ministry car drive-in animation state
-let ministeryCar = { active: false, parked: false, x: 2200, y: 2500, targetY: 1300, speed: 3.4, w: 90, h: 60 };
+let ministeryCar = { active: false, parked: false, x: 3520, y: 4000, targetY: 2080, speed: 5.4, w: 90, h: 60 };
 
 function spawnChapterOneHostiles() {
     if (!gameState.flags.inspector_dealt) {
-        spawnHostile('guard_ministry', 1900, 1600, [
-            { x: 1900, y: 1600 }, { x: 2200, y: 1600 }, { x: 2200, y: 1800 }, { x: 1900, y: 1800 }
+        spawnHostile('guard_ministry', 3040, 2560, [
+            { x: 3040, y: 2560 }, { x: 3520, y: 2560 }, { x: 3520, y: 2880 }, { x: 3040, y: 2880 }
         ]);
     }
     if (!gameState.flags.workerSeen) {
-        spawnHostile('worker_panicked', 1400, 600, [
-            { x: 1400, y: 600 }, { x: 1700, y: 600 }, { x: 1700, y: 780 }, { x: 1400, y: 780 }
+        spawnHostile('worker_panicked', 2240, 960, [
+            { x: 2240, y: 960 }, { x: 2720, y: 960 }, { x: 2720, y: 1248 }, { x: 2240, y: 1248 }
         ]);
     }
 }
@@ -420,13 +421,13 @@ function _completeExit() {
     interiorState.active = false;
     interiorState.pendingExit = false;
     currentMapKey = interiorState.returnMapKey;
-    // Restore world size from chapter
+    // Restore world size from chapter (post-MAP_SCALE dimensions)
     const chapterWorldSizes = {
-        1: { width: 2400, height: 2200 },
-        3: { width: 3600, height: 3200 },
-        4: { width: 4000, height: 4000 },
-        5: { width: 3600, height: 3200 },
-        6: { width: 3200, height: 3200 },
+        1: { width: 3840, height: 3520 },
+        3: { width: 4680, height: 4160 },
+        4: { width: 6000, height: 6000 },
+        5: { width: 5040, height: 4480 },
+        6: { width: 4800, height: 4800 },
     };
     WORLD = chapterWorldSizes[gameState.chapter] || { width: 2000, height: 2000 };
     player.x = interiorState.returnX;
@@ -485,18 +486,18 @@ function loadChapterTwo() {
     gameState.chapter = 2;
     clearHostiles();
     if (gameState.currentRoute === 'TRAP') {
-        WORLD = { width: 3000, height: 3000 }; player.x = 300; player.y = 200;
+        WORLD = { width: 4200, height: 4200 }; player.x = 420; player.y = 280;
         // Panicked worker patrols the trap tunnel
-        spawnHostile('worker_panicked', 800, 1200, [
-            { x: 800, y: 1200 }, { x: 1200, y: 1200 }, { x: 1200, y: 1800 }, { x: 800, y: 1800 }
+        spawnHostile('worker_panicked', 1120, 1680, [
+            { x: 1120, y: 1680 }, { x: 1680, y: 1680 }, { x: 1680, y: 2520 }, { x: 1120, y: 2520 }
         ]);
     } else if (gameState.currentRoute === 'CUTTHROAT') {
-        WORLD = { width: 2500, height: 2500 }; player.x = 1200; player.y = 200;
-        spawnHostile('figure_dark', 1150, 1000, [
-            { x: 1150, y: 1000 }, { x: 1350, y: 1200 }, { x: 1150, y: 1500 }
+        WORLD = { width: 3500, height: 3500 }; player.x = 1680; player.y = 280;
+        spawnHostile('figure_dark', 1610, 1400, [
+            { x: 1610, y: 1400 }, { x: 1890, y: 1680 }, { x: 1610, y: 2100 }
         ]);
     } else {
-        WORLD = { width: 2500, height: 2500 }; player.x = 1200; player.y = 200;
+        WORLD = { width: 3500, height: 3500 }; player.x = 1680; player.y = 280;
     }
     currentMapKey = gameState.currentRoute;
     activeMapObjects = mapObjects[gameState.currentRoute] || [];
@@ -509,11 +510,11 @@ function loadChapterThree() {
     gameState.chapter = 3;
     clearHostiles();
     currentMapKey = 'MARKET';
-    WORLD = { width: 3600, height: 3200 }; player.x = 1800; player.y = 3000;
+    WORLD = { width: 4680, height: 4160 }; player.x = 2340; player.y = 3900;
     activeMapObjects = mapObjects['MARKET'];
     // Ministry informant patrols the market
-    spawnHostile('guard_ministry', 2200, 2400, [
-        { x: 2200, y: 2400 }, { x: 2800, y: 2400 }, { x: 2800, y: 1800 }, { x: 2200, y: 1800 }
+    spawnHostile('guard_ministry', 2860, 3120, [
+        { x: 2860, y: 3120 }, { x: 3640, y: 3120 }, { x: 3640, y: 2340 }, { x: 2860, y: 2340 }
     ]);
     canvas.style.backgroundColor = '#1a1410';
     updateHUD(); startDialogue('ch3_start');
@@ -523,14 +524,14 @@ function loadChapterFour() {
     gameState.chapter = 4;
     clearHostiles();
     currentMapKey = 'CITY';
-    WORLD = { width: 4000, height: 4000 }; player.x = 2000; player.y = 3700;
+    WORLD = { width: 6000, height: 6000 }; player.x = 3000; player.y = 5550;
     activeMapObjects = mapObjects['CITY'];
     // Dark figure patrols city outskirts — the city watching
-    spawnHostile('figure_dark', 600, 2000, [
-        { x: 600, y: 2000 }, { x: 600, y: 1000 }, { x: 1000, y: 600 }
+    spawnHostile('figure_dark', 900, 3000, [
+        { x: 900, y: 3000 }, { x: 900, y: 1500 }, { x: 1500, y: 900 }
     ]);
-    spawnHostile('figure_dark', 3400, 2000, [
-        { x: 3400, y: 2000 }, { x: 3400, y: 1000 }, { x: 3000, y: 600 }
+    spawnHostile('figure_dark', 5100, 3000, [
+        { x: 5100, y: 3000 }, { x: 5100, y: 1500 }, { x: 4500, y: 900 }
     ]);
     canvas.style.backgroundColor = '#050510';
     updateHUD(); startDialogue('ch4_start');
@@ -540,11 +541,11 @@ function loadChapterFive() {
     gameState.chapter = 5;
     clearHostiles();
     currentMapKey = 'AIRFIELD';
-    WORLD = { width: 3600, height: 3200 }; player.x = 1800; player.y = 3000;
+    WORLD = { width: 5040, height: 4480 }; player.x = 2520; player.y = 4200;
     activeMapObjects = mapObjects['AIRFIELD'];
     // Airfield guards patrolling perimeter
-    spawnHostile('guard_ministry', 800, 1200, [
-        { x: 800, y: 1200 }, { x: 2400, y: 1200 }
+    spawnHostile('guard_ministry', 1120, 1680, [
+        { x: 1120, y: 1680 }, { x: 3360, y: 1680 }
     ]);
     canvas.style.backgroundColor = '#111';
     updateHUD(); startDialogue('ch5_start');
@@ -554,11 +555,11 @@ function loadChapterSix() {
     gameState.chapter = 6;
     clearHostiles();
     currentMapKey = 'GATE';
-    WORLD = { width: 3200, height: 3200 }; player.x = 1600; player.y = 3000;
+    WORLD = { width: 4800, height: 4800 }; player.x = 2400; player.y = 4500;
     activeMapObjects = mapObjects['GATE'];
     // Two dark figures flank the approach
-    spawnHostile('figure_dark', 400, 2000, [{ x: 400, y: 2000 }, { x: 400, y: 1200 }]);
-    spawnHostile('figure_dark', 2800, 2000, [{ x: 2800, y: 2000 }, { x: 2800, y: 1200 }]);
+    spawnHostile('figure_dark', 600, 3000, [{ x: 600, y: 3000 }, { x: 600, y: 1800 }]);
+    spawnHostile('figure_dark', 4200, 3000, [{ x: 4200, y: 3000 }, { x: 4200, y: 1800 }]);
     canvas.style.backgroundColor = '#030305';
     updateHUD(); startDialogue('ch6_start');
 }
@@ -567,7 +568,7 @@ function loadChapterSeven() {
     gameState.chapter = 7;
     clearHostiles();
     currentMapKey = 'FINAL';
-    WORLD = { width: 1280, height: 720 }; player.x = 640; player.y = 620;
+    WORLD = { width: 3200, height: 1800 }; player.x = 1600; player.y = 1550;
     activeMapObjects = mapObjects['FINAL'];
     canvas.style.backgroundColor = '#000';
     updateHUD(); startDialogue('ch7_start');
@@ -669,10 +670,10 @@ function resetGameState() {
     clearHostiles();
     // Reset map
     currentMapKey = 1;
-    WORLD = { width: 2400, height: 2200 };
+    WORLD = { width: 3840, height: 3520 };
     activeMapObjects = mapObjects[1];
     // Reset player
-    player.x = 1060; player.y = 1680;
+    player.x = 1696; player.y = 2688;
     // Hide HUD
     document.getElementById('hud').classList.add('hidden');
     document.getElementById('hud-bottomleft').classList.add('hidden');
@@ -685,14 +686,14 @@ function resetGameState() {
 function startGame() {
     gameState.currentScreen = 'GAME';
     currentMapKey = 1;
-    WORLD = { width: 2400, height: 2200 };
+    WORLD = { width: 3840, height: 3520 };
     // Spawn at tent compound south entrance — player "steps out of tent"
-    player.x = 1060; player.y = 1680;
+    player.x = 1696; player.y = 2688;
     document.getElementById('hud').classList.remove('hidden');
     document.getElementById('hud-bottomleft').classList.remove('hidden');
     document.getElementById('hud-hint').classList.remove('hidden');
     clearHostiles();
-    ministeryCar = { active: false, parked: false, x: 2200, y: 2500, targetY: 1300, speed: 3.4, w: 90, h: 60 };
+    ministeryCar = { active: false, parked: false, x: 3520, y: 4000, targetY: 2080, speed: 5.4, w: 90, h: 60 };
     spawnChapterOneHostiles();
     updateHUD();
     // Original opening: Ellis in tent with the Codex — scene1_start fires first
