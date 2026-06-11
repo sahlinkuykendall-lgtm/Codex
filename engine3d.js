@@ -58,6 +58,7 @@ let objectEntries = []; // { o, mesh, label } — synced against isObjectResolve
 let flickerLights = []; // { light, base, phase, steady } — animated in updateAtmosphere3d
 let heartFX = null;     // { mesh, mat, light, mode } — the pulsing Heart
 let fogBase = [500, 3000]; // CALM-state fog distances for the current map
+let playerLamp = null;  // Ellis's carried lantern (underground/interiors)
 
 // Floating text label rendered to a canvas texture, shown above interactables
 function makeLabelSprite(text, colorHex) {
@@ -93,9 +94,9 @@ const MAP_ATMOS = {
     'TRAP':      { type: 'und', fog: [90, 1700],   ceiling: 240 },
     'SECRET':    { type: 'und', fog: [110, 2000],  ceiling: 280 },
     'CUTTHROAT': { type: 'und', fog: [80, 1500],   ceiling: 250 },
-    'CITY':      { type: 'und', fog: [200, 3200],  ceiling: 380 },
-    'GATE':      { type: 'und', fog: [140, 2600],  ceiling: 320 },
-    'FINAL':     { type: 'und', fog: [300, 3400],  ceiling: 700, heart: true },
+    'CITY':      { type: 'und', fog: [260, 3400],  ceiling: 380, hemi: 0.65 },
+    'GATE':      { type: 'und', fog: [160, 2800],  ceiling: 320, hemi: 0.55 },
+    'FINAL':     { type: 'und', fog: [300, 3400],  ceiling: 700, hemi: 0.6, heart: true },
 };
 
 function atmosForCurrentMap() {
@@ -251,8 +252,9 @@ function buildWorld() {
         starMat.fog = false;
         worldGroup.add(new THREE.Points(starGeo, starMat));
     } else if (atmos.type === 'und') {
-        worldGroup.add(new THREE.HemisphereLight(0x1a1610, 0x0a0805, 0.3));
-        worldGroup.add(new THREE.AmbientLight(0xd4af37, 0.1));
+        // Grand spaces (city, gate, final) carry more residual amber glow
+        worldGroup.add(new THREE.HemisphereLight(0x2a2418, 0x0c0a06, atmos.hemi || 0.45));
+        worldGroup.add(new THREE.AmbientLight(0xd4af37, 0.16));
     } else { // interior
         worldGroup.add(new THREE.HemisphereLight(0x2a2218, 0x14100a, 0.45));
         const roomLight = new THREE.PointLight(0xe8c068, 1.0, 1100, 2);
@@ -268,7 +270,8 @@ function buildWorld() {
     const objectRects = new Set((activeMapObjects || []).map(o => `${o.x},${o.y},${o.w},${o.h}`));
     gateMeshes = [];
     const wallMat = new THREE.MeshPhongMaterial({
-        color: new THREE.Color(palette.wallFill).lerp(new THREE.Color('#888'), 0.25),
+        // Underground rock needs more lift — palette wallFills are near-black
+        color: new THREE.Color(palette.wallFill).lerp(new THREE.Color('#998c70'), atmos.type === 'und' ? 0.4 : 0.25),
         shininess: 6, specular: 0x111111
     });
     const gateMat = new THREE.MeshPhongMaterial({ color: 0x8b6914, shininess: 10, specular: 0x222211 });
@@ -364,12 +367,21 @@ function buildWorld() {
         heartFX = { mesh: orb, mat, light: orbLight, mode: 'breathe' };
     }
 
+    // Ellis's lantern — a carried light underground and indoors (the
+    // surface camp is lit well enough that it would wash out the night)
+    playerLamp = null;
+    if (atmos.type !== 'ext') {
+        playerLamp = new THREE.PointLight(0xe8b545, 1.15, 580, 2);
+        scene3.add(playerLamp);
+    }
+
     scene3.add(worldGroup);
     buildMinistryCar(); // scene was recreated; re-add dynamic meshes
     hostileMeshes = new Map(); // hostile meshes were dropped with the old scene
     builtSignature = currentWorldSignature();
-    // New map: face "north" (2D up) — every spawn point enters from the south
-    camYaw = 0;
+    // Face into the map: Ch1+ spawns enter from the south looking north,
+    // the Ch2 descent routes enter from the north looking south
+    camYaw = (player.y + player.size / 2) < WORLD.height / 2 ? Math.PI : 0;
     camPitch = 0;
 }
 
@@ -642,6 +654,14 @@ function positionCamera() {
     cam3.position.set(cx + shakeX, EYE_HEIGHT + bob + shakeY, cz + shakeZ);
     cam3.rotation.y = camYaw;
     cam3.rotation.x = camPitch;
+    if (playerLamp) {
+        // Carried slightly ahead and below eye level, with a faint sway
+        playerLamp.position.set(
+            cx - Math.sin(camYaw) * 30,
+            EYE_HEIGHT - 10 + bob,
+            cz - Math.cos(camYaw) * 30
+        );
+    }
 }
 
 // ---- ATMOSPHERE ANIMATION ----
