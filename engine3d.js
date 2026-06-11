@@ -106,6 +106,111 @@ function atmosForCurrentMap() {
     return MAP_ATMOS[currentMapKey] || { type: 'und', fog: [120, 2200], ceiling: 260 };
 }
 
+// ---- SKY & HORIZON BACKDROPS ----
+// Exterior maps get a gradient sky dome, a moon, and location-specific
+// horizon silhouettes so the world edge isn't a void.
+const SKY_STOPS = {
+    1:          [[0, '#02030a'], [0.55, '#0a1020'], [0.8, '#1d1b26'], [1, '#33291f']],
+    'MARKET':   [[0, '#040309'], [0.5, '#100a18'], [0.78, '#241423'], [1, '#3f2317']],
+    'AIRFIELD': [[0, '#020308'], [0.6, '#0a0e18'], [0.85, '#141a24'], [1, '#23262b']],
+};
+// Underground maps keep darkness, but tinted to the place
+const UND_BG = { 'CITY': '#0b0806', 'GATE': '#080606', 'FINAL': '#0b0803' };
+
+function makeGradientSky(stops) {
+    const c = document.createElement('canvas');
+    c.width = 4; c.height = 256;
+    const cc = c.getContext('2d');
+    const g = cc.createLinearGradient(0, 0, 0, 256);
+    for (const [o, col] of stops) g.addColorStop(o, col);
+    cc.fillStyle = g;
+    cc.fillRect(0, 0, 4, 256);
+    const tex = new THREE.CanvasTexture(c);
+    const mat = new THREE.MeshBasicMaterial({ map: tex, side: THREE.BackSide, depthWrite: false });
+    mat.fog = false;
+    const R = Math.max(WORLD.width, WORLD.height) * 1.7;
+    const sky = new THREE.Mesh(new THREE.SphereGeometry(R, 24, 12), mat);
+    sky.position.set(WORLD.width / 2, 0, WORLD.height / 2);
+    sky.renderOrder = -10;
+    return sky;
+}
+
+function makeMoon() {
+    const c = document.createElement('canvas');
+    c.width = 128; c.height = 128;
+    const cc = c.getContext('2d');
+    const g = cc.createRadialGradient(64, 64, 8, 64, 64, 64);
+    g.addColorStop(0, 'rgba(235,240,250,1)');
+    g.addColorStop(0.25, 'rgba(210,220,240,0.9)');
+    g.addColorStop(0.5, 'rgba(160,180,215,0.25)');
+    g.addColorStop(1, 'rgba(160,180,215,0)');
+    cc.fillStyle = g;
+    cc.fillRect(0, 0, 128, 128);
+    const mat = new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), transparent: true });
+    mat.fog = false;
+    const moon = new THREE.Sprite(mat);
+    moon.scale.set(900, 900, 1);
+    moon.position.set(WORLD.width * 0.85, 2300, -WORLD.height * 0.55);
+    return moon;
+}
+
+function silhouetteMat() {
+    const m = new THREE.MeshBasicMaterial({ color: 0x0b0a10 });
+    m.fog = false;
+    return m;
+}
+
+function addHorizonSilhouettes(group) {
+    if (currentMapKey === 1) {
+        // The Giza pyramids on the north-west horizon — the dig site's lids
+        const defs = [
+            { x: -2400, z: 600,   r: 1500, h: 950 },  // Khufu
+            { x: -1100, z: -1500, r: 1250, h: 800 },  // Khafre
+            { x: 400,   z: -2300, r: 700,  h: 420 },  // Menkaure
+        ];
+        for (const d of defs) {
+            const pyr = new THREE.Mesh(new THREE.ConeGeometry(d.r, d.h, 4), silhouetteMat());
+            pyr.rotation.y = Math.PI / 4;
+            pyr.position.set(d.x, d.h / 2, d.z);
+            group.add(pyr);
+        }
+    } else if (currentMapKey === 'MARKET') {
+        // Old Cairo skyline ring + two minarets
+        const cx = WORLD.width / 2, cz = WORLD.height / 2;
+        const R = Math.max(WORLD.width, WORLD.height) * 0.78;
+        for (let i = 0; i < 26; i++) {
+            const a = (i / 26) * Math.PI * 2 + (i % 3) * 0.07;
+            const w = 300 + (i * 137) % 380;
+            const h = 200 + (i * 251) % 420;
+            const b = new THREE.Mesh(new THREE.BoxGeometry(w, h, w * 0.7), silhouetteMat());
+            b.position.set(cx + Math.cos(a) * R, h / 2, cz + Math.sin(a) * R);
+            group.add(b);
+        }
+        for (const [mx, mz] of [[cx - R * 0.5, cz - R * 0.85], [cx + R * 0.7, cz - R * 0.6]]) {
+            const shaft = new THREE.Mesh(new THREE.CylinderGeometry(38, 50, 760, 8), silhouetteMat());
+            shaft.position.set(mx, 380, mz);
+            group.add(shaft);
+            const cap = new THREE.Mesh(new THREE.ConeGeometry(60, 140, 8), silhouetteMat());
+            cap.position.set(mx, 830, mz);
+            group.add(cap);
+        }
+    } else if (currentMapKey === 'AIRFIELD') {
+        // Control tower beyond the east fence + distant hangar mass
+        const tower = new THREE.Group();
+        const shaft = new THREE.Mesh(new THREE.BoxGeometry(130, 520, 130), silhouetteMat());
+        shaft.position.y = 260;
+        tower.add(shaft);
+        const cab = new THREE.Mesh(new THREE.BoxGeometry(260, 110, 260), silhouetteMat());
+        cab.position.y = 575;
+        tower.add(cab);
+        tower.position.set(WORLD.width + 900, 0, WORLD.height * 0.3);
+        group.add(tower);
+        const hangarFar = new THREE.Mesh(new THREE.BoxGeometry(1500, 360, 700), silhouetteMat());
+        hangarFar.position.set(-1200, 180, WORLD.height * 0.55);
+        group.add(hangarFar);
+    }
+}
+
 // Objects that should cast real light in 3D (matched by label or amber color)
 const LIGHT_LABEL_RE = /lantern|brazier|lamp|fire|flood|hearth|channel|amber|glyph lock|tea corner/i;
 const EMISSIVE_COLORS = { '#d4af37': 0.55, '#8b6914': 0.5, '#b8860b': 0.4 };
@@ -184,12 +289,17 @@ function buildWorld() {
     const palette = getChapterPalette();
     const groundCol = new THREE.Color(groundColorForCurrentMap());
 
-    // Sky + fog. Underground is near-black with the fog closing in;
-    // exteriors keep a dark desert-night tone derived from the ground.
+    // Sky + fog. Underground is near-black (tinted per place) with the
+    // fog closing in; exteriors get a dome, moon and horizon silhouettes.
     const fogCol = atmos.type === 'und'
-        ? new THREE.Color('#060503')
+        ? new THREE.Color(UND_BG[currentMapKey] || '#060503')
         : groundCol.clone().multiplyScalar(0.3);
     scene3.background = fogCol;
+    if (atmos.type === 'ext') {
+        worldGroup.add(makeGradientSky(SKY_STOPS[currentMapKey] || SKY_STOPS[1]));
+        worldGroup.add(makeMoon());
+        addHorizonSilhouettes(worldGroup);
+    }
     fogBase = atmos.fog.slice();
     scene3.fog = new THREE.Fog(fogCol, fogBase[0], fogBase[1]);
 
@@ -768,6 +878,49 @@ function drawOverlays() {
     if (gameState.isPaused) drawPauseMenu();
 }
 
+// ---- MAIN MENU (3D vista + DOM overlay) ----
+const menuOverlayEl = document.getElementById('menu-overlay');
+
+function begin3dGame() {
+    if (gameState.currentScreen !== 'START_MENU') return;
+    menuOverlayEl.classList.add('hidden');
+    startGame(); // sets GAMEFADEIN + overlayAlpha for the fade-in
+}
+
+document.getElementById('menu-start').addEventListener('click', begin3dGame);
+document.getElementById('menu-controls').addEventListener('click', () => {
+    document.getElementById('menu-controls-panel').classList.toggle('hidden');
+});
+window.addEventListener('keydown', e => {
+    if ((e.key === ' ' || e.key === 'Enter') && gameState.currentScreen === 'START_MENU') {
+        e.preventDefault();
+        begin3dGame();
+    }
+});
+
+// The smiley (with hair) from the 2D title screen lives on here
+function drawMenuSmiley() {
+    ctx.save();
+    const sx = canvas.width - 30, sy = canvas.height - 30, sr = 16;
+    ctx.strokeStyle = '#6B3A2A'; ctx.lineWidth = 2.5;
+    [-0.55, -0.28, 0, 0.28, 0.55].forEach(a => {
+        const angle = 3 * Math.PI / 2 + a;
+        ctx.beginPath();
+        ctx.moveTo(sx + (sr - 3) * Math.cos(angle), sy + (sr - 3) * Math.sin(angle));
+        ctx.lineTo(sx + (sr + 7) * Math.cos(angle), sy + (sr + 7) * Math.sin(angle));
+        ctx.stroke();
+    });
+    ctx.beginPath(); ctx.arc(sx, sy, sr, 0, Math.PI * 2);
+    ctx.fillStyle = '#FFE600'; ctx.fill();
+    ctx.strokeStyle = '#CC9900'; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.fillStyle = '#333';
+    ctx.beginPath(); ctx.arc(sx - 5, sy - 5, 2, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(sx + 5, sy - 5, 2, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(sx, sy + 1, 8, 0.15 * Math.PI, 0.85 * Math.PI);
+    ctx.strokeStyle = '#333'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.restore();
+}
+
 // ---- MAIN LOOP ----
 function gameLoop3d() {
     requestAnimationFrame(gameLoop3d);
@@ -777,14 +930,22 @@ function gameLoop3d() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     if (gameState.currentScreen === 'START_MENU') {
-        // Reuse the full 2D start screen (handles its own fade + startGame)
-        ctx.fillStyle = '#1a1a1a';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        drawStartScreen();
-        builtSignature = null; // force a fresh world build on game start
+        // Live vista: slow orbit over the night camp behind the DOM menu
+        if (menuOverlayEl.classList.contains('hidden')) menuOverlayEl.classList.remove('hidden');
+        ensureWorldBuilt();
+        for (const e of objectEntries) if (e.label) e.label.visible = false;
+        updateAtmosphere3d();
+        const t = performance.now() / 1000;
+        const ang = t * 0.055;
+        const cx = 1703, cz = 2400; // tent compound center
+        cam3.position.set(cx + Math.cos(ang) * 850, 310, cz + Math.sin(ang) * 850);
+        cam3.lookAt(cx, 30, cz);
+        renderer3.render(scene3, cam3);
+        drawMenuSmiley();
         syncSanityFilter();
         return;
     }
+    if (!menuOverlayEl.classList.contains('hidden')) menuOverlayEl.classList.add('hidden');
 
     ensureWorldBuilt();
     syncPointerLock();

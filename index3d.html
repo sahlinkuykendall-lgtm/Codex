@@ -30,6 +30,16 @@
         #hud-hint { position: absolute; top: 10px; left: 10px; font-size: 11px; color: #888; z-index: 4; background: rgba(0,0,0,0.5); padding: 5px 10px; border-radius: 4px; }
         .strained-filter  { filter: contrast(120%) saturate(70%) hue-rotate(15deg); }
         .fractured-filter { filter: contrast(150%) saturate(50%) hue-rotate(60deg); }
+        /* ---- Main menu (3D vista renders behind this overlay) ---- */
+        #menu-overlay { position: absolute; inset: 0; z-index: 8; display: flex; flex-direction: column; justify-content: center; align-items: center; background: radial-gradient(ellipse at center, rgba(0,0,0,0.18) 30%, rgba(0,0,0,0.78) 100%); animation: menuFade 1.6s ease; }
+        @keyframes menuFade { from { opacity: 0; } to { opacity: 1; } }
+        #menu-rule { color: rgba(212,175,55,0.5); font-size: 14px; letter-spacing: 14px; margin-bottom: 18px; }
+        #menu-title { color: #d4af37; font-size: 58px; font-weight: bold; letter-spacing: 12px; margin: 0 0 10px 0; text-align: center; text-shadow: 0 0 24px rgba(212,175,55,0.45), 0 2px 2px #000; }
+        #menu-sub { color: #9a8a60; font-size: 14px; letter-spacing: 9px; margin-bottom: 56px; text-shadow: 0 1px 2px #000; }
+        .menu-btn { display: block; width: 340px; margin: 9px 0; padding: 14px 0; background: rgba(0,0,0,0.72); border: 1px solid #d4af37; color: #e0d4a8; font-family: 'Courier New', Courier, monospace; font-size: 15px; letter-spacing: 5px; cursor: pointer; transition: all 0.25s ease; }
+        .menu-btn:hover { background: #d4af37; color: #000; box-shadow: 0 0 18px rgba(212,175,55,0.5); }
+        #menu-controls-panel { margin-top: 22px; padding: 16px 26px; background: rgba(0,0,0,0.82); border: 1px solid #5a4a28; color: #b9a877; font-size: 12.5px; line-height: 2; letter-spacing: 1px; text-align: center; }
+        #menu-version { position: absolute; bottom: 16px; left: 0; right: 0; text-align: center; color: rgba(140,120,70,0.55); font-size: 12px; letter-spacing: 3px; }
     </style>
 </head>
 <body>
@@ -55,6 +65,20 @@
             <div>Stamina: <span id="stat-stamina">10.0</span> / 10
                 <div id="stamina-bar-bg"><div id="stamina-bar-fill" style="width: 100%;"></div></div>
             </div>
+        </div>
+        <!-- Main menu over a live 3D vista of the dig site -->
+        <div id="menu-overlay">
+            <div id="menu-rule">&#9670;&nbsp;&#9670;&nbsp;&#9670;</div>
+            <h1 id="menu-title">THE CODEX OF GIZA</h1>
+            <div id="menu-sub">AN EXCAVATION IN SEVEN CHAPTERS</div>
+            <button class="menu-btn" id="menu-start">BEGIN THE EXCAVATION</button>
+            <button class="menu-btn" id="menu-controls">CONTROLS</button>
+            <div id="menu-controls-panel" class="hidden">
+                W A S D — MOVE &nbsp;&middot;&nbsp; MOUSE — LOOK (CLICK TO CAPTURE)<br>
+                SPACE — INTERACT &nbsp;&middot;&nbsp; SHIFT — SPRINT &nbsp;&middot;&nbsp; E — FOCUS<br>
+                TAB — STATS &nbsp;&middot;&nbsp; ESC — PAUSE
+            </div>
+            <div id="menu-version">V3 — 3D BUILD &nbsp;&middot;&nbsp; ACT I</div>
         </div>
     </div>
 
