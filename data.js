@@ -678,6 +678,11 @@ const mapObjects = {
         deco('d_cact7',  180, 630, 18, 42, '#2d5a1b', 'Cactus'),
         deco('d_cact8',  2200,580, 18, 38, '#2d5a1b', 'Cactus'),
         deco('d_cact9',  2200,800, 18, 45, '#2d5a1b', 'Cactus'),
+        // Work lamps — the night crew lights the dig gate and tunnel approach
+        deco('d_worklamp1', 960,  1090, 14, 14, '#d4af37', 'Work Lamp'),
+        deco('d_worklamp2', 1215, 1090, 14, 14, '#d4af37', 'Work Lamp'),
+        deco('d_worklamp3', 1080, 480,  14, 14, '#d4af37', 'Work Lamp'),
+        deco('d_worklamp4', 1500, 900,  14, 14, '#d4af37', 'Work Lamp'),
     ],
 
     // ============================================================
@@ -762,6 +767,13 @@ const mapObjects = {
         deco('d_awning4', 2680, 1500, 15, 15, '#8b4513', 'Awning Post'  ),
         deco('d_awning5', 2680, 1700, 15, 15, '#8b4513', 'Awning Post'  ),
         deco('d_awning6', 2680, 1900, 15, 15, '#8b4513', 'Awning Post'  ),
+        // Hanging lanterns — night market glow around the plaza and doors
+        deco('d_lant_pl1', 1430, 1880, 12, 12, '#d4af37', 'Hanging Lantern'),
+        deco('d_lant_pl2', 1760, 1880, 12, 12, '#d4af37', 'Hanging Lantern'),
+        deco('d_lant_pl3', 1430, 2130, 12, 12, '#d4af37', 'Hanging Lantern'),
+        deco('d_lant_pl4', 1760, 2130, 12, 12, '#d4af37', 'Hanging Lantern'),
+        deco('d_lant_hub', 1290, 730,  12, 12, '#d4af37', 'Hanging Lantern'),
+        deco('d_lant_hk',  2950, 680,  12, 12, '#d4af37', 'Hanging Lantern'),
     ],
     // Safehouse map (accessed from Hub)
     'SAFEHOUSE': [
@@ -789,6 +801,14 @@ const mapObjects = {
         deco('d_rubble1', 400, 1400, 100, 80, '#3a3028', 'Rubble'),
         deco('d_rubble2', 600, 1600, 80, 100, '#3a3028', 'Rubble'),
         deco('d_rubble3', 3300, 1400, 100, 80, '#3a3028', 'Rubble'),
+        // Amber channels — the city's light-veins, running the great hall
+        // toward the sanctum (lore: 144 channels converge on the Heart)
+        deco('d_chan1', 1150, 1340, 18, 1500, '#8b6914', 'Amber Channel'),
+        deco('d_chan2', 1730, 1340, 18, 1500, '#8b6914', 'Amber Channel'),
+        deco('d_chan3', 2310, 1340, 18, 1500, '#8b6914', 'Amber Channel'),
+        // Braziers flanking the sanctum doorway
+        deco('d_sanct_brz1', 1800, 920, 30, 30, '#d4af37', 'Sanctum Brazier'),
+        deco('d_sanct_brz2', 2080, 920, 30, 30, '#d4af37', 'Sanctum Brazier'),
     ],
 
     // ============================================================
@@ -809,6 +829,10 @@ const mapObjects = {
         deco('d_fueltank2', 3150, 900, 80, 80, '#4a3028', 'Fuel Tank'),
         deco('d_crate_e1', 2600, 2400, 100, 80, '#2d2010', 'Cargo Crates'),
         deco('d_crate_e2', 2800, 2400, 80, 80, '#2d2010', 'Cargo Crates'),
+        // Floodlights — harsh worklights at the occupied buildings
+        deco('d_flood_hangar', 1750, 740,  16, 16, '#cfe0ff', 'Floodlight'),
+        deco('d_flood_flat',   340,  2040, 16, 16, '#cfe0ff', 'Floodlight'),
+        deco('d_flood_office', 3140, 2640, 16, 16, '#cfe0ff', 'Floodlight'),
     ],
 
     // ============================================================
@@ -826,6 +850,17 @@ const mapObjects = {
         deco('d_pillar_g4', 2400, 1000, 80, 80, '#1a1410', 'Stone Pillar'),
         deco('d_rubble_g1', 300, 1100, 120, 80, '#2a2018', 'Rubble'),
         deco('d_rubble_g2', 2800, 1100, 120, 80, '#2a2018', 'Rubble'),
+        // Processional colonnade — paired pillars line the southern
+        // approach, drawing the eye (and the walk) north toward the Gate
+        deco('d_colon1', 1340, 2000, 60, 60, '#1a1410', 'Colonnade Pillar'),
+        deco('d_colon2', 1790, 2000, 60, 60, '#1a1410', 'Colonnade Pillar'),
+        deco('d_colon3', 1340, 2300, 60, 60, '#1a1410', 'Colonnade Pillar'),
+        deco('d_colon4', 1790, 2300, 60, 60, '#1a1410', 'Colonnade Pillar'),
+        deco('d_colon5', 1340, 2600, 60, 60, '#1a1410', 'Colonnade Pillar'),
+        deco('d_colon6', 1790, 2600, 60, 60, '#1a1410', 'Colonnade Pillar'),
+        // Braziers flanking the Gate itself
+        deco('d_gate_brz1', 1300, 420, 30, 30, '#d4af37', 'Gate Brazier'),
+        deco('d_gate_brz2', 1870, 420, 30, 30, '#d4af37', 'Gate Brazier'),
     ],
 
     // ============================================================
@@ -835,6 +870,11 @@ const mapObjects = {
         { id: 'ch7_codex_view',  x: 200,  y: 200, w: 80,  h: 80,  color: '#2a2010', label: 'The Codex',        interactScene: 'ch7_examine_codex'  },
         { id: 'ch7_second_view', x: 1000, y: 200, w: 80,  h: 80,  color: '#1a1a2a', label: 'Second Tablet',    interactScene: 'ch7_examine_second' },
         { id: 'final_pedestal',  x: 555,  y: 280, w: 170, h: 120, color: '#d4af37', label: 'The Blank Tablet', interactScene: 'ch7_pedestal'       },
+        // Corner braziers — the chamber's only light besides the Heart
+        deco('d_brz_f1', 240,  170, 30, 30, '#d4af37', 'Brazier'),
+        deco('d_brz_f2', 1010, 170, 30, 30, '#d4af37', 'Brazier'),
+        deco('d_brz_f3', 240,  500, 30, 30, '#d4af37', 'Brazier'),
+        deco('d_brz_f4', 1010, 500, 30, 30, '#d4af37', 'Brazier'),
     ],
 
     // ============================================================
