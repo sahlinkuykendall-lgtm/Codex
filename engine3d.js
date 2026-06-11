@@ -28,7 +28,8 @@ const renderer3 = new THREE.WebGLRenderer({ canvas: glCanvas, antialias: true })
 renderer3.outputEncoding = THREE.sRGBEncoding;
 renderer3.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-const cam3 = new THREE.PerspectiveCamera(70, 16 / 9, 1, 8000);
+// Far plane must clear the largest sky dome (map dim * 1.7 + camera offset)
+const cam3 = new THREE.PerspectiveCamera(70, 16 / 9, 1, 24000);
 cam3.rotation.order = 'YXZ'; // yaw (y) then pitch (x) — standard FPS ordering
 
 let scene3 = new THREE.Scene();
@@ -126,6 +127,7 @@ function makeGradientSky(stops) {
     cc.fillStyle = g;
     cc.fillRect(0, 0, 4, 256);
     const tex = new THREE.CanvasTexture(c);
+    tex.encoding = THREE.sRGBEncoding; // keep authored night colors (no gamma lift)
     const mat = new THREE.MeshBasicMaterial({ map: tex, side: THREE.BackSide, depthWrite: false });
     mat.fog = false;
     const R = Math.max(WORLD.width, WORLD.height) * 1.7;
@@ -146,7 +148,9 @@ function makeMoon() {
     g.addColorStop(1, 'rgba(160,180,215,0)');
     cc.fillStyle = g;
     cc.fillRect(0, 0, 128, 128);
-    const mat = new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), transparent: true });
+    const moonTex = new THREE.CanvasTexture(c);
+    moonTex.encoding = THREE.sRGBEncoding;
+    const mat = new THREE.SpriteMaterial({ map: moonTex, transparent: true });
     mat.fog = false;
     const moon = new THREE.Sprite(mat);
     moon.scale.set(900, 900, 1);
@@ -155,7 +159,7 @@ function makeMoon() {
 }
 
 function silhouetteMat() {
-    const m = new THREE.MeshBasicMaterial({ color: 0x0b0a10 });
+    const m = new THREE.MeshBasicMaterial({ color: 0x040408 });
     m.fog = false;
     return m;
 }
