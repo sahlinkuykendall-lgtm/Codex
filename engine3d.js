@@ -55,6 +55,9 @@ let worldGroup = null;
 let builtSignature = null;
 let gateMeshes = [];   // { mesh, gateFlag } — hidden once their flag is set
 let objectEntries = []; // { o, mesh, label } — synced against isObjectResolved()
+let flickerLights = []; // { light, base, phase, steady } — animated in updateAtmosphere3d
+let heartFX = null;     // { mesh, mat, light, mode } — the pulsing Heart
+let fogBase = [500, 3000]; // CALM-state fog distances for the current map
 
 // Floating text label rendered to a canvas texture, shown above interactables
 function makeLabelSprite(text, colorHex) {
@@ -79,10 +82,52 @@ function makeLabelSprite(text, colorHex) {
     return sprite;
 }
 
+// ---- PER-MAP ATMOSPHERE ----
+// type 'ext' = open night sky (moon, stars); 'und' = underground
+// (ceiling, dense fog, amber point lights); 'int' = building interior.
+// fog: [near, far] at CALM sanity — fog closes in as sanity drops.
+const MAP_ATMOS = {
+    1:           { type: 'ext', fog: [900, 4800],  hemi: 0.80, moon: 0.55, stars: true },
+    'MARKET':    { type: 'ext', fog: [600, 3600],  hemi: 0.70, moon: 0.40, stars: true },
+    'AIRFIELD':  { type: 'ext', fog: [900, 5200],  hemi: 0.65, moon: 0.65, stars: true },
+    'TRAP':      { type: 'und', fog: [90, 1700],   ceiling: 240 },
+    'SECRET':    { type: 'und', fog: [110, 2000],  ceiling: 280 },
+    'CUTTHROAT': { type: 'und', fog: [80, 1500],   ceiling: 250 },
+    'CITY':      { type: 'und', fog: [200, 3200],  ceiling: 380 },
+    'GATE':      { type: 'und', fog: [140, 2600],  ceiling: 320 },
+    'FINAL':     { type: 'und', fog: [300, 3400],  ceiling: 700, heart: true },
+};
+
+function atmosForCurrentMap() {
+    if (interiorState.active || /^INT_/.test(String(currentMapKey))) {
+        return { type: 'int', fog: [300, 1600], ceiling: 140 };
+    }
+    return MAP_ATMOS[currentMapKey] || { type: 'und', fog: [120, 2200], ceiling: 260 };
+}
+
+// Objects that should cast real light in 3D (matched by label or amber color)
+const LIGHT_LABEL_RE = /lantern|brazier|lamp|fire|flood|hearth|channel|amber|glyph lock|tea corner/i;
+const EMISSIVE_COLORS = { '#d4af37': 0.55, '#8b6914': 0.5, '#b8860b': 0.4 };
+
+function isLightSource(o) {
+    return LIGHT_LABEL_RE.test(o.label || '') || o.color === '#d4af37';
+}
+
 // Height heuristics for extruding 2D rectangles into graybox boxes
-function wallHeightFor(wall) {
+function wallHeightFor(wall, atmos) {
     const touchesEdge = wall.x <= 0 || wall.y <= 0 ||
         wall.x + wall.w >= WORLD.width || wall.y + wall.h >= WORLD.height;
+
+    if (atmos.type === 'int') {
+        return touchesEdge ? atmos.ceiling : 55; // room shell vs furniture
+    }
+    if (atmos.type === 'und') {
+        // Long walls and big masses are rock structure reaching the ceiling;
+        // small squares read as broken columns / rubble stumps
+        const aspect = Math.max(wall.w, wall.h) / Math.min(wall.w, wall.h);
+        if (touchesEdge || aspect >= 3 || Math.min(wall.w, wall.h) >= 150) return atmos.ceiling;
+        return Math.min(150, atmos.ceiling * 0.75);
+    }
     if (touchesEdge && (wall.w >= WORLD.width * 0.8 || wall.h >= WORLD.height * 0.8)) {
         return WALL_HEIGHT_BORDER;
     }
@@ -90,9 +135,12 @@ function wallHeightFor(wall) {
     return WALL_HEIGHT_DEFAULT;
 }
 
-function objectHeightFor(o) {
-    if (o.id && /_bldg$/.test(o.id)) return 115;           // enterable building shells
+function objectHeightFor(o, atmos) {
+    if (o.id && /_bldg$/.test(o.id)) return 150;           // enterable building shells
     if (o.interactScene && /^door_/.test(o.interactScene)) return 8; // door mats stay flat
+    if (/pillar|column|colonnade/i.test(o.label || '')) {
+        return atmos.ceiling ? Math.min(atmos.ceiling * 0.85, 280) : 120;
+    }
     const base = Math.min(o.w, o.h);
     return Math.max(16, Math.min(75, Math.round(base * 1.1)));
 }
@@ -128,60 +176,121 @@ function buildWorld() {
     }
     scene3 = new THREE.Scene();
     worldGroup = new THREE.Group();
+    flickerLights = [];
+    heartFX = null;
 
+    const atmos = atmosForCurrentMap();
     const palette = getChapterPalette();
     const groundCol = new THREE.Color(groundColorForCurrentMap());
 
-    // Sky/fog — dark night tones derived from the chapter ground color
-    const fogCol = groundCol.clone().multiplyScalar(0.35);
+    // Sky + fog. Underground is near-black with the fog closing in;
+    // exteriors keep a dark desert-night tone derived from the ground.
+    const fogCol = atmos.type === 'und'
+        ? new THREE.Color('#060503')
+        : groundCol.clone().multiplyScalar(0.3);
     scene3.background = fogCol;
-    scene3.fog = new THREE.Fog(fogCol, 500, 3000);
+    fogBase = atmos.fog.slice();
+    scene3.fog = new THREE.Fog(fogCol, fogBase[0], fogBase[1]);
 
-    // Ground plane
+    // Ground plane (Phong: point lights evaluated per pixel)
     const ground = new THREE.Mesh(
         new THREE.PlaneGeometry(WORLD.width, WORLD.height),
-        new THREE.MeshLambertMaterial({ color: groundCol })
+        new THREE.MeshPhongMaterial({ color: groundCol, shininess: 4, specular: 0x0a0a0a })
     );
     ground.rotation.x = -Math.PI / 2;
     ground.position.set(WORLD.width / 2, 0, WORLD.height / 2);
     worldGroup.add(ground);
 
-    // Subtle world-grid (echoes the 2D build's 200px survey grid)
-    const grid = new THREE.GridHelper(
-        Math.max(WORLD.width, WORLD.height),
-        Math.max(WORLD.width, WORLD.height) / 200,
-        0x55492f, 0x3a3222
-    );
-    grid.position.set(WORLD.width / 2, 0.5, WORLD.height / 2);
-    grid.material.transparent = true;
-    grid.material.opacity = 0.25;
-    worldGroup.add(grid);
+    // Ceiling for underground maps and interiors
+    if (atmos.ceiling) {
+        const ceil = new THREE.Mesh(
+            new THREE.PlaneGeometry(WORLD.width, WORLD.height),
+            new THREE.MeshPhongMaterial({
+                color: atmos.type === 'int' ? 0x16110c : 0x0c0a07,
+                shininess: 2, specular: 0x050505
+            })
+        );
+        ceil.rotation.x = Math.PI / 2;
+        ceil.position.set(WORLD.width / 2, atmos.ceiling, WORLD.height / 2);
+        worldGroup.add(ceil);
+    }
 
-    // Lights — night desert: dim hemisphere + cool moonlight
-    const hemi = new THREE.HemisphereLight(0x223044, 0x33291a, 0.85);
-    worldGroup.add(hemi);
-    const moon = new THREE.DirectionalLight(0x9db4d4, 0.55);
-    moon.position.set(WORLD.width * 0.3, 900, WORLD.height * 0.15);
-    worldGroup.add(moon);
-    const warmFill = new THREE.AmbientLight(0xd4af37, 0.08);
-    worldGroup.add(warmFill);
+    // Survey grid only on exterior sand (underground floors stay rock)
+    if (atmos.type === 'ext') {
+        const grid = new THREE.GridHelper(
+            Math.max(WORLD.width, WORLD.height),
+            Math.max(WORLD.width, WORLD.height) / 200,
+            0x55492f, 0x3a3222
+        );
+        grid.position.set(WORLD.width / 2, 0.5, WORLD.height / 2);
+        grid.material.transparent = true;
+        grid.material.opacity = 0.2;
+        worldGroup.add(grid);
+    }
+
+    // Base lighting rig per atmosphere type
+    if (atmos.type === 'ext') {
+        worldGroup.add(new THREE.HemisphereLight(0x223044, 0x33291a, atmos.hemi));
+        const moon = new THREE.DirectionalLight(0x9db4d4, atmos.moon);
+        moon.position.set(WORLD.width * 0.3, 1400, WORLD.height * 0.15);
+        worldGroup.add(moon);
+        worldGroup.add(new THREE.AmbientLight(0xd4af37, 0.07));
+        // Star field, drawn beyond the fog
+        const starGeo = new THREE.BufferGeometry();
+        const starPos = [];
+        const R = Math.max(WORLD.width, WORLD.height) * 1.3;
+        for (let i = 0; i < 700; i++) {
+            const a = Math.random() * Math.PI * 2;
+            const r = R * (0.35 + Math.random() * 0.65);
+            starPos.push(WORLD.width / 2 + Math.cos(a) * r,
+                         700 + Math.random() * 2200,
+                         WORLD.height / 2 + Math.sin(a) * r);
+        }
+        starGeo.setAttribute('position', new THREE.Float32BufferAttribute(starPos, 3));
+        const starMat = new THREE.PointsMaterial({ color: 0xbfc8e0, size: 7, transparent: true, opacity: 0.8, sizeAttenuation: true });
+        starMat.fog = false;
+        worldGroup.add(new THREE.Points(starGeo, starMat));
+    } else if (atmos.type === 'und') {
+        worldGroup.add(new THREE.HemisphereLight(0x1a1610, 0x0a0805, 0.3));
+        worldGroup.add(new THREE.AmbientLight(0xd4af37, 0.1));
+    } else { // interior
+        worldGroup.add(new THREE.HemisphereLight(0x2a2218, 0x14100a, 0.45));
+        const roomLight = new THREE.PointLight(0xe8c068, 1.0, 1100, 2);
+        roomLight.position.set(WORLD.width / 2, atmos.ceiling - 25, WORLD.height / 2);
+        worldGroup.add(roomLight);
+        flickerLights.push({ light: roomLight, base: 1.0, phase: Math.random() * 10, steady: false });
+    }
 
     // --- Walls (extruded from mapWalls; same data the collision uses) ---
+    // Walls whose rect exactly matches a map object are collision twins
+    // (trucks, pillars, stalls) — skip them so the colored object renders
+    // without z-fighting.
+    const objectRects = new Set((activeMapObjects || []).map(o => `${o.x},${o.y},${o.w},${o.h}`));
     gateMeshes = [];
-    const wallMat = new THREE.MeshLambertMaterial({ color: new THREE.Color(palette.wallFill).lerp(new THREE.Color('#888'), 0.25) });
-    const gateMat = new THREE.MeshLambertMaterial({ color: 0x8b6914 });
+    const wallMat = new THREE.MeshPhongMaterial({
+        color: new THREE.Color(palette.wallFill).lerp(new THREE.Color('#888'), 0.25),
+        shininess: 6, specular: 0x111111
+    });
+    const gateMat = new THREE.MeshPhongMaterial({ color: 0x8b6914, shininess: 10, specular: 0x222211 });
     for (const wall of (mapWalls[currentMapKey] || [])) {
-        const h = wallHeightFor(wall);
+        if (!wall.isGate && objectRects.has(`${wall.x},${wall.y},${wall.w},${wall.h}`)) continue;
+        const h = wallHeightFor(wall, atmos);
         const mesh = addBoxAt(worldGroup, wall.x, wall.y, wall.w, wall.h, h, wall.isGate ? gateMat : wallMat);
         if (wall.isGate) gateMeshes.push({ mesh, gateFlag: wall.gateFlag });
     }
 
     // --- Map objects (interactables get labels, decoratives are plain) ---
     objectEntries = [];
+    const lightBudget = [];
     for (const o of (activeMapObjects || [])) {
-        const h = objectHeightFor(o);
-        const mat = new THREE.MeshLambertMaterial({ color: new THREE.Color(o.color || '#777') });
-        const mesh = addBoxAt(worldGroup, o.x, o.y, o.w, o.h, h, mat);
+        const h = objectHeightFor(o, atmos);
+        const matOpts = { color: new THREE.Color(o.color || '#777'), shininess: 6, specular: 0x0d0d0d };
+        const emissive = EMISSIVE_COLORS[o.color];
+        if (emissive) {
+            matOpts.emissive = new THREE.Color(o.color);
+            matOpts.emissiveIntensity = emissive;
+        }
+        const mesh = addBoxAt(worldGroup, o.x, o.y, o.w, o.h, h, new THREE.MeshPhongMaterial(matOpts));
         let label = null;
         if (!o.decorative && o.interactScene) {
             label = makeLabelSprite(o.label || o.id, '#f4e4b0');
@@ -189,6 +298,70 @@ function buildWorld() {
             worldGroup.add(label);
         }
         objectEntries.push({ o, mesh, label });
+        if (isLightSource(o)) lightBudget.push({ o, h });
+    }
+
+    // --- Point lights from light-source props (capped for performance;
+    //     interactables like braziers/rest sites win over set dressing) ---
+    lightBudget.sort((a, b) => (b.o.interactScene ? 1 : 0) - (a.o.interactScene ? 1 : 0));
+    let lightsPlaced = 0;
+    const MAX_LIGHTS = 14;
+    for (const { o, h } of lightBudget) {
+        if (lightsPlaced >= MAX_LIGHTS) break;
+        const cool = /flood/i.test(o.label || '');
+        const color = cool ? 0xcfe0ff : 0xe8b545;
+        const dist = atmos.type === 'und' ? 700 : 560;
+        // Long strips (amber channels) get a light at each end
+        const spots = [];
+        if (Math.max(o.w, o.h) > 800) {
+            if (o.h > o.w) {
+                spots.push([o.x + o.w / 2, o.y + o.h * 0.22], [o.x + o.w / 2, o.y + o.h * 0.78]);
+            } else {
+                spots.push([o.x + o.w * 0.22, o.y + o.h / 2], [o.x + o.w * 0.78, o.y + o.h / 2]);
+            }
+        } else {
+            spots.push([o.x + o.w / 2, o.y + o.h / 2]);
+        }
+        for (const [lx, lz] of spots) {
+            if (lightsPlaced >= MAX_LIGHTS) break;
+            const pl = new THREE.PointLight(color, cool ? 1.4 : 1.15, dist, 2);
+            pl.position.set(lx, Math.max(h * 0.85, 30) + (cool ? 120 : 14), lz);
+            worldGroup.add(pl);
+            flickerLights.push({ light: pl, base: pl.intensity, phase: Math.random() * 10, steady: cool });
+            lightsPlaced++;
+        }
+    }
+
+    // --- The Heart (Ch7 final chamber): an inside-out lantern the size
+    //     of a cathedral dome, pinging every 8 seconds like the Codex ---
+    if (atmos.heart) {
+        const heartMat = new THREE.MeshPhongMaterial({
+            color: 0x4a3208, emissive: 0xd4af37, emissiveIntensity: 0.5,
+            transparent: true, opacity: 0.92, shininess: 30
+        });
+        const heart = new THREE.Mesh(new THREE.SphereGeometry(230, 32, 24), heartMat);
+        // Looms directly above the blank-tablet pedestal
+        heart.position.set(WORLD.width / 2, 380, 850);
+        worldGroup.add(heart);
+        const heartLight = new THREE.PointLight(0xd4af37, 1.0, 3200, 2);
+        heartLight.position.copy(heart.position);
+        worldGroup.add(heartLight);
+        heartFX = { mesh: heart, mat: heartMat, light: heartLight, mode: 'ping' };
+    }
+    // Ch4: the Heart's presence above its pedestal in the inner sanctum
+    const cityHeart = (activeMapObjects || []).find(o => o.id === 'heart_pedestal');
+    if (cityHeart) {
+        const mat = new THREE.MeshPhongMaterial({
+            color: 0x3a2806, emissive: 0xd4af37, emissiveIntensity: 0.4,
+            transparent: true, opacity: 0.9, shininess: 30
+        });
+        const orb = new THREE.Mesh(new THREE.SphereGeometry(110, 24, 18), mat);
+        orb.position.set(cityHeart.x + cityHeart.w / 2, 230, cityHeart.y + cityHeart.h / 2);
+        worldGroup.add(orb);
+        const orbLight = new THREE.PointLight(0xd4af37, 0.9, 1600, 2);
+        orbLight.position.copy(orb.position);
+        worldGroup.add(orbLight);
+        heartFX = { mesh: orb, mat, light: orbLight, mode: 'breathe' };
     }
 
     scene3.add(worldGroup);
@@ -471,6 +644,42 @@ function positionCamera() {
     cam3.rotation.x = camPitch;
 }
 
+// ---- ATMOSPHERE ANIMATION ----
+// Flame flicker on warm lights, the Heart's 8-second witness ping
+// (same rhythm as the Codex pulse), and fog that closes in as sanity slips.
+const SANITY_FOG_MUL = { CALM: 1.0, STRAINED: 0.6, FRACTURED: 0.38 };
+
+function updateAtmosphere3d() {
+    const t = performance.now() / 1000;
+
+    for (const f of flickerLights) {
+        if (f.steady) continue;
+        f.light.intensity = f.base * (0.86 + 0.10 * Math.sin(t * 9 + f.phase)
+                                           + 0.06 * Math.sin(t * 23 + f.phase * 1.7));
+    }
+
+    if (heartFX) {
+        if (heartFX.mode === 'ping') {
+            // Sharp pulse at the start of every 8-second cycle, then decay
+            const phase = t % 8;
+            const ping = Math.exp(-(phase * phase) / 0.5);
+            heartFX.light.intensity = 0.9 + 2.8 * ping;
+            heartFX.mat.emissiveIntensity = 0.45 + 0.85 * ping;
+        } else {
+            // Slow breathing for the Ch4 sanctum presence
+            const breathe = 0.5 + 0.5 * Math.sin(t * 0.78);
+            heartFX.light.intensity = 0.7 + 0.5 * breathe;
+            heartFX.mat.emissiveIntensity = 0.3 + 0.35 * breathe;
+        }
+    }
+
+    if (scene3.fog) {
+        const mul = SANITY_FOG_MUL[gameState.sanityState] || 1.0;
+        scene3.fog.near += (fogBase[0] * mul - scene3.fog.near) * 0.03;
+        scene3.fog.far  += (fogBase[1] * mul - scene3.fog.far)  * 0.03;
+    }
+}
+
 // ---- SANITY FILTER MIRROR ----
 // updateHUD() applies the CSS filter class to the 2D canvas; mirror it
 // onto the WebGL canvas so STRAINED/FRACTURED tint the 3D view.
@@ -566,6 +775,7 @@ function gameLoop3d() {
     updateInteractions3d();
     syncHostiles3d();
     syncWorldVisibility();
+    updateAtmosphere3d();
     updateCamera();      // keeps the 2D camera roughly centered for overlay draw math
     positionCamera();
     renderer3.render(scene3, cam3);
