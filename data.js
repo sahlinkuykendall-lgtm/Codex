@@ -56,6 +56,11 @@ const gameState = {
         // --- Chapter 3 ---
         marketPassword: false, samirAlive: true,
         Saqqara_Was_Arranged: false, Asked_About_Sam: false, Market_Cat_Pet: false,
+        // Father Matthias & the Order archive (Old Cairo)
+        matthias_met: false, matthias_offended: false, matthias_brother_told: false,
+        matthias_chant_heard: false,
+        // Inspector Nadia Kareem (Ministry of Antiquities)
+        nadia_met: false, nadia_warned: false, nadia_honest: false,
         // --- Chapter 4 ---
         iryQuestionAccepted: false, iryQuestionRefused: false, iryRevealedNature: false,
         iryCompanionUsed: false,
@@ -739,6 +744,10 @@ const mapObjects = {
         // --- MISSION INTERACTABLES ---
         { id: 'yusra_meet',     x: 1270, y: 200,  w: 60,  h: 60,  color: '#4b0082', label: 'Yusra',              interactScene: 'ch3_yusra_meet'   },
         { id: 'ch3_vendor',     x: 200,  y: 1200, w: 80,  h: 80,  color: '#2e8b57', label: 'Tea Vendor',         interactScene: 'ch3_vendor'       },
+        // Old Cairo edge: Church of St. George — Father Matthias and the Order archive
+        { id: 'matthias_church',x: 220,  y: 710,  w: 90,  h: 70,  color: '#3a2a40', label: 'Old Church Door',    interactScene: 'ch3_matthias_door'},
+        // Inspector Kareem's sedan, parked where the market meets the road
+        { id: 'nadia_car',      x: 2050, y: 2780, w: 90,  h: 60,  color: '#2a2a4a', label: 'Ministry Sedan',     interactScene: 'ch3_nadia_meet'   },
 
         // --- CENTRAL PLAZA ---
         { id: 'fountain',       x: 1540, y: 1940, w: 120, h: 120, color: '#1e3f66', label: 'Fountain',           interactScene: 'flavor_ch3_fountain' },

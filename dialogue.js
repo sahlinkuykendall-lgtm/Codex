@@ -1026,10 +1026,154 @@ const storyData = {
         return intro;
     }, choices: [{ text: "Enter the market.", onSelect: () => closeDialogue() }] },
     
-    'ch3_coffee_stall': { speaker: "Bouncer", text: "The bouncer crosses his arms. 'We are closed to tourists. But there is heat at the brazier if you need a moment before you walk away.'", choices: [ 
-        { text: "Give a password.", onSelect: () => { if (gameState.flags.marketPassword) { startDialogue('ch3_coffee_open'); } else { startDialogue('ch3_coffee_fail'); } } }, 
+    'ch3_coffee_stall': { speaker: "Bouncer", text: "The bouncer crosses his arms. 'We are closed to tourists. But there is heat at the brazier if you need a moment before you walk away.'", choices: [
+        { text: "Give a password.", onSelect: () => { if (gameState.flags.marketPassword) { startDialogue('ch3_coffee_open'); } else { startDialogue('ch3_coffee_fail'); } } },
         { text: "Rest quietly at the brazier.", onSelect: () => attemptRest('ch3_coffee_stall') },
-        { text: "Walk away.", onSelect: () => closeDialogue() } 
+        { text: "Walk away.", onSelect: () => closeDialogue() }
+    ]},
+
+    // --- FATHER MATTHIAS ASFOUR — Church of St. George, Old Cairo edge ---
+    'ch3_matthias_door': { speaker: "System", text: "A low wooden door in a wall older than the street around it. A worn cross is carved above the lintel, and below it, much smaller, almost rubbed away: an open eye.\n\nA light is on inside. At three in the morning.", choices: [
+        { text: "Knock.", onSelect: () => {
+            if (gameState.flags.matthias_offended) { startDialogue('ch3_matthias_closed'); }
+            else if (gameState.flags.matthias_met) { startDialogue('ch3_matthias_return'); }
+            else { startDialogue('ch3_matthias_meet'); }
+        }},
+        { text: "Leave it.", onSelect: () => closeDialogue() }
+    ]},
+
+    'ch3_matthias_meet': { speaker: "Father Matthias", text: () => {
+        let opening = "The door opens before your second knock. An old priest in a black cassock looks at you for a long moment — not suspicious, just unhurried, the way a man reads a page he intends to finish.\n\n'Dr. Vance. Yes. I thought it might be you, eventually.'\n\nHe steps aside to let you in. Candles. Paper. Thousands of pages of paper.\n\n";
+        if (gameState.flags.Saqqara_Was_Arranged) {
+            opening += "'I knew your friend only through reports. I am sorry. He was closer to the truth than he knew.'";
+        } else {
+            opening += "'I have been keeping this archive for forty-six years. Every man who has come to me looking for what is beneath Giza has come looking for something different. Some come for fame. Some for money. Some for God. We will see what you have come for.'";
+        }
+        return opening;
+    }, choices: [
+        { text: "'Madame Yusra told me where to find you.'", onSelect: () => {
+            gameState.flags.matthias_met = true;
+            if (gameState.trustYusra >= 1 || gameState.flags.marketPassword) { gameState.knowledgeHermetic += 1; startDialogue('ch3_matthias_vouched'); }
+            else { startDialogue('ch3_matthias_test'); }
+        }},
+        { text: "'I'm looking for what's beneath Giza. Honestly, I don't know what it is yet.'", onSelect: () => { gameState.flags.matthias_met = true; gameState.knowledgeHermetic += 1; startDialogue('ch3_matthias_honest'); } },
+        { text: "'I was told a priest here collects folklore about the digs.'", onSelect: () => { gameState.flags.matthias_met = true; gameState.flags.matthias_offended = true; startDialogue('ch3_matthias_offended'); } }
+    ]},
+
+    'ch3_matthias_vouched': { speaker: "Father Matthias", text: "'Yusra.' He says the name the way other men say an old colleague's. 'Then we can skip the part where I pretend this is a parish office and you pretend you are a tourist.'\n\nHe moves a stack of papers off a chair for you.\n\n'This archive belongs to the Order of the Unshut Eye. Founded 1763, Istanbul. Our charter has one sentence that matters: preserve knowledge of what is below; do not wake it. The Asfour family has kept this room since the 1890s. I am the fifth. There will probably not be a sixth.'", choices: [
+        { text: "Ask to see the archive.", onSelect: () => startDialogue('ch3_matthias_archive') },
+        { text: "'Why show me this?'", onSelect: () => startDialogue('ch3_matthias_why') }
+    ]},
+
+    'ch3_matthias_test': { speaker: "Father Matthias", text: "'Did she.' He studies you, and there is nothing unkind in it, but there is nothing careless either.\n\n'Madame Yusra sends me many things. Letters. Warnings. Once, a crate of oranges. She has not sent me you — I would have heard. So let us begin differently: tell me one true thing about what you have seen at your dig site, and I will tell you one true thing back.'", choices: [
+        { text: "'The stone I found pulses every eight seconds. It has never missed.'", onSelect: () => { gameState.knowledgeHermetic += 1; startDialogue('ch3_matthias_honest'); } },
+        { text: "Say nothing.", onSelect: () => startDialogue('ch3_matthias_silence') }
+    ]},
+
+    'ch3_matthias_silence': { speaker: "Father Matthias", text: "He nods slowly, as though silence were also an answer — a poorer one.\n\n'Come back when you are ready to trade honestly, Doctor. The room is not going anywhere. Neither am I, God willing.'", choices: [{ text: "Leave.", onSelect: () => { gameState.flags.matthias_met = false; closeDialogue(); } }]},
+
+    'ch3_matthias_honest': { speaker: "Father Matthias", text: "'Eight seconds.' He closes his eyes briefly, like a man hearing a piece of music he had been told about but never believed existed.\n\n'In 1198, a monk named Abba Bishoi wrote of a stone beneath the plateau that counted. Counted, he said, the way a sleeping man breathes. My family has kept his account for five generations. You are the first person to walk through my door and say the number without having read it.'\n\nHe stands.\n\n'I will show you the lower shelves. Not because you are trustworthy — I do not know that yet — but because you are running out of time faster than I am, and that is a thing I can smell by now.'", choices: [
+        { text: "Follow him down.", onSelect: () => startDialogue('ch3_matthias_archive') }
+    ]},
+
+    'ch3_matthias_why': { speaker: "Father Matthias", text: "'Because the archive is no good to anyone as a secret. It is a record, Doctor. Records exist to be witnessed. We differ from the people below in only one respect — we choose what to do about what we remember.'\n\nA small smile.\n\n'Also, I am sixty-eight, my knees are failing, and the lower shelves do not climb themselves. Come.'", choices: [
+        { text: "Follow him down.", onSelect: () => startDialogue('ch3_matthias_archive') }
+    ]},
+
+    'ch3_matthias_offended': { speaker: "Father Matthias", text: "Something in his face closes. Politely. Completely.\n\n'Folklore.' He repeats the word as though setting it down on a shelf where it will be catalogued with everything else.\n\n'Then I am sorry you have come so far for so little, Doctor. The folklore and I will not waste more of your evening.'\n\nThe door is shut before you finish turning around.", choices: [{ text: "Leave.", onSelect: () => closeDialogue() }]},
+
+    'ch3_matthias_closed': { speaker: "System", text: "No one answers. After a while, a folded note appears under the door, in a careful old hand:\n\n'The archive keeps what it is given, including first impressions. — M.A.'", choices: [{ text: "Leave.", onSelect: () => closeDialogue() }]},
+
+    'ch3_matthias_return': { speaker: "Father Matthias", text: "'Doctor. Back again. Good — the kettle is already on, and the shelves have not gone anywhere.'", choices: [
+        { text: "Go down to the archive.", onSelect: () => startDialogue('ch3_matthias_archive') },
+        { text: "Take your leave.", onSelect: () => closeDialogue() }
+    ]},
+
+    // The lower shelves — the Order's archive. Deep-lore delivery, in fragments.
+    'ch3_matthias_archive': { speaker: "System", text: "A cellar room with a ceiling of arched brick. Shelves of files, photographs, wax cylinders, one locked cabinet. Two hundred and twenty years of testimony about what is under the plateau.\n\nMatthias lights a second lamp and lets you read.", choices: [
+        { text: "The file marked 'THE SIX'.", onSelect: () => { gameState.knowledgeAtlantean += 2; addJournalNote('The Six Hearts', "The Order holds testimony of six buried 'Hearts': Ararat, Tibesti, Ceuta, Aksum, Nazca, Giza. Four are marked in red ink: LOST. Nazca is marked: SILENT. Giza is marked, in newer ink: DIMMING."); startDialogue('ch3_matthias_hearts'); } },
+        { text: "The folder on the First Time — 'Zep Tepi'.", onSelect: () => { gameState.knowledgeAtlantean += 1; gameState.knowledgeHermetic += 1; startDialogue('ch3_matthias_zeptepi'); } },
+        { text: "A thin file with no name, only a sketched coin.", onSelect: () => { gameState.knowledgeHermetic += 2; startDialogue('ch3_matthias_concern'); } },
+        { text: "A photograph of a papyrus, dated 2021.", onSelect: () => { gameState.knowledgeCodex += 1; startDialogue('ch3_matthias_fayyum'); } },
+        { text: "Ask about the chanting you can faintly hear upstairs.", onSelect: () => { gameState.flags.matthias_chant_heard = true; gameState.knowledgeAtlantean += 1; startDialogue('ch3_matthias_chant'); } },
+        { text: "Ask him what he lost down there.", onSelect: () => startDialogue('ch3_matthias_brother') },
+        { text: "Take your leave.", onSelect: () => closeDialogue() }
+    ]},
+
+    'ch3_matthias_hearts': { speaker: "Father Matthias", text: "'Six chambers, built before the flood — the real one, the one your Younger Dryas people argue about. Ararat fell in an earthquake nine thousand years before Christ. Ceuta drowned. Tibesti starved; the testimony says its last people walked out into the sun and did not stop walking. Aksum —' he pauses — 'Aksum destroyed itself. A faction tried to wake what should only be allowed to remember. That is why our charter says what it says.'\n\n'And Nazca went silent, two thousand years ago. The maps of that country from before and after do not agree with each other, Doctor. The rivers are not in the same places. Make of that what you will.'", choices: [
+        { text: "Return to the shelves.", onSelect: () => startDialogue('ch3_matthias_archive') }
+    ]},
+
+    'ch3_matthias_zeptepi': { speaker: "Father Matthias", text: "'Your Egyptology calls it Zep Tepi. The First Time — the age when the gods walked and taught. Heresy, in this collar, to say it plainly:'\n\n'They were not gods. They were survivors. The Tibesti people came east when their chamber failed, eight thousand years ago, and the children of the Nile remembered tall pale teachers who feared the sun. Memory became myth. Myth became theology. Under the theology, Doctor, there is a refugee column.'", choices: [
+        { text: "Return to the shelves.", onSelect: () => startDialogue('ch3_matthias_archive') }
+    ]},
+
+    'ch3_matthias_concern': { speaker: "Father Matthias", text: "Inside the unnamed file: financial records, dig permits from four countries, a list of names. Several are crossed out. One is not: HALBERD.\n\n'We call them the Perennial Concern. Older than the Order, richer than most nations, and patient the way water is patient. Since the nineteen-eighties they have funded the people who want to wake what sleeps. They do not want knowledge, Doctor. They want the deed to the house.'\n\nHe closes the file gently.\n\n'If a man with no nameplate ever offers you a vial of something and calls it a courtesy — that is them.'", choices: [
+        { text: "Return to the shelves.", onSelect: () => { gameState.flags.ministry_watching = true; startDialogue('ch3_matthias_archive'); } }
+    ]},
+
+    'ch3_matthias_fayyum': { speaker: "Father Matthias", text: "A photograph of a papyrus — forty lines in a script that is not hieroglyphic, not Coptic, not anything. The shapes look grown rather than written.\n\n'The Fayyum Papyrus. A prayer, we believe, in the original tongue. The Concern has kept the original in a private vault since 1922.'\n\nHe looks at you carefully.\n\n'This photograph was taken in 2021 by a man who talked his way into that vault with a museum lanyard and nerve. Samuel Okafor. He sent us one print. We never heard from him again. I had hoped, when you knocked, that you might finish his sentence.'", choices: [
+        { text: "Return to the shelves.", onSelect: () => { gameState.flags.sams_second_dig_known = true; startDialogue('ch3_matthias_archive'); } }
+    ]},
+
+    'ch3_matthias_chant': { speaker: "Father Matthias", text: "'The Asfour chants. My family has sung them at vigil for five generations. We were taught they are corrupted Greek.'\n\nHe sings a phrase, softly — and the hair on your arms stands up. The intervals are wrong in exactly the way the Codex's hum is wrong. Vowels carrying weight no human language gives them.\n\n'You hear it,' he says, watching your face. 'I have sung these words my whole life, Doctor, and I do not know what they mean. If you ever meet someone who does — sing them back. For me.'", choices: [
+        { text: "Return to the shelves.", onSelect: () => startDialogue('ch3_matthias_archive') }
+    ]},
+
+    'ch3_matthias_brother': { speaker: "Father Matthias", text: "He is quiet for a long time. The lamp hisses.\n\n'My brother. Kyrillos. A better priest than me, and a worse listener. In 1994 he went down through the western clefts to see the record for himself, against my warning. He did not come back.'\n\n'Every year on the anniversary I write him a memorial liturgy. I have never read it aloud to anyone. I am not going to read it to you either — but you should know what the lower shelves cost, before you use them.'\n\nHe pulls a long tube from the locked cabinet and sets it in your hands.\n\n'The map. Two hundred and twenty years of testimony, compiled. It is incomplete and in places it is wrong, but it is the best thing on the surface. Bring it back if you live. Bring yourself back regardless.'", choices: [
+        { text: "Take the map.", onSelect: () => {
+            gameState.flags.matthias_brother_told = true;
+            if (!gameState.inventory.includes('Compiled Giza Map')) gameState.inventory.push('Compiled Giza Map');
+            gameState.knowledgeAtlantean += 2;
+            increaseSanity(1.0);
+            addJournalNote('The Compiled Map', "Matthias's map of the underground — 220 years of recovered testimony. Incomplete, partly wrong, better than anything else on the surface. His brother died for one of these margins.");
+            startDialogue('ch3_matthias_archive');
+        }}
+    ]},
+
+    // --- INSPECTOR NADIA KAREEM — Ministry of Antiquities ---
+    'ch3_nadia_meet': { speaker: "System", text: () => {
+        if (gameState.flags.nadia_met) return "The Ministry sedan again. Inspector Kareem is leaning against the door, smoking, watching the market the way other people watch weather.";
+        return "A white Ministry sedan, engine off, parked exactly where the market meets the road — the spot a person chooses when they want to be seen choosing it.\n\nA woman in a grey suit leans against the door, smoking. She watches you cross the whole square before she speaks.\n\n'Dr. Vance. Inspector Nadia Kareem, Ministry of Antiquities. Regional. You are a difficult man to schedule.'";
+    }, choices: [
+        { text: "Talk to her.", onSelect: () => {
+            if (gameState.flags.nadia_met) { startDialogue('ch3_nadia_return'); }
+            else { gameState.flags.nadia_met = true; startDialogue('ch3_nadia_file'); }
+        }},
+        { text: "Keep walking.", onSelect: () => { if (!gameState.flags.nadia_met) { gameState.repMinistry -= 1; } closeDialogue(); } }
+    ]},
+
+    'ch3_nadia_file': { speaker: "Inspector Kareem", text: () => {
+        let tail;
+        if (gameState.repMinistry >= 0) {
+            tail = "\n\nShe taps ash off the cigarette.\n\n'For what it is worth, your site reports are the only honest paperwork I have read this year. That is not a compliment to you. It is an indictment of everyone else.'";
+        } else {
+            tail = "\n\nShe taps ash off the cigarette.\n\n'I am required to inform you that your permit is currently under review. I am not required to enforce that review today. Please do not make me enforce it tomorrow.'";
+        }
+        return "'Your permit is irregular. Your research assistant is a dead man. Your primary funder is three shell corporations in the Channel Islands. And your most recent field report mentions ambient vibrational events twelve times.'\n\nShe recites it without notes.\n\n'I have read your file three times, Doctor. I would like to know what you think I should do with it.'" + tail;
+    }, choices: [
+        { text: "'The vibrational events are real. Every word in that file is real.'", onSelect: () => { gameState.flags.nadia_honest = true; gameState.repMinistry += 2; startDialogue('ch3_nadia_honest'); } },
+        { text: "'File it under undefined, like the Ministry files everything else.'", onSelect: () => { gameState.repMinistry -= 1; startDialogue('ch3_nadia_dry'); } },
+        { text: "'Am I under arrest?'", onSelect: () => { gameState.flags.nadia_warned = true; startDialogue('ch3_nadia_warning'); } }
+    ]},
+
+    'ch3_nadia_honest': { speaker: "Inspector Kareem", text: "She smokes for a moment, looking at the rooftops.\n\n'I had a teacher. Dr. Rashad Hussein. He spent thirty years cataloguing things at Giza that did not fit the geology. In 2018 he put it in a formal report. In four months he had a desk in Aswan. In eighteen he was dead — heart attack, officially.'\n\nShe looks back at you.\n\n'I have his report in my office safe, and a list of twenty-three names that keep appearing in the margins of permits like yours. If you ever find proof, Doctor — real proof, the kind that survives a hearing — bring it to someone who will file it properly. I am offering to be that someone.'", choices: [
+        { text: "'I'll remember that.'", onSelect: () => { gameState.knowledgeHermetic += 1; addJournalNote('Inspector Kareem', "Ministry inspector, Cairo/Giza. Her mentor flagged the anomalies in 2018 and was buried by his own institution, then by the ground. She keeps his report in a safe and a list of 23 recurring names. Halberd is on it — I'd put money on it. She wants proof that survives a hearing."); closeDialogue(); } }
+    ]},
+
+    'ch3_nadia_dry': { speaker: "Inspector Kareem", text: "'The Ministry's position on your file is, as always, undefined — which I assume is the answer you were looking for.'\n\nShe drops the cigarette and steps on it, unhurried.\n\n'You misunderstand me, Doctor, so I will say it in English and slowly: I am not the obstacle. I am the last person between you and the people who are. Try to notice the difference before it matters.'", choices: [
+        { text: "Walk away.", onSelect: () => closeDialogue() }
+    ]},
+
+    'ch3_nadia_warning': { speaker: "Inspector Kareem", text: "'If you were under arrest, Doctor, there would be three cars and none of them would be mine.'\n\nShe straightens up off the door.\n\n'I am required to ask you to stop this line of inquiry. I am not required to enforce that request today. Please do not make me enforce it tomorrow.'", choices: [
+        { text: "Leave.", onSelect: () => closeDialogue() }
+    ]},
+
+    'ch3_nadia_return': { speaker: "Inspector Kareem", text: () => {
+        if (gameState.flags.nadia_honest) return "She offers you a cigarette. The gesture is the conversation.\n\n'Nothing new in your file, Doctor. Keep it that way a little longer. And whatever it is you are actually doing in that market at three in the morning —' she lights it for herself instead — 'do it quietly. I can only lose one file at a time.'";
+        return "'Still here. Still digging. Still undefined.'\n\nShe shakes her head, but writes nothing down.";
+    }, choices: [
+        { text: "Nod and move on.", onSelect: () => closeDialogue() }
     ]},
     'ch3_coffee_fail': { speaker: "Bouncer", text: "'I don't know what you're talking about, tourist. Beat it before I break your jaw.'", choices: [{ text: "Leave.", onSelect: () => closeDialogue() }] },
     'ch3_coffee_open': { speaker: "Old Man", text: "The bouncer steps aside, revealing an old man holding a brass kettle.\n\n'Ah, Doctor Vance. She is waiting for you in the Safehouse.'", choices: [{ text: "Enter.", onSelect: () => { activeMapObjects = mapObjects['SAFEHOUSE']; canvas.style.backgroundColor = '#2a1f1a'; closeDialogue(); startDialogue('ch3_yusra_meet'); } }] },
@@ -1153,7 +1297,30 @@ const storyData = {
 
     'ch4_iry_changed': { speaker: "Iry", text: "'Slower. My metabolism runs at a pace your instruments cannot measure. I eat perhaps once a decade. I sleep for what you would call centuries at a time.\n\nThe city maintains me. In exchange I witness. Every tenant who comes, I watch them make their choice. I remember what they wrote. The city cannot remember alone — it needs a living mind to hold the context.'\n\nShe touches the wall. The amber channels brighten where her fingers trace.\n\n'I have been waiting for someone from your surface who could understand what I am about to ask. Most of them run. You are still here.'", choices: [
         { text: "'I'm still here.'", onSelect: () => { gameState.knowledgeAtlantean += 1; gameState.flags.iryRevealedNature = true; }, nextScene: 'ch4_iry_the_question' },
+        { text: "'Were there others? Other cities like this one?'", onSelect: () => { gameState.knowledgeAtlantean += 1; }, nextScene: 'ch4_iry_other_hearts' },
         { text: "Talk to me for a minute.", onSelect: () => startDialogue('ch4_iry_companion') }
+    ]},
+
+    'ch4_iry_other_hearts': { speaker: "Iry", text: () => {
+        let opening = "She is quiet long enough that you think she will not answer.\n\n'Six. There were six.\n\nArarat broke when the earth moved. Ceuta drowned. Tibesti emptied — its people chose the sun at the end, which is a thing my people do not speak of casually. Aksum killed itself arguing over whether a record should be made to wake. That argument is still alive, Doctor. It is upstairs, wearing suits.'\n\nA pause.\n\n'And Nazca went silent. When a Heart goes silent, the land around it forgets itself. I have seen the maps from before and after. The rivers are not in the same places.'";
+        if (gameState.flags.matthias_chant_heard) {
+            opening += "\n\nShe watches you take this in.\n\n'You already knew some of it. I can hear it in how you are breathing. Someone on the surface kept better records than your people usually do.'";
+        }
+        return opening;
+    }, choices: [
+        { text: "Hum the phrase Father Matthias sang.", onSelect: () => {
+            if (gameState.flags.matthias_chant_heard) { gameState.trustIry += 2; gameState.knowledgeAtlantean += 1; startDialogue('ch4_iry_chant'); }
+            else { startDialogue('ch4_iry_the_question'); }
+        }},
+        { text: "'And Giza?'", onSelect: () => { gameState.knowledgeAtlantean += 1; }, nextScene: 'ch4_iry_dimming' }
+    ]},
+
+    'ch4_iry_chant': { speaker: "Iry", text: "You hum the phrase badly. You know you are humming it badly.\n\nIry goes very still — and then she sings it back, correctly, and the amber in every channel of the room rises like held breath.\n\n'Where did you learn that.' It is not a question the way humans ask questions.\n\nYou tell her: a priest, a family, five generations of vigils.\n\n'Five generations.' She closes her eyes. 'It is a lullaby, Doctor. For the sealed-in children, in the first winter after the sky burned. Somebody carried it up into the sun and kept it alive for eight thousand years without knowing what it held.'\n\nWhen she opens her eyes: 'Tell your priest he has been singing the children to sleep all his life. Tell him it worked.'", choices: [
+        { text: "Continue.", onSelect: () => startDialogue('ch4_iry_the_question') }
+    ]},
+
+    'ch4_iry_dimming': { speaker: "Iry", text: "'Giza is dimming. It is what happens to a Heart when its Witness grows too old to hold the record open. It is not sudden. It is not painful, as far as I can tell from the inside. It takes about a century to finish.'\n\nShe says it the way you would report weather.\n\n'I am the Witness, Doctor. I have held this room open for nine thousand years, and I am telling you the truth when I say I do not have another century in me. After that — Nazca. The rivers move. So when I ask you my question, understand that I am not asking it idly.'", choices: [
+        { text: "'Ask me the question.'", onSelect: () => { gameState.knowledgeAtlantean += 1; }, nextScene: 'ch4_iry_the_question' }
     ]},
 
     'ch4_iry_eyes': { speaker: "Iry", text: "'Yes. That is new. After nine thousand years something changes in the eyes. I stopped being surprised about it roughly eight thousand years ago.'\n\nAlmost amused.\n\n'You are looking at me the way academics look at things they want to publish about. I understand the feeling. When my colleagues and I first found this city, we also looked at it like that. Before we understood what it was asking of us.'", choices: [
@@ -1446,7 +1613,12 @@ const storyData = {
             if (gameState.flags.iryRevealedNature && gameState.flags.iryQuestionAccepted) { startDialogue('ch7_ending_witness'); }
             else { startDialogue('ch7_ending_witness_locked'); }
         }},
-        { text: "Merge with the archive.", onSelect: () => startDialogue('ch7_ending_vessel') }
+        { text: "Merge with the archive.", onSelect: () => startDialogue('ch7_ending_vessel') },
+        { text: "Write nothing. Collapse the channels.", onSelect: () => {
+            if (gameState.knowledgeAtlantean >= 8) { startDialogue('ch7_ending_severance'); }
+            else { startDialogue('ch7_ending_severance_locked'); }
+        }},
+        { text: "Take your hand off the stone. Leave.", onSelect: () => startDialogue('ch7_ending_departure') }
     ]},
 
     // ---- ENDINGS ----
@@ -1492,13 +1664,41 @@ const storyData = {
         return "You write 'I forgive myself.'\n\nThe letters are there. Permanent.\n\nBut the full weight of what they mean hasn't landed yet — you haven't learned the whole truth, or asked the question that makes the forgiveness mean something. The answer is real, but incomplete.\n\n" + closing;
     }, choices: [{ text: "[ END ]", onSelect: () => alert("Ending: Scholar/partial forgiveness — Complete.") }]},
 
-    'ch7_ending_indictment': { speaker: "System", text: "ENDING 5d — THE INDICTMENT\n\nYou write Halberd's true name — not the one on his passport, the one in the Hermetic records.\n\nYou write what he did. You write Sam's name. You write the altered report. Every piece of the chain of manipulation that led from a board meeting in Geneva to a tunnel collapse in Saqqara to this room.\n\nYou write it all in glyph-script on a tablet that will outlast every institution that protected the people who made those decisions.\n\nThe city records the indictment.\n\nThe indictment is the first document in human history that cannot be suppressed.", choices: [{ text: "[ END ]", onSelect: () => alert("ENDING 5d: THE INDICTMENT — Complete. Thank you for playing.") }]},
+    'ch7_ending_indictment': { speaker: "System", text: () => {
+        let nadia = "";
+        if (gameState.flags.nadia_honest) {
+            nadia = "\n\nAnd on the surface, in a Ministry office in Cairo, an inspector who keeps her dead teacher's report in a safe will one day receive a copy of what you wrote tonight — transcribed, somehow, in handwriting she does not recognize. She files it properly. She resigns the same week, and spends the next decade making sure it is read aloud in rooms the Concern cannot buy.";
+        }
+        return "ENDING 5d — THE INDICTMENT\n\nYou write Halberd's true name — not the one on his passport, the one in the Hermetic records.\n\nYou write what he did. You write Sam's name. You write the altered report. Every piece of the chain of manipulation that led from a board meeting in Geneva to a tunnel collapse in Saqqara to this room.\n\nYou write it all in glyph-script on a tablet that will outlast every institution that protected the people who made those decisions.\n\nThe city records the indictment.\n\nThe indictment is the first document in human history that cannot be suppressed." + nadia;
+    }, choices: [{ text: "[ END ]", onSelect: () => alert("ENDING 5d: THE INDICTMENT — Complete. Thank you for playing.") }]},
 
     'ch7_ending_indictment_locked': { speaker: "System", text: "You reach for that answer but it isn't fully formed. You don't have the whole truth yet, or the right to write it.\n\nThe stone waits.", choices: [{ text: "Try something else.", onSelect: () => startDialogue('ch7_pedestal') }]},
 
     'ch7_ending_witness': { speaker: "System", text: "ENDING 5e — THE WITNESS\n\nYou step back from the pedestal.\n\nIry steps forward.\n\nShe stands in front of the blank tablet for a very long time. You cannot read her face. You don't try.\n\nWhen she writes, she writes in Uarha — her own language — quickly, with the efficiency of someone who has known what they wanted to say for nine thousand years.\n\nShe finishes. She steps back.\n\nYou do not know what she wrote.\n\nBut the city brightens. Every amber channel in every district burns at full intensity for approximately ten seconds. Then settles.\n\nIry looks at you.\n\n'Nine thousand years. And it was worth it. Thank you for coming down.'", choices: [{ text: "[ END ]", onSelect: () => alert("ENDING 5e: THE WITNESS — Complete. Thank you for playing.") }]},
 
     'ch7_ending_witness_locked': { speaker: "System", text: "You gesture for Iry — but she isn't here, or the trust between you isn't deep enough yet.\n\nThe tablet waits.", choices: [{ text: "Try something else.", onSelect: () => startDialogue('ch7_pedestal') }]},
+
+    'ch7_ending_severance': { speaker: "System", text: () => {
+        let iryLine;
+        if (gameState.flags.iryRevealedNature) {
+            iryLine = "Iry does not stop you. That is the thing you will carry longest: she watches you find the convergence point — the place where a hundred and forty-four channels narrow to twelve, and twelve to one — and she says only:\n\n'You learned the city well. Be sure.'\n\nYou are not sure. You do it anyway.";
+        } else {
+            iryLine = "Nothing stops you. The city has rules, and one of them — you understand now — is that the tenant's answer is the answer, even when the answer is no.";
+        }
+        return "ENDING 6 — THE SEVERANCE\n\nYou take your hand off the tablet and you do not write.\n\nEverything you have learned about this place — the channel charts, the resonance intervals, the maps that men died compiling — converges on one understanding: the Heart is held open by the amber, and the amber can be closed.\n\n" + iryLine + "\n\nThe collapse is not loud. The light does not go out like a lamp. It goes out like a tide — withdrawing down a hundred and forty-four channels at once, each one dimming in sequence, until the chamber holds nothing but the dark it was built to keep out.\n\nTwelve thousand eight hundred years of witness ends because one man decided no one should ever be asked the question again.\n\nYou climb back to the surface. The stars are where you left them. In a year, the seismic surveys will note that the plateau has gone quiet — geologically, completely, for the first time in recorded measurement.\n\nYou will never be certain whether you saved your species or orphaned it.\n\nNeither will anyone else. There is no record left to ask.";
+    }, choices: [{ text: "[ END ]", onSelect: () => alert("ENDING 6: THE SEVERANCE — Complete. The record ends with you. Thank you for playing.") }]},
+
+    'ch7_ending_severance_locked': { speaker: "System", text: "You look for the way to end it — the convergence point, the place where the channels could be closed.\n\nYou don't know enough. The city's veins run in patterns you never learned to read, and guessing would only bury you with everything else.\n\nThe stone waits.", choices: [{ text: "Try something else.", onSelect: () => startDialogue('ch7_pedestal') }]},
+
+    'ch7_ending_departure': { speaker: "System", text: () => {
+        let iryBeat;
+        if (gameState.flags.iryRevealedNature) {
+            iryBeat = "Iry stands beside the pedestal as you go. She says nothing.\n\nNot as punishment. You understand that, somehow, by the set of her shoulders. She says nothing because the record is already saying it for her: a refusal, freely made, completely witnessed. To the Uarha, that is not a failure. It is an answer with its own filing place.";
+        } else {
+            iryBeat = "The chamber is silent as you go. Not empty — you have never once felt this place to be empty — but silent, the way a court is silent when a verdict is read.";
+        }
+        return "ENDING 7 — THE DEPARTURE\n\nYou take your hand off the stone.\n\nYou do not write. You do not take the Codex. You do not collapse anything, claim anything, or close anything. You simply turn, and walk back the way you came, while the Heart is still alive behind you.\n\n" + iryBeat + "\n\nThe amber lights the corridor ahead of you all the way up — every channel brightening just before you reach it, dimming just after you pass. The city walking you to the door.\n\nAt the threshold the Codex pulses once, somewhere far behind you, at its eight-second interval. It does not follow. The next person who finds it will feel an inexplicable reluctance to part with it.\n\nOn the surface, dawn. Tariq's question, when you reach the camp, is the only debrief you will ever submit:\n\n'Did you find what was down there, Doctor?'\n\n'Yes.'\n\n'And?'\n\n'It's still down there.'\n\nThe dig closes within the month. You go home. Some nights, at exactly eight-second intervals, you almost hear it — and every time, you are almost, almost certain you made the right choice.\n\nThe Heart records your refusal as a valid response. The question remains open.\n\nSomeone will come. Someone will write the next line.";
+    }, choices: [{ text: "[ END ]", onSelect: () => alert("ENDING 7: THE DEPARTURE — Complete. The question remains open. Thank you for playing.") }]},
 
     // =========================================================
     // ========= PUZZLE TRIGGER SCENES =========================
