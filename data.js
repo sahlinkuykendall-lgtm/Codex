@@ -65,6 +65,10 @@ const gameState = {
         iryQuestionAccepted: false, iryQuestionRefused: false, iryRevealedNature: false,
         iryCompanionUsed: false,
         ch4HeartVisited: false, ch4CodexRead: false,
+        // Kostas Lemaire (trapped scholar, remote chamber)
+        kostas_met: false, kostas_rescued: false, kostas_left: false, kostas_gone: false,
+        kostas_theory_heard: false, kostas_book_heard: false, kostas_node_told: false,
+        kostas_at_standoff: false,
         // --- Chapter 5 ---
         halberdMet: false, standoffResolved: false, Ellis_Attacked_Halberd: false,
         tariqFlatVisited: false,
@@ -809,6 +813,8 @@ const mapObjects = {
         { id: 'flavor_channel',  x: 2700, y: 1700, w: 100, h: 20,  color: '#8b6914', label: 'Amber Channel',   interactScene: 'flavor_ch4_channel' },
         { id: 'flavor_glyph',    x: 2200, y: 900,  w: 60,  h: 160, color: '#1a1510', label: 'Glyph Wall',      interactScene: 'flavor_ch4_glyph'   },
         { id: 'flavor_fountain', x: 700,  y: 900,  w: 100, h: 100, color: '#1a2535', label: 'Dry Fountain',    interactScene: 'flavor_ch4_fountain'},
+        // Kostas Lemaire — a side-route where the amber runs thin (remote SW chamber)
+        { id: 'kostas_chamber',  x: 350,  y: 2700, w: 70,  h: 60,  color: '#26323a', label: 'Dim Side-Passage',interactScene: 'ch4_kostas_passage' },
         deco('d_pillar1', 1200, 1200, 80, 80, '#2a2520', 'Pillar'),
         deco('d_pillar2', 1600, 1200, 80, 80, '#2a2520', 'Pillar'),
         deco('d_pillar3', 2000, 1200, 80, 80, '#2a2520', 'Pillar'),
@@ -838,6 +844,8 @@ const mapObjects = {
         { id: 'halberd_bldg',    x: 3000, y: 2400, w: 300, h: 200, color: '#2d3436', label: "Halberd's Office",interactScene: null              },
         { id: 'halberd_door',    x: 3120, y: 2598, w: 60,  h: 20,  color: '#3d4446', label: 'Enter Office',    interactScene: 'door_halberd'    },
         { id: 'hangar_barrel',   x: 700,  y: 2400, w: 60,  h: 60,  color: '#8b3a3a', label: 'Fire Barrel',     interactScene: 'ch5_hangar_rest' },
+        // Kostas (only present if rescued in Ch4) — stands in the hangar's shadow
+        { id: 'kostas_ch5',      x: 1320, y: 760,  w: 50,  h: 55,  color: '#26323a', label: 'Kostas',          interactScene: 'ch5_kostas'      },
         { id: 'flavor_plane',    x: 1000, y: 900,  w: 300, h: 80,  color: '#1a1a2e', label: 'Grounded Plane',  interactScene: 'flavor_ch5_plane'},
         { id: 'flavor_crates',   x: 700,  y: 2400, w: 100, h: 80,  color: '#2d2010', label: 'Cargo Crates',    interactScene: 'flavor_ch5_crates'},
         deco('d_plane2', 2000, 900, 300, 80, '#1a1a2e', 'Grounded Plane'),

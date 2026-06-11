@@ -1084,11 +1084,15 @@ function isObjectResolved(o) {
     if (gameState.chapter === 4) {
         if (o.interactScene === 'ch4_rest_hearth' && gameState.usedRestSites.includes('ch4_rest_hearth')) return true;
         if (o.interactScene === 'puzzle_start_heart_altar' && f.heart_altar_solved) return true;
+        // Kostas's chamber empties if he leaves with you or retreats deeper
+        if (o.interactScene === 'ch4_kostas_passage' && (f.kostas_rescued || f.kostas_gone)) return true;
     }
 
     if (gameState.chapter === 5) {
         if (o.interactScene === 'ch5_halberd' && f.halberdMet)        return true;
         if (o.interactScene === 'ch5_standoff' && f.standoffResolved) return true;
+        // Kostas only stands at the airfield if Ellis brought him out
+        if (o.interactScene === 'ch5_kostas' && !f.kostas_rescued)    return true;
     }
 
     if (gameState.chapter === 6) {

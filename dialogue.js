@@ -1323,6 +1323,109 @@ const storyData = {
         { text: "'Ask me the question.'", onSelect: () => { gameState.knowledgeAtlantean += 1; }, nextScene: 'ch4_iry_the_question' }
     ]},
 
+    // --- KOSTAS LEMAIRE — the trapped scholar, remote western chamber ---
+    'ch4_kostas_passage': { speaker: "System", text: "A side-passage where the amber runs thin — one channel in the floor, dimmer than any you've seen, flickering at long intervals like a pulse taken at the wrist.\n\nIt shouldn't lead anywhere. The city's geometry says it shouldn't lead anywhere.\n\nThere is chalk dust on the floor.", choices: [
+        { text: "Follow the dim channel.", onSelect: () => {
+            if (gameState.flags.kostas_left) { startDialogue('ch4_kostas_return'); }
+            else if (gameState.flags.kostas_met) { startDialogue('ch4_kostas_hub'); }
+            else if (gameState.flags.samir_promised_out || gameState.knowledgeAtlantean >= 5) { startDialogue('ch4_kostas_meet'); }
+            else { startDialogue('ch4_kostas_lost'); }
+        }},
+        { text: "Leave it.", onSelect: () => closeDialogue() }
+    ]},
+
+    'ch4_kostas_lost': { speaker: "System", text: "You follow the channel for twenty meters and lose it. It dips under the floor, surfaces, forks, dips again — a route written for someone who can read the amber the way locals read alleys.\n\nYou don't know the city well enough yet. Whatever is back there stays back there.", choices: [{ text: "Turn back.", onSelect: () => { decreaseSanity(0.3); closeDialogue(); } }]},
+
+    'ch4_kostas_meet': { speaker: "Kostas", text: "The passage opens into a chamber, and the chamber is inhabited.\n\nChalk writing covers every wall, floor to shoulder height, in three languages. A man sits among it — thin, grey-bearded, wrapped in the remains of a good coat. His skin has a faint cast to it that your eyes refuse to settle on. He looks up without surprise.\n\n'Oh! Another one. Come, come, sit. No — not there, that stone is cold. Here. You look like a man who has been running. Nobody runs in the city; it is the surest way to be filed. Slow down. Slower. Slower still. Good.'\n\nHe extends a trembling hand.\n\n'Kostas Lemaire. Formerly of Ghent. Currently of — ' he gestures at the walls, the chalk, the dark — 'currently of here. Six years, I think. The counting is not reliable. Sit. Sit!'", choices: [
+        { text: "Sit down.", onSelect: () => { gameState.flags.kostas_met = true; gameState.knowledgeAtlantean += 1; startDialogue('ch4_kostas_hub'); } }
+    ]},
+
+    'ch4_kostas_hub': { speaker: "Kostas", text: () => {
+        let t = "He settles back against the chalk wall, coughing — a dry cough that has clearly been with him a long time — and looks at you with open delight.\n\n'You cannot imagine what a luxury this is. Six years I have argued with myself, and myself always wins, which is very boring. Ask me anything. Digressions are included free of charge.'";
+        if (gameState.flags.iryRevealedNature) t += "\n\nHe squints at you.\n\n'You have met her. The tall one. It is in how you hold your shoulders — like a man who has recently revised his cosmology.'";
+        return t;
+    }, choices: [
+        { text: "'Six years? How have you survived six years?'", onSelect: () => startDialogue('ch4_kostas_survival') },
+        { text: "'What have you worked out about this place?'", onSelect: () => { gameState.flags.kostas_theory_heard = true; gameState.knowledgeAtlantean += 2; startDialogue('ch4_kostas_theory'); } },
+        { text: "Ask about the chalk on the walls.", onSelect: () => { gameState.flags.kostas_book_heard = true; startDialogue('ch4_kostas_book'); } },
+        { text: "'Have you met... her?'", onSelect: () => startDialogue('ch4_kostas_iry') },
+        { text: "'Let's get you out of here.'", onSelect: () => startDialogue('ch4_kostas_rescue') },
+        { text: "Leave him be for now.", onSelect: () => closeDialogue() }
+    ]},
+
+    'ch4_kostas_survival': { speaker: "Kostas", text: "'Badly at first. I came down in 2018 — through the western clefts, with satellite imagery I should not have had and supplies for nine days. The city did not find me for four months. Four months! I ate lichen. I do not recommend the lichen, although there is one variety, near the water channels, that tastes almost of — '\n\nHe stops. Holds up a finger. Waits.\n\nThe dim channel in the floor pulses once. He nods at it, satisfied, and entirely loses his thread.\n\n'— anyway. The body adjusts. My eyes work in the dark now. My sleep follows the amber, not the sun. The hands shake when I stand too long, the cough will not leave, and I am told —' he gestures at his own faintly luminous forearm, cheerful and appalled at once — 'I am told this is cosmetic. The city did not do it to me. Six years of its light did. There is a difference, although I confess the difference matters more to me than it would to you.'", choices: [
+        { text: "Ask something else.", onSelect: () => startDialogue('ch4_kostas_hub') }
+    ]},
+
+    'ch4_kostas_theory': { speaker: "Kostas", text: "He lights up. He has clearly been waiting six years for this question.\n\n'It is an archive that is alive. No — wait — that is sloppy. It is an archive that must be *witnessed* to remain an archive. The amber is not light, it is attention. The channels are not infrastructure, they are — ' he searches, fingers moving — 'circulation. The city is a heart, and what it pumps is remembering.'\n\nHe taps a chalk diagram: channels, intervals, a count of one hundred and forty-four.\n\n'They converge. All of them, somewhere north, somewhere deep. I have never gone. Not from fear — well. Not only from fear. One does not walk into the chamber of a sleeping thing merely to confirm the floor plan.'\n\nMost of it matches what you've seen. Some of it is wrong in ways you can now recognize. For a man alone in the dark with chalk, it is astonishing.", choices: [
+        { text: "Ask something else.", onSelect: () => startDialogue('ch4_kostas_hub') }
+    ]},
+
+    'ch4_kostas_book': { speaker: "Kostas", text: "'I read Rilke down here. And Cavafy — I had the Cavafy by heart already, which is the only sensible way to carry books into a cave. And I wrote one.'\n\nHe points at the far wall: dense chalk paragraphs, numbered chapters, marginalia correcting earlier chapters in a different hand that is also his.\n\n'A book, on the back of this wall, which I will not show you because I am ashamed of the early chapters. Six years is a long time to write a book in chalk. The argument improves around chapter nine. The prose, never.'\n\nHe coughs, and laughs at the same time, which sounds dreadful.", choices: [
+        { text: "Ask something else.", onSelect: () => startDialogue('ch4_kostas_hub') }
+    ]},
+
+    'ch4_kostas_iry': { speaker: "Kostas", text: "'Twice.' He holds up two fingers, then keeps looking at them as though re-checking the count.\n\n'The first time, year two. She stood in that doorway for perhaps a minute and then left. The second time, year five. She brought water. She did not say one word either time.'\n\nHe leans forward.\n\n'You understand what I am, to her? I am a filing error. I am not a candidate, I am not a caretaker, I am not filed. The city has three drawers and I fit none of them, so she does not know what to do with me, and a being who has known what to do about everything for nine thousand years finds that — I flatter myself — interesting.'", choices: [
+        { text: "Ask something else.", onSelect: () => startDialogue('ch4_kostas_hub') }
+    ]},
+
+    'ch4_kostas_rescue': { speaker: "Kostas", text: "He goes still. The delight doesn't leave his face, but something older moves in behind it.\n\n'Ah. This is the part where you are kind to me and offer to take me home. Let me be very careful how I answer this. If I say yes, you will risk much for me. If I say no, you will think I am mad, and I am not mad — I am at most eccentric.'\n\nHe folds his trembling hands.\n\n'Let me ask you instead: if you were me, having seen what I have seen, and having written what I have written — would you go back to Ghent?'", choices: [
+        { text: "'Your wife thinks she's a widow. She deserves to know if that's true.'", onSelect: () => startDialogue('ch4_kostas_rescued_yes') },
+        { text: "'No. I don't think I would.'", onSelect: () => startDialogue('ch4_kostas_left') },
+        { text: "Grab his arm. He's coming whether he likes it or not.", onSelect: () => startDialogue('ch4_kostas_forced') }
+    ]},
+
+    'ch4_kostas_rescued_yes': { speaker: "Kostas", text: () => {
+        let t = "The sentence lands on him like a weight he has been waiting six years to be handed.\n\nHe is quiet for a long time. The channel in the floor pulses twice.\n\n'Elena.' He says the name in the direction of the chalk wall, not you. 'Yes. That is the argument. It was always going to be that argument.'\n\nHe stands, slowly, steadying himself against six years of his own handwriting.\n\n'I will come with you. Not because I want to leave. Because I owe it to my wife, who has been a widow for six years and deserves to know she is a widow or not. When we reach the surface, please do not expect me to be grateful. I will be many things; grateful will take some years.'";
+        if (gameState.flags.kostas_theory_heard && gameState.flags.kostas_book_heard) t += "\n\nAt the passage mouth he stops, and looks back once at the chamber.\n\n'Before we go. There is something I have not put in the book. Something I think even she does not know about.'";
+        return t;
+    }, choices: [
+        { text: "'Tell me.'", onSelect: () => {
+            gameState.flags.kostas_rescued = true; increaseSanity(1.5);
+            if (gameState.flags.kostas_theory_heard && gameState.flags.kostas_book_heard) { startDialogue('ch4_kostas_secret'); }
+            else { addJournalNote('Kostas Lemaire', 'Six years underground. Half-adapted, cough, trembling hands, a chalk book on a wall. Coming to the surface for Elena, not for himself. Do not expect him to be grateful. He said so, and he is a man of his word.'); closeDialogue(); }
+        }}
+    ]},
+
+    'ch4_kostas_left': { speaker: "Kostas", text: () => {
+        let t = "He looks at you for a long moment — and then he smiles, and the smile is the realest thing you have seen in this city.\n\n'Thank you. You have no idea what it costs a kind man to say that, and you said it anyway.'\n\nHe shuffles to the wall, works loose a flat stone, and pulls out a bundle: pages — actual paper, salvaged, hoarded — covered edge to edge in pencil so small it looks engraved.\n\n'The fair copy. The chapters I am not ashamed of. Take them up for me. There is a woman named Ngozi who will know what to do with them, and if you cannot find her, then give them to anyone who reads slowly.'\n\nHe sits back down among his chalk.\n\n'Tell the sun I said nothing. We are not on speaking terms.'";
+        if (gameState.flags.kostas_theory_heard && gameState.flags.kostas_book_heard) t += "\n\nAs you turn to go, he clears his throat.\n\n'One more thing. A parting gift, between colleagues. There is a chamber even she does not know I found.'";
+        return t;
+    }, choices: [
+        { text: "Take the pages.", onSelect: () => {
+            gameState.flags.kostas_left = true; increaseSanity(1.0);
+            if (!gameState.inventory.includes("Kostas's Notes")) gameState.inventory.push("Kostas's Notes");
+            addJournalNote("Kostas's Notes", "The fair copy of a book written over six years underground. He stayed. I think staying was the honest answer, and I think he knew I knew it. For Ngozi, or for anyone who reads slowly.");
+            if (gameState.flags.kostas_theory_heard && gameState.flags.kostas_book_heard) { startDialogue('ch4_kostas_secret'); }
+            else { closeDialogue(); }
+        }}
+    ]},
+
+    'ch4_kostas_forced': { speaker: "System", text: "You take his arm. It's the wrong move and you know it the moment your fingers close — his whole body flinches toward the dark like something that has practiced this.\n\n'No. NO. You do not file me. You do not get to file me — she does not, the city does not, and neither do you.'\n\nHe is gone into the side-channels before you can speak — fast, economical, six years of knowing exactly where the floor is. The chalk chamber stands empty around you. The dim channel in the floor flickers and, for the first time, goes fully dark.\n\nYou will not find him again. The city might. You did this.", choices: [
+        { text: "Stand in the empty chamber.", onSelect: () => { gameState.flags.kostas_gone = true; decreaseSanity(2.0); closeDialogue(); } }
+    ]},
+
+    'ch4_kostas_secret': { speaker: "Kostas", text: "He lowers his voice, which is absurd — there is no one to overhear in either direction for half a kilometer of stone — and the absurdity clearly delights him.\n\n'Below this level, two turns past where the water channel sings — there is a node. A second heart. Small. Cold. Not sleeping the way the big one sleeps — *storing*. Deep archive. The records too old or too heavy for circulation.'\n\nHe touches the wall, fondly.\n\n'I have read at its edges for three years. I understand maybe one word in two hundred, and the words I understand have changed how I will die, which I mean as a compliment. I cannot take you there — the route needs my hands and my years. But you should know the city keeps a basement. Whatever you decide up there, in the bright rooms — decide it knowing there is more underneath than anyone has been shown.'", choices: [
+        { text: "Commit it to the journal.", onSelect: () => {
+            gameState.flags.kostas_node_told = true; gameState.knowledgeAtlantean += 3;
+            addJournalNote('The Second Node', "Kostas found a secondary Heart-node below the city — deep-archive storage, records too old or heavy for circulation. Iry doesn't know it exists. He's read its edges for three years. The city keeps a basement.");
+            closeDialogue();
+        }}
+    ]},
+
+    'ch4_kostas_return': { speaker: "Kostas", text: "He is exactly where you left him, chalk in hand, adding a footnote to a wall.\n\n'Back again! Good. Sit. The stone has warmed up since last time — no, that one. There.'\n\nYou sit with him a while in the amber-dark. Nobody runs. Nobody is filed. It is, in its way, the most restful place in the city.", choices: [
+        { text: "Sit a while, then go.", onSelect: () => { increaseSanity(0.5); closeDialogue(); } }
+    ]},
+
+    // Kostas at the airfield (Ch5, rescued only)
+    'ch5_kostas': { speaker: "Kostas", text: () => {
+        if (gameState.flags.kostas_at_standoff) return "He is still in the hangar's shadow, exactly at the line where the floodlight stops. He raises a trembling hand without looking over.\n\n'Still here. Still not grateful. The coffee, however, is a strong argument for the surface.'";
+        return "He stands precisely in the hangar's shadow, at the line where the floodlight stops, wearing borrowed sunglasses at four in the morning. His skin still has the faint cast; under the floodlights, people keep glancing at him and then deciding they didn't.\n\n'Doctor. I called Elena. She shouted at me for one hour and eleven minutes and then asked what I want for dinner. So. That is settled, and I am a fool, and the sky —' he tips his head back, very carefully, like a man sipping something too hot — 'the sky is much bigger than I left it.'\n\nA dry cough.\n\n'I heard what is happening in that hangar tonight. I will stand in the corner, if you do not mind. I have discovered I have an effect on officials. They look at me and remember urgent business elsewhere. Six years in a filing cabinet teaches a man presence.'";
+    }, choices: [
+        { text: "'Glad you're here, Kostas.'", onSelect: () => { gameState.flags.kostas_at_standoff = true; increaseSanity(1.0); closeDialogue(); } },
+        { text: "Nod and keep moving.", onSelect: () => { gameState.flags.kostas_at_standoff = true; closeDialogue(); } }
+    ]},
+
     'ch4_iry_eyes': { speaker: "Iry", text: "'Yes. That is new. After nine thousand years something changes in the eyes. I stopped being surprised about it roughly eight thousand years ago.'\n\nAlmost amused.\n\n'You are looking at me the way academics look at things they want to publish about. I understand the feeling. When my colleagues and I first found this city, we also looked at it like that. Before we understood what it was asking of us.'", choices: [
         { text: "'What was it asking?'", onSelect: () => { gameState.knowledgeAtlantean += 1; gameState.flags.iryRevealedNature = true; }, nextScene: 'ch4_iry_the_question' }
     ]},
@@ -1697,7 +1800,13 @@ const storyData = {
         } else {
             iryBeat = "The chamber is silent as you go. Not empty — you have never once felt this place to be empty — but silent, the way a court is silent when a verdict is read.";
         }
-        return "ENDING 7 — THE DEPARTURE\n\nYou take your hand off the stone.\n\nYou do not write. You do not take the Codex. You do not collapse anything, claim anything, or close anything. You simply turn, and walk back the way you came, while the Heart is still alive behind you.\n\n" + iryBeat + "\n\nThe amber lights the corridor ahead of you all the way up — every channel brightening just before you reach it, dimming just after you pass. The city walking you to the door.\n\nAt the threshold the Codex pulses once, somewhere far behind you, at its eight-second interval. It does not follow. The next person who finds it will feel an inexplicable reluctance to part with it.\n\nOn the surface, dawn. Tariq's question, when you reach the camp, is the only debrief you will ever submit:\n\n'Did you find what was down there, Doctor?'\n\n'Yes.'\n\n'And?'\n\n'It's still down there.'\n\nThe dig closes within the month. You go home. Some nights, at exactly eight-second intervals, you almost hear it — and every time, you are almost, almost certain you made the right choice.\n\nThe Heart records your refusal as a valid response. The question remains open.\n\nSomeone will come. Someone will write the next line.";
+        let kostasBeat = "";
+        if (gameState.flags.kostas_rescued) {
+            kostasBeat = "\n\nIn Ghent, years from now, a half-luminous man who is finally almost grateful will hear your name on the news and raise a cup of his wife's coffee to the floor, which is to say: to everything underneath it.";
+        } else if (gameState.flags.kostas_left) {
+            kostasBeat = "\n\nSomewhere below and west of you, in a chamber of chalk, a man who answered the question before you did adds a footnote to a wall. The city keeps him the way he asked to be kept: unfiled.";
+        }
+        return "ENDING 7 — THE DEPARTURE\n\nYou take your hand off the stone.\n\nYou do not write. You do not take the Codex. You do not collapse anything, claim anything, or close anything. You simply turn, and walk back the way you came, while the Heart is still alive behind you.\n\n" + iryBeat + kostasBeat + "\n\nThe amber lights the corridor ahead of you all the way up — every channel brightening just before you reach it, dimming just after you pass. The city walking you to the door.\n\nAt the threshold the Codex pulses once, somewhere far behind you, at its eight-second interval. It does not follow. The next person who finds it will feel an inexplicable reluctance to part with it.\n\nOn the surface, dawn. Tariq's question, when you reach the camp, is the only debrief you will ever submit:\n\n'Did you find what was down there, Doctor?'\n\n'Yes.'\n\n'And?'\n\n'It's still down there.'\n\nThe dig closes within the month. You go home. Some nights, at exactly eight-second intervals, you almost hear it — and every time, you are almost, almost certain you made the right choice.\n\nThe Heart records your refusal as a valid response. The question remains open.\n\nSomeone will come. Someone will write the next line.";
     }, choices: [{ text: "[ END ]", onSelect: () => alert("ENDING 7: THE DEPARTURE — Complete. The question remains open. Thank you for playing.") }]},
 
     // =========================================================
