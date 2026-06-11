@@ -3,11 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Codex of Giza - V2 Hybrid Build</title>
+    <title>The Codex of Giza - 3D Build</title>
     <style>
         body { margin: 0; padding: 0; background-color: #000; display: flex; justify-content: center; align-items: center; height: 100vh; color: #e0e0e0; font-family: 'Courier New', Courier, monospace; overflow: hidden; }
         #game-container { position: relative; width: 100vw; height: 100vh; max-width: calc(100vh * (1280 / 720)); max-height: calc(100vw * (720 / 1280)); border: 2px solid #333; background: #111; box-shadow: 0 0 20px rgba(0,0,0,0.8); overflow: hidden; }
-        canvas { display: block; width: 100%; height: 100%; background-color: #1a1a1a; transition: filter 1.5s ease; }
+        /* 3D world canvas — bottom layer */
+        #glCanvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; display: block; background: #000; transition: filter 1.5s ease; }
+        /* 2D canvas — transparent overlay reused for start screen, pause menu, puzzles, fades */
+        #gameCanvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 2; display: block; background-color: transparent !important; pointer-events: none; }
         #ui-overlay { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; z-index: 10; }
         #dialogue-box { background: rgba(0, 0, 0, 0.95); border: 1px solid #d4af37; padding: 20px; border-radius: 5px; min-height: 120px; }
         #speaker-name { color: #d4af37; font-weight: bold; margin-bottom: 10px; text-transform: uppercase; font-size: 1.1em; }
@@ -27,13 +30,24 @@
         #hud-hint { position: absolute; top: 10px; left: 10px; font-size: 11px; color: #888; z-index: 4; background: rgba(0,0,0,0.5); padding: 5px 10px; border-radius: 4px; }
         .strained-filter  { filter: contrast(120%) saturate(70%) hue-rotate(15deg); }
         .fractured-filter { filter: contrast(150%) saturate(50%) hue-rotate(60deg); }
+        /* ---- Main menu (3D vista renders behind this overlay) ---- */
+        #menu-overlay { position: absolute; inset: 0; z-index: 8; display: flex; flex-direction: column; justify-content: center; align-items: center; background: radial-gradient(ellipse at center, rgba(0,0,0,0.18) 30%, rgba(0,0,0,0.78) 100%); animation: menuFade 1.6s ease; }
+        @keyframes menuFade { from { opacity: 0; } to { opacity: 1; } }
+        #menu-rule { color: rgba(212,175,55,0.5); font-size: 14px; letter-spacing: 14px; margin-bottom: 18px; }
+        #menu-title { color: #d4af37; font-size: 58px; font-weight: bold; letter-spacing: 12px; margin: 0 0 10px 0; text-align: center; text-shadow: 0 0 24px rgba(212,175,55,0.45), 0 2px 2px #000; }
+        #menu-sub { color: #9a8a60; font-size: 14px; letter-spacing: 9px; margin-bottom: 56px; text-shadow: 0 1px 2px #000; }
+        .menu-btn { display: block; width: 340px; margin: 9px 0; padding: 14px 0; background: rgba(0,0,0,0.72); border: 1px solid #d4af37; color: #e0d4a8; font-family: 'Courier New', Courier, monospace; font-size: 15px; letter-spacing: 5px; cursor: pointer; transition: all 0.25s ease; }
+        .menu-btn:hover { background: #d4af37; color: #000; box-shadow: 0 0 18px rgba(212,175,55,0.5); }
+        #menu-controls-panel { margin-top: 22px; padding: 16px 26px; background: rgba(0,0,0,0.82); border: 1px solid #5a4a28; color: #b9a877; font-size: 12.5px; line-height: 2; letter-spacing: 1px; text-align: center; }
+        #menu-version { position: absolute; bottom: 16px; left: 0; right: 0; text-align: center; color: rgba(140,120,70,0.55); font-size: 12px; letter-spacing: 3px; }
     </style>
 </head>
 <body>
     <div id="game-container">
+        <canvas id="glCanvas"></canvas>
         <canvas id="gameCanvas"></canvas>
-        <div id="interaction-prompt" class="hidden">Tap or Press SPACE to interact</div>
-        <div id="hud-hint" class="hidden">TAB: Stats &nbsp;|&nbsp; E: Focus &nbsp;|&nbsp; ESC: Pause &nbsp;|&nbsp; SHIFT: Sprint &nbsp;|&nbsp; Tap/SPACE: Interact</div>
+        <div id="interaction-prompt" class="hidden">Press SPACE to interact</div>
+        <div id="hud-hint" class="hidden">TAB: Stats &nbsp;|&nbsp; E: Focus &nbsp;|&nbsp; ESC: Pause &nbsp;|&nbsp; SHIFT: Sprint &nbsp;|&nbsp; SPACE: Interact &nbsp;|&nbsp; Click: Mouse Look</div>
         <div id="ui-overlay" class="hidden">
             <div id="dialogue-box">
                 <div id="speaker-name"></div>
@@ -52,10 +66,27 @@
                 <div id="stamina-bar-bg"><div id="stamina-bar-fill" style="width: 100%;"></div></div>
             </div>
         </div>
+        <!-- Main menu over a live 3D vista of the dig site -->
+        <div id="menu-overlay">
+            <div id="menu-rule">&#9670;&nbsp;&#9670;&nbsp;&#9670;</div>
+            <h1 id="menu-title">THE CODEX OF GIZA</h1>
+            <div id="menu-sub">AN EXCAVATION IN SEVEN CHAPTERS</div>
+            <button class="menu-btn" id="menu-start">BEGIN THE EXCAVATION</button>
+            <button class="menu-btn" id="menu-controls">CONTROLS</button>
+            <div id="menu-controls-panel" class="hidden">
+                W A S D — MOVE &nbsp;&middot;&nbsp; MOUSE — LOOK (CLICK TO CAPTURE)<br>
+                SPACE — INTERACT &nbsp;&middot;&nbsp; SHIFT — SPRINT &nbsp;&middot;&nbsp; E — FOCUS<br>
+                TAB — STATS &nbsp;&middot;&nbsp; ESC — PAUSE
+            </div>
+            <div id="menu-version">V3 — 3D BUILD &nbsp;&middot;&nbsp; ACT I</div>
+        </div>
     </div>
 
+    <script>window.RENDER_MODE_3D = true;</script>
+    <script src="lib/three.min.js"></script>
     <script src="data.js?v=12"></script>
     <script src="dialogue.js?v=12"></script>
     <script src="engine.js?v=12"></script>
+    <script src="engine3d.js?v=1"></script>
 </body>
 </html>
