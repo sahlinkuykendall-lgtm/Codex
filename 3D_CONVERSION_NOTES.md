@@ -16,6 +16,27 @@
   amber channels + sanctum braziers, Gate colonnade + braziers, airfield
   floodlights, final-chamber braziers.
 
+## Main menu & backdrops
+
+- The 3D build's menu is a DOM overlay (title / Begin / Controls) over a
+  live orbiting vista of the night camp. Space or Enter also starts.
+- Exteriors have gradient sky domes, a moon, and horizon silhouettes:
+  Giza pyramids (Ch1), Old Cairo skyline + minarets (market), control
+  tower (airfield). Underground darkness is tinted per area.
+
+## Story audit (full cross-reference, see commit aede628)
+
+- All 396 dialogue scenes checked: no missing references, all puzzles
+  fire their reward scenes, chapter chain Ch1→Ch7 fully wired, all six
+  implemented endings reachable.
+- 5 orphaned finished scenes were wired into maps (water barrels, TRAP
+  false door, CUTTHROAT blood/radio, market coffeehouse).
+- **Known content gaps vs the lore docs** (not wired, needs writing):
+  Father Matthias / the Asfour archive, Inspector Nadia Kareem, the
+  Severance and Departure secret endings, and deep-lore fragments
+  (Tibesti/Nazca/Aksum, Zep Tepi, the Perennial Concern by name, the
+  dimming). ~44 superseded draft scenes remain in dialogue.js (harmless).
+
 ## Atmosphere (engine3d.js, `MAP_ATMOS`)
 
 - Underground chapters get rock ceilings, tunnel-height walls, dense fog;
