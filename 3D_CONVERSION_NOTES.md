@@ -45,6 +45,22 @@
 - Old saves stay forward-compatible: flags merge into the current flag
   table, so flags added later keep their defaults.
 
+## Pause menu (overhauled) & stamina tuning
+
+- The pause menu is data-driven: `drawPauseMenu` registers each
+  button's rect in `pauseButtons` and the pointerdown handler
+  hit-tests the same rects — layout and click targets can't drift.
+  Hover and the arrow-key cursor (↑/↓ + ENTER) share one highlight;
+  SPACE resumes; ESC backs out of the chapter-select sub-menu before
+  unpausing. Subtitle shows where you are (chapter title or interior
+  label); footer shows when the game last saved. The DOM HUD boxes
+  hide while paused (`#game-container.is-paused` CSS). Trust panel now
+  lists Yusra and Iry.
+- Stamina tuning lives in one `STAMINA` table in data.js, shared by
+  both engine loops: pool 20 (was 10), drain 0.025/frame (~13s of
+  sprint), regen 0.02/frame (~17s refill; tea/karkadeh faster).
+  loadGame migrates older saves to the new pool.
+
 ## Jump (step 7)
 
 - SPACE jumps when no interactable is in range; near an interactable

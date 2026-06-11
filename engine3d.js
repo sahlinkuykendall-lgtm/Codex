@@ -1274,6 +1274,7 @@ function drawMenuSmiley() {
 function gameLoop3d() {
     requestAnimationFrame(gameLoop3d);
     resizeRendererIfNeeded();
+    syncPauseHud();
 
     // Clear the 2D overlay every frame
     ctx.clearRect(0, 0, canvas.width, canvas.height);

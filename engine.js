@@ -737,7 +737,8 @@ function startGame() {
 // UI state (dialogue, pause, fades) is stripped so loading is always a
 // clean resume standing in the world.
 const SAVE_KEY = 'codexOfGiza_save_v1';
-let saveFlash = 0; // frames left to show "Saved" feedback in the pause menu
+let saveFlash = 0;  // frames left to show "Saved" feedback in the pause menu
+let lastSaveAt = 0; // timestamp of the most recent write (shown in the pause menu)
 
 const MAP_BG_COLORS = {
     1: '#1a1a1a', 'TRAP': '#050505', 'SECRET': '#050505', 'CUTTHROAT': '#050505',
@@ -779,6 +780,7 @@ function saveGame() {
             devChapterMenuOpen: false
         });
         localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+        lastSaveAt = data.savedAt;
         return true;
     } catch (e) {
         console.warn('Save failed:', e);
@@ -796,6 +798,7 @@ function loadGame() {
     let data = null;
     try { data = JSON.parse(localStorage.getItem(SAVE_KEY)); } catch (e) { data = null; }
     if (!data || data.v !== 1 || !data.gameState) return false;
+    lastSaveAt = data.savedAt || Date.now();
 
     resetGameState();
 
@@ -1087,11 +1090,34 @@ window.addEventListener('keydown', e => {
         e.preventDefault();
         if (activePuzzle) { closePuzzle(); return; }
         if (gameState.currentScreen === 'GAME' && !gameState.isDialogueActive) {
-            gameState.isPaused = !gameState.isPaused;
+            if (gameState.isPaused && gameState.devChapterMenuOpen) {
+                gameState.devChapterMenuOpen = false; // back out of the sub-menu first
+            } else {
+                gameState.isPaused = !gameState.isPaused;
+            }
+            pauseSelection = 0;
+            pauseMouse.moved = false; // hover only steals the cursor once the mouse moves
         }
     }
-    if (gameState.isPaused && (e.key === 'Enter' || e.key === ' ')) {
-        e.preventDefault(); gameState.isPaused = false;
+    // Pause menu keyboard: SPACE resumes, arrows move the cursor, ENTER activates
+    if (gameState.isPaused && e.key !== 'Escape') {
+        if (e.key === ' ') {
+            e.preventDefault();
+            gameState.isPaused = false;
+            return;
+        }
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const b = pauseButtons[pauseSelection];
+            if (b) b.action();
+            return;
+        }
+        if (k === 'arrowup' || k === 'arrowdown') {
+            e.preventDefault();
+            const n = pauseButtons.length || 1;
+            pauseSelection = (pauseSelection + (k === 'arrowdown' ? 1 : -1) + n) % n;
+            return;
+        }
     }
     if (e.key === ' ' && gameState.currentScreen === 'START_MENU' && menuPhase === 'IDLE') {
         menuPhase = 'FADEOUT'; overlayAlpha = 0;
@@ -1134,61 +1160,17 @@ window.addEventListener('pointerdown', (e) => {
         return;
     }
     
-    // Pause menu interaction — center panel only (x: 320-960, y: 100-620)
+    // Pause menu interaction — hit-test the button rects that
+    // drawPauseMenu registered this frame (layout and clicks share rects)
     if (gameState.isPaused) {
         const rect = canvas.getBoundingClientRect();
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
-        const canvasX = (e.clientX - rect.left) * scaleX;
-        const canvasY = (e.clientY - rect.top) * scaleY;
-
-        // Only respond to clicks in the center panel
-        if (canvasX < 320 || canvasX > 960 || canvasY < 100 || canvasY > 620) return;
-
-        // Dev chapter sub-menu (CP_Y=100, items at CP_Y+115 + i*40)
-        if (gameState.devChapterMenuOpen) {
-            // Always clear interior state before jumping chapters to prevent NPC bleed
-            function devJump(fn) { interiorState.active = false; interiorState.pendingEnter = false; interiorState.pendingExit = false; interiorState.fadeAlpha = 0; clearHostiles(); fn(); }
-            const devActions = [
-                () => { gameState.devChapterMenuOpen = false; gameState.isPaused = false; devJump(() => { resetGameState(); startGame(); }); },
-                () => { gameState.devChapterMenuOpen = false; gameState.isPaused = false; gameState.currentRoute = 'TRAP';      gameState.currentScreen = 'GAME'; devJump(() => loadChapterTwo()); },
-                () => { gameState.devChapterMenuOpen = false; gameState.isPaused = false; gameState.currentRoute = 'SECRET';    gameState.currentScreen = 'GAME'; devJump(() => loadChapterTwo()); },
-                () => { gameState.devChapterMenuOpen = false; gameState.isPaused = false; gameState.currentRoute = 'CUTTHROAT'; gameState.currentScreen = 'GAME'; devJump(() => loadChapterTwo()); },
-                () => { gameState.devChapterMenuOpen = false; gameState.isPaused = false; gameState.currentScreen = 'GAME'; devJump(() => loadChapterThree()); },
-                () => { gameState.devChapterMenuOpen = false; gameState.isPaused = false; gameState.currentScreen = 'GAME'; devJump(() => loadChapterFour()); },
-                () => { gameState.devChapterMenuOpen = false; gameState.isPaused = false; gameState.currentScreen = 'GAME'; devJump(() => loadChapterFive()); },
-                () => { gameState.devChapterMenuOpen = false; gameState.isPaused = false; gameState.currentScreen = 'GAME'; devJump(() => loadChapterSix()); },
-                () => { gameState.devChapterMenuOpen = false; gameState.isPaused = false; gameState.currentScreen = 'GAME'; devJump(() => loadChapterSeven()); },
-                () => { gameState.devChapterMenuOpen = false; },
-            ];
-            const idx = Math.floor((canvasY - (100 + 115 - 20)) / 40);
-            if (idx >= 0 && idx < devActions.length) devActions[idx]();
-            return;
-        }
-
-        // Normal pause menu — buttons drawn at CP_Y+115=215, +170=270, +225=325, +280=380, +335=435, +390=490
-        if (canvasY > 195 && canvasY < 245)  { gameState.isPaused = false; return; }
-        if (canvasY > 250 && canvasY < 295) {
-            if (saveGame()) saveFlash = 120;
-            return;
-        }
-        if (canvasY > 305 && canvasY < 350) {
-            const gc = document.getElementById('game-container');
-            if (!document.fullscreenElement) gc.requestFullscreen().catch(err => console.log(err));
-            else document.exitFullscreen();
-            return;
-        }
-        if (canvasY > 360 && canvasY < 405) {
-            saveGame();
-            resetGameState(); menuPhase = 'FADEIN'; overlayAlpha = 1.0;
-            gameState.isPaused = false; gameState.currentScreen = 'START_MENU'; return;
-        }
-        if (canvasY > 415 && canvasY < 460) {
-            if (confirm('Quit to desktop?')) { saveGame(); window.location.reload(); }
-            return;
-        }
-        if (canvasY > 470 && canvasY < 515) {
-            gameState.devChapterMenuOpen = true; return;
+        const canvasX = (e.clientX - rect.left) * (canvas.width / rect.width);
+        const canvasY = (e.clientY - rect.top) * (canvas.height / rect.height);
+        for (const b of pauseButtons) {
+            if (canvasX >= b.x && canvasX <= b.x + b.w && canvasY >= b.y && canvasY <= b.y + b.h) {
+                b.action();
+                return;
+            }
         }
         return; // swallow all other clicks while paused
     }
@@ -1661,6 +1643,70 @@ function drawPhantoms() {
     });
 }
 
+// ---- PAUSE MENU SUPPORT ----
+// The menu is data-driven: every drawn frame rebuilds pauseButtons with
+// the same rects the pointerdown handler hit-tests, so layout and click
+// targets can never drift apart. Hover and the arrow-key cursor share
+// one highlight (hover only steals the cursor when the mouse moves).
+let pauseButtons = [];   // { x, y, w, h, action }
+let pauseSelection = 0;  // index into pauseButtons
+const pauseMouse = { x: -1, y: -1, moved: false };
+
+window.addEventListener('mousemove', e => {
+    const rect = canvas.getBoundingClientRect();
+    pauseMouse.x = (e.clientX - rect.left) * (canvas.width / rect.width);
+    pauseMouse.y = (e.clientY - rect.top) * (canvas.height / rect.height);
+    pauseMouse.moved = true;
+});
+
+// While paused, the DOM HUD boxes (sanity/funds, stamina, hint bar) are
+// hidden via a container class so they don't overlap the menu panels.
+// Called once per frame by both game loops.
+const gameContainerEl = document.getElementById('game-container');
+function syncPauseHud() {
+    gameContainerEl.classList.toggle('is-paused', !!gameState.isPaused && gameState.currentScreen === 'GAME');
+}
+
+function formatAgo(ms) {
+    const s = Math.floor(ms / 1000);
+    if (s < 60) return s + 's';
+    const m = Math.floor(s / 60);
+    if (m < 60) return m + 'm';
+    return Math.floor(m / 60) + 'h';
+}
+
+// Where the player is, for the menu's subtitle
+function pauseLocationTitle() {
+    if (interiorState.active) return interiorState.label;
+    if (gameState.chapter === 2) {
+        const routes = { TRAP: 'The Collapsed Way', SECRET: 'The Amber Route', CUTTHROAT: "The Crew's Descent" };
+        return 'Chapter 2 — ' + (routes[gameState.currentRoute] || 'The Descent');
+    }
+    const titles = {
+        1: 'Chapter 1 — The Dig Site',
+        3: 'Chapter 3 — The Cairo Market',
+        4: 'Chapter 4 — The Buried City',
+        5: 'Chapter 5 — The Airfield',
+        6: 'Chapter 6 — The Gate',
+        7: 'Chapter 7 — The Heart Chamber',
+    };
+    return titles[gameState.chapter] || 'Chapter ' + gameState.chapter;
+}
+
+// Dev chapter jump: close the menu, clear interior/hostile state, go
+function devJumpTo(fn) {
+    gameState.devChapterMenuOpen = false;
+    gameState.isPaused = false;
+    gameState.currentScreen = 'GAME';
+    interiorState.active = false;
+    interiorState.pendingEnter = false;
+    interiorState.pendingExit = false;
+    interiorState.fadeAlpha = 0;
+    interiorState.fadeDir = 0;
+    clearHostiles();
+    fn();
+}
+
 function drawPauseMenu() {
     const CX = canvas.width / 2, CY = canvas.height / 2;
 
@@ -1748,6 +1794,8 @@ function drawPauseMenu() {
     const relationships = [
         { label: 'Tariq', val: gameState.trustTariq, max: 5 },
         { label: 'Maren', val: gameState.trustMaren, max: 5 },
+        { label: 'Yusra', val: gameState.trustYusra, max: 5 },
+        { label: 'Iry', val: gameState.trustIry, max: 5 },
         { label: 'Ministry', val: gameState.repMinistry, max: 5 },
     ];
 
@@ -1796,63 +1844,110 @@ function drawPauseMenu() {
     D(CP_X, CP_Y, 10); D(CP_X + CP_W, CP_Y, 10);
     D(CP_X, CP_Y + CP_H, 10); D(CP_X + CP_W, CP_Y + CP_H, 10);
 
-    // Title
+    // Title + where-you-are subtitle
     ctx.fillStyle = '#d4af37';
     ctx.textAlign = 'center';
-    ctx.font = 'bold 42px Courier New';
-    ctx.fillText('PAUSED', CP_X + CP_W / 2, CP_Y + 60);
-
-    // Underline
-    ctx.strokeStyle = '#d4af37';
-    ctx.lineWidth = 2;
+    ctx.font = 'bold 40px Courier New';
+    ctx.fillText('PAUSED', CP_X + CP_W / 2, CP_Y + 56);
+    ctx.fillStyle = '#9a8a60';
+    ctx.font = '13px Courier New';
+    ctx.fillText(pauseLocationTitle().toUpperCase(), CP_X + CP_W / 2, CP_Y + 82);
+    ctx.strokeStyle = 'rgba(212,175,55,0.55)';
+    ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.moveTo(CP_X + 100, CP_Y + 75);
-    ctx.lineTo(CP_X + CP_W - 100, CP_Y + 75);
+    ctx.moveTo(CP_X + 90, CP_Y + 96);
+    ctx.lineTo(CP_X + CP_W - 90, CP_Y + 96);
     ctx.stroke();
+
+    // Button helper — draws and registers the hit rect in one place
+    pauseButtons = [];
+    const addBtn = (label, sub, y, action, opts) => {
+        const o = opts || {};
+        const w = o.w || 400, h = o.h || (sub ? 46 : 38);
+        const x = CP_X + (CP_W - w) / 2;
+        const idx = pauseButtons.length;
+        pauseButtons.push({ x, y, w, h, action });
+        const hover = pauseMouse.x >= x && pauseMouse.x <= x + w &&
+                      pauseMouse.y >= y && pauseMouse.y <= y + h;
+        if (hover && pauseMouse.moved) pauseSelection = idx;
+        const lit = pauseSelection === idx;
+        ctx.fillStyle = lit ? 'rgba(212,175,55,0.14)' : 'rgba(0,0,0,0.35)';
+        ctx.fillRect(x, y, w, h);
+        ctx.strokeStyle = lit ? '#d4af37' : (o.dim ? '#3a3220' : '#5a4a28');
+        ctx.lineWidth = lit ? 2 : 1;
+        ctx.strokeRect(x, y, w, h);
+        if (lit) { // side ticks mark the live button
+            ctx.fillStyle = '#d4af37';
+            ctx.fillRect(x - 9, y + h / 2 - 1.5, 5, 3);
+            ctx.fillRect(x + w + 4, y + h / 2 - 1.5, 5, 3);
+        }
+        ctx.fillStyle = lit || o.gold ? '#d4af37' : (o.dim ? '#777' : '#e0d4a8');
+        ctx.font = (o.dim ? '13px' : 'bold 17px') + ' Courier New';
+        ctx.textAlign = 'center';
+        ctx.fillText(label, x + w / 2, y + (sub ? 20 : h / 2 + 5));
+        if (sub) {
+            ctx.fillStyle = lit ? 'rgba(212,175,55,0.75)' : '#777';
+            ctx.font = '11px Courier New';
+            ctx.fillText(sub, x + w / 2, y + 36);
+        }
+    };
 
     if (gameState.devChapterMenuOpen) {
         ctx.fillStyle = '#d4af37';
-        ctx.font = 'bold 18px Courier New';
-        ctx.textAlign = 'center';
-        ctx.fillText('CHAPTER SELECT', CP_X + CP_W / 2, CP_Y + 80);
+        ctx.font = 'bold 16px Courier New';
+        ctx.fillText('CHAPTER SELECT', CP_X + CP_W / 2, CP_Y + 124);
         const devItems = [
-            'Chapter 1', 'Ch2: TRAP', 'Ch2: SECRET', 'Ch2: CUTTHROAT',
-            'Chapter 3', 'Chapter 4', 'Chapter 5', 'Chapter 6', 'Chapter 7', '← Back'
+            ['Chapter 1 — The Dig Site',           () => devJumpTo(() => { resetGameState(); startGame(); })],
+            ['Chapter 2 — The Collapsed Way',      () => { gameState.currentRoute = 'TRAP'; devJumpTo(loadChapterTwo); }],
+            ['Chapter 2 — The Amber Route',        () => { gameState.currentRoute = 'SECRET'; devJumpTo(loadChapterTwo); }],
+            ["Chapter 2 — The Crew's Descent",     () => { gameState.currentRoute = 'CUTTHROAT'; devJumpTo(loadChapterTwo); }],
+            ['Chapter 3 — The Cairo Market',       () => devJumpTo(loadChapterThree)],
+            ['Chapter 4 — The Buried City',        () => devJumpTo(loadChapterFour)],
+            ['Chapter 5 — The Airfield',           () => devJumpTo(loadChapterFive)],
+            ['Chapter 6 — The Gate',               () => devJumpTo(loadChapterSix)],
+            ['Chapter 7 — The Heart Chamber',      () => devJumpTo(loadChapterSeven)],
         ];
-        devItems.forEach((label, i) => {
-            const dy = CP_Y + 115 + i * 40;
-            ctx.fillStyle = label === '← Back' ? '#888' : '#e0e0e0';
-            ctx.font = '17px Courier New';
-            ctx.fillText(label, CP_X + CP_W / 2, dy);
+        devItems.forEach(([label, action], i) => {
+            addBtn(label, null, CP_Y + 136 + i * 34, action, { w: 440, h: 28 });
         });
+        addBtn('← Back  (ESC)', null, CP_Y + 136 + devItems.length * 34 + 8, () => {
+            gameState.devChapterMenuOpen = false;
+            pauseSelection = 0;
+        }, { w: 220, h: 28, dim: true });
     } else {
         if (saveFlash > 0) saveFlash--;
-        const options = [
-            { text: 'Resume',              sub: 'ESC or ENTER',   y: CP_Y + 115 },
-            { text: saveFlash > 0 ? 'Saved.' : 'Save Game', sub: 'Single slot, this browser', y: CP_Y + 170, gold: saveFlash > 0 },
-            { text: 'Fullscreen',          sub: 'Toggle',         y: CP_Y + 225 },
-            { text: 'Return to Menu',      sub: 'Saves first',    y: CP_Y + 280 },
-            { text: 'Quit',               sub: 'Saves first — reload page', y: CP_Y + 335 },
-            { text: '— DEV: Skip Chapter —', sub: 'Jump to any chapter', y: CP_Y + 390 },
-        ];
-        options.forEach(opt => {
-            ctx.fillStyle = opt.gold ? '#d4af37' : opt.text.startsWith('—') ? '#666' : '#e0e0e0';
-            ctx.font = opt.text.startsWith('—') ? '14px Courier New' : '20px Courier New';
-            ctx.textAlign = 'center';
-            ctx.fillText(opt.text, CP_X + CP_W / 2, opt.y);
-            if (opt.sub) {
-                ctx.fillStyle = '#777';
-                ctx.font = '12px Courier New';
-                ctx.fillText(opt.sub, CP_X + CP_W / 2, opt.y + 20);
-            }
+        addBtn('Resume', 'ESC or SPACE', CP_Y + 112, () => { gameState.isPaused = false; });
+        addBtn(saveFlash > 0 ? 'Saved.' : 'Save Game', 'Single slot, this browser', CP_Y + 168,
+            () => { if (saveGame()) saveFlash = 120; }, { gold: saveFlash > 0 });
+        addBtn(document.fullscreenElement ? 'Exit Fullscreen' : 'Fullscreen', 'Toggle window mode', CP_Y + 224, () => {
+            const gc = document.getElementById('game-container');
+            if (!document.fullscreenElement) gc.requestFullscreen().catch(err => console.log(err));
+            else document.exitFullscreen();
         });
+        addBtn('Return to Menu', 'Saves first', CP_Y + 280, () => {
+            saveGame();
+            resetGameState();
+            menuPhase = 'FADEIN';
+            overlayAlpha = 1.0;
+            gameState.isPaused = false;
+            gameState.currentScreen = 'START_MENU';
+        });
+        addBtn('Quit', 'Saves first — reloads the page', CP_Y + 336, () => {
+            if (confirm('Quit to desktop?')) { saveGame(); window.location.reload(); }
+        });
+        addBtn('— DEV: Chapter Select —', null, CP_Y + 406, () => {
+            gameState.devChapterMenuOpen = true;
+            pauseSelection = 0;
+        }, { w: 300, h: 28, dim: true });
     }
+    pauseMouse.moved = false;
 
-    // Version
+    // Footer: last save + version
     ctx.fillStyle = '#555';
     ctx.font = '11px Courier New';
     ctx.textAlign = 'center';
-    ctx.fillText('THE CODEX OF GIZA — V2.1', CP_X + CP_W / 2, CP_Y + CP_H - 20);
+    const savedTxt = lastSaveAt ? 'LAST SAVED ' + formatAgo(Date.now() - lastSaveAt).toUpperCase() + ' AGO' : 'NOT SAVED YET';
+    ctx.fillText(savedTxt + '  ·  THE CODEX OF GIZA — V2.2', CP_X + CP_W / 2, CP_Y + CP_H - 18);
 
     // ============================================================
     // RIGHT PANEL — QUESTS & INVENTORY (x: 970 to 1270)
@@ -2209,6 +2304,7 @@ function drawObjectShape(ctx, o, ox, oy) {
 }
 
 function gameLoop() {
+    syncPauseHud();
     if (gameState.currentScreen === 'START_MENU') {
         drawStartScreen();
         requestAnimationFrame(gameLoop);
