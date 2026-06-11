@@ -40,11 +40,14 @@
 - **Kostas Lemaire added (commit cf9af07):** Ch4 discovery + three-
   outcome rescue side quest, the second Heart-node secret, Ch5 standoff
   presence, Ch7 Departure echoes.
-- **Still absent from the lore docs:** minor NPCs after Kostas in
-  NEW_CHARACTERS.md (e.g. Leila "Lei" Mansour, and the doc was cut off
-  mid-list — the missing TECHNICAL_HANDOFF/STORY_BIBLE files may name
-  more). The second Heart-node area itself awaits SIDE_MAPS.md, which
-  was never delivered. ~44 superseded draft scenes remain (harmless).
+- **Lei Mansour added (commit 15f24b5):** Ch3 services + Khaled thread
+  + surveillance ripple + exercise-book secret, Ch5 fence note, Ch7
+  letter echoes.
+- **Still absent from the lore docs:** the minor NPCs (Omar el-Dib
+  tea-vendor expansion, Sayeda Mariam's chant thread, Ngozi's Ch7
+  letters, Layla Hassan, an on-screen Khaled) and the second Heart-node
+  area (awaits the undelivered SIDE_MAPS.md / CH3_EXPANSION.md /
+  CH5_EXPANSION.md). ~44 superseded draft scenes remain (harmless).
 
 ## Atmosphere (engine3d.js, `MAP_ATMOS`)
 
