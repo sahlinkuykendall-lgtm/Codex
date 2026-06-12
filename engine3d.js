@@ -295,6 +295,47 @@ function makeStandoffGroup() {
 // geometry. No external assets, no build step.
 // ============================================================
 
+// ---- CH1 TERRAIN ----
+// The desert is not flat: layered sine dunes give rolling character,
+// the ground climbs toward the northern escarpment (where the tunnel
+// mouth waits), and everything near a wall/building/prop is flattened —
+// a working dig camp levels the ground it lives on. Collision is still
+// 2D; the camera and every placed mesh sample this same function.
+let ch1Rects = null; // walls + objects, cached for the flatten mask
+
+function ch1StructDist(x, z) {
+    if (!ch1Rects) ch1Rects = [...(mapWalls[1] || []), ...(mapObjects[1] || [])];
+    let d = 1e9;
+    for (const r of ch1Rects) {
+        const dx = Math.max(r.x - x, 0, x - (r.x + r.w));
+        const dz = Math.max(r.y - z, 0, z - (r.y + r.h));
+        const dd = dx > dz ? dx : dz;
+        if (dd < d) d = dd;
+        if (d <= 0) return 0;
+    }
+    return d;
+}
+
+function ch1Height(x, z) {
+    const dunes =
+        18  * Math.sin(x * 0.0011 + 1.7) * Math.sin(z * 0.0009 + 0.6) +
+        12  * Math.sin(x * 0.0021 + z * 0.0016 + 4.2) +
+        5.5 * Math.sin(x * 0.0052 - z * 0.0037 + 2.2) +
+        2.5 * Math.sin(x * 0.011 + z * 0.009);
+    // Flatten toward structures (full dunes only in open desert)
+    const d = ch1StructDist(x, z);
+    const mask = Math.max(0.12, Math.min(1, (d - 35) / 165));
+    // The north climb toward the rock escarpment
+    const t = Math.max(0, Math.min(1, (1000 - z) / 800));
+    const rise = 30 * t * t * (3 - 2 * t);
+    return dunes * mask + rise;
+}
+
+// Ground height under a world point for the current map (0 off-Ch1)
+function currentGroundHeight(x, z) {
+    return (currentMapKey === 1) ? ch1Height(x, z) : 0;
+}
+
 // Deterministic per-object randomness (so a crate stack doesn't
 // reshuffle every time the world rebuilds)
 function seededRng(str) {
@@ -1147,20 +1188,21 @@ function addCh1Scatter(group) {
         const x = 90 + rng() * (WORLD.width - 180);
         const z = 90 + rng() * (WORLD.height - 180);
         if (blocked(x, z)) continue;
+        const gh = ch1Height(x, z);
         const kind = rng();
         if (kind < 0.42) { // pebbles
             const r = 2.5 + rng() * 5.5;
-            put(group, new THREE.IcosahedronGeometry(r, 0), M.rock, x, r * 0.55, z, rng() * 3);
+            put(group, new THREE.IcosahedronGeometry(r, 0), M.rock, x, gh + r * 0.55, z, rng() * 3);
         } else if (kind < 0.68) { // low sand humps
-            const s = put(group, new THREE.SphereGeometry(14 + rng() * 24, 8, 5), M.sand, x, 0, z);
+            const s = put(group, new THREE.SphereGeometry(14 + rng() * 24, 8, 5), M.sand, x, gh, z);
             s.scale.set(1.35, 0.14 + rng() * 0.1, 1);
         } else if (kind < 0.88) { // dry grass tufts
             for (let i = 0; i < 3; i++) {
                 put(group, gableGeo(6, 13 + rng() * 9), M.grass,
-                    x + (rng() - 0.5) * 7, 0, z + (rng() - 0.5) * 7, rng() * Math.PI);
+                    x + (rng() - 0.5) * 7, gh, z + (rng() - 0.5) * 7, rng() * Math.PI);
             }
         } else { // pottery shards — the ground remembers older camps
-            put(group, gBox(6 + rng() * 6, 1.4, 5), M.terracotta, x, 1, z, rng() * 3);
+            put(group, gBox(6 + rng() * 6, 1.4, 5), M.terracotta, x, gh + 1, z, rng() * 3);
         }
         placed++;
     }
@@ -1186,28 +1228,32 @@ function buildCh1Wall(group, wall, palette) {
 
     if (wall.isGate) return false; // gate keeps its (wood-textured) box
 
+    const gh = ch1Height(cx, cz);
+
     const style = ch1WallStyle(wall);
     if (style === 'shed') {
         const g = new THREE.Group();
-        g.position.set(cx, 0, cz);
+        g.position.set(cx, gh, cz);
         subShed(g, M, wall.w, wall.h, 64, seededRng('digshed'));
         group.add(g);
         return true;
     }
     if (style === 'plank') { // walk boards across the trench
-        put(group, gBox(wall.w, 10, wall.h), M.wood, cx, 5, cz);
+        put(group, gBox(wall.w, 10, wall.h), M.wood, cx, gh + 5, cz);
         return true;
     }
     if (style === 'berm') { // low spoil lips flanking the trench
-        put(group, gBox(wall.w + 10, 26, wall.h), M.sand, cx, 13, cz);
+        put(group, gBox(wall.w + 10, 26, wall.h), M.sand, cx, gh + 13, cz);
         for (let i = 0; i < 6; i++) {
             const rr = 6 + (i * 7) % 9;
-            put(group, new THREE.IcosahedronGeometry(rr, 0), M.rock, cx, rr * 0.7, wall.y + (i + 0.5) * wall.h / 6, i * 1.7);
+            const bz = wall.y + (i + 0.5) * wall.h / 6;
+            put(group, new THREE.IcosahedronGeometry(rr, 0), M.rock, cx, ch1Height(cx, bz) + rr * 0.7, bz, i * 1.7);
         }
         return true;
     }
 
-    // Rope fence around the tent compound (very thin strips)
+    // Rope fence around the tent compound (very thin strips) — each
+    // post seats on its own patch of ground so the line follows terrain
     if (minDim <= 22 && maxDim >= 140) {
         const horizontal = wall.w >= wall.h;
         const len = maxDim;
@@ -1216,9 +1262,9 @@ function buildCh1Wall(group, wall, palette) {
             const t = posts === 1 ? 0.5 : i / (posts - 1);
             const px = horizontal ? wall.x + t * wall.w : cx;
             const pz = horizontal ? cz : wall.y + t * wall.h;
-            put(group, gCyl(2.2, 2.6, 40, 5), M.woodDark, px, 20, pz);
+            put(group, gCyl(2.2, 2.6, 44, 5), M.woodDark, px, ch1Height(px, pz) + 20, pz);
         }
-        const rope = put(group, gCyl(1.1, 1.1, len, 4), M.rope, cx, 34, cz);
+        const rope = put(group, gCyl(1.1, 1.1, len, 4), M.rope, cx, gh + 34, cz);
         rope.rotation.z = horizontal ? Math.PI / 2 : 0;
         if (!horizontal) rope.rotation.x = Math.PI / 2, rope.rotation.z = 0;
         return true;
@@ -1233,10 +1279,10 @@ function buildCh1Wall(group, wall, palette) {
             const t = i / (posts - 1);
             const px = horizontal ? wall.x + t * wall.w : cx;
             const pz = horizontal ? cz : wall.y + t * wall.h;
-            put(group, gBox(7, 52, 7), M.woodDark, px, 26, pz);
+            put(group, gBox(7, 56, 7), M.woodDark, px, ch1Height(px, pz) + 26, pz);
         }
         for (const y of [20, 44]) {
-            put(group, gBox(horizontal ? len : 5, 6, horizontal ? 5 : len), M.wood, cx, y, cz);
+            put(group, gBox(horizontal ? len : 5, 6, horizontal ? 5 : len), M.wood, cx, gh + y, cz);
         }
         return true;
     }
@@ -1467,14 +1513,27 @@ function buildWorld() {
     scene3.fog = new THREE.Fog(fogCol, fogBase[0], fogBase[1]);
 
     // Ground plane (Phong: point lights evaluated per pixel).
-    // The Ch1 camp gets real sand; other maps keep their palette color.
+    // Ch1 gets sand-textured terrain displaced by the heightfield;
+    // other maps keep their flat palette-colored plane.
+    let groundGeo;
+    if (currentMapKey === 1) {
+        groundGeo = new THREE.PlaneGeometry(WORLD.width, WORLD.height, 96, 88);
+        groundGeo.rotateX(-Math.PI / 2);
+        const pos = groundGeo.attributes.position;
+        for (let i = 0; i < pos.count; i++) {
+            pos.setY(i, ch1Height(pos.getX(i) + WORLD.width / 2, pos.getZ(i) + WORLD.height / 2));
+        }
+        groundGeo.computeVertexNormals();
+    } else {
+        groundGeo = new THREE.PlaneGeometry(WORLD.width, WORLD.height);
+        groundGeo.rotateX(-Math.PI / 2);
+    }
     const ground = new THREE.Mesh(
-        new THREE.PlaneGeometry(WORLD.width, WORLD.height),
+        groundGeo,
         currentMapKey === 1
             ? ch1Mats().sand
             : new THREE.MeshPhongMaterial({ color: groundCol, shininess: 4, specular: 0x0a0a0a })
     );
-    ground.rotation.x = -Math.PI / 2;
     ground.position.set(WORLD.width / 2, 0, WORLD.height / 2);
     worldGroup.add(ground);
 
@@ -1492,8 +1551,9 @@ function buildWorld() {
         worldGroup.add(ceil);
     }
 
-    // Survey grid only on exterior sand (underground floors stay rock)
-    if (atmos.type === 'ext') {
+    // Survey grid only on flat exterior sand (Ch1's displaced terrain
+    // would clip through it; its sand texture carries the detail)
+    if (atmos.type === 'ext' && currentMapKey !== 1) {
         const grid = new THREE.GridHelper(
             Math.max(WORLD.width, WORLD.height),
             Math.max(WORLD.width, WORLD.height) / 200,
@@ -1563,6 +1623,13 @@ function buildWorld() {
         const mesh = addBoxAt(worldGroup, wall.x, wall.y, wall.w, wall.h, h,
             wall.isGate ? gateMat : (currentMapKey === 1 ? ch1Mats().rock : wallMat));
         if (wall.isGate) gateMeshes.push({ mesh, gateFlag: wall.gateFlag });
+        // Seat Ch1 walls on the terrain (sunk a little so slopes can't
+        // open gaps beneath them; the flatten mask keeps deltas small)
+        let wallGH = 0;
+        if (currentMapKey === 1) {
+            wallGH = ch1Height(wall.x + wall.w / 2, wall.y + wall.h / 2);
+            mesh.position.y += wallGH - 12;
+        }
         // Rocky outcrops get a jagged crown so they read as rock, not box
         if (currentMapKey === 1 && !wall.isGate && Math.min(wall.w, wall.h) >= 150) {
             const rng = seededRng(wall.x + ',' + wall.y);
@@ -1570,7 +1637,7 @@ function buildWorld() {
                 const bw = wall.w * (0.18 + rng() * 0.2);
                 const bh = 22 + rng() * 36;
                 put(worldGroup, gBox(bw, bh, wall.h * (0.4 + rng() * 0.35)), ch1Mats().rock,
-                    wall.x + bw / 2 + rng() * (wall.w - bw), h + bh / 2 - 6,
+                    wall.x + bw / 2 + rng() * (wall.w - bw), wallGH + h + bh / 2 - 18,
                     wall.y + wall.h / 2 + (rng() - 0.5) * wall.h * 0.3, (rng() - 0.5) * 0.3);
             }
         }
@@ -1588,14 +1655,16 @@ function buildWorld() {
                 ? makeStandoffGroup()
                 : makeHumanoid(PERSON_STYLES[personKey]);
             const cx = o.x + o.w / 2, cz = o.y + o.h / 2;
-            fig.position.set(cx, 0, cz);
+            const gh = currentGroundHeight(cx, cz);
+            fig.position.set(cx, gh, cz);
+            fig.userData.baseY = gh;
             // Default facing: into the map (rotation 0 faces 2D "south" / +z)
             fig.rotation.y = cz < WORLD.height / 2 ? 0 : Math.PI;
             worldGroup.add(fig);
             let label = null;
             if (!o.decorative && o.interactScene) {
                 label = makeLabelSprite(o.label || o.id, '#f4e4b0');
-                label.position.set(cx, fig.userData.height + 18, cz);
+                label.position.set(cx, gh + fig.userData.height + 18, cz);
                 worldGroup.add(label);
             }
             objectEntries.push({ o, mesh: fig, label });
@@ -1606,6 +1675,7 @@ function buildWorld() {
         // not raised boxes: black floor cut + broken rim + amber underglow
         if (/trench|chasm|crack|fissure/i.test(o.label || '')) {
             const feature = new THREE.Group();
+            feature.position.y = currentGroundHeight(o.x + o.w / 2, o.y + o.h / 2);
             const pitMat = new THREE.MeshBasicMaterial({ color: 0x010101 });
             const pit = new THREE.Mesh(new THREE.PlaneGeometry(o.w, o.h), pitMat);
             pit.rotation.x = -Math.PI / 2;
@@ -1643,7 +1713,7 @@ function buildWorld() {
             let label = null;
             if (!o.decorative && o.interactScene) {
                 label = makeLabelSprite(o.label || o.id, '#f4e4b0');
-                label.position.set(o.x + o.w / 2, 42, o.y + o.h / 2);
+                label.position.set(o.x + o.w / 2, feature.position.y + 42, o.y + o.h / 2);
                 worldGroup.add(label);
             }
             objectEntries.push({ o, mesh: feature, label });
@@ -1656,13 +1726,14 @@ function buildWorld() {
                 const M = ch1Mats();
                 const rng = seededRng(o.id || o.label || 'x');
                 const g = builder(o, M, rng);
-                g.position.set(o.x + o.w / 2, 0, o.y + o.h / 2);
+                const gh = ch1Height(o.x + o.w / 2, o.y + o.h / 2);
+                g.position.set(o.x + o.w / 2, gh, o.y + o.h / 2);
                 worldGroup.add(g);
                 g.traverse(m => { if (m.userData && m.userData.flame) flameMeshes.push(m); });
                 let label = null;
                 if (!o.decorative && o.interactScene) {
                     label = makeLabelSprite(o.label || o.id, '#f4e4b0');
-                    label.position.set(o.x + o.w / 2, (g.userData.h || 60) + 22, o.y + o.h / 2);
+                    label.position.set(o.x + o.w / 2, gh + (g.userData.h || 60) + 22, o.y + o.h / 2);
                     worldGroup.add(label);
                 }
                 objectEntries.push({ o, mesh: g, label });
@@ -1678,10 +1749,12 @@ function buildWorld() {
             matOpts.emissiveIntensity = emissive;
         }
         const mesh = addBoxAt(worldGroup, o.x, o.y, o.w, o.h, h, new THREE.MeshPhongMaterial(matOpts));
+        const boxGH = currentGroundHeight(o.x + o.w / 2, o.y + o.h / 2);
+        mesh.position.y += boxGH;
         let label = null;
         if (!o.decorative && o.interactScene) {
             label = makeLabelSprite(o.label || o.id, '#f4e4b0');
-            label.position.set(o.x + o.w / 2, h + 26, o.y + o.h / 2);
+            label.position.set(o.x + o.w / 2, boxGH + h + 26, o.y + o.h / 2);
             worldGroup.add(label);
         }
         objectEntries.push({ o, mesh, label });
@@ -1715,7 +1788,7 @@ function buildWorld() {
         for (const [lx, lz] of spots) {
             if (lightsPlaced >= MAX_LIGHTS) break;
             const pl = new THREE.PointLight(color, cool ? 1.4 : 1.15, dist, 2);
-            pl.position.set(lx, Math.max(h * 0.85, 30) + (cool ? 120 : 14), lz);
+            pl.position.set(lx, currentGroundHeight(lx, lz) + Math.max(h * 0.85, 30) + (cool ? 120 : 14), lz);
             worldGroup.add(pl);
             flickerLights.push({ light: pl, base: pl.intensity, phase: Math.random() * 10, steady: cool });
             lightsPlaced++;
@@ -1818,7 +1891,7 @@ function updatePersons3d() {
         for (let i = 0; i < u.arms.length; i++) {
             u.arms[i].rotation.x = Math.sin(t * 1.3 + u.phase + i * Math.PI) * 0.06;
         }
-        p.fig.position.y = Math.sin(t * 1.1 + u.phase) * 0.6;
+        p.fig.position.y = (u.baseY || 0) + Math.sin(t * 1.1 + u.phase) * 0.6;
         const dx = px - p.fig.position.x;
         const dz = py - p.fig.position.z;
         const dist = Math.hypot(dx, dz);
@@ -2054,7 +2127,9 @@ function updateMinistryCar3d() {
         }
     }
     carGroup.visible = ministeryCar.active || ministeryCar.parked;
-    carGroup.position.set(ministeryCar.x + ministeryCar.w / 2, 0, ministeryCar.y + ministeryCar.h / 2);
+    const carX = ministeryCar.x + ministeryCar.w / 2;
+    const carZ = ministeryCar.y + ministeryCar.h / 2;
+    carGroup.position.set(carX, currentGroundHeight(carX, carZ), carZ);
 }
 
 // ---- HOSTILES (3D bodies for the existing patrol/chase AI) ----
@@ -2092,7 +2167,8 @@ function syncHostiles3d() {
         if (moving) entry.facing = Math.atan2(mx, my);
         entry.group.rotation.y += angleDiff(entry.facing, entry.group.rotation.y) * 0.18;
         const bob = moving ? Math.abs(Math.sin(h.bobPhase * 2.4)) * 1.6 : 0;
-        entry.group.position.set(h.x + h.def.size / 2, bob, h.y + h.def.size / 2);
+        const hx = h.x + h.def.size / 2, hz = h.y + h.def.size / 2;
+        entry.group.position.set(hx, currentGroundHeight(hx, hz) + bob, hz);
         if (h.state === 'chase') {
             // Clothes flush red while chasing (same pulse rhythm as 2D)
             const pulse = 0.7 + Math.sin(h.bobPhase * 2) * 0.3;
@@ -2110,6 +2186,7 @@ function syncHostiles3d() {
 function positionCamera() {
     const cx = player.x + player.size / 2;
     const cz = player.y + player.size / 2;
+    const groundY = currentGroundHeight(cx, cz);
     const bob = isAirborne ? 0 : Math.sin(gameState.walkBobPhase) * 1.6;
     // Slow drunken sway grows with dread; a fine random tremor only
     // appears deep in FRACTURED (replaces the old constant jitter)
@@ -2123,7 +2200,7 @@ function positionCamera() {
         shakeY = (Math.random() - 0.5) * tremor * 0.6;
         shakeZ = (Math.random() - 0.5) * tremor;
     }
-    cam3.position.set(cx + shakeX, EYE_HEIGHT + jumpY + bob + shakeY, cz + shakeZ);
+    cam3.position.set(cx + shakeX, groundY + EYE_HEIGHT + jumpY + bob + shakeY, cz + shakeZ);
     cam3.rotation.y = camYaw;
     cam3.rotation.x = camPitch + Math.sin(t * 1.3) * 0.004 * dreadSmooth;
     cam3.rotation.z = sway;
@@ -2131,7 +2208,7 @@ function positionCamera() {
         // Carried slightly ahead and below eye level, with a faint sway
         playerLamp.position.set(
             cx - Math.sin(camYaw) * 30,
-            EYE_HEIGHT - 10 + jumpY + bob,
+            groundY + EYE_HEIGHT - 10 + jumpY + bob,
             cz - Math.cos(camYaw) * 30
         );
     }
@@ -2210,7 +2287,7 @@ function spawnHallucination3d() {
             skin: '#050505', shirt: '#050505', pants: '#030303',
             scale: 1.0 + Math.random() * 0.18
         });
-        fig.position.set(hx, 0, hz);
+        fig.position.set(hx, currentGroundHeight(hx, hz), hz);
         fig.rotation.y = Math.atan2(pcx - hx, pcy - hz); // it faces you
         fig.traverse(o => {
             if (o.material) { o.material.transparent = true; o.material.opacity = 0; }
