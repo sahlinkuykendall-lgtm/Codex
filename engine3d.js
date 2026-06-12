@@ -61,6 +61,7 @@ let flickerLights = []; // { light, base, phase, steady } — animated in update
 let heartFX = null;     // { mesh, mat, light, mode } — the pulsing Heart
 let fogBase = [500, 3000]; // CALM-state fog distances for the current map
 let playerLamp = null;  // Ellis's carried lantern (underground/interiors)
+let flameMeshes = [];   // open flames (brazier etc.) animated each frame
 
 // Floating text label rendered to a canvas texture, shown above interactables
 function makeLabelSprite(text, colorHex) {
@@ -288,7 +289,874 @@ function makeStandoffGroup() {
     return group;
 }
 
-// ---- PER-MAP ATMOSPHERE ----
+// ============================================================
+// CHAPTER 1 ART PASS — procedural Egyptian dig-camp props.
+// Everything is generated in code: canvas textures + primitive
+// geometry. No external assets, no build step.
+// ============================================================
+
+// Deterministic per-object randomness (so a crate stack doesn't
+// reshuffle every time the world rebuilds)
+function seededRng(str) {
+    let h = 2166136261;
+    for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
+    return () => {
+        h = Math.imul(h ^ (h >>> 15), 2246822507);
+        h = Math.imul(h ^ (h >>> 13), 3266489909);
+        return ((h ^= h >>> 16) >>> 0) / 4294967296;
+    };
+}
+
+const texCache = {};
+function makeTex(name, w, h, rx, ry, draw) {
+    if (texCache[name]) return texCache[name];
+    const c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    draw(c.getContext('2d'), w, h);
+    const tex = new THREE.CanvasTexture(c);
+    tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(rx, ry);
+    tex.encoding = THREE.sRGBEncoding;
+    texCache[name] = tex;
+    return tex;
+}
+
+function speckle(cc, w, h, base, colors, n, sMin, sMax) {
+    cc.fillStyle = base;
+    cc.fillRect(0, 0, w, h);
+    for (let i = 0; i < n; i++) {
+        cc.fillStyle = colors[(Math.random() * colors.length) | 0];
+        cc.globalAlpha = 0.15 + Math.random() * 0.45;
+        const s = sMin + Math.random() * (sMax - sMin);
+        cc.fillRect(Math.random() * w, Math.random() * h, s, s);
+    }
+    cc.globalAlpha = 1;
+}
+
+// Lazy material set for the Ch1 camp (textures generated on first use)
+let CH1M = null;
+function ch1Mats() {
+    if (CH1M) return CH1M;
+    const phong = (map, opts) => new THREE.MeshPhongMaterial(Object.assign({ map, shininess: 4, specular: 0x0c0c0c }, opts || {}));
+    const lambert = (color) => new THREE.MeshLambertMaterial({ color: new THREE.Color(color) });
+
+    const sand = makeTex('sand', 256, 256, 16, 15, (cc, w, h) => {
+        speckle(cc, w, h, '#8a744d', ['#94805a', '#7c683f', '#9f8a5f', '#6f5e3a'], 1100, 1, 3);
+        cc.strokeStyle = 'rgba(58,46,26,0.20)';
+        cc.lineWidth = 2;
+        for (let i = 0; i < 12; i++) { // wind ripples
+            const y0 = Math.random() * h;
+            cc.beginPath();
+            cc.moveTo(0, y0);
+            for (let x = 0; x <= w; x += 14) cc.lineTo(x, y0 + Math.sin(x * 0.05 + i * 2) * 3);
+            cc.stroke();
+        }
+    });
+    const tentCloth = makeTex('tentCloth', 128, 128, 3, 2, (cc, w, h) => {
+        speckle(cc, w, h, '#9a8a62', ['#a4946c', '#8d7c54', '#958455'], 350, 1, 2);
+        cc.strokeStyle = 'rgba(70,58,36,0.35)';
+        for (let x = 0; x < w; x += 16) { cc.beginPath(); cc.moveTo(x, 0); cc.lineTo(x, h); cc.stroke(); } // seams
+    });
+    const wood = makeTex('wood', 128, 128, 2, 2, (cc, w, h) => {
+        speckle(cc, w, h, '#6a4f30', ['#75573a', '#5c4226', '#7d6040'], 240, 1, 3);
+        cc.strokeStyle = 'rgba(40,28,14,0.5)';
+        for (let y = 0; y < h; y += 21) { cc.beginPath(); cc.moveTo(0, y); cc.lineTo(w, y); cc.stroke(); } // planks
+        cc.fillStyle = 'rgba(35,24,12,0.6)';
+        for (let i = 0; i < 9; i++) { cc.beginPath(); cc.arc(Math.random() * w, Math.random() * h, 1.6, 0, 7); cc.fill(); } // knots
+    });
+    const crate = makeTex('crate', 128, 128, 1, 1, (cc, w, h) => {
+        speckle(cc, w, h, '#7a5c38', ['#86663f', '#6b4e2c'], 200, 1, 3);
+        cc.strokeStyle = 'rgba(45,32,16,0.8)';
+        cc.lineWidth = 6;
+        cc.strokeRect(3, 3, w - 6, h - 6); // frame
+        cc.beginPath(); cc.moveTo(0, 0); cc.lineTo(w, h); cc.moveTo(w, 0); cc.lineTo(0, h); cc.stroke(); // cross braces
+    });
+    const metal = makeTex('metal', 128, 128, 2, 1, (cc, w, h) => {
+        speckle(cc, w, h, '#76705f', ['#807a68', '#6a6455', '#8a8472'], 160, 1, 4);
+        cc.strokeStyle = 'rgba(40,38,30,0.45)';
+        cc.lineWidth = 3;
+        for (let x = 4; x < w; x += 10) { cc.beginPath(); cc.moveTo(x, 0); cc.lineTo(x, h); cc.stroke(); } // corrugation
+    });
+    const rock = makeTex('rock', 256, 256, 3, 2, (cc, w, h) => {
+        speckle(cc, w, h, '#6e6250', ['#7a6e5a', '#5f5443', '#857a64', '#544a3a'], 700, 2, 6);
+        cc.strokeStyle = 'rgba(30,26,18,0.35)';
+        for (let i = 0; i < 18; i++) { // cracks
+            cc.beginPath();
+            let x = Math.random() * w, y = Math.random() * h;
+            cc.moveTo(x, y);
+            for (let s = 0; s < 5; s++) { x += (Math.random() - 0.5) * 40; y += Math.random() * 22; cc.lineTo(x, y); }
+            cc.stroke();
+        }
+    });
+    const limestone = makeTex('limestone', 256, 256, 1, 1, (cc, w, h) => {
+        speckle(cc, w, h, '#a39376', ['#ad9d80', '#94855f', '#b8a98c'], 420, 1, 4);
+        // weathered hieroglyph rows — carved, not painted
+        cc.strokeStyle = 'rgba(52,42,26,0.75)';
+        cc.fillStyle = 'rgba(52,42,26,0.75)';
+        cc.lineWidth = 2.5;
+        for (let row = 0; row < 4; row++) {
+            const y = 26 + row * 60;
+            for (let col = 0; col < 7; col++) {
+                const x = 16 + col * 34, g = (Math.random() * 5) | 0;
+                cc.beginPath();
+                if (g === 0) { cc.arc(x + 8, y + 8, 7, 0, 7); cc.stroke(); cc.beginPath(); cc.arc(x + 8, y + 8, 2.5, 0, 7); cc.fill(); }           // eye
+                else if (g === 1) { cc.moveTo(x, y + 18); cc.lineTo(x + 8, y); cc.lineTo(x + 16, y + 18); cc.stroke(); }                            // pylon
+                else if (g === 2) { cc.moveTo(x, y + 4); cc.quadraticCurveTo(x + 8, y - 6, x + 16, y + 4); cc.moveTo(x + 8, y); cc.lineTo(x + 8, y + 18); cc.stroke(); } // ankh-ish
+                else if (g === 3) { cc.moveTo(x, y + 6); cc.lineTo(x + 5, y + 12); cc.lineTo(x + 10, y + 6); cc.lineTo(x + 15, y + 12); cc.stroke(); } // water
+                else { cc.fillRect(x + 2, y + 2, 12, 4); cc.fillRect(x + 5, y + 9, 6, 9); }                                                          // seated figure-ish
+            }
+        }
+    });
+    const drum = makeTex('drum', 64, 64, 1, 1, (cc, w, h) => {
+        speckle(cc, w, h, '#7a4426', ['#8a5430', '#65381f', '#5f351e'], 130, 1, 3);
+        cc.fillStyle = 'rgba(40,22,12,0.6)';
+        cc.fillRect(0, 14, w, 5); cc.fillRect(0, 32, w, 5); cc.fillRect(0, 50, w, 5); // ribs
+    });
+    const tarp = makeTex('tarp', 128, 128, 2, 2, (cc, w, h) => {
+        speckle(cc, w, h, '#5d6243', ['#676c4c', '#52573a', '#6f7452'], 260, 1, 3);
+        cc.strokeStyle = 'rgba(35,38,24,0.4)';
+        for (let i = 0; i < 6; i++) { cc.beginPath(); cc.moveTo(0, i * 24); cc.lineTo(w, i * 24 + 12); cc.stroke(); } // folds
+    });
+    const frond = makeTex('frond', 128, 32, 1, 1, (cc, w, h) => {
+        cc.clearRect(0, 0, w, h);
+        cc.strokeStyle = '#3f6b2a';
+        cc.lineWidth = 3;
+        cc.beginPath(); cc.moveTo(0, h / 2); cc.lineTo(w, h / 2); cc.stroke(); // stem
+        cc.lineWidth = 2.4;
+        for (let x = 8; x < w; x += 6) {
+            const droop = (x / w) * 5;
+            cc.strokeStyle = (x % 12 < 6) ? '#477a30' : '#3a6126';
+            cc.beginPath(); cc.moveTo(x, h / 2); cc.lineTo(x - 5, 2 + droop); cc.stroke();
+            cc.beginPath(); cc.moveTo(x, h / 2); cc.lineTo(x - 5, h - 2 - droop); cc.stroke();
+        }
+    });
+
+    CH1M = {
+        sand: phong(sand),
+        tent: phong(tentCloth),
+        tentDark: lambert('#4f4632'),
+        wood: phong(wood),
+        woodDark: lambert('#4a3622'),
+        crate: phong(crate),
+        metal: phong(metal, { shininess: 18, specular: 0x222222 }),
+        metalBlue: new THREE.MeshPhongMaterial({ color: 0x2c3e50, shininess: 24, specular: 0x222233 }),
+        rock: phong(rock),
+        limestone: phong(limestone),
+        drum: phong(drum),
+        drumBlue: new THREE.MeshPhongMaterial({ color: 0x1e4f80, shininess: 14, specular: 0x111122 }),
+        tarp: phong(tarp),
+        frond: new THREE.MeshLambertMaterial({ map: frond, transparent: true, alphaTest: 0.35, side: THREE.DoubleSide }),
+        trunk: lambert('#6b4f2f'),
+        green: lambert('#2f5c22'),
+        dark: lambert('#14110c'),
+        terracotta: lambert('#9a5a33'),
+        sandbag: lambert('#8d7a4f'),
+        rope: lambert('#8a7448'),
+        glow: new THREE.MeshPhongMaterial({ color: 0x3a2a10, emissive: 0xe8b545, emissiveIntensity: 0.85 }),
+        window: new THREE.MeshPhongMaterial({ color: 0x1a1408, emissive: 0xd49a3a, emissiveIntensity: 0.5 }),
+        flame: new THREE.MeshBasicMaterial({ color: 0xe89030, transparent: true, opacity: 0.85 }),
+    };
+    return CH1M;
+}
+
+// Tiny placement helper
+function put(g, geo, mat, x, y, z, ry, rz, rx) {
+    const m = new THREE.Mesh(geo, mat);
+    m.position.set(x, y, z);
+    if (ry) m.rotation.y = ry;
+    if (rz) m.rotation.z = rz;
+    if (rx) m.rotation.x = rx;
+    g.add(m);
+    return m;
+}
+const gBox = (w, h, d) => new THREE.BoxGeometry(w, h, d);
+const gCyl = (rt, rb, h, n) => new THREE.CylinderGeometry(rt, rb, h, n || 8);
+
+// Gable triangle (for tent/shed ends)
+function gableGeo(w, h) {
+    const s = new THREE.Shape();
+    s.moveTo(-w / 2, 0); s.lineTo(w / 2, 0); s.lineTo(0, h); s.closePath();
+    return new THREE.ShapeGeometry(s);
+}
+
+// ---- SUB-BUILDERS (shared shapes) ----
+function subPalm(g, M, x, z, scale, rng) {
+    const lean = (rng() - 0.5) * 0.5;
+    const segs = 5;
+    let px = x, py = 0;
+    for (let i = 0; i < segs; i++) {
+        const h = 22 * scale;
+        const seg = put(g, gCyl(3.4 * scale * (1 - i * 0.09), 4.2 * scale * (1 - i * 0.09), h, 6), M.trunk,
+            px, py + h / 2, z, 0, lean * (i / segs));
+        px += Math.sin(lean) * h * (i / segs) * 0.7;
+        py += h * 0.96;
+    }
+    const top = py + 2;
+    for (let i = 0; i < 8; i++) {
+        const a = (i / 8) * Math.PI * 2 + rng() * 0.4;
+        const f = put(g, new THREE.PlaneGeometry(58 * scale, 13 * scale), M.frond,
+            px + Math.cos(a) * 24 * scale, top, z + Math.sin(a) * 24 * scale, -a, 0, 0);
+        f.rotation.z = -0.45 - rng() * 0.3;
+    }
+    for (let i = 0; i < 3; i++) { // dates
+        put(g, new THREE.SphereGeometry(2.6 * scale, 6, 5), M.terracotta,
+            px + (rng() - 0.5) * 8, top - 6 * scale, z + (rng() - 0.5) * 8);
+    }
+    return top + 8;
+}
+
+function subCrateStack(g, M, w, d, rng) {
+    const n = 2 + (rng() * 3 | 0);
+    let h = 0;
+    for (let i = 0; i < n; i++) {
+        const s = Math.min(w, d) * (0.5 + rng() * 0.3);
+        const ch = s * 0.8;
+        put(g, gBox(s, ch, s), M.crate,
+            (rng() - 0.5) * (w - s) * 0.5, (i < 2 ? ch / 2 : h + ch / 2), (rng() - 0.5) * (d - s) * 0.5,
+            (rng() - 0.5) * 0.5);
+        if (i >= 1) h += ch;
+        else h = Math.max(h, ch);
+    }
+    return h + 20;
+}
+
+function subDrums(g, M, mat, w, d, rng, count) {
+    const n = count || 3;
+    for (let i = 0; i < n; i++) {
+        const r = Math.min(w, d) * 0.22;
+        put(g, gCyl(r, r, r * 2.6, 10), mat,
+            (rng() - 0.5) * (w - r * 2) * 0.8, r * 1.3, (rng() - 0.5) * (d - r * 2) * 0.8);
+    }
+    return Math.min(w, d) * 0.6 + 16;
+}
+
+function subTable(g, M, w, d, h) {
+    put(g, gBox(w, 5, d), M.wood, 0, h, 0);
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
+        put(g, gBox(5, h, 5), M.woodDark, sx * (w / 2 - 5), h / 2, sz * (d / 2 - 5));
+    }
+    return h;
+}
+
+function subSandbags(g, M, w, d, rng, rows) {
+    let top = 0;
+    for (let r = 0; r < (rows || 2); r++) {
+        const n = Math.max(2, Math.round(w / 26));
+        for (let i = 0; i < n; i++) {
+            const b = put(g, new THREE.SphereGeometry(12, 7, 5), M.sandbag,
+                -w / 2 + 13 + i * (w - 26) / Math.max(1, n - 1) + (r % 2) * 6, 7 + r * 11, (rng() - 0.5) * (d * 0.3));
+            b.scale.set(1.15, 0.55, 0.8);
+        }
+        top = 13 + r * 11;
+    }
+    return top + 12;
+}
+
+function subShed(g, M, w, d, hWall, rng) {
+    put(g, gBox(w, hWall, d), M.wood, 0, hWall / 2, 0);
+    const roof = put(g, gBox(w + 14, 5, d + 16), M.metal, 0, hWall + 6, 0);
+    roof.rotation.x = 0.12;
+    put(g, gBox(w * 0.3, hWall * 0.62, 2), M.dark, 0, hWall * 0.31, d / 2 + 1.2); // door
+    return hWall + 18;
+}
+
+function subWheel(g, M, x, z, r) {
+    // wheel axis along Z (vehicles in Ch1 data are laid out along X)
+    const w = put(g, gCyl(r, r, r * 0.6, 10), M.dark, x, r, z);
+    w.rotation.x = Math.PI / 2;
+}
+
+// ---- PROP BUILDERS ----
+// Each receives the (scaled) map object and returns a THREE.Group
+// centered at the footprint center with userData.h = visual height.
+const CH1_BUILDERS = {
+
+    // — the three enterable buildings —
+    tent_bldg(o, M, rng) {
+        const g = new THREE.Group();
+        const w = o.w, d = o.h, wallH = 56, ridgeH = 102;
+        put(g, gBox(w, wallH, d), M.tent, 0, wallH / 2, 0);
+        const slope = Math.hypot(d / 2, ridgeH - wallH) + 8;
+        const ang = Math.atan2(ridgeH - wallH, d / 2);
+        for (const s of [-1, 1]) {
+            const r = put(g, gBox(w + 12, 4, slope), M.tent, 0, (wallH + ridgeH) / 2 + 2, s * d / 4);
+            r.rotation.x = -s * ang;
+        }
+        for (const s of [-1, 1]) {
+            const gable = put(g, gableGeo(w, ridgeH - wallH), M.tentDark, 0, wallH, s * (d / 2 - 0.5), s > 0 ? 0 : Math.PI);
+            gable.material = M.tent;
+        }
+        // ridge pole ends + corner ropes
+        for (const s of [-1, 1]) put(g, gCyl(2, 2, ridgeH + 8, 6), M.woodDark, 0, (ridgeH + 8) / 2, s * (d / 2 - 6));
+        for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
+            const rope = put(g, gCyl(0.8, 0.8, 70, 4), M.rope, sx * (w / 2 + 18), 26, sz * (d / 2 + 18));
+            rope.rotation.z = sx * 0.6;
+            rope.rotation.x = -sz * 0.6;
+        }
+        put(g, gBox(w * 0.22, wallH * 0.8, 3), M.tentDark, 0, wallH * 0.4, d / 2 + 1); // door flap
+        g.userData.h = ridgeH + 10;
+        return g;
+    },
+
+    dorm_bldg(o, M, rng) {
+        const g = new THREE.Group();
+        const w = o.w, d = o.h, wallH = 62;
+        put(g, gBox(w, wallH, d), M.wood, 0, wallH / 2, 0);
+        const roof = put(g, gBox(w + 16, 6, d + 18), M.tent, 0, wallH + 8, 0);
+        roof.rotation.x = 0.1;
+        for (let i = 0; i < 3; i++) { // lit windows — someone can't sleep
+            put(g, gBox(16, 12, 1.6), i === 1 ? M.window : M.dark, -w / 4 + i * w / 4, wallH * 0.62, d / 2 + 1);
+        }
+        put(g, gBox(22, wallH * 0.72, 2), M.dark, w * 0.32, wallH * 0.36, d / 2 + 1.2);
+        g.userData.h = wallH + 22;
+        return g;
+    },
+
+    foreman_bldg(o, M, rng) {
+        const g = new THREE.Group();
+        const w = o.w, d = o.h, wallH = 70;
+        put(g, gBox(w, wallH, d), M.wood, 0, wallH / 2, 0);
+        const roof = put(g, gBox(w + 18, 5, d + 20), M.metal, 0, wallH + 7, 0);
+        roof.rotation.x = -0.1;
+        put(g, gBox(20, 15, 1.6), M.window, -w / 4, wallH * 0.6, d / 2 + 1); // lamp burning late
+        put(g, gBox(24, wallH * 0.74, 2), M.woodDark, w / 4, wallH * 0.37, d / 2 + 1.2);
+        put(g, gBox(34, 10, 2), M.limestone, 0, wallH - 6, d / 2 + 1.4); // site board
+        g.userData.h = wallH + 20;
+        return g;
+    },
+
+    // door mats stay flat but read as worn thresholds
+    tent_door(o, M) { const g = new THREE.Group(); put(g, gBox(o.w, 2, o.h), ch1Mats().tentDark, 0, 1, 0); g.userData.h = 4; return g; },
+    dorm_door(o, M) { const g = new THREE.Group(); put(g, gBox(o.w, 2, o.h), ch1Mats().woodDark, 0, 1, 0); g.userData.h = 4; return g; },
+    foreman_door(o, M) { const g = new THREE.Group(); put(g, gBox(o.w, 2, o.h), ch1Mats().woodDark, 0, 1, 0); g.userData.h = 4; return g; },
+
+    // — the tunnel mouth: the reason everyone is here —
+    tunnel_mouth(o, M, rng) {
+        const g = new THREE.Group();
+        const w = o.w, d = o.h;
+        // cliff mass with a black opening
+        put(g, gBox(w, 190, d), M.rock, 0, 95, 0);
+        for (let i = 0; i < 6; i++) { // jagged crown
+            const bw = 60 + rng() * 110;
+            put(g, gBox(bw, 34 + rng() * 46, d * 0.7), M.rock, -w / 2 + bw / 2 + rng() * (w - bw), 190 + 16, (rng() - 0.5) * d * 0.2, (rng() - 0.5) * 0.2);
+        }
+        // the opening (south face), timber-framed
+        put(g, gBox(150, 116, 4), M.dark, 0, 58, d / 2 + 1.5);
+        for (const s of [-1, 1]) put(g, gBox(14, 124, 14), M.woodDark, s * 80, 62, d / 2 + 6);
+        put(g, gBox(190, 14, 16), M.woodDark, 0, 128, d / 2 + 6); // lintel
+        put(g, gBox(160, 8, 12), M.woodDark, 0, 112, d / 2 + 4);  // second beam
+        // rubble at the feet
+        for (let i = 0; i < 7; i++) {
+            const r = 8 + rng() * 14;
+            put(g, new THREE.IcosahedronGeometry(r, 0), M.rock, (rng() - 0.5) * w * 0.7, r * 0.6, d / 2 + 12 + rng() * 18);
+        }
+        g.userData.h = 200;
+        return g;
+    },
+
+    // — glyph stela (the lock puzzle) —
+    puzzle_glyph(o, M, rng) {
+        const g = new THREE.Group();
+        const w = o.w;
+        put(g, gBox(w, 14, o.h), M.limestone, 0, 7, 0); // plinth
+        put(g, gBox(w * 0.72, 120, 16), M.limestone, 0, 74, 0);
+        const cap = put(g, gCyl(w * 0.36, w * 0.36, 16, 12), M.limestone, 0, 134, 0);
+        cap.rotation.x = Math.PI / 2;
+        put(g, gBox(w * 0.5, 60, 2), M.glow, 0, 78, 9); // the lock face, faintly alive
+        g.userData.h = 150;
+        return g;
+    },
+
+    // — generator, satphone, Sam's gear —
+    generator(o, M, rng) {
+        const g = new THREE.Group();
+        put(g, gBox(o.w * 0.86, 42, o.h * 0.66), M.metal, 0, 23, 0);
+        put(g, gBox(o.w * 0.86, 4, o.h * 0.66), M.dark, 0, 46, 0);
+        put(g, gCyl(4, 4, 26, 6), M.dark, o.w * 0.26, 58, 0);          // exhaust
+        put(g, gCyl(9, 9, 12, 8), M.drum, -o.w * 0.24, 50, 0);         // fuel cap
+        put(g, gBox(o.w * 0.5, 8, 4), M.dark, 0, 14, o.h * 0.33 + 2);  // vents
+        g.userData.h = 70;
+        return g;
+    },
+
+    satphone(o, M) {
+        const g = new THREE.Group();
+        subTable(g, M, o.w * 1.6, o.h * 1.4, 30);
+        put(g, gBox(14, 8, 20), M.dark, 0, 34, 0);
+        put(g, gCyl(1.2, 1.2, 26, 4), M.dark, 8, 48, -4); // antenna
+        g.userData.h = 62;
+        return g;
+    },
+
+    sams_gear(o, M, rng) {
+        const g = new THREE.Group();
+        for (let i = 0; i < 3; i++) { // half-buried tripod, listing
+            const a = (i / 3) * Math.PI * 2;
+            const leg = put(g, gCyl(1.6, 1.6, 46, 5), M.woodDark, Math.cos(a) * 12, 14, Math.sin(a) * 12);
+            leg.rotation.z = Math.cos(a) * 0.5;
+            leg.rotation.x = Math.sin(a) * 0.5 + 0.22;
+        }
+        put(g, gBox(16, 10, 10), M.drum, 2, 34, 0, 0.5, 0.18); // brass transit, askew
+        g.userData.h = 46;
+        return g;
+    },
+
+    // — supply line carts —
+    carts(o, M, rng) {
+        const g = new THREE.Group();
+        const w = o.w, d = o.h;
+        for (const s of [-1, 1]) put(g, gBox(w, 3, 4), M.dark, 0, 2, s * d * 0.16); // rails
+        for (let i = 0; i < 4; i++) put(g, gBox(8, 2.4, d * 0.42), M.woodDark, -w / 2 + 18 + i * (w - 36) / 3, 1.2, 0); // ties
+        for (const cx of [-w * 0.22, w * 0.18]) {
+            put(g, gBox(w * 0.3, 26, d * 0.42), M.metal, cx, 22, 0);
+            put(g, gBox(w * 0.26, 8, d * 0.34), M.sand, cx, 38, 0); // spoil heaped in the cart
+            for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
+                put(g, gCyl(5, 5, 3, 8), M.dark, cx + sx * w * 0.1, 5, sz * d * 0.17, 0, 0, Math.PI / 2);
+            }
+        }
+        g.userData.h = 48;
+        return g;
+    },
+
+    // — rest brazier (fire) —
+    rest_brazier(o, M, rng) {
+        const g = new THREE.Group();
+        for (let i = 0; i < 3; i++) {
+            const a = (i / 3) * Math.PI * 2;
+            const leg = put(g, gCyl(1.8, 1.8, 40, 5), M.dark, Math.cos(a) * 12, 20, Math.sin(a) * 12);
+            leg.rotation.z = Math.cos(a) * 0.3;
+            leg.rotation.x = -Math.sin(a) * 0.3;
+        }
+        put(g, gCyl(o.w * 0.42, o.w * 0.28, 14, 10), M.metal, 0, 40, 0);
+        put(g, new THREE.SphereGeometry(o.w * 0.3, 8, 6), M.glow, 0, 46, 0).scale.set(1, 0.45, 1);
+        const fl = put(g, gCyl(2, o.w * 0.22, 22, 7), M.flame, 0, 58, 0);
+        fl.userData.flame = true;
+        g.userData.h = 72;
+        return g;
+    },
+
+    // — perimeter watch post —
+    perimeter(o, M, rng) {
+        const g = new THREE.Group();
+        subSandbags(g, M, o.w * 1.4, o.h, rng, 2);
+        put(g, gBox(18, 14, 18), M.crate, o.w * 0.5, 7, -4); // a crate to sit on
+        g.userData.h = 40;
+        return g;
+    },
+
+    // The parked ministry car is the dynamic carGroup — this static
+    // interact zone needs no mesh of its own, only its floating label
+    inspector(o, M) {
+        const g = new THREE.Group();
+        g.userData.h = 60;
+        return g;
+    },
+
+    // — dig zone gate (wooden barrier) —
+    dig_gate(o, M) {
+        const g = new THREE.Group();
+        for (const s of [-1, 1]) put(g, gBox(10, 64, 10), M.woodDark, s * (o.w / 2 - 6), 32, 0);
+        put(g, gBox(o.w - 16, 9, 5), M.wood, 0, 48, 0, 0, 0.02);
+        put(g, gBox(o.w - 16, 9, 5), M.wood, 0, 26, 0, 0, -0.02);
+        g.userData.h = 70;
+        return g;
+    },
+};
+
+// Label-keyed builders for the repeated set dressing
+const CH1_LABEL_BUILDERS = {
+    'cactus': (o, M, rng) => {
+        const g = new THREE.Group();
+        const h = o.h * 1.3;
+        put(g, gCyl(o.w * 0.34, o.w * 0.4, h, 7), M.green, 0, h / 2, 0);
+        if (rng() > 0.4) { // an arm
+            const s = rng() > 0.5 ? 1 : -1;
+            put(g, gCyl(o.w * 0.22, o.w * 0.24, h * 0.4, 6), M.green, s * o.w * 0.5, h * 0.42, 0, 0, s * 1.2);
+            put(g, gCyl(o.w * 0.22, o.w * 0.24, h * 0.36, 6), M.green, s * o.w * 0.72, h * 0.62, 0);
+        }
+        g.userData.h = h + 8;
+        return g;
+    },
+    'boulder': (o, M, rng) => {
+        const g = new THREE.Group();
+        const r = Math.min(o.w, o.h) * 0.55;
+        put(g, new THREE.IcosahedronGeometry(r, 0), M.rock, 0, r * 0.72, 0, rng() * 3).scale.set(1.15, 0.85, 1);
+        if (rng() > 0.5) put(g, new THREE.IcosahedronGeometry(r * 0.45, 0), M.rock, r * 0.9, r * 0.32, r * 0.4, rng() * 3);
+        g.userData.h = r * 1.6;
+        return g;
+    },
+    'rock pile': (o, M, rng) => {
+        const g = new THREE.Group();
+        for (let i = 0; i < 6; i++) {
+            const r = 7 + rng() * Math.min(o.w, o.h) * 0.22;
+            put(g, new THREE.IcosahedronGeometry(r, 0), M.rock, (rng() - 0.5) * o.w * 0.7, r * 0.7, (rng() - 0.5) * o.h * 0.7, rng() * 3);
+        }
+        g.userData.h = Math.min(o.w, o.h) * 0.5 + 10;
+        return g;
+    },
+    'spoil mound': (o, M, rng) => {
+        const g = new THREE.Group();
+        const r = Math.min(o.w, o.h) * 0.6, h = 26 + rng() * 18;
+        put(g, gCyl(r * 0.1, r, h, 9), M.sand, 0, h / 2, 0);
+        for (let i = 0; i < 4; i++) put(g, new THREE.IcosahedronGeometry(4 + rng() * 5, 0), M.rock, (rng() - 0.5) * r * 1.4, 4, (rng() - 0.5) * r * 1.4);
+        g.userData.h = h + 8;
+        return g;
+    },
+    'howling dune': (o, M, rng) => {
+        const g = new THREE.Group();
+        const dome = put(g, new THREE.SphereGeometry(Math.min(o.w, o.h) * 0.9, 10, 7), M.sand, 0, 0, 0);
+        dome.scale.set(1.4, 0.32, 1);
+        g.userData.h = Math.min(o.w, o.h) * 0.32 + 10;
+        return g;
+    },
+    'survey stake': (o, M, rng) => {
+        const g = new THREE.Group();
+        const h = o.h * 1.1;
+        put(g, gBox(4, h, 4), M.woodDark, 0, h / 2, 0, 0, 0, (rng() - 0.5) * 0.12);
+        put(g, gBox(14, 8, 0.8), new THREE.MeshLambertMaterial({ color: 0xb8412a }), 8, h - 6, 0); // flag
+        g.userData.h = h + 6;
+        return g;
+    },
+    "sam's survey stake": (o, M, rng) => CH1_LABEL_BUILDERS['survey stake'](o, M, rng),
+    'stone wall': (o, M, rng) => {
+        const g = new THREE.Group();
+        const horizontal = o.w >= o.h;
+        const len = Math.max(o.w, o.h), th = Math.min(o.w, o.h) * 1.6;
+        const blocks = Math.max(2, Math.round(len / 42));
+        for (let row = 0; row < 3; row++) {
+            const n = row === 2 ? Math.max(1, blocks - 2) : blocks; // broken top course
+            for (let i = 0; i < n; i++) {
+                const bw = len / blocks - 3;
+                const off = -len / 2 + (i + 0.5) * (len / blocks) + (row % 2) * 8;
+                const b = put(g, gBox(horizontal ? bw : th, 19, horizontal ? th : bw), M.limestone,
+                    horizontal ? off : (rng() - 0.5) * 4, 10 + row * 19, horizontal ? (rng() - 0.5) * 4 : off,
+                    (rng() - 0.5) * 0.06);
+                b.position.y -= row === 2 && rng() > 0.6 ? 6 : 0;
+            }
+        }
+        g.userData.h = 64;
+        return g;
+    },
+    'old limestone wall': (o, M, rng) => CH1_LABEL_BUILDERS['stone wall'](o, M, rng),
+    'crates': (o, M, rng) => { const g = new THREE.Group(); g.userData.h = subCrateStack(g, M, o.w, o.h, rng); return g; },
+    'sorted crates': (o, M, rng) => { const g = new THREE.Group(); g.userData.h = subCrateStack(g, M, o.w, o.h, rng); return g; },
+    'fuel drums': (o, M, rng) => { const g = new THREE.Group(); g.userData.h = subDrums(g, M, M.drum, o.w, o.h, rng, 3); return g; },
+    'oil drum': (o, M, rng) => { const g = new THREE.Group(); g.userData.h = subDrums(g, M, M.drum, o.w, o.h, rng, 1); return g; },
+    'water barrels': (o, M, rng) => { const g = new THREE.Group(); g.userData.h = subDrums(g, M, M.drumBlue, o.w, o.h, rng, 3); return g; },
+    'cooking table': (o, M, rng) => {
+        const g = new THREE.Group();
+        subTable(g, M, o.w, o.h * 1.6, 30);
+        put(g, gCyl(9, 7, 10, 8), M.metal, -o.w * 0.25, 38, 0);
+        put(g, gCyl(7, 6, 7, 8), M.terracotta, o.w * 0.05, 36, 6);
+        put(g, gBox(16, 3, 10), M.woodDark, o.w * 0.3, 33, -4); // cutting board
+        g.userData.h = 52;
+        return g;
+    },
+    'equipment table': (o, M, rng) => {
+        const g = new THREE.Group();
+        subTable(g, M, o.w, o.h * 1.5, 30);
+        put(g, gBox(14, 6, 9), M.drum, -o.w * 0.3, 36, 0, 0.3);
+        put(g, gBox(18, 4, 12), M.dark, o.w * 0.2, 35, 2, -0.2);
+        g.userData.h = 46;
+        return g;
+    },
+    'supply truck': (o, M, rng) => {
+        const g = new THREE.Group();
+        const w = o.w, d = o.h;
+        put(g, gBox(w * 0.3, 34, d * 0.8), M.metalBlue, -w * 0.32, 30, 0);                 // cab
+        put(g, gBox(w * 0.28, 12, d * 0.7), M.dark, -w * 0.33, 47, 0);                     // windows band
+        put(g, gBox(w * 0.62, 30, d * 0.86), M.tarp, w * 0.16, 36, 0);                     // covered bed
+        for (const wx of [-w * 0.32, w * 0.02, w * 0.34]) {
+            subWheel(g, M, wx, d * 0.42, 11);
+            subWheel(g, M, wx, -d * 0.42, 11);
+        }
+        g.userData.h = 58;
+        return g;
+    },
+    'ministry vehicle': (o, M, rng) => {
+        const g = new THREE.Group();
+        const w = o.w, d = o.h;
+        put(g, gBox(w * 0.86, 22, d * 0.74), M.metalBlue, 0, 22, 0);
+        put(g, gBox(w * 0.5, 15, d * 0.62), M.dark, -w * 0.04, 41, 0);
+        for (const wx of [-w * 0.28, w * 0.28]) {
+            subWheel(g, M, wx, d * 0.4, 9);
+            subWheel(g, M, wx, -d * 0.4, 9);
+        }
+        g.userData.h = 52;
+        return g;
+    },
+    'sandbags': (o, M, rng) => { const g = new THREE.Group(); g.userData.h = subSandbags(g, M, o.w, o.h, rng, 2); return g; },
+    'rope coil': (o, M, rng) => {
+        const g = new THREE.Group();
+        put(g, new THREE.TorusGeometry(o.w * 0.4, 5, 6, 12), M.rope, 0, 5, 0, 0, 0, Math.PI / 2);
+        put(g, new THREE.TorusGeometry(o.w * 0.34, 4.4, 6, 12), M.rope, 2, 11, 1, 0, 0, Math.PI / 2);
+        g.userData.h = 18;
+        return g;
+    },
+    'tin bucket': (o, M) => {
+        const g = new THREE.Group();
+        put(g, gCyl(o.w * 0.42, o.w * 0.3, o.w * 0.8, 9), ch1Mats().metal, 0, o.w * 0.4, 0);
+        g.userData.h = o.w * 0.8 + 8;
+        return g;
+    },
+    'tarped supplies': (o, M, rng) => {
+        const g = new THREE.Group();
+        const b = put(g, gBox(o.w, 30, o.h), M.tarp, 0, 16, 0);
+        b.rotation.z = 0.04;
+        put(g, gBox(o.w * 0.5, 14, o.h * 0.7), M.tarp, -o.w * 0.18, 38, 0, 0.2);
+        for (const sx of [-0.3, 0.15]) put(g, gBox(3, 34, o.h + 6), M.rope, o.w * sx, 17, 0); // straps
+        g.userData.h = 50;
+        return g;
+    },
+    'radio antenna': (o, M) => {
+        const g = new THREE.Group();
+        put(g, gCyl(1.4, 2, 130, 5), ch1Mats().dark, 0, 65, 0);
+        put(g, gBox(26, 1.6, 1.6), ch1Mats().dark, 0, 112, 0);
+        put(g, gBox(16, 1.6, 1.6), ch1Mats().dark, 0, 96, 0, 0.6);
+        g.userData.h = 134;
+        return g;
+    },
+    'tool box': (o, M, rng) => {
+        const g = new THREE.Group();
+        put(g, gBox(o.w, 16, o.h * 0.8), M.drum, 0, 8, 0, (rng() - 0.5) * 0.4);
+        put(g, gBox(o.w * 0.7, 2.4, 3), M.dark, 0, 19, 0); // handle
+        g.userData.h = 24;
+        return g;
+    },
+    'driftwood': (o, M, rng) => {
+        const g = new THREE.Group();
+        put(g, gCyl(3.4, 5, o.w, 6), M.woodDark, 0, 6, 0, 0, Math.PI / 2 - 0.1, 0.06);
+        put(g, gCyl(2, 3, o.w * 0.5, 5), M.woodDark, o.w * 0.2, 8, 6, 0, Math.PI / 2 + 0.5);
+        g.userData.h = 16;
+        return g;
+    },
+    'broken clay pot': (o, M, rng) => {
+        const g = new THREE.Group();
+        const pot = put(g, new THREE.SphereGeometry(o.w * 0.6, 8, 6, 0, Math.PI * 2, 0, 2.2), M.terracotta, 0, o.w * 0.5, 0, 0, 0.5);
+        pot.material = M.terracotta;
+        for (let i = 0; i < 3; i++) { // shards
+            put(g, gBox(8, 1.6, 6), M.terracotta, (rng() - 0.5) * o.w * 1.6, 1, (rng() - 0.5) * o.h * 1.6, rng() * 3);
+        }
+        g.userData.h = o.w + 8;
+        return g;
+    },
+    'work lamp': (o, M) => {
+        const g = new THREE.Group();
+        const mats = ch1Mats();
+        for (let i = 0; i < 3; i++) {
+            const a = (i / 3) * Math.PI * 2;
+            const leg = put(g, gCyl(1.4, 1.4, 60, 5), mats.dark, Math.cos(a) * 13, 30, Math.sin(a) * 13);
+            leg.rotation.z = Math.cos(a) * 0.24;
+            leg.rotation.x = -Math.sin(a) * 0.24;
+        }
+        put(g, gCyl(1.6, 1.6, 34, 5), mats.dark, 0, 74, 0);
+        put(g, gBox(18, 12, 8), mats.metal, 0, 94, 0, 0, 0, 0.3);
+        put(g, gBox(14, 8, 1.6), mats.glow, 0, 92, 5, 0, 0, 0.3); // the lit face
+        g.userData.h = 100;
+        return g;
+    },
+    'lantern': (o, M) => {
+        const g = new THREE.Group();
+        const mats = ch1Mats();
+        put(g, gCyl(1.4, 1.8, 40, 5), mats.woodDark, 0, 20, 0);
+        put(g, gBox(9, 11, 9), mats.glow, 0, 44, 0);
+        put(g, gBox(11, 1.6, 11), mats.dark, 0, 50.5, 0);
+        g.userData.h = 54;
+        return g;
+    },
+    'palm tree': (o, M, rng) => {
+        const g = new THREE.Group();
+        g.userData.h = subPalm(g, M, 0, 0, 1.0 + rng() * 0.3, rng);
+        return g;
+    },
+    "sam's date palm": (o, M, rng) => {
+        const g = new THREE.Group();
+        g.userData.h = subPalm(g, M, 0, 0, 1.15, rng);
+        put(g, gCyl(10, 12, 6, 8), M.terracotta, 16, 3, 14); // someone keeps it watered
+        return g;
+    },
+    'camp gate post': (o, M, rng) => {
+        const g = new THREE.Group();
+        put(g, gBox(o.w * 0.7, o.h * 1.5, o.w * 0.7), M.woodDark, 0, o.h * 0.75, 0);
+        put(g, gBox(9, 11, 9), M.glow, 0, o.h * 1.5 + 7, 0);
+        g.userData.h = o.h * 1.5 + 14;
+        return g;
+    },
+    "sam's tool shed": (o, M, rng) => {
+        const g = new THREE.Group();
+        g.userData.h = subShed(g, M, o.w, o.h, 62, rng);
+        return g;
+    },
+    'dig shed clipboard': (o, M, rng) => {
+        const g = new THREE.Group();
+        // the clipboard hangs on the shed wall (the shed itself is built
+        // from its collision wall); just a small board + pencil string
+        put(g, gBox(2, 26, 18), M.wood, 0, 44, 0);
+        put(g, gBox(1, 18, 12), new THREE.MeshLambertMaterial({ color: 0xcfc4a6 }), 1.6, 44, 0);
+        g.userData.h = 60;
+        return g;
+    },
+    'ministry post': (o, M, rng) => {
+        const g = new THREE.Group();
+        put(g, gCyl(1.8, 2.4, 96, 6), M.metal, -o.w * 0.2, 48, 0);
+        put(g, gBox(26, 16, 1.4), new THREE.MeshLambertMaterial({ color: 0x274060 }), -o.w * 0.2 + 14, 84, 0); // flag
+        put(g, gBox(30, 22, 3), M.wood, o.w * 0.2, 30, 0, 0.15); // notice board
+        g.userData.h = 100;
+        return g;
+    },
+    'guard booth': (o, M, rng) => {
+        const g = new THREE.Group();
+        put(g, gBox(o.w * 0.9, 70, o.h * 0.9), M.metal, 0, 35, 0);
+        put(g, gBox(o.w * 0.62, 18, 1.6), M.dark, 0, 48, o.h * 0.45 + 1);
+        put(g, gBox(o.w + 14, 4, o.h + 14), M.metalBlue, 0, 73, 0);
+        g.userData.h = 78;
+        return g;
+    },
+    'scaffolding': (o, M, rng) => {
+        const g = new THREE.Group();
+        const w = o.w, d = o.h, H = 96;
+        for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
+            put(g, gCyl(1.6, 1.6, H, 5), M.metal, sx * w * 0.4, H / 2, sz * d * 0.4);
+        }
+        for (const y of [30, 64]) {
+            for (const sz of [-1, 1]) put(g, gCyl(1.2, 1.2, w * 0.8, 4), M.metal, 0, y, sz * d * 0.4, 0, 0, Math.PI / 2);
+        }
+        put(g, gBox(w * 0.9, 4, d * 0.9), M.wood, 0, 78, 0);
+        g.userData.h = H + 6;
+        return g;
+    },
+    'site trailer': (o, M, rng) => {
+        const g = new THREE.Group();
+        const w = o.w, d = o.h;
+        put(g, gBox(w, 52, d * 0.92), M.metal, 0, 40, 0);
+        put(g, gBox(w + 8, 3, d * 0.92 + 8), M.dark, 0, 67, 0);
+        for (let i = 0; i < 3; i++) put(g, gBox(18, 13, 1.6), i === 0 ? M.window : M.dark, -w / 4 + i * w / 4, 48, d * 0.46 + 1);
+        put(g, gBox(20, 36, 1.8), M.dark, w * 0.34, 32, d * 0.46 + 1.2);          // door
+        put(g, gBox(16, 10, 12), M.metal, -w * 0.3, 72, 0);                       // AC unit
+        subWheel(g, M, -w * 0.26, d * 0.46, 9); subWheel(g, M, w * 0.26, d * 0.46, 9);
+        subWheel(g, M, -w * 0.26, -d * 0.46, 9); subWheel(g, M, w * 0.26, -d * 0.46, 9);
+        put(g, gBox(8, 10, 8), M.crate, -w / 2 - 10, 5, d * 0.3); // step crate
+        g.userData.h = 84;
+        return g;
+    },
+    'gear storage': (o, M, rng) => {
+        const g = new THREE.Group();
+        const b = put(g, gBox(o.w * 0.94, 40, o.h * 0.9), M.tarp, 0, 21, 0);
+        b.rotation.z = 0.03;
+        put(g, gBox(o.w * 0.5, 18, o.h * 0.6), M.tarp, o.w * 0.1, 48, 0, 0.25);
+        for (const sx of [-0.32, 0, 0.32]) put(g, gBox(3, 44, o.h * 0.96), M.rope, o.w * sx, 22, 0);
+        g.userData.h = 60;
+        return g;
+    },
+    'open sky': (o, M, rng) => {
+        const g = new THREE.Group();
+        // a bedroll where someone lies back and watches the stars
+        const roll = put(g, gBox(o.w * 1.2, 8, o.h * 0.6), M.tarp, 0, 4, 0, 0.3);
+        put(g, gBox(o.w * 0.34, 8, o.h * 0.3), M.tent, -o.w * 0.45, 6, o.h * 0.12, 0.3); // pillow
+        put(g, gBox(9, 11, 9), M.glow, o.w * 0.5, 6, -o.h * 0.3); // lantern beside it
+        g.userData.h = 20;
+        return g;
+    },
+};
+
+// Resolve a label-keyed builder: exact key, then containment
+function ch1LabelBuilder(o) {
+    const l = (o.label || '').toLowerCase();
+    if (CH1_LABEL_BUILDERS[l]) return CH1_LABEL_BUILDERS[l];
+    for (const key in CH1_LABEL_BUILDERS) {
+        if (l.includes(key)) return CH1_LABEL_BUILDERS[key];
+    }
+    return null;
+}
+
+// Walls mostly covered by a prop's footprint are part of that prop
+// (building shells, the cooking table, gear storage, the generator…)
+function ch1WallInsideObject(wall) {
+    for (const o of (activeMapObjects || [])) {
+        const ox = Math.max(0, Math.min(wall.x + wall.w, o.x + o.w) - Math.max(wall.x, o.x));
+        const oz = Math.max(0, Math.min(wall.y + wall.h, o.y + o.h) - Math.max(wall.y, o.y));
+        if (ox * oz >= wall.w * wall.h * 0.4) return true;
+    }
+    return false;
+}
+
+// Walls that ARE structures get bespoke treatment (keyed by scaled rect)
+const near = (a, b) => Math.abs(a - b) < 2;
+function ch1WallStyle(wall) {
+    if (near(wall.x, 1440) && near(wall.y, 1408)) return 'shed';      // the dig shed
+    if (near(wall.x, 2840) && near(wall.w, 280)) return 'plank';      // trench cross-braces
+    if ((near(wall.x, 2800) || near(wall.x, 3120)) && near(wall.h, 720)) return 'berm'; // trench lips
+    return null;
+}
+
+// Custom wall rendering for the Ch1 camp. Returns true when handled.
+function buildCh1Wall(group, wall, palette) {
+    const M = ch1Mats();
+    const minDim = Math.min(wall.w, wall.h);
+    const maxDim = Math.max(wall.w, wall.h);
+    const cx = wall.x + wall.w / 2, cz = wall.y + wall.h / 2;
+    const touchesEdge = wall.x <= 0 || wall.y <= 0 ||
+        wall.x + wall.w >= WORLD.width || wall.y + wall.h >= WORLD.height;
+
+    if (wall.isGate) return false; // gate keeps its (wood-textured) box
+
+    const style = ch1WallStyle(wall);
+    if (style === 'shed') {
+        const g = new THREE.Group();
+        g.position.set(cx, 0, cz);
+        subShed(g, M, wall.w, wall.h, 64, seededRng('digshed'));
+        group.add(g);
+        return true;
+    }
+    if (style === 'plank') { // walk boards across the trench
+        put(group, gBox(wall.w, 10, wall.h), M.wood, cx, 5, cz);
+        return true;
+    }
+    if (style === 'berm') { // low spoil lips flanking the trench
+        put(group, gBox(wall.w + 10, 26, wall.h), M.sand, cx, 13, cz);
+        for (let i = 0; i < 6; i++) {
+            const rr = 6 + (i * 7) % 9;
+            put(group, new THREE.IcosahedronGeometry(rr, 0), M.rock, cx, rr * 0.7, wall.y + (i + 0.5) * wall.h / 6, i * 1.7);
+        }
+        return true;
+    }
+
+    // Rope fence around the tent compound (very thin strips)
+    if (minDim <= 22 && maxDim >= 140) {
+        const horizontal = wall.w >= wall.h;
+        const len = maxDim;
+        const posts = Math.max(2, Math.round(len / 150));
+        for (let i = 0; i < posts; i++) {
+            const t = posts === 1 ? 0.5 : i / (posts - 1);
+            const px = horizontal ? wall.x + t * wall.w : cx;
+            const pz = horizontal ? cz : wall.y + t * wall.h;
+            put(group, gCyl(2.2, 2.6, 40, 5), M.woodDark, px, 20, pz);
+        }
+        const rope = put(group, gCyl(1.1, 1.1, len, 4), M.rope, cx, 34, cz);
+        rope.rotation.z = horizontal ? Math.PI / 2 : 0;
+        if (!horizontal) rope.rotation.x = Math.PI / 2, rope.rotation.z = 0;
+        return true;
+    }
+
+    // Camp fences: post-and-rail (thin, long)
+    if (minDim <= 36 && maxDim >= 480 && !touchesEdge) {
+        const horizontal = wall.w >= wall.h;
+        const len = maxDim;
+        const posts = Math.max(3, Math.round(len / 120));
+        for (let i = 0; i < posts; i++) {
+            const t = i / (posts - 1);
+            const px = horizontal ? wall.x + t * wall.w : cx;
+            const pz = horizontal ? cz : wall.y + t * wall.h;
+            put(group, gBox(7, 52, 7), M.woodDark, px, 26, pz);
+        }
+        for (const y of [20, 44]) {
+            put(group, gBox(horizontal ? len : 5, 6, horizontal ? 5 : len), M.wood, cx, y, cz);
+        }
+        return true;
+    }
+
+    return false; // default extruded box (rock-textured via wall material)
+}
 // type 'ext' = open night sky (moon, stars); 'und' = underground
 // (ceiling, dense fog, amber point lights); 'int' = building interior.
 // fog: [near, far] at CALM sanity — fog closes in as sanity drops.
@@ -491,6 +1359,7 @@ function buildWorld() {
     scene3 = new THREE.Scene();
     worldGroup = new THREE.Group();
     flickerLights = [];
+    flameMeshes = [];
     heartFX = null;
 
     const atmos = atmosForCurrentMap();
@@ -511,10 +1380,13 @@ function buildWorld() {
     fogBase = atmos.fog.slice();
     scene3.fog = new THREE.Fog(fogCol, fogBase[0], fogBase[1]);
 
-    // Ground plane (Phong: point lights evaluated per pixel)
+    // Ground plane (Phong: point lights evaluated per pixel).
+    // The Ch1 camp gets real sand; other maps keep their palette color.
     const ground = new THREE.Mesh(
         new THREE.PlaneGeometry(WORLD.width, WORLD.height),
-        new THREE.MeshPhongMaterial({ color: groundCol, shininess: 4, specular: 0x0a0a0a })
+        currentMapKey === 1
+            ? ch1Mats().sand
+            : new THREE.MeshPhongMaterial({ color: groundCol, shininess: 4, specular: 0x0a0a0a })
     );
     ground.rotation.x = -Math.PI / 2;
     ground.position.set(WORLD.width / 2, 0, WORLD.height / 2);
@@ -592,12 +1464,30 @@ function buildWorld() {
         color: new THREE.Color(palette.wallFill).lerp(new THREE.Color('#998c70'), atmos.type === 'und' ? 0.4 : 0.25),
         shininess: 6, specular: 0x111111
     });
-    const gateMat = new THREE.MeshPhongMaterial({ color: 0x8b6914, shininess: 10, specular: 0x222211 });
+    const gateMat = currentMapKey === 1
+        ? ch1Mats().wood
+        : new THREE.MeshPhongMaterial({ color: 0x8b6914, shininess: 10, specular: 0x222211 });
     for (const wall of (mapWalls[currentMapKey] || [])) {
         if (!wall.isGate && objectRects.has(`${wall.x},${wall.y},${wall.w},${wall.h}`)) continue;
+        if (currentMapKey === 1 && !wall.isGate) {
+            if (ch1WallInsideObject(wall)) continue;       // shell of a built prop
+            if (buildCh1Wall(worldGroup, wall, palette)) continue; // fence/rope/shed/trench
+        }
         const h = wallHeightFor(wall, atmos);
-        const mesh = addBoxAt(worldGroup, wall.x, wall.y, wall.w, wall.h, h, wall.isGate ? gateMat : wallMat);
+        const mesh = addBoxAt(worldGroup, wall.x, wall.y, wall.w, wall.h, h,
+            wall.isGate ? gateMat : (currentMapKey === 1 ? ch1Mats().rock : wallMat));
         if (wall.isGate) gateMeshes.push({ mesh, gateFlag: wall.gateFlag });
+        // Rocky outcrops get a jagged crown so they read as rock, not box
+        if (currentMapKey === 1 && !wall.isGate && Math.min(wall.w, wall.h) >= 150) {
+            const rng = seededRng(wall.x + ',' + wall.y);
+            for (let i = 0; i < 4; i++) {
+                const bw = wall.w * (0.18 + rng() * 0.2);
+                const bh = 22 + rng() * 36;
+                put(worldGroup, gBox(bw, bh, wall.h * (0.4 + rng() * 0.35)), ch1Mats().rock,
+                    wall.x + bw / 2 + rng() * (wall.w - bw), h + bh / 2 - 6,
+                    wall.y + wall.h / 2 + (rng() - 0.5) * wall.h * 0.3, (rng() - 0.5) * 0.3);
+            }
+        }
     }
 
     // --- Map objects (interactables get labels, decoratives are plain) ---
@@ -672,6 +1562,27 @@ function buildWorld() {
             }
             objectEntries.push({ o, mesh: feature, label });
             continue;
+        }
+        // Chapter 1 art pass: bespoke props instead of extruded boxes
+        if (currentMapKey === 1) {
+            const builder = CH1_BUILDERS[o.id] || ch1LabelBuilder(o);
+            if (builder) {
+                const M = ch1Mats();
+                const rng = seededRng(o.id || o.label || 'x');
+                const g = builder(o, M, rng);
+                g.position.set(o.x + o.w / 2, 0, o.y + o.h / 2);
+                worldGroup.add(g);
+                g.traverse(m => { if (m.userData && m.userData.flame) flameMeshes.push(m); });
+                let label = null;
+                if (!o.decorative && o.interactScene) {
+                    label = makeLabelSprite(o.label || o.id, '#f4e4b0');
+                    label.position.set(o.x + o.w / 2, (g.userData.h || 60) + 22, o.y + o.h / 2);
+                    worldGroup.add(label);
+                }
+                objectEntries.push({ o, mesh: g, label });
+                if (isLightSource(o)) lightBudget.push({ o, h: Math.min(g.userData.h || 40, 100) });
+                continue;
+            }
         }
         const h = objectHeightFor(o, atmos);
         const matOpts = { color: new THREE.Color(o.color || '#777'), shininess: 6, specular: 0x0d0d0d };
@@ -991,20 +1902,38 @@ let carGroup = null;
 
 function buildMinistryCar() {
     carGroup = new THREE.Group();
-    const body = new THREE.Mesh(
-        new THREE.BoxGeometry(ministeryCar.w, 26, ministeryCar.h),
-        new THREE.MeshLambertMaterial({ color: 0x1e2a3a })
-    );
-    body.position.y = 13;
+    const w = ministeryCar.w, d = ministeryCar.h;
+    const bodyMat = new THREE.MeshPhongMaterial({ color: 0x1e2a3a, shininess: 30, specular: 0x223344 });
+    const darkMat = new THREE.MeshLambertMaterial({ color: 0x10131a });
+    const body = new THREE.Mesh(new THREE.BoxGeometry(w * 0.94, 18, d), bodyMat);
+    body.position.y = 16;
     carGroup.add(body);
-    const roof = new THREE.Mesh(
-        new THREE.BoxGeometry(ministeryCar.w - 24, 16, ministeryCar.h - 16),
-        new THREE.MeshLambertMaterial({ color: 0x2d3e52 })
-    );
-    roof.position.y = 26 + 8;
-    carGroup.add(roof);
+    const cabin = new THREE.Mesh(new THREE.BoxGeometry(w * 0.52, 14, d * 0.84), bodyMat);
+    cabin.position.set(-w * 0.05, 31, 0);
+    carGroup.add(cabin);
+    const windows = new THREE.Mesh(new THREE.BoxGeometry(w * 0.54, 8, d * 0.86), darkMat);
+    windows.position.set(-w * 0.05, 30, 0);
+    carGroup.add(windows);
+    for (const sx of [-w * 0.3, w * 0.3]) {
+        for (const sz of [-d * 0.42, d * 0.42]) {
+            const wheel = new THREE.Mesh(new THREE.CylinderGeometry(7, 7, 5, 10), darkMat);
+            wheel.position.set(sx, 7, sz);
+            wheel.rotation.x = Math.PI / 2;
+            carGroup.add(wheel);
+        }
+    }
+    for (const sz of [-1, 1]) { // headlights face the camp as it noses in
+        const lamp = new THREE.Mesh(new THREE.BoxGeometry(6, 4, 3),
+            new THREE.MeshPhongMaterial({ color: 0x222211, emissive: 0xd8cf9a, emissiveIntensity: 0.9 }));
+        lamp.position.set(sz * w * 0.3, 16, -d / 2 - 1);
+        carGroup.add(lamp);
+    }
+    const plate = new THREE.Mesh(new THREE.BoxGeometry(12, 5, 1.4),
+        new THREE.MeshLambertMaterial({ color: 0xcfc4a6 }));
+    plate.position.set(0, 12, d / 2 + 1);
+    carGroup.add(plate);
     const label = makeLabelSprite('Ministry Car', '#f4e4b0');
-    label.position.y = 60;
+    label.position.y = 62;
     carGroup.add(label);
     carGroup.visible = false;
     scene3.add(carGroup);
@@ -1257,6 +2186,15 @@ function updateAtmosphere3d() {
         if (f.steady) continue;
         f.light.intensity = f.base * (0.86 + 0.10 * Math.sin(t * 9 + f.phase)
                                            + 0.06 * Math.sin(t * 23 + f.phase * 1.7));
+    }
+
+    // Open flames dance (brazier cones from the Ch1 props)
+    for (const f of flameMeshes) {
+        const ph = (f.id % 13) * 1.7;
+        f.scale.set(1 + 0.16 * Math.sin(t * 11 + ph),
+                    1 + 0.3 * Math.sin(t * 13 + ph * 1.3),
+                    1 + 0.16 * Math.cos(t * 9 + ph));
+        f.material.opacity = 0.7 + 0.2 * Math.sin(t * 17 + ph);
     }
 
     if (heartFX) {
