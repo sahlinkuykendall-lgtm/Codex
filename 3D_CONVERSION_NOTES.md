@@ -65,6 +65,16 @@
   dialogue.js): **Dust the camp dog** (pet him), a **dartboard** by
   the dorm, and a **shortwave radio** that catches three seconds of
   Umm Kulthum. Tiny one-time sanity touches, no flags that matter.
+- **Terrain:** `ch1Height(x,z)` — layered sine dunes flattened near
+  every structure (camps level their ground) with a 30-unit climb to
+  the north escarpment. The ground is a displaced 96×88 plane; the
+  camera, props, NPCs, hostiles, fences, lights, car, scatter and
+  hallucinations all sample the same function. Collision stays 2D.
+- The glyph lock is now the **Tunnel Gate Seal** minigame (circular
+  seal, resonance timer, wrong press = dart + the stones reshuffle —
+  Sam's animal order owl/eye/serpent/lion is the durable key).
+- Dialogue UI (3D build): amber glass panel, floating speaker chip,
+  animated text/choice entrances, keycap interaction prompt.
 - Pattern for the Ch2+ art passes: builders keyed by object id/label,
   per-map gate on `currentMapKey`, textures via `makeTex` cache.
 
