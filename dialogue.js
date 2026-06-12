@@ -80,6 +80,25 @@ const storyData = {
     'flavor_sand': { speaker: "System", text: "The wind whips across this dune in a bizarre, geometric pattern. If you close your eyes, the howling sounds exactly like a choir.", choices: [ { text: "Listen closely.", onSelect: () => { if (!gameState.flags.heardSand) { gameState.knowledgeAtlantean += 1; decreaseSanity(0.4); gameState.flags.heardSand = true; } }, nextScene: 'sand_listen_result' }, { text: "Leave.", onSelect: () => closeDialogue() } ]},
     'sand_listen_result': { speaker: "System", text: "The choir isn't wind. It's breathing. Massive, slow, subterranean breathing. Your head begins to pound as the sound vibrates against your skull.", choices: [{ text: "Step back.", onSelect: () => closeDialogue() }] },
 
+    // ---- Ch1 fun nodes (pure flavor, zero stakes) ----
+    'fun_dog': { speaker: "System", text: "A sand-colored mutt the workers call Turab — 'Dust.' He adopted the camp two seasons ago and has outlasted three site directors. He is asleep exactly where everyone needs to walk.", choices: [
+        { text: "Scratch his ears.", onSelect: () => { if (!gameState.flags.dust_pet) { gameState.flags.dust_pet = true; increaseSanity(0.3); } }, nextScene: 'fun_dog_pet' },
+        { text: "Step over him.", onSelect: () => closeDialogue() }
+    ]},
+    'fun_dog_pet': { speaker: "System", text: "Dust opens one eye, decides you are acceptable, and goes back to sleep. His tail thumps the sand twice. For a moment the site feels briefly, stupidly normal.", choices: [{ text: "[ Leave him to it. ]", onSelect: () => closeDialogue() }] },
+
+    'fun_dartboard': { speaker: "System", text: "A dartboard nailed up by the dormitory, ringed by a halo of holes in the wood — testament to enthusiasm over accuracy. Three darts left.", choices: [
+        { text: "Throw one.", nextScene: 'fun_dartboard_throw' },
+        { text: "Leave it.", onSelect: () => closeDialogue() }
+    ]},
+    'fun_dartboard_throw': { speaker: "System", text: "Wide left. From inside the dorm, a muffled voice: 'That is the wall again, Doctor.' You did not announce yourself. They knew anyway.", choices: [{ text: "[ Quietly put the darts back. ]", onSelect: () => closeDialogue() }] },
+
+    'fun_radio': { speaker: "System", text: "A battered shortwave radio on a crate, antenna splinted with electrical tape. The dial glows faintly. Cairo is a hundred channels of static from here.", choices: [
+        { text: "Sweep the dial.", onSelect: () => { if (!gameState.flags.radio_music_found) { gameState.flags.radio_music_found = true; increaseSanity(0.2); } }, nextScene: 'fun_radio_sweep' },
+        { text: "Switch it off.", onSelect: () => closeDialogue() }
+    ]},
+    'fun_radio_sweep': { speaker: "System", text: "Static — a sermon — static — and then, impossibly clear for three full seconds, an Umm Kulthum song from fifty years ago. Then static again, as if the desert changed its mind.", choices: [{ text: "[ Listen to the static a while. ]", onSelect: () => closeDialogue() }] },
+
     // ---- NEW Ch1 flavor nodes ----
     'flavor_stars': {
         speaker: "System",

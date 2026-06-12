@@ -452,6 +452,7 @@ function ch1Mats() {
         terracotta: lambert('#9a5a33'),
         sandbag: lambert('#8d7a4f'),
         rope: lambert('#8a7448'),
+        grass: new THREE.MeshLambertMaterial({ color: 0x6a6136, side: THREE.DoubleSide }),
         glow: new THREE.MeshPhongMaterial({ color: 0x3a2a10, emissive: 0xe8b545, emissiveIntensity: 0.85 }),
         window: new THREE.MeshPhongMaterial({ color: 0x1a1408, emissive: 0xd49a3a, emissiveIntensity: 0.5 }),
         flame: new THREE.MeshBasicMaterial({ color: 0xe89030, transparent: true, opacity: 0.85 }),
@@ -741,6 +742,51 @@ const CH1_BUILDERS = {
         subSandbags(g, M, o.w * 1.4, o.h, rng, 2);
         put(g, gBox(18, 14, 18), M.crate, o.w * 0.5, 7, -4); // a crate to sit on
         g.userData.h = 40;
+        return g;
+    },
+
+    // — the fun corner: Dust the dog, darts, the shortwave —
+    camp_dog(o, M, rng) {
+        const g = new THREE.Group();
+        const fur = new THREE.MeshLambertMaterial({ color: 0x8a6a42 });
+        put(g, gBox(26, 12, 12), fur, 0, 13, 0);
+        put(g, gBox(9, 9, 9), fur, 16, 20, 0);
+        put(g, gBox(3, 4, 2), fur, 19, 26, 3.2);
+        put(g, gBox(3, 4, 2), fur, 19, 26, -3.2);
+        put(g, gBox(4, 2.6, 4), M.dark, 21.5, 18, 0); // nose
+        for (const lx of [-9, 7]) for (const lz of [-4, 4]) put(g, gBox(3, 8, 3), fur, lx, 4, lz);
+        put(g, gCyl(1.2, 0.5, 13, 4), fur, -15, 19, 0, 0, 0.9); // tail up — he's dreaming well
+        g.userData.h = 36;
+        return g;
+    },
+
+    camp_darts(o, M, rng) {
+        const g = new THREE.Group();
+        put(g, gBox(6, 92, 6), M.woodDark, 0, 46, 0);
+        const face = (geo, mat, y, zOff) => {
+            const m = put(g, geo, mat, 0, y, 4 + zOff);
+            m.rotation.x = Math.PI / 2;
+            return m;
+        };
+        face(gCyl(15, 15, 3, 14), M.crate, 76, 0);
+        face(gCyl(10, 10, 1.4, 12), new THREE.MeshLambertMaterial({ color: 0x27331f }), 76, 1.6);
+        face(gCyl(5, 5, 1.4, 10), new THREE.MeshLambertMaterial({ color: 0x7a1f1f }), 76, 2.6);
+        face(gCyl(1.6, 1.6, 1.4, 8), ch1Mats().glow, 76, 3.6);
+        for (let i = 0; i < 3; i++) { // the surviving darts, holstered in the post
+            put(g, gCyl(0.7, 0.7, 10, 4), M.dark, 4, 30 + i * 7, 2, 0, 1.2);
+        }
+        g.userData.h = 96;
+        return g;
+    },
+
+    camp_radio(o, M, rng) {
+        const g = new THREE.Group();
+        put(g, gBox(26, 22, 22), M.crate, 0, 11, 0); // its crate
+        put(g, gBox(22, 12, 10), M.metal, 0, 28, 0);
+        put(g, gCyl(2.2, 2.2, 2.4, 8), M.glow, -5, 28, 5.4, 0, 0, Math.PI / 2); // glowing dial
+        put(g, gBox(8, 1.6, 1.6), M.dark, 5, 30, 5.2); // speaker slits
+        put(g, gCyl(0.6, 0.6, 30, 4), M.dark, 9, 46, -3, 0, 0.4); // taped antenna
+        g.userData.h = 60;
         return g;
     },
 
@@ -1070,14 +1116,54 @@ function ch1LabelBuilder(o) {
 }
 
 // Walls mostly covered by a prop's footprint are part of that prop
-// (building shells, the cooking table, gear storage, the generator…)
+// (building shells, the cooking table, gear storage, the generator…).
+// Thin door-flank segments hugging an enterable building also vanish —
+// the cabin model is the visual; the collision stays.
 function ch1WallInsideObject(wall) {
+    const thin = Math.min(wall.w, wall.h) <= 40;
     for (const o of (activeMapObjects || [])) {
         const ox = Math.max(0, Math.min(wall.x + wall.w, o.x + o.w) - Math.max(wall.x, o.x));
         const oz = Math.max(0, Math.min(wall.y + wall.h, o.y + o.h) - Math.max(wall.y, o.y));
         if (ox * oz >= wall.w * wall.h * 0.4) return true;
+        if (thin && /_bldg$/.test(o.id || '') &&
+            wall.x < o.x + o.w + 30 && wall.x + wall.w > o.x - 30 &&
+            wall.y < o.y + o.h + 30 && wall.y + wall.h > o.y - 30) return true;
     }
     return false;
+}
+
+// Ambient clutter — pebbles, sand humps, dry grass, pottery shards —
+// scattered deterministically across open ground so the desert doesn't
+// feel empty. Visual only; nothing collides.
+function addCh1Scatter(group) {
+    const M = ch1Mats();
+    const rng = seededRng('ch1-scatter');
+    const walls = mapWalls[1] || [];
+    const blocked = (x, z) =>
+        walls.some(w => x > w.x - 16 && x < w.x + w.w + 16 && z > w.y - 16 && z < w.y + w.h + 16) ||
+        (activeMapObjects || []).some(o => x > o.x - 16 && x < o.x + o.w + 16 && z > o.y - 16 && z < o.y + o.h + 16);
+    let placed = 0, tries = 0;
+    while (placed < 80 && tries++ < 500) {
+        const x = 90 + rng() * (WORLD.width - 180);
+        const z = 90 + rng() * (WORLD.height - 180);
+        if (blocked(x, z)) continue;
+        const kind = rng();
+        if (kind < 0.42) { // pebbles
+            const r = 2.5 + rng() * 5.5;
+            put(group, new THREE.IcosahedronGeometry(r, 0), M.rock, x, r * 0.55, z, rng() * 3);
+        } else if (kind < 0.68) { // low sand humps
+            const s = put(group, new THREE.SphereGeometry(14 + rng() * 24, 8, 5), M.sand, x, 0, z);
+            s.scale.set(1.35, 0.14 + rng() * 0.1, 1);
+        } else if (kind < 0.88) { // dry grass tufts
+            for (let i = 0; i < 3; i++) {
+                put(group, gableGeo(6, 13 + rng() * 9), M.grass,
+                    x + (rng() - 0.5) * 7, 0, z + (rng() - 0.5) * 7, rng() * Math.PI);
+            }
+        } else { // pottery shards — the ground remembers older camps
+            put(group, gBox(6 + rng() * 6, 1.4, 5), M.terracotta, x, 1, z, rng() * 3);
+        }
+        placed++;
+    }
 }
 
 // Walls that ARE structures get bespoke treatment (keyed by scaled rect)
@@ -1601,6 +1687,9 @@ function buildWorld() {
         objectEntries.push({ o, mesh, label });
         if (isLightSource(o)) lightBudget.push({ o, h });
     }
+
+    // Ambient desert clutter for the Ch1 camp
+    if (currentMapKey === 1) addCh1Scatter(worldGroup);
 
     // --- Point lights from light-source props (capped for performance;
     //     interactables like braziers/rest sites win over set dressing) ---

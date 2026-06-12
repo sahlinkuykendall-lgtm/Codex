@@ -45,6 +45,44 @@
 - Old saves stay forward-compatible: flags merge into the current flag
   table, so flags added later keep their defaults.
 
+## Chapter 1 art pass (step 8 vertical slice)
+
+- The Ch1 camp is fully de-grayboxed using canvas-generated textures
+  and primitive geometry (still asset-free): sand ground with wind
+  ripples, ridge tent with poles/guy ropes, dorm + foreman cabins with
+  lit windows, the tunnel mouth as a timber-framed opening in a jagged
+  rock face, glyph stela, mine carts on rails, animated brazier flame,
+  trucks/trailer/scaffolding/palms/cacti/ruins/drums/lamps and more
+  (~40 builders in `CH1_BUILDERS` / `CH1_LABEL_BUILDERS`).
+- Ch1 walls restyle by role: camp fences → post-and-rail, compound
+  rope line → posts + rope, trench → walk planks + spoil berms, dig
+  shed built from its collision rect, building shells hidden inside
+  their cabin props, rocky outcrops rock-textured with jagged crowns.
+  Collision is untouched — visuals only.
+- Ambient scatter (`addCh1Scatter`): ~80 deterministic pebbles, sand
+  humps, dry grass tufts and pottery shards on open ground.
+- Three zero-stakes fun interactions (in both builds, via data.js +
+  dialogue.js): **Dust the camp dog** (pet him), a **dartboard** by
+  the dorm, and a **shortwave radio** that catches three seconds of
+  Umm Kulthum. Tiny one-time sanity touches, no flags that matter.
+- Pattern for the Ch2+ art passes: builders keyed by object id/label,
+  per-map gate on `currentMapKey`, textures via `makeTex` cache.
+
+## Sanity system (overhauled)
+
+- Four tiers: CALM ≥7.5, UNEASY 5–7.5 (subtle), STRAINED 2.5–5,
+  FRACTURED <2.5 (the genuinely bad place). Dialogue only ever writes
+  sanity, so retiering is story-safe.
+- Decline softened: 0.65× global damage scale; slow ambient recovery
+  (≈1 point/17s) up to 6.0 when nothing is chasing. Rest and story
+  beats still restore CALM.
+- 3D effects ramp continuously (eased ~1s): desaturation/contrast
+  filter, fog squeeze, slow camera sway. FRACTURED adds the heartbeat
+  (FOV pump + red vignette pulse) and a fine tremor.
+- 2D dot phantoms are gone in 3D — replaced by world-space dark-figure
+  hallucinations in the middle distance that dissolve when stared at,
+  on E (clarity), or after a few seconds.
+
 ## Pause menu (overhauled) & stamina tuning
 
 - The pause menu is data-driven: `drawPauseMenu` registers each

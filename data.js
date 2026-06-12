@@ -618,6 +618,11 @@ const mapObjects = {
         // --- REST SITE ---
         { id: 'rest_brazier', x: 220,  y: 1605, w: 38,  h: 38,  color: '#d4af37', label: 'Brazier (Rest)',     interactScene: 'rest_brazier'    },
 
+        // --- FUN (pure flavor, zero stakes) ---
+        { id: 'camp_dog',   x: 268, y: 1655, w: 30, h: 22, color: '#8a6a42', label: 'Camp Dog',        interactScene: 'fun_dog'       },
+        { id: 'camp_darts', x: 95,  y: 1352, w: 22, h: 10, color: '#6b4e2c', label: 'Dartboard',       interactScene: 'fun_dartboard' },
+        { id: 'camp_radio', x: 70,  y: 1430, w: 26, h: 18, color: '#3a3430', label: 'Shortwave Radio', interactScene: 'fun_radio'     },
+
         // --- NORTH DIG GATE ---
         { id: 'dig_gate',     x: 1000, y: 1055, w: 200, h: 28,  color: '#8b6914', label: 'Dig Zone Gate — LOCKED', interactScene: 'zone_dig_gate' },
 
