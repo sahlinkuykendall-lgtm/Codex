@@ -1092,16 +1092,26 @@ function startDialogue(id) {
     const speaker = typeof scene.speaker === 'function' ? scene.speaker() : scene.speaker;
     const text    = typeof scene.text    === 'function' ? scene.text()    : scene.text;
 
-    document.getElementById('speaker-name').innerText = speaker;
-    document.getElementById('dialogue-text').innerText = text;
+    const speakerEl = document.getElementById('speaker-name');
+    speakerEl.innerText = speaker;
+    speakerEl.dataset.kind = speaker === 'System' ? 'system' : 'npc';
+
+    // Replay the text entrance on every scene of a chain (the box itself
+    // only animates when the overlay re-appears)
+    const textEl = document.getElementById('dialogue-text');
+    textEl.innerText = text;
+    textEl.classList.remove('dlg-in');
+    void textEl.offsetWidth;
+    textEl.classList.add('dlg-in');
 
     const container = document.getElementById('choices-container');
     container.innerHTML = '';
 
     const choices = scene.choices || [];
-    choices.forEach(c => {
+    choices.forEach((c, i) => {
         const btn = document.createElement('button');
         btn.className = 'choice-button';
+        btn.style.animationDelay = (60 + i * 65) + 'ms';
         btn.innerText = typeof c.text === 'function' ? c.text() : c.text;
         btn.onclick = (e) => {
             e.stopPropagation();
