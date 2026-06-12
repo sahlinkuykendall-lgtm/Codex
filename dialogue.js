@@ -300,9 +300,14 @@ const storyData = {
         speaker: "System",
         text: "The primary dig shed — three days from expired permits, a week from a Ministry audit, a thousand years from anything you understand. The clipboard on the door lists today's crew. Three names are crossed out in the same handwriting. The Arabic marginalia next to them translates roughly as 'did not report. Not expected to.'",
         choices: [
-            { text: "Read carefully.", onSelect: () => { gameState.flags.crew_missing = true; decreaseSanity(0.2); closeDialogue(); } },
+            { text: "Read carefully.", onSelect: () => { gameState.flags.crew_missing = true; decreaseSanity(0.2); }, nextScene: 'flavor_digshed_read' },
             { text: "Move on.", onSelect: () => closeDialogue() }
         ]
+    },
+    'flavor_digshed_read': {
+        speaker: "System",
+        text: "CREW MANIFEST — DAY 22\n\nPresent: Hassan, T. (foreman) · Farouk, M. · Said, A. · Mahmoud, Y. · el-Berry, H.\n\nCrossed out, all in the same hand: Gamal, K. — Iskander, P. — Abdou, S.\n\nThe Arabic marginalia beside the crossed names is Tariq's handwriting: 'did not report. Not expected to.'\n\nBelow that, in different ink, pressed hard enough to dent three pages: 'They were on the night shift by the east trench. Ask nobody.'\n\nYou put the clipboard back exactly the way you found it, the way you'd rebury something.",
+        choices: [{ text: "[ Step away from the shed. ]", onSelect: () => closeDialogue() }]
     },
 
     // =========================================================
