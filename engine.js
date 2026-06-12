@@ -29,6 +29,75 @@ function sndFail()     { _tone(180, 0.28, 'sawtooth', 0.10); }
 function sndSuccess()  { _tone(880, 0.22, 'sine',   0.09); }
 function sndPickup()   { _tone(700, 0.10, 'triangle', 0.10); _tone(900, 0.10, 'triangle', 0.08); }
 
+// ---- FOOTSTEPS (synthesized noise bursts, terrain-aware, quiet) ----
+let _noiseBuf = null;
+function _getNoiseBuf() {
+    const actx = _getAudio();
+    if (!_noiseBuf) {
+        _noiseBuf = actx.createBuffer(1, Math.floor(actx.sampleRate * 0.12), actx.sampleRate);
+        const d = _noiseBuf.getChannelData(0);
+        for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    }
+    return _noiseBuf;
+}
+
+function sndFootstep(surface, sprinting) {
+    try {
+        const actx = _getAudio();
+        const src = actx.createBufferSource();
+        src.buffer = _getNoiseBuf();
+        const filt = actx.createBiquadFilter();
+        const gain = actx.createGain();
+        src.connect(filt); filt.connect(gain); gain.connect(actx.destination);
+        const t = actx.currentTime;
+        let vol, dur;
+        if (surface === 'sand') {        // soft grain shoosh
+            filt.type = 'lowpass';
+            filt.frequency.value = 480 + Math.random() * 180;
+            vol = 0.030; dur = 0.085;
+        } else if (surface === 'wood') { // scuff + a low knock
+            filt.type = 'lowpass';
+            filt.frequency.value = 250 + Math.random() * 90;
+            vol = 0.040; dur = 0.06;
+            _tone(95 + Math.random() * 25, 0.05, 'sine', 0.030);
+        } else {                         // stone: short dry tap
+            filt.type = 'bandpass';
+            filt.frequency.value = 950 + Math.random() * 350;
+            filt.Q.value = 1.2;
+            vol = 0.028; dur = 0.055;
+        }
+        if (sprinting) vol *= 1.5;
+        gain.gain.setValueAtTime(vol, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+        src.start(t); src.stop(t + dur + 0.02);
+    } catch (e) {}
+}
+
+const UNDERGROUND_MAPS = ['TRAP', 'SECRET', 'CUTTHROAT', 'CITY', 'GATE', 'FINAL'];
+function currentSurfaceType() {
+    if (interiorState.active || /^INT_/.test(String(currentMapKey))) return 'wood';
+    return UNDERGROUND_MAPS.includes(currentMapKey) ? 'stone' : 'sand';
+}
+
+// Distance-driven cadence, called once per frame by both game loops
+let _stepDist = 0, _lastStepX = null, _lastStepY = null;
+function updateFootsteps() {
+    if (gameState.currentScreen !== 'GAME' || gameState.isPaused ||
+        gameState.isDialogueActive || gameState.isResting) { _lastStepX = null; return; }
+    if (typeof isAirborne !== 'undefined' && isAirborne) return; // no steps mid-jump
+    if (_lastStepX === null) { _lastStepX = player.x; _lastStepY = player.y; return; }
+    const d = Math.hypot(player.x - _lastStepX, player.y - _lastStepY);
+    _lastStepX = player.x;
+    _lastStepY = player.y;
+    if (d < 0.1) { _stepDist = Math.min(_stepDist, 30); return; }
+    _stepDist += d;
+    const stride = gameState.isSprinting ? 64 : 52;
+    if (_stepDist >= stride) {
+        _stepDist = 0;
+        sndFootstep(currentSurfaceType(), gameState.isSprinting);
+    }
+}
+
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 canvas.width = 1280; canvas.height = 720;
@@ -2579,6 +2648,7 @@ function drawObjectShape(ctx, o, ox, oy) {
 
 function gameLoop() {
     syncPauseHud();
+    updateFootsteps();
     if (gameState.currentScreen === 'START_MENU') {
         drawStartScreen();
         requestAnimationFrame(gameLoop);

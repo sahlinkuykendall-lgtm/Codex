@@ -1991,7 +1991,10 @@ function updatePlayer3d() {
     if (isAirborne && !gameState.isPaused) {
         jumpY += jumpVel;
         jumpVel -= JUMP_GRAVITY;
-        if (jumpY <= 0) { jumpY = 0; jumpVel = 0; isAirborne = false; }
+        if (jumpY <= 0) {
+            jumpY = 0; jumpVel = 0; isAirborne = false;
+            sndFootstep(currentSurfaceType(), true); // landing thump
+        }
     }
 
     if (gameState.isDialogueActive || gameState.isResting || gameState.isPaused || activePuzzle) return;
@@ -2558,6 +2561,7 @@ function gameLoop3d() {
     ensureWorldBuilt();
     syncPointerLock();
     updatePlayer3d();
+    updateFootsteps();
     updateHostiles();    // existing patrol/chase/catch AI, unchanged
     updateSanityAmbient();
     updateMinistryCar3d();
