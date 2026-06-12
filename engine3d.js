@@ -491,7 +491,7 @@ function ch1Mats() {
         green: lambert('#2f5c22'),
         dark: lambert('#14110c'),
         terracotta: lambert('#9a5a33'),
-        sandbag: lambert('#8d7a4f'),
+        sandbag: lambert('#695a39'),
         rope: lambert('#8a7448'),
         grass: new THREE.MeshLambertMaterial({ color: 0x6a6136, side: THREE.DoubleSide }),
         glow: new THREE.MeshPhongMaterial({ color: 0x3a2a10, emissive: 0xe8b545, emissiveIntensity: 0.85 }),
@@ -523,15 +523,17 @@ function gableGeo(w, h) {
 
 // ---- SUB-BUILDERS (shared shapes) ----
 function subPalm(g, M, x, z, scale, rng) {
-    const lean = (rng() - 0.5) * 0.5;
-    const segs = 5;
+    // Trunk follows a continuous curve: each segment is placed at the
+    // midpoint of its own tilted step, overlapping the previous one
+    const lean = (rng() - 0.5) * 0.45;
+    const segs = 5, segH = 20 * scale;
     let px = x, py = 0;
     for (let i = 0; i < segs; i++) {
-        const h = 22 * scale;
-        const seg = put(g, gCyl(3.4 * scale * (1 - i * 0.09), 4.2 * scale * (1 - i * 0.09), h, 6), M.trunk,
-            px, py + h / 2, z, 0, lean * (i / segs));
-        px += Math.sin(lean) * h * (i / segs) * 0.7;
-        py += h * 0.96;
+        const tilt = lean * ((i + 0.5) / segs);
+        put(g, gCyl(3.2 * scale * (1 - i * 0.08), 4.0 * scale * (1 - i * 0.08), segH + 7, 6), M.trunk,
+            px + Math.sin(tilt) * segH / 2, py + Math.cos(tilt) * segH / 2, z, 0, 0, -tilt);
+        px += Math.sin(tilt) * segH;
+        py += Math.cos(tilt) * segH;
     }
     const top = py + 2;
     for (let i = 0; i < 8; i++) {
@@ -583,23 +585,22 @@ function subTable(g, M, w, d, h) {
 function subSandbags(g, M, w, d, rng, rows) {
     let top = 0;
     for (let r = 0; r < (rows || 2); r++) {
-        const n = Math.max(2, Math.round(w / 26));
+        const n = Math.max(2, Math.round(w / 24));
         for (let i = 0; i < n; i++) {
-            const b = put(g, new THREE.SphereGeometry(12, 7, 5), M.sandbag,
-                -w / 2 + 13 + i * (w - 26) / Math.max(1, n - 1) + (r % 2) * 6, 7 + r * 11, (rng() - 0.5) * (d * 0.3));
-            b.scale.set(1.15, 0.55, 0.8);
+            const b = put(g, new THREE.SphereGeometry(10.5, 7, 5), M.sandbag,
+                -w / 2 + 12 + i * (w - 24) / Math.max(1, n - 1) + (r % 2) * 6, 5.5 + r * 9, (rng() - 0.5) * (d * 0.3));
+            b.scale.set(1.2, 0.5, 0.8);
         }
-        top = 13 + r * 11;
+        top = 11 + r * 9;
     }
     return top + 12;
 }
 
 function subShed(g, M, w, d, hWall, rng) {
     put(g, gBox(w, hWall, d), M.wood, 0, hWall / 2, 0);
-    const roof = put(g, gBox(w + 14, 5, d + 16), M.metal, 0, hWall + 6, 0);
-    roof.rotation.x = 0.12;
+    put(g, gBox(w + 14, 5, d + 16), M.metal, 0, hWall + 2.5, 0); // flat roof, seated
     put(g, gBox(w * 0.3, hWall * 0.62, 2), M.dark, 0, hWall * 0.31, d / 2 + 1.2); // door
-    return hWall + 18;
+    return hWall + 12;
 }
 
 function subWheel(g, M, x, z, r) {
@@ -616,27 +617,32 @@ const CH1_BUILDERS = {
     // — the three enterable buildings —
     tent_bldg(o, M, rng) {
         const g = new THREE.Group();
-        const w = o.w, d = o.h, wallH = 56, ridgeH = 102;
+        const w = o.w, d = o.h, wallH = 46, ridgeH = 108;
+        // canvas walls
         put(g, gBox(w, wallH, d), M.tent, 0, wallH / 2, 0);
-        const slope = Math.hypot(d / 2, ridgeH - wallH) + 8;
-        const ang = Math.atan2(ridgeH - wallH, d / 2);
+        // roof: ridge along X, slabs sloping down past the eaves
+        const rise = ridgeH - wallH;
+        const halfD = d / 2 + 14;
+        const slope = Math.hypot(halfD, rise) + 6;
+        const ang = Math.atan2(rise, halfD);
         for (const s of [-1, 1]) {
-            const r = put(g, gBox(w + 12, 4, slope), M.tent, 0, (wallH + ridgeH) / 2 + 2, s * d / 4);
+            const r = put(g, gBox(w + 16, 4, slope), M.tent, 0, (wallH + ridgeH) / 2, s * halfD / 2);
             r.rotation.x = -s * ang;
         }
+        put(g, gBox(w + 18, 5, 10), M.tentDark, 0, ridgeH + 1, 0); // ridge cap
+        // gable ends close the roof (at x = ±w/2, facing outward)
         for (const s of [-1, 1]) {
-            const gable = put(g, gableGeo(w, ridgeH - wallH), M.tentDark, 0, wallH, s * (d / 2 - 0.5), s > 0 ? 0 : Math.PI);
-            gable.material = M.tent;
+            put(g, gableGeo(d + 6, rise + 4), M.tent, s * (w / 2 - 0.5), wallH - 1, 0, s * Math.PI / 2);
         }
-        // ridge pole ends + corner ropes
-        for (const s of [-1, 1]) put(g, gCyl(2, 2, ridgeH + 8, 6), M.woodDark, 0, (ridgeH + 8) / 2, s * (d / 2 - 6));
+        // ridge poles at the gable centers + corner guy ropes
+        for (const s of [-1, 1]) put(g, gCyl(2, 2, ridgeH, 6), M.woodDark, s * (w / 2 - 8), ridgeH / 2, 0);
         for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
-            const rope = put(g, gCyl(0.8, 0.8, 70, 4), M.rope, sx * (w / 2 + 18), 26, sz * (d / 2 + 18));
-            rope.rotation.z = sx * 0.6;
-            rope.rotation.x = -sz * 0.6;
+            const rope = put(g, gCyl(0.8, 0.8, 56, 4), M.rope, sx * (w / 2 + 14), 22, sz * (d / 2 + 14));
+            rope.rotation.z = sx * 0.5;
+            rope.rotation.x = -sz * 0.5;
         }
-        put(g, gBox(w * 0.22, wallH * 0.8, 3), M.tentDark, 0, wallH * 0.4, d / 2 + 1); // door flap
-        g.userData.h = ridgeH + 10;
+        put(g, gBox(w * 0.2, wallH * 0.9, 3), M.tentDark, 0, wallH * 0.45, d / 2 + 1.2); // door flap
+        g.userData.h = ridgeH + 8;
         return g;
     },
 
@@ -644,8 +650,7 @@ const CH1_BUILDERS = {
         const g = new THREE.Group();
         const w = o.w, d = o.h, wallH = 62;
         put(g, gBox(w, wallH, d), M.wood, 0, wallH / 2, 0);
-        const roof = put(g, gBox(w + 16, 6, d + 18), M.tent, 0, wallH + 8, 0);
-        roof.rotation.x = 0.1;
+        put(g, gBox(w + 16, 5, d + 18), M.tent, 0, wallH + 2.5, 0); // flat roof, seated
         for (let i = 0; i < 3; i++) { // lit windows — someone can't sleep
             put(g, gBox(16, 12, 1.6), i === 1 ? M.window : M.dark, -w / 4 + i * w / 4, wallH * 0.62, d / 2 + 1);
         }
@@ -658,8 +663,7 @@ const CH1_BUILDERS = {
         const g = new THREE.Group();
         const w = o.w, d = o.h, wallH = 70;
         put(g, gBox(w, wallH, d), M.wood, 0, wallH / 2, 0);
-        const roof = put(g, gBox(w + 18, 5, d + 20), M.metal, 0, wallH + 7, 0);
-        roof.rotation.x = -0.1;
+        put(g, gBox(w + 18, 5, d + 20), M.metal, 0, wallH + 2.5, 0); // flat roof, seated
         put(g, gBox(20, 15, 1.6), M.window, -w / 4, wallH * 0.6, d / 2 + 1); // lamp burning late
         put(g, gBox(24, wallH * 0.74, 2), M.woodDark, w / 4, wallH * 0.37, d / 2 + 1.2);
         put(g, gBox(34, 10, 2), M.limestone, 0, wallH - 6, d / 2 + 1.4); // site board
@@ -803,20 +807,20 @@ const CH1_BUILDERS = {
 
     camp_darts(o, M, rng) {
         const g = new THREE.Group();
-        put(g, gBox(6, 92, 6), M.woodDark, 0, 46, 0);
+        put(g, gBox(6, 62, 6), M.woodDark, 0, 31, 0);
         const face = (geo, mat, y, zOff) => {
             const m = put(g, geo, mat, 0, y, 4 + zOff);
             m.rotation.x = Math.PI / 2;
             return m;
         };
-        face(gCyl(15, 15, 3, 14), M.crate, 76, 0);
-        face(gCyl(10, 10, 1.4, 12), new THREE.MeshLambertMaterial({ color: 0x27331f }), 76, 1.6);
-        face(gCyl(5, 5, 1.4, 10), new THREE.MeshLambertMaterial({ color: 0x7a1f1f }), 76, 2.6);
-        face(gCyl(1.6, 1.6, 1.4, 8), ch1Mats().glow, 76, 3.6);
+        face(gCyl(15, 15, 3, 14), M.crate, 50, 0);
+        face(gCyl(10, 10, 1.4, 12), new THREE.MeshLambertMaterial({ color: 0x27331f }), 50, 1.6);
+        face(gCyl(5, 5, 1.4, 10), new THREE.MeshLambertMaterial({ color: 0x7a1f1f }), 50, 2.6);
+        face(gCyl(1.6, 1.6, 1.4, 8), ch1Mats().glow, 50, 3.6);
         for (let i = 0; i < 3; i++) { // the surviving darts, holstered in the post
-            put(g, gCyl(0.7, 0.7, 10, 4), M.dark, 4, 30 + i * 7, 2, 0, 1.2);
+            put(g, gCyl(0.7, 0.7, 10, 4), M.dark, 4, 18 + i * 6, 2, 0, 1.2);
         }
-        g.userData.h = 96;
+        g.userData.h = 66;
         return g;
     },
 
@@ -1193,9 +1197,9 @@ function addCh1Scatter(group) {
         if (kind < 0.42) { // pebbles
             const r = 2.5 + rng() * 5.5;
             put(group, new THREE.IcosahedronGeometry(r, 0), M.rock, x, gh + r * 0.55, z, rng() * 3);
-        } else if (kind < 0.68) { // low sand humps
-            const s = put(group, new THREE.SphereGeometry(14 + rng() * 24, 8, 5), M.sand, x, gh, z);
-            s.scale.set(1.35, 0.14 + rng() * 0.1, 1);
+        } else if (kind < 0.68) { // low sand drifts (flat cones shade better)
+            const r = 16 + rng() * 22;
+            put(group, gCyl(r * 0.15, r, r * 0.2, 9), M.sand, x, gh + r * 0.1, z);
         } else if (kind < 0.88) { // dry grass tufts
             for (let i = 0; i < 3; i++) {
                 put(group, gableGeo(6, 13 + rng() * 9), M.grass,
@@ -1214,6 +1218,7 @@ function ch1WallStyle(wall) {
     if (near(wall.x, 1440) && near(wall.y, 1408)) return 'shed';      // the dig shed
     if (near(wall.x, 2840) && near(wall.w, 280)) return 'plank';      // trench cross-braces
     if ((near(wall.x, 2800) || near(wall.x, 3120)) && near(wall.h, 720)) return 'berm'; // trench lips
+    if (near(wall.x, 1312) && near(wall.y, 3184)) return 'gatepost';  // the unmarked twin of the camp gate post
     return null;
 }
 
@@ -1240,6 +1245,11 @@ function buildCh1Wall(group, wall, palette) {
     }
     if (style === 'plank') { // walk boards across the trench
         put(group, gBox(wall.w, 10, wall.h), M.wood, cx, gh + 5, cz);
+        return true;
+    }
+    if (style === 'gatepost') { // matches the built fl_gate_post across the gap
+        put(group, gBox(34, 144, 34), M.woodDark, cx, gh + 72, cz);
+        put(group, gBox(9, 11, 9), M.glow, cx, gh + 151, cz);
         return true;
     }
     if (style === 'berm') { // low spoil lips flanking the trench
