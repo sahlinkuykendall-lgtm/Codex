@@ -73,6 +73,41 @@ function sndFootstep(surface, sprinting) {
     } catch (e) {}
 }
 
+function sndWhoosh() { // a dart leaving the hand
+    try {
+        const actx = _getAudio();
+        const src = actx.createBufferSource();
+        src.buffer = _getNoiseBuf();
+        const filt = actx.createBiquadFilter();
+        const gain = actx.createGain();
+        src.connect(filt); filt.connect(gain); gain.connect(actx.destination);
+        filt.type = 'bandpass';
+        const t = actx.currentTime;
+        filt.frequency.setValueAtTime(900, t);
+        filt.frequency.exponentialRampToValueAtTime(2600, t + 0.09);
+        gain.gain.setValueAtTime(0.05, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+        src.start(t); src.stop(t + 0.12);
+    } catch (e) {}
+}
+function sndThunk(wall) { // dart landing: cork thock, or wood if it missed
+    _tone(wall ? 130 : 210, 0.06, 'sine', 0.10);
+    try {
+        const actx = _getAudio();
+        const src = actx.createBufferSource();
+        src.buffer = _getNoiseBuf();
+        const filt = actx.createBiquadFilter();
+        const gain = actx.createGain();
+        src.connect(filt); filt.connect(gain); gain.connect(actx.destination);
+        filt.type = 'lowpass';
+        filt.frequency.value = wall ? 500 : 900;
+        const t = actx.currentTime;
+        gain.gain.setValueAtTime(0.07, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
+        src.start(t); src.stop(t + 0.07);
+    } catch (e) {}
+}
+
 const UNDERGROUND_MAPS = ['TRAP', 'SECRET', 'CUTTHROAT', 'CITY', 'GATE', 'FINAL'];
 function currentSurfaceType() {
     if (interiorState.active || /^INT_/.test(String(currentMapKey))) return 'wood';
@@ -149,6 +184,15 @@ const PUZZLES = {
         rewardScene: 'puzzle_glyph_solved',
         failScene: 'puzzle_glyph_fail',
     },
+    // Ch1: Camp darts — replayable two-stage skill throw, no stakes.
+    // Stage 1: click to lock the wandering aim. Stage 2: click when the
+    // breathing ring is tightest; scatter scales with the ring. Sam's
+    // chalk record (132/150) is the number to beat.
+    'minigame_darts': {
+        type: 'darts',
+        title: 'CAMP DARTS',
+        samBest: 132,
+    },
     // Ch2 TRAP: Pressure plate sequence — step on plates in right order
     'puzzle_plates': {
         type: 'sequence',
@@ -215,6 +259,14 @@ function startPuzzle(id) {
         spin: 0,
         note: '',
         noteTimer: 0,
+        // darts minigame state
+        stage: 'aim',
+        darts: [],
+        popups: [],
+        score: 0,
+        shake: 0,
+        steadyStart: 0,
+        flightStart: 0,
     };
     closeDialogue();
 }
@@ -793,6 +845,7 @@ function resetGameState() {
     gameState.currentRoute = null;
     gameState.trustTariq = 0; gameState.trustMaren = 0; gameState.trustIry = 0; gameState.trustYusra = 0;
     gameState.inventory = ['Field Journal']; gameState.mintTeaCount = 0; gameState.usedRestSites = []; gameState.restCooldowns = {};
+    gameState.dartsBest = 0;
     gameState.stamina = STAMINA.max; gameState.maxStamina = STAMINA.max; gameState.isSprinting = false; gameState.staminaExhausted = false;
     gameState.journalNotes = []; gameState.devChapterMenuOpen = false;
     gameState.walkBobPhase = 0; gameState.isPaused = false;
@@ -1639,11 +1692,247 @@ function drawGlyphSeal(p) {
     ctx.restore();
 }
 
+// ---- CAMP DARTS (replayable minigame) ----
+// Board zones (radius → points): 13→50, 36→25, 72→20, 112→10, 150→5.
+const DARTS_CX = 640, DARTS_CY = 330, DARTS_R = 150;
+
+function dartsScoreAt(dx, dy) {
+    const d = Math.hypot(dx, dy);
+    if (d <= 13) return 50;
+    if (d <= 36) return 25;
+    if (d <= 72) return 20;
+    if (d <= 112) return 10;
+    if (d <= DARTS_R) return 5;
+    return 0;
+}
+
+function dartsAimPos(t) {
+    // Smooth Lissajous wander over the board — trackable but alive
+    return {
+        x: DARTS_CX + (Math.sin(t * 1.13) * 0.55 + Math.sin(t * 2.31 + 1.7) * 0.32 + Math.sin(t * 3.7 + 4.1) * 0.13) * 132,
+        y: DARTS_CY + (Math.sin(t * 1.47 + 0.9) * 0.55 + Math.sin(t * 2.03 + 3.2) * 0.32 + Math.sin(t * 4.3 + 2.6) * 0.13) * 118,
+    };
+}
+
+function dartsRingR(p) {
+    // The steady ring breathes; throw when it's tightest
+    const t = (performance.now() - p.steadyStart) / 1000;
+    return 16 + (0.5 + 0.5 * Math.sin(t * 4.6 - Math.PI / 2)) * 54;
+}
+
+function drawDartsGame(p) {
+    const t = performance.now() / 1000;
+    const def = p.def;
+
+    // Dorm wall backdrop: planks + lamplight pool around the board
+    ctx.save();
+    ctx.fillStyle = '#181208';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.strokeStyle = 'rgba(60,44,22,0.8)';
+    ctx.lineWidth = 2;
+    for (let y = 24; y < canvas.height; y += 46) {
+        ctx.strokeRect(-4, y, canvas.width + 8, 46);
+    }
+    const pool = ctx.createRadialGradient(DARTS_CX, DARTS_CY, 60, DARTS_CX, DARTS_CY, 480);
+    pool.addColorStop(0, 'rgba(232,181,69,0.16)');
+    pool.addColorStop(1, 'rgba(232,181,69,0)');
+    ctx.fillStyle = pool;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Impact shake
+    if (p.shake > 0) {
+        p.shake--;
+        ctx.translate((Math.random() - 0.5) * p.shake, (Math.random() - 0.5) * p.shake);
+    }
+
+    // Title + chalk records on the wall
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#d4af37';
+    ctx.font = 'bold 22px Courier New';
+    ctx.fillText(def.title, DARTS_CX, 78);
+    ctx.font = '13px Courier New';
+    ctx.fillStyle = 'rgba(220,210,180,0.5)';
+    ctx.fillText('chalk, faded:  S — ' + def.samBest, DARTS_CX - 330, 150);
+    ctx.fillText('BEST — ' + (gameState.dartsBest || '—'), DARTS_CX - 330, 174);
+
+    // Old holes in the wood (enthusiasm over accuracy)
+    const holeRng = seededRng('dartholes');
+    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+    for (let i = 0; i < 22; i++) {
+        const a = holeRng() * Math.PI * 2, r = DARTS_R + 14 + holeRng() * 120;
+        ctx.beginPath();
+        ctx.arc(DARTS_CX + Math.cos(a) * r, DARTS_CY + Math.sin(a) * r * 0.8, 1.6, 0, 7);
+        ctx.fill();
+    }
+
+    // The board
+    const rings = [
+        [DARTS_R, '#4a3a26'], [112, '#2e2418'], [72, '#4a3a26'], [36, '#7a1f1f'], [13, '#d4af37'],
+    ];
+    for (const [r, col] of rings) {
+        ctx.fillStyle = col;
+        ctx.beginPath();
+        ctx.arc(DARTS_CX, DARTS_CY, r, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    ctx.strokeStyle = 'rgba(0,0,0,0.45)';
+    ctx.lineWidth = 1.5;
+    for (let i = 0; i < 12; i++) { // sector wires
+        const a = (i / 12) * Math.PI * 2;
+        ctx.beginPath();
+        ctx.moveTo(DARTS_CX + Math.cos(a) * 36, DARTS_CY + Math.sin(a) * 36);
+        ctx.lineTo(DARTS_CX + Math.cos(a) * DARTS_R, DARTS_CY + Math.sin(a) * DARTS_R);
+        ctx.stroke();
+    }
+    for (const [r] of rings) {
+        ctx.beginPath();
+        ctx.arc(DARTS_CX, DARTS_CY, r, 0, Math.PI * 2);
+        ctx.stroke();
+    }
+    // zone labels
+    ctx.fillStyle = 'rgba(240,228,190,0.55)';
+    ctx.font = '11px Courier New';
+    [[50, 0], [25, 24], [20, 54], [10, 92], [5, 131]].forEach(([v, r]) => {
+        ctx.fillText(String(v), DARTS_CX, DARTS_CY - r + 4);
+    });
+
+    // Stuck darts
+    for (const d of p.darts) {
+        ctx.save();
+        ctx.translate(d.x, d.y);
+        ctx.rotate(d.ang);
+        ctx.fillStyle = '#1a1206';
+        ctx.fillRect(-1.5, -2, 3, 4);             // tip in the cork
+        ctx.strokeStyle = '#3a3430';
+        ctx.lineWidth = 2.6;
+        ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(15, -21); ctx.stroke(); // shaft
+        ctx.fillStyle = d.score ? '#d4af37' : '#8a8478'; // gold flights for hits
+        ctx.beginPath();
+        ctx.moveTo(15, -21); ctx.lineTo(24, -32); ctx.lineTo(20, -19); ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+    }
+
+    // Dart in flight
+    if (p.stage === 'flight') {
+        const ft = Math.min(1, (performance.now() - p.flightStart) / 240);
+        const sx = DARTS_CX + 420, sy = DARTS_CY + 330;
+        const fx = sx + (p.targetX - sx) * ft;
+        const fy = sy + (p.targetY - sy) * ft - Math.sin(ft * Math.PI) * 70; // arc
+        ctx.strokeStyle = '#cfc4a6';
+        ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.moveTo(fx, fy); ctx.lineTo(fx + 14 * (1 - ft) + 4, fy + 16 * (1 - ft) + 4); ctx.stroke();
+        if (ft >= 1) { // impact
+            const score = dartsScoreAt(p.targetX - DARTS_CX, p.targetY - DARTS_CY);
+            p.darts.push({ x: p.targetX, y: p.targetY, score, ang: (Math.random() - 0.5) * 0.5 });
+            p.score += score;
+            p.popups.push({ text: score ? String(score) : 'WALL', x: p.targetX, y: p.targetY - 16, t: 0, gold: score >= 25 });
+            p.shake = score ? 4 : 7;
+            sndThunk(!score);
+            if (score === 50) sndSuccess();
+            if (p.darts.length >= 3) {
+                p.stage = 'done';
+                if (p.score > (gameState.dartsBest || 0)) { p.newBest = true; gameState.dartsBest = p.score; }
+                if (p.score >= def.samBest && !gameState.flags.darts_beat_sam) {
+                    gameState.flags.darts_beat_sam = true;
+                    p.beatSam = true;
+                    increaseSanity(0.5);
+                }
+                saveGame(); // commit the record (autosave skips while a puzzle is open)
+            } else {
+                p.stage = 'aim';
+            }
+        }
+    }
+
+    // Aim reticle / steady ring
+    if (p.stage === 'aim') {
+        const a = dartsAimPos(t);
+        p.aimX = a.x; p.aimY = a.y;
+        ctx.strokeStyle = '#ffe9a8';
+        ctx.lineWidth = 1.6;
+        ctx.beginPath(); ctx.arc(a.x, a.y, 9, 0, Math.PI * 2); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(a.x - 16, a.y); ctx.lineTo(a.x - 4, a.y); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(a.x + 4, a.y); ctx.lineTo(a.x + 16, a.y); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(a.x, a.y - 16); ctx.lineTo(a.x, a.y - 4); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(a.x, a.y + 4); ctx.lineTo(a.x, a.y + 16); ctx.stroke();
+    } else if (p.stage === 'steady') {
+        const r = dartsRingR(p);
+        ctx.strokeStyle = r < 26 ? '#7fdf6f' : '#ffe9a8';
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(p.lockX, p.lockY, r, 0, Math.PI * 2); ctx.stroke();
+        ctx.fillStyle = '#ffe9a8';
+        ctx.beginPath(); ctx.arc(p.lockX, p.lockY, 2.2, 0, 7); ctx.fill();
+    }
+
+    // Score popups float up
+    for (let i = p.popups.length - 1; i >= 0; i--) {
+        const pop = p.popups[i];
+        pop.t++;
+        ctx.fillStyle = `rgba(${pop.gold ? '255,217,122' : '220,210,180'},${Math.max(0, 1 - pop.t / 55)})`;
+        ctx.font = 'bold ' + (pop.gold ? 22 : 17) + 'px Courier New';
+        ctx.fillText(pop.text, pop.x, pop.y - pop.t * 0.7);
+        if (pop.t > 55) p.popups.splice(i, 1);
+    }
+
+    // Status panel
+    ctx.fillStyle = '#cfc4a6';
+    ctx.font = '15px Courier New';
+    ctx.fillText('SCORE  ' + p.score, DARTS_CX + 330, 150);
+    ctx.fillText('DARTS  ' + '▮'.repeat(3 - p.darts.length) + '▯'.repeat(p.darts.length), DARTS_CX + 330, 174);
+    ctx.fillStyle = 'rgba(212,175,55,0.6)';
+    ctx.font = '13px Courier New';
+    if (p.stage === 'aim') ctx.fillText('CLICK TO SET YOUR AIM — left-handed, Sam\'s rule', DARTS_CX, 560);
+    else if (p.stage === 'steady') ctx.fillText('STEADY… CLICK WHEN THE RING IS TIGHT', DARTS_CX, 560);
+
+    // Round over
+    p._uiBtns = [];
+    if (p.stage === 'done') {
+        ctx.fillStyle = 'rgba(0,0,0,0.55)';
+        ctx.fillRect(DARTS_CX - 300, 520, 600, 150);
+        ctx.strokeStyle = '#d4af37';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(DARTS_CX - 300, 520, 600, 150);
+        ctx.fillStyle = '#ffe9a8';
+        ctx.font = 'bold 24px Courier New';
+        ctx.fillText(p.score + ' / 150' + (p.newBest ? '  — NEW CAMP BEST' : ''), DARTS_CX, 552);
+        ctx.fillStyle = '#a89a72';
+        ctx.font = '13px Courier New';
+        const line = p.beatSam ? "Sam's chalk number finally falls. Somewhere, he owes you a beer he can't pay."
+            : p.score >= 100 ? "From inside the dorm: 'Not bad, Doctor.' You didn't announce yourself."
+            : p.score >= 60 ? 'A grunt of acknowledgment through the dorm wall.'
+            : p.score >= 30 ? "From inside the dorm: 'The wall. Again.'"
+            : "From inside the dorm: 'Is someone throwing rocks?'";
+        ctx.fillText(line, DARTS_CX, 578);
+        for (const [label, bx, action] of [
+            ['THROW AGAIN', DARTS_CX - 160, () => { p.darts = []; p.score = 0; p.popups = []; p.newBest = false; p.beatSam = false; p.stage = 'aim'; }],
+            ['WALK AWAY', DARTS_CX + 160, () => closePuzzle()],
+        ]) {
+            const w = 200, h = 34, x = bx - w / 2, y = 612;
+            const hover = pauseMouse.x >= x && pauseMouse.x <= x + w && pauseMouse.y >= y && pauseMouse.y <= y + h;
+            ctx.fillStyle = hover ? 'rgba(212,175,55,0.18)' : 'rgba(0,0,0,0.4)';
+            ctx.fillRect(x, y, w, h);
+            ctx.strokeStyle = hover ? '#d4af37' : '#5a4a28';
+            ctx.strokeRect(x, y, w, h);
+            ctx.fillStyle = hover ? '#ffe9a8' : '#cfc4a6';
+            ctx.font = 'bold 14px Courier New';
+            ctx.fillText(label, bx, y + 22);
+            p._uiBtns.push({ x, y, w, h, action });
+        }
+    } else {
+        ctx.fillStyle = '#555';
+        ctx.font = '11px Courier New';
+        ctx.fillText('ESC TO WALK AWAY', DARTS_CX, canvas.height - 26);
+    }
+    ctx.restore();
+}
+
 function drawPuzzle() {
     if (!activePuzzle) return;
     const p = activePuzzle;
     const def = p.def;
     if (def.type === 'glyphseal') return drawGlyphSeal(p);
+    if (def.type === 'darts') return drawDartsGame(p);
     const CX = canvas.width / 2, CY = canvas.height / 2;
 
     // Backdrop
@@ -1785,6 +2074,31 @@ function handlePuzzleClick(cx, cy) {
     if (!activePuzzle || activePuzzle.phase !== 'active') return;
     const p = activePuzzle;
     const def = p.def;
+
+    if (def.type === 'darts') {
+        if (p.stage === 'aim') {
+            p.lockX = p.aimX;
+            p.lockY = p.aimY;
+            p.stage = 'steady';
+            p.steadyStart = performance.now();
+            sndClick();
+        } else if (p.stage === 'steady') {
+            const r = dartsRingR(p);
+            const a = Math.random() * Math.PI * 2;
+            const scatter = Math.max(0, r - 12) * (0.35 + Math.random() * 0.6);
+            p.targetX = p.lockX + Math.cos(a) * scatter;
+            p.targetY = p.lockY + Math.sin(a) * scatter;
+            p.stage = 'flight';
+            p.flightStart = performance.now();
+            sndWhoosh();
+        } else if (p.stage === 'done') {
+            for (const b of (p._uiBtns || [])) {
+                if (cx >= b.x && cx <= b.x + b.w && cy >= b.y && cy <= b.y + b.h) { b.action(); break; }
+            }
+        }
+        return;
+    }
+
     if (!p._btns) return;
 
     if (def.type === 'glyphseal') {

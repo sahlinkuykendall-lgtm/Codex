@@ -87,11 +87,10 @@ const storyData = {
     ]},
     'fun_dog_pet': { speaker: "System", text: "Dust opens one eye, decides you are acceptable, and goes back to sleep. His tail thumps the sand twice. For a moment the site feels briefly, stupidly normal.", choices: [{ text: "[ Leave him to it. ]", onSelect: () => closeDialogue() }] },
 
-    'fun_dartboard': { speaker: "System", text: "A dartboard nailed up by the dormitory, ringed by a halo of holes in the wood — testament to enthusiasm over accuracy. Three darts left.", choices: [
-        { text: "Throw one.", nextScene: 'fun_dartboard_throw' },
+    'fun_dartboard': { speaker: "System", text: () => "A dartboard nailed up by the dormitory, ringed by a halo of holes in the wood — testament to enthusiasm over accuracy. Three darts wait in the post.\n\nA chalk number is fading on the plank beside it: S — 132." + (gameState.dartsBest ? "\n\nYour chalk, newer: " + gameState.dartsBest + "." : ""), choices: [
+        { text: "Step up to the line. (3 darts)", onSelect: () => startPuzzle('minigame_darts') },
         { text: "Leave it.", onSelect: () => closeDialogue() }
     ]},
-    'fun_dartboard_throw': { speaker: "System", text: "Wide left. From inside the dorm, a muffled voice: 'That is the wall again, Doctor.' You did not announce yourself. They knew anyway.", choices: [{ text: "[ Quietly put the darts back. ]", onSelect: () => closeDialogue() }] },
 
     'fun_radio': { speaker: "System", text: "A battered shortwave radio on a crate, antenna splinted with electrical tape. The dial glows faintly. Cairo is a hundred channels of static from here.", choices: [
         { text: "Sweep the dial.", onSelect: () => { if (!gameState.flags.radio_music_found) { gameState.flags.radio_music_found = true; increaseSanity(0.2); } }, nextScene: 'fun_radio_sweep' },

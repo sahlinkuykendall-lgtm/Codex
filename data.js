@@ -28,6 +28,8 @@ const gameState = {
     trustTariq: 0, trustMaren: 0, trustIry: 0, trustYusra: 0,
     // Inventory & consumables
     inventory: ['Field Journal'], mintTeaCount: 0, usedRestSites: [],
+    // Camp darts personal best (Sam's chalk record is 132)
+    dartsBest: 0,
     // Stamina system
     stamina: STAMINA.max, maxStamina: STAMINA.max, isSprinting: false,
     // Walking bob (animation)
