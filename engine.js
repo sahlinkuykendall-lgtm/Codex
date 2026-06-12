@@ -78,7 +78,7 @@ const PUZZLES = {
     'puzzle_plates': {
         type: 'sequence',
         title: 'Pressure Plates',
-        hint: 'Four stone plates. The carvings suggest an order: serpent, eye, bird, hand.',
+        hint: 'Four stone plates. The carvings suggest an order: eye, serpent, bird, hand.',
         sequence: [1, 0, 2, 3],
         glyphs: ['𓆑', '𓂀', '𓅓', '𓂧'],
         rewardFlag: 'trap_plates_solved',
