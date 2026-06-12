@@ -246,7 +246,7 @@ const storyData = {
 
     'flavor_sam_notebook_glyphs': {
         speaker: "System",
-        text: "Most of the notebook is field measurements — soil composition, vibration readings, instrument calibrations. Sam's handwriting gets smaller and denser toward the middle.\n\nOne page is headed TUNNEL GATE in capital letters, double-underlined. Four glyphs are drawn carefully in a row, numbered 1 through 4:\n\n  [1] 𓂀   [2] 𓃭   [3] 𓅓   [4] 𓆑\n\nBelow them:\n\n  3 — 1 — 4 — 2\n  owl first. then the eye. then the fish. then the lion.\n\nAnd in the margin, very small: \"Don't try it blind. — S\"",
+        text: "Most of the notebook is field measurements — soil composition, vibration readings, instrument calibrations. Sam's handwriting gets smaller and denser toward the middle.\n\nOne page is headed TUNNEL GATE in capital letters, double-underlined. Four glyphs are drawn carefully in a row, numbered 1 through 4:\n\n  [1] 𓂀   [2] 𓃭   [3] 𓅓   [4] 𓆑\n\nBelow them:\n\n  3 — 1 — 4 — 2\n  owl first. then the eye. then the serpent. then the lion.\n\nAnd in the margin, very small: \"Don't try it blind. If it bites you, the stones move. Trust the animals, not the positions. — S\"",
         choices: [{
             text: "Close the notebook. Take everything.",
             onSelect: () => {
@@ -258,7 +258,7 @@ const storyData = {
                 gameState.flags.sam_final_note_read = true;
                 gameState.flags.memorializedPartner = true;
                 gameState.flags.sam_glyph_sequence_known = true;
-                addJournalNote('Glyph Lock Sequence', 'From Sam\'s notebook: 3-1-4-2. Owl first, then eye, then fish, then lion. Sam\'s note: "Don\'t try it blind." He knew the gate personally.');
+                addJournalNote('Tunnel Gate Seal', 'From Sam\'s notebook: 3-1-4-2 — owl, then eye, then serpent, then lion. "If it bites you, the stones move. Trust the animals, not the positions." He knew the gate personally.');
                 decreaseSanity(0.5);
                 updateHUD();
                 closeDialogue();
@@ -3251,7 +3251,7 @@ const storyData = {
 
     'puzzle_start_glyph_lock': {
         speaker: "System",
-        text: "A stone panel is set into the tunnel approach wall. Four glyph symbols are inset into its surface, each capable of being pressed — from left to right:\n\n  [1] 𓂀   [2] 𓃭   [3] 𓅓   [4] 𓆑\n\nBeside the panel, the stone surface is faintly discoloured — the ghost of something written in pencil, then carefully rubbed away. Sam was here. Sam was careful about what he left behind.\n\n— HOW TO PLAY: Click the four glyphs in the correct order. One wrong press resets the sequence. The correct order is hidden somewhere on the site.",
+        text: "A circular seal is set into the tunnel approach wall — a ring of pale stone around a dark amber core, with four glyph stones spaced around it like the points of a compass. The core pulses. Slowly. Once every eight seconds, the same rhythm as the Codex in your tent.\n\nBeside the seal, the stone is faintly discoloured — the ghost of something written in pencil, then carefully rubbed away. Sam was here. Sam was careful about what he left behind.\n\n— HOW IT WORKS: Press the four glyphs in the correct order. The first press wakes the seal; finish before the resonance fades. A wrong glyph springs the trap — and the stones move. The order is hidden somewhere on this site.",
         choices: [
             {
                 text: "Try the combination. (Opens puzzle)",
@@ -3289,7 +3289,7 @@ const storyData = {
 
     'puzzle_glyph_fail': {
         speaker: "System",
-        text: "Wrong sequence. The panel flashes red and something releases with a hiss from the wall — a dart, fired at shin height, that buries itself in the opposite timber brace.\n\nYou stand very still.\n\nThe mechanism resets. The dart is cedar-wood, extremely old. The tip has dried to a dark resin. You do not touch the tip.\n\nThe sequence isn't written here. Sam made sure of that. Whatever he left, he left somewhere else — somewhere he trusted you'd already looked.",
+        text: "Wrong stone. The seal flashes red and something releases with a hiss from the wall — a dart, fired at shin height, that buries itself in the opposite timber brace.\n\nYou stand very still.\n\nAnd then, with a sound like millstones, the four glyph stones grind around the ring and settle in new positions. The lock has rearranged itself. It remembers being touched wrongly.\n\nThe dart is cedar-wood, extremely old. The tip has dried to a dark resin. You do not touch the tip.\n\nThe order isn't written here. Sam made sure of that. Whatever he left, he left somewhere else — somewhere he trusted you'd already looked.",
         choices: [{
             text: "Try again more carefully.",
             onSelect: () => {

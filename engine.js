@@ -63,13 +63,19 @@ const DEV_ZOOM_STEP = 0.1;
 let activePuzzle = null;
 
 const PUZZLES = {
-    // Ch1: Glyph lock on tunnel gate — press symbols in correct order
+    // Ch1: The Tunnel Gate Seal — a circular resonance lock.
+    // Press the four glyphs in Sam's order (notebook in the hollow fuel
+    // drum: 3-1-4-2 / owl, eye, serpent, lion). First press wakes the
+    // seal and the resonance starts draining — finish before it fades.
+    // A wrong glyph fires the dart trap AND reshuffles the glyph
+    // positions, so the animal order is the durable key.
     'puzzle_glyph_lock': {
-        type: 'sequence',
-        title: 'Glyph Lock',
-        hint: 'The lock has four glyph buttons. The order is scratched faintly on the stone beside it.',
-        sequence: [2, 0, 3, 1],   // correct order of button indices
+        type: 'glyphseal',
+        title: 'THE TUNNEL GATE SEAL',
+        hint: 'Wake the seal. Four glyphs, one order — Sam wrote it down somewhere he trusted you to look.',
+        sequence: [2, 0, 3, 1],   // glyph indices in press order: owl, eye, serpent, lion
         glyphs: ['𓂀', '𓃭', '𓅓', '𓆑'],
+        glyphNames: ['the eye', 'the lion', 'the owl', 'the serpent'],
         rewardFlag: 'glyph_lock_solved',
         rewardScene: 'puzzle_glyph_solved',
         failScene: 'puzzle_glyph_fail',
@@ -132,6 +138,14 @@ function startPuzzle(id) {
         phase: 'active', // 'active' | 'solved' | 'failed'
         flashTimer: 0,
         flashColor: null,
+        // glyphseal state: display order persists across attempts (the
+        // seal reshuffles its stones after every dart), resonance energy
+        order: def._order ? [...def._order] : [0, 1, 2, 3],
+        energy: 1,
+        awake: false,
+        spin: 0,
+        note: '',
+        noteTimer: 0,
     };
     closeDialogue();
 }
@@ -1365,10 +1379,192 @@ function getChapterPalette() {
 // ---- PUZZLE RENDERING & INPUT ----
 // ============================================================
 
+// ---- THE TUNNEL GATE SEAL (glyphseal minigame) ----
+// A circular stone seal: four glyph discs orbit a dormant amber core.
+// First press wakes it; resonance drains while you work. Wrong glyph =
+// dart trap + the discs grind into new positions. The order is hidden
+// in Sam's notebook (hollow fuel drum): owl, eye, serpent, lion.
+const SEAL_TONES = [392, 466, 554, 622]; // ascending as the seal accepts each press
+
+function drawGlyphSeal(p) {
+    const def = p.def;
+    const CX = canvas.width / 2, CY = canvas.height / 2 + 14;
+    const t = performance.now() / 1000;
+
+    ctx.save();
+    ctx.fillStyle = 'rgba(2,2,1,0.9)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Resonance drain while the seal is awake
+    if (p.phase === 'active' && p.awake) {
+        p.energy -= 1 / 600; // ~10 seconds
+        if (p.energy <= 0) {
+            p.energy = 1;
+            p.awake = false;
+            p.input = [];
+            p.note = 'THE RESONANCE FADES. THE SEAL SLEEPS AGAIN.';
+            p.noteTimer = 150;
+            _tone(196, 0.35, 'sine', 0.08);
+        }
+    }
+    if (p.noteTimer > 0) p.noteTimer--;
+
+    const progress = p.input.length / def.sequence.length;
+    const corePulse = p.awake
+        ? 0.5 + 0.5 * Math.sin(t * (3 + progress * 6))
+        : 0.5 + 0.5 * Math.sin(t * 0.78); // dormant: the slow Heart rhythm
+
+    // Title + whisper of a hint
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#d4af37';
+    ctx.font = 'bold 22px Courier New';
+    ctx.fillText(def.title, CX, 96);
+    ctx.fillStyle = 'rgba(212,175,55,0.45)';
+    ctx.font = '13px Courier New';
+    ctx.fillText(def.hint, CX, 124);
+
+    // Outer stone ring (spins free when solved)
+    p.spin += p.phase === 'solved' ? 0.05 : 0;
+    ctx.strokeStyle = 'rgba(212,175,55,0.35)';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(CX, CY, 218, 0, Math.PI * 2);
+    ctx.stroke();
+    for (let i = 0; i < 24; i++) { // ring notches
+        const a = (i / 24) * Math.PI * 2 + p.spin;
+        ctx.strokeStyle = `rgba(160,130,60,${0.25 + 0.2 * Math.sin(t * 2 + i)})`;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(CX + Math.cos(a) * 206, CY + Math.sin(a) * 206);
+        ctx.lineTo(CX + Math.cos(a) * 218, CY + Math.sin(a) * 218);
+        ctx.stroke();
+    }
+
+    // Resonance meter — an amber arc that empties clockwise
+    if (p.awake && p.phase === 'active') {
+        ctx.strokeStyle = `rgba(232,181,69,${0.5 + 0.3 * corePulse})`;
+        ctx.lineWidth = 6;
+        ctx.beginPath();
+        ctx.arc(CX, CY, 192, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * p.energy);
+        ctx.stroke();
+    }
+
+    // The core
+    const coreR = 56 + corePulse * 5 + progress * 8;
+    const coreGrad = ctx.createRadialGradient(CX, CY, 6, CX, CY, coreR);
+    const coreA = p.awake ? 0.55 + 0.35 * corePulse : 0.2 + 0.12 * corePulse;
+    coreGrad.addColorStop(0, `rgba(255,222,130,${coreA})`);
+    coreGrad.addColorStop(0.6, `rgba(212,175,55,${coreA * 0.55})`);
+    coreGrad.addColorStop(1, 'rgba(212,175,55,0)');
+    ctx.fillStyle = coreGrad;
+    ctx.beginPath();
+    ctx.arc(CX, CY, coreR, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = `rgba(212,175,55,${0.3 + 0.4 * corePulse})`;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(CX, CY, 44, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Glyph discs (display slots: top, right, bottom, left → p.order)
+    const slotAngles = [-Math.PI / 2, 0, Math.PI / 2, Math.PI];
+    const DISC_R = 47, RING = 150;
+    p._btns = [];
+    p.order.forEach((glyphIdx, slot) => {
+        const a = slotAngles[slot];
+        const gx = CX + Math.cos(a) * RING;
+        const gy = CY + Math.sin(a) * RING;
+        const pressedAt = p.input.indexOf(glyphIdx);
+        const pressed = pressedAt >= 0;
+        const hover = p.phase === 'active' && !pressed &&
+            Math.hypot(pauseMouse.x - gx, pauseMouse.y - gy) <= DISC_R;
+
+        // Beam to the core once accepted
+        if (pressed) {
+            ctx.strokeStyle = `rgba(232,181,69,${0.5 + 0.35 * Math.sin(t * 6 + pressedAt)})`;
+            ctx.lineWidth = 3.5;
+            ctx.beginPath();
+            ctx.moveTo(gx - Math.cos(a) * DISC_R, gy - Math.sin(a) * DISC_R);
+            ctx.lineTo(CX + Math.cos(a) * 40, CY + Math.sin(a) * 40);
+            ctx.stroke();
+        }
+
+        // Stone disc
+        const discGrad = ctx.createRadialGradient(gx - 10, gy - 12, 4, gx, gy, DISC_R);
+        if (pressed) {
+            discGrad.addColorStop(0, '#e8c878');
+            discGrad.addColorStop(1, '#8a6a20');
+        } else {
+            discGrad.addColorStop(0, hover ? '#4a4234' : '#363022');
+            discGrad.addColorStop(1, hover ? '#2a2418' : '#1b1710');
+        }
+        ctx.fillStyle = discGrad;
+        ctx.beginPath();
+        ctx.arc(gx, gy, DISC_R, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = pressed ? '#ffe9a8' : (hover ? '#d4af37' : 'rgba(150,120,55,0.7)');
+        ctx.lineWidth = pressed || hover ? 3 : 2;
+        ctx.beginPath();
+        ctx.arc(gx, gy, DISC_R, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // The glyph itself
+        ctx.fillStyle = pressed ? '#1a1206' : (hover ? '#ffe9a8' : '#c9a648');
+        ctx.font = '40px serif';
+        ctx.fillText(def.glyphs[glyphIdx], gx, gy + 14);
+
+        // Press-order numeral on accepted stones
+        if (pressed) {
+            ctx.fillStyle = '#1a1206';
+            ctx.font = 'bold 13px Courier New';
+            ctx.fillText(String(pressedAt + 1), gx, gy - DISC_R + 16);
+        }
+
+        p._btns.push({ x: gx, y: gy, r: DISC_R, glyphIdx });
+    });
+
+    // Status line
+    ctx.font = '13px Courier New';
+    if (p.noteTimer > 0) {
+        ctx.fillStyle = `rgba(150,160,200,${Math.min(1, p.noteTimer / 40)})`;
+        ctx.fillText(p.note, CX, CY + 268);
+    } else if (p.phase === 'active') {
+        ctx.fillStyle = p.awake ? 'rgba(232,181,69,0.8)' : 'rgba(150,130,80,0.6)';
+        ctx.fillText(
+            p.awake ? `THE SEAL IS LISTENING — ${p.input.length} OF ${def.sequence.length}` : 'THE SEAL SLEEPS. PRESS A GLYPH TO WAKE IT.',
+            CX, CY + 268);
+    }
+
+    // Flash feedback
+    if (p.flashTimer > 0) {
+        p.flashTimer--;
+        if (p.flashColor === 'fail') {
+            const shake = (Math.random() - 0.5) * 6 * (p.flashTimer / 30);
+            ctx.fillStyle = `rgba(160,20,20,${0.22 * (p.flashTimer / 30)})`;
+            ctx.fillRect(shake, shake, canvas.width, canvas.height);
+        } else if (p.flashColor === 'win') {
+            ctx.fillStyle = `rgba(232,181,69,${0.25 * (p.flashTimer / 40)})`;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+    }
+
+    if (p.phase === 'solved') {
+        ctx.fillStyle = '#ffe9a8';
+        ctx.font = 'bold 20px Courier New';
+        ctx.fillText('THE SEAL TURNS', CX, CY + 4);
+    } else {
+        ctx.fillStyle = '#555';
+        ctx.font = '11px Courier New';
+        ctx.fillText('ESC TO STEP BACK', CX, canvas.height - 44);
+    }
+    ctx.restore();
+}
+
 function drawPuzzle() {
     if (!activePuzzle) return;
     const p = activePuzzle;
     const def = p.def;
+    if (def.type === 'glyphseal') return drawGlyphSeal(p);
     const CX = canvas.width / 2, CY = canvas.height / 2;
 
     // Backdrop
@@ -1511,6 +1707,46 @@ function handlePuzzleClick(cx, cy) {
     const p = activePuzzle;
     const def = p.def;
     if (!p._btns) return;
+
+    if (def.type === 'glyphseal') {
+        for (const btn of p._btns) {
+            if (Math.hypot(cx - btn.x, cy - btn.y) > btn.r) continue;
+            const idx = btn.glyphIdx;
+            if (p.input.includes(idx)) return; // that stone is already lit
+            const pos = p.input.length;
+            if (def.sequence[pos] === idx) {
+                p.input.push(idx);
+                p.awake = true;
+                _tone(SEAL_TONES[pos], 0.16, 'sine', 0.1);
+                if (p.input.length === def.sequence.length) {
+                    p.phase = 'solved';
+                    p.flashTimer = 40;
+                    p.flashColor = 'win';
+                    sndSuccess();
+                    gameState.flags[def.rewardFlag] = true;
+                    setTimeout(() => { closePuzzle(); if (def.rewardScene) startDialogue(def.rewardScene); }, 1300);
+                }
+            } else {
+                // The dart — and the stones grind into new positions,
+                // so only the animal order from Sam's note holds true
+                p.flashTimer = 30;
+                p.flashColor = 'fail';
+                p.phase = 'failed';
+                sndFail();
+                const newOrder = [...p.order];
+                do {
+                    for (let i = newOrder.length - 1; i > 0; i--) {
+                        const j = (Math.random() * (i + 1)) | 0;
+                        [newOrder[i], newOrder[j]] = [newOrder[j], newOrder[i]];
+                    }
+                } while (newOrder.every((v, i) => v === p.order[i]));
+                def._order = newOrder;
+                if (def.failScene) setTimeout(() => { closePuzzle(); startDialogue(def.failScene); }, 650);
+            }
+            return;
+        }
+        return;
+    }
 
     if (def.type === 'sequence') {
         p._btns.forEach((btn, i) => {
