@@ -1158,7 +1158,7 @@ function drawStartScreen() {
     ctx.textAlign = 'center';
     ctx.fillStyle = 'rgba(120, 100, 60, 0.4)';
     ctx.font = '12px Courier New';
-    ctx.fillText('V2  —  ACT I', 640, 500);
+    ctx.fillText('V' + GAME_VERSION + '  —  2D  —  ACT I', 640, 500);
     ctx.restore();
 
     // 13 — Smiley face with hair (bottom-right corner)

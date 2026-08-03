@@ -189,6 +189,7 @@
                     if (firstError) lines.push('Technical detail: ' + firstError);
                     if (!lines.length) lines.push('The game failed to start for an unknown reason. Try a current version of Chrome, Edge or Firefox, and send a screenshot of this message plus anything shown in the browser console (F12).');
                     lines.push('The 2D version does not need WebGL — open index2d.html (in the same folder) to play that instead.');
+                    lines.push('Game version: ' + (window.GAME_VERSION ? 'V' + window.GAME_VERSION : 'unknown (data.js did not load)'));
                     document.getElementById('boot-error-text').textContent = lines.join('\n\n');
                     document.getElementById('boot-error').classList.remove('hidden');
                 }, 500);

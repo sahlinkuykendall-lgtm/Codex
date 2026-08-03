@@ -2502,6 +2502,8 @@ function syncContinueButton() {
     menuContinueEl.classList.toggle('hidden', !hasSave());
 }
 syncContinueButton();
+document.getElementById('menu-version').textContent =
+    `V${GAME_VERSION} — 3D BUILD · ACT I`;
 
 menuContinueEl.addEventListener('click', () => {
     if (gameState.currentScreen !== 'START_MENU') return;

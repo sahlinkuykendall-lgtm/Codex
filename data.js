@@ -1,3 +1,9 @@
+// Shown on both title screens and in the boot-error panel.
+// BUMP on every change that ships, so playtesters can confirm which
+// build they have from a screenshot.
+const GAME_VERSION = '3.1.0';
+window.GAME_VERSION = GAME_VERSION;
+
 let WORLD = { width: 3840, height: 3520 }; // Ch1 size after map scaling (see MAP_SCALE)
 
 // currentMapKey drives wall & object lookups. Set by each loadChapter function.
