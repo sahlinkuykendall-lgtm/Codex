@@ -2685,3 +2685,7 @@ function gameLoop3d() {
 }
 
 gameLoop3d();
+
+// Reached only if the whole engine parsed and the first frame ran without
+// throwing — the index.html boot guard reports failure otherwise.
+window.BOOT_3D_OK = true;
