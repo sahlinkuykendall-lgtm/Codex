@@ -2528,6 +2528,48 @@ function drawMenuSmiley() {
     ctx.restore();
 }
 
+// Tiny test cow in the top-right of the menu (branch sanity check)
+function drawMenuCow() {
+    ctx.save();
+    const cx = canvas.width - 40, cy = 34;
+    // body
+    ctx.fillStyle = '#FFF';
+    ctx.strokeStyle = '#333'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.ellipse(cx, cy, 16, 10, 0, 0, Math.PI * 2);
+    ctx.fill(); ctx.stroke();
+    // spots
+    ctx.fillStyle = '#333';
+    ctx.beginPath(); ctx.ellipse(cx - 6, cy - 3, 4, 3, 0.4, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(cx + 4, cy + 3, 3, 2.5, -0.5, 0, Math.PI * 2); ctx.fill();
+    // legs
+    ctx.strokeStyle = '#333'; ctx.lineWidth = 2;
+    [-10, -4, 4, 10].forEach(dx => {
+        ctx.beginPath(); ctx.moveTo(cx + dx, cy + 8); ctx.lineTo(cx + dx, cy + 15); ctx.stroke();
+    });
+    // head
+    ctx.fillStyle = '#FFF';
+    ctx.strokeStyle = '#333'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.ellipse(cx + 15, cy - 6, 7, 6, 0, 0, Math.PI * 2);
+    ctx.fill(); ctx.stroke();
+    // ears
+    ctx.beginPath(); ctx.ellipse(cx + 10, cy - 11, 3, 1.8, -0.6, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(cx + 20, cy - 11, 3, 1.8, 0.6, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    // muzzle
+    ctx.fillStyle = '#F4B8C1';
+    ctx.beginPath(); ctx.ellipse(cx + 15, cy - 3, 4.5, 3, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    // nostrils + eyes
+    ctx.fillStyle = '#333';
+    ctx.beginPath(); ctx.arc(cx + 13.5, cy - 3, 0.8, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx + 16.5, cy - 3, 0.8, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx + 12.5, cy - 8, 1, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx + 17.5, cy - 8, 1, 0, Math.PI * 2); ctx.fill();
+    // tail
+    ctx.strokeStyle = '#333'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(cx - 16, cy - 2);
+    ctx.quadraticCurveTo(cx - 21, cy + 2, cx - 19, cy + 9); ctx.stroke();
+    ctx.restore();
+}
+
 // ---- MAIN LOOP ----
 function gameLoop3d() {
     requestAnimationFrame(gameLoop3d);
@@ -2553,6 +2595,7 @@ function gameLoop3d() {
         cam3.lookAt(cx, 30, cz);
         renderer3.render(scene3, cam3);
         drawMenuSmiley();
+        drawMenuCow();
         if (glCanvas.style.filter) glCanvas.style.filter = ''; // menu is always clear-eyed
         return;
     }
