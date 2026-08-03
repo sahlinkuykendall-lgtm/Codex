@@ -23,8 +23,31 @@ const WALL_HEIGHT_LOW = 48;     // thin walls (fences, kerbs)
 const WALL_HEIGHT_BORDER = 130; // world border walls
 
 // ---- RENDERER / CAMERA / SCENE ----
-const glCanvas = document.getElementById('glCanvas');
-const renderer3 = new THREE.WebGLRenderer({ canvas: glCanvas, antialias: true });
+let glCanvas = document.getElementById('glCanvas');
+// Antialiased contexts fail outright on some weak/blocklisted GPUs where a
+// plain context would still work — retry with progressively humbler asks
+// before letting the boot guard report a real failure. Each retry needs a
+// FRESH canvas: one failed context request poisons the element for good.
+const renderer3 = (() => {
+    const attempts = [
+        { antialias: true },
+        { antialias: false },
+        { antialias: false, powerPreference: 'low-power', failIfMajorPerformanceCaveat: false },
+    ];
+    let lastErr = null;
+    for (let i = 0; i < attempts.length; i++) {
+        let target = glCanvas;
+        if (i > 0) {
+            target = glCanvas.cloneNode(false);
+            glCanvas.replaceWith(target);
+            glCanvas = target;
+        }
+        try {
+            return new THREE.WebGLRenderer(Object.assign({ canvas: target }, attempts[i]));
+        } catch (e) { lastErr = e; }
+    }
+    throw lastErr;
+})();
 renderer3.outputEncoding = THREE.sRGBEncoding;
 renderer3.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
