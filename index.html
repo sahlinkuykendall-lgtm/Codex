@@ -48,15 +48,35 @@
         .strained-filter  { filter: contrast(120%) saturate(70%) hue-rotate(15deg); }
         .fractured-filter { filter: contrast(150%) saturate(50%) hue-rotate(60deg); }
         /* ---- Main menu (3D vista renders behind this overlay) ---- */
-        #menu-overlay { position: absolute; inset: 0; z-index: 8; display: flex; flex-direction: column; justify-content: center; align-items: center; background: radial-gradient(ellipse at center, rgba(0,0,0,0.18) 30%, rgba(0,0,0,0.78) 100%); animation: menuFade 1.6s ease; }
+        #menu-overlay { position: absolute; inset: 0; z-index: 8; display: flex; flex-direction: column; justify-content: center; align-items: center; background: linear-gradient(180deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.30) 16%, rgba(0,0,0,0.10) 42%, rgba(0,0,0,0.42) 72%, rgba(2,2,1,0.92) 100%), radial-gradient(ellipse at center 40%, rgba(0,0,0,0) 20%, rgba(0,0,0,0.5) 100%); animation: menuFade 1.8s ease both; }
         @keyframes menuFade { from { opacity: 0; } to { opacity: 1; } }
-        #menu-rule { color: rgba(212,175,55,0.5); font-size: 14px; letter-spacing: 14px; margin-bottom: 18px; }
-        #menu-title { color: #d4af37; font-size: 58px; font-weight: bold; letter-spacing: 12px; margin: 0 0 10px 0; text-align: center; text-shadow: 0 0 24px rgba(212,175,55,0.45), 0 2px 2px #000; }
-        #menu-sub { color: #9a8a60; font-size: 14px; letter-spacing: 9px; margin-bottom: 56px; text-shadow: 0 1px 2px #000; }
-        .menu-btn { display: block; width: 340px; margin: 9px 0; padding: 14px 0; background: rgba(0,0,0,0.72); border: 1px solid #d4af37; color: #e0d4a8; font-family: 'Courier New', Courier, monospace; font-size: 15px; letter-spacing: 5px; cursor: pointer; transition: all 0.25s ease; }
-        .menu-btn:hover { background: #d4af37; color: #000; box-shadow: 0 0 18px rgba(212,175,55,0.5); }
-        #menu-controls-panel { margin-top: 22px; padding: 16px 26px; background: rgba(0,0,0,0.82); border: 1px solid #5a4a28; color: #b9a877; font-size: 12.5px; line-height: 2; letter-spacing: 1px; text-align: center; }
-        #menu-version { position: absolute; bottom: 16px; left: 0; right: 0; text-align: center; color: rgba(140,120,70,0.55); font-size: 12px; letter-spacing: 3px; }
+        @keyframes titleIn { from { opacity: 0; transform: translateY(20px); letter-spacing: 0.4em; } to { opacity: 1; transform: none; letter-spacing: 0.2em; } }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+        @keyframes ruleGrow { from { opacity: 0; transform: scaleX(0.1); } to { opacity: 1; transform: scaleX(1); } }
+        .menu-rule { display: flex; align-items: center; width: min(560px, 72vw); gap: 14px; animation: ruleGrow 1.6s cubic-bezier(.2,.7,.3,1) 0.5s both; }
+        .menu-rule .rule-line { flex: 1; height: 1px; }
+        .menu-rule .rule-line:first-child { background: linear-gradient(90deg, transparent, rgba(212,175,55,0.65)); }
+        .menu-rule .rule-line:last-child { background: linear-gradient(270deg, transparent, rgba(212,175,55,0.65)); }
+        .menu-rule .rule-gem { color: rgba(212,175,55,0.85); font-size: 11px; text-shadow: 0 0 10px rgba(212,175,55,0.6); }
+        .menu-rule-under { width: min(400px, 56vw); animation-delay: 0.9s; }
+        #menu-title { font-family: Georgia, 'Palatino Linotype', 'Book Antiqua', 'Times New Roman', serif; font-size: clamp(42px, 6.2vw, 66px); font-weight: 700; letter-spacing: 0.2em; margin: 22px 0 16px; padding-left: 0.2em; /* recenter: tracking pads the right edge */ text-align: center; color: transparent; background: linear-gradient(180deg, #fdf3cd 0%, #eed685 36%, #d4af37 62%, #96741f 100%); -webkit-background-clip: text; background-clip: text; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.95)) drop-shadow(0 0 30px rgba(212,175,55,0.3)); animation: titleIn 2s cubic-bezier(.16,.8,.3,1) both; }
+        #menu-sub { color: #a4915f; font-size: 13px; letter-spacing: 0.62em; padding-left: 0.62em; margin-bottom: 22px; text-shadow: 0 1px 3px #000; animation: fadeUp 1.4s ease 0.8s both; }
+        #menu-buttons { margin-top: 54px; display: flex; flex-direction: column; align-items: center; }
+        .menu-btn { display: block; position: relative; width: 336px; margin: 5px 0; padding: 13px 0; background: rgba(8,6,3,0.55); border: 1px solid rgba(212,175,55,0.26); color: #cdbf98; font-family: 'Courier New', Courier, monospace; font-size: 14px; letter-spacing: 6px; text-transform: uppercase; cursor: pointer; backdrop-filter: blur(3px); transition: background 0.22s ease, border-color 0.22s ease, color 0.22s ease, box-shadow 0.22s ease; opacity: 0; animation: fadeUp 0.7s ease both; }
+        #menu-buttons .menu-btn:nth-child(1) { animation-delay: 1.05s; }
+        #menu-buttons .menu-btn:nth-child(2) { animation-delay: 1.2s; }
+        #menu-buttons .menu-btn:nth-child(3) { animation-delay: 1.35s; }
+        #menu-buttons .menu-btn:nth-child(4) { animation-delay: 1.5s; }
+        #menu-buttons .menu-btn:nth-child(5) { animation-delay: 1.65s; }
+        .menu-btn::before, .menu-btn::after { content: ''; position: absolute; width: 15px; height: 15px; opacity: 0; transition: opacity 0.22s ease; pointer-events: none; }
+        .menu-btn::before { top: -1px; left: -1px; border-top: 1px solid #d4af37; border-left: 1px solid #d4af37; }
+        .menu-btn::after { bottom: -1px; right: -1px; border-bottom: 1px solid #d4af37; border-right: 1px solid #d4af37; }
+        .menu-btn:hover { background: rgba(212,175,55,0.12); border-color: rgba(212,175,55,0.8); color: #ffe9a8; box-shadow: 0 0 26px rgba(212,175,55,0.16), inset 0 0 20px rgba(212,175,55,0.05); }
+        .menu-btn:hover::before, .menu-btn:hover::after { opacity: 1; }
+        #menu-continue { border-color: rgba(212,175,55,0.6); color: #ffd97a; }
+        #menu-controls-panel { margin-top: 24px; padding: 18px 30px; background: rgba(5,4,2,0.88); border: 1px solid rgba(212,175,55,0.3); backdrop-filter: blur(4px); color: #b9a877; font-size: 12.5px; line-height: 2.4; letter-spacing: 1px; text-align: center; box-shadow: 0 14px 44px rgba(0,0,0,0.65); animation: fadeUp 0.35s ease both; }
+        #menu-controls-panel .key { display: inline-block; border: 1px solid rgba(212,175,55,0.65); border-radius: 4px; padding: 0 8px; margin: 0 3px; color: #ffd97a; font-weight: bold; font-size: 11px; letter-spacing: 2px; line-height: 1.8; background: rgba(212,175,55,0.08); box-shadow: 0 2px 0 rgba(212,175,55,0.3); }
+        #menu-version { position: absolute; bottom: 14px; left: 18px; color: rgba(140,120,70,0.55); font-size: 11px; letter-spacing: 3px; text-shadow: 0 1px 2px #000; }
         /* ---- Site overview (drone) viewer ---- */
         #mapview-hud { position: absolute; bottom: 18px; left: 50%; transform: translateX(-50%); z-index: 9; display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.78); border: 1px solid #5a4a28; padding: 10px 14px; }
         .mapview-btn { background: rgba(0,0,0,0.72); border: 1px solid #d4af37; color: #e0d4a8; font-family: 'Courier New', Courier, monospace; font-size: 13px; letter-spacing: 2px; padding: 8px 14px; cursor: pointer; transition: all 0.2s ease; }
@@ -91,17 +111,24 @@
         </div>
         <!-- Main menu over a live 3D vista of the dig site -->
         <div id="menu-overlay">
-            <div id="menu-rule">&#9670;&nbsp;&#9670;&nbsp;&#9670;</div>
+            <div class="menu-rule">
+                <span class="rule-line"></span><span class="rule-gem">&#9670;</span><span class="rule-line"></span>
+            </div>
             <h1 id="menu-title">THE CODEX OF GIZA</h1>
             <div id="menu-sub">AN EXCAVATION IN SEVEN CHAPTERS</div>
-            <button class="menu-btn hidden" id="menu-continue">CONTINUE</button>
-            <button class="menu-btn" id="menu-start">BEGIN THE EXCAVATION</button>
-            <button class="menu-btn" id="menu-controls">CONTROLS</button>
-            <button class="menu-btn" id="menu-mapview">SITE OVERVIEW</button>
+            <div class="menu-rule menu-rule-under">
+                <span class="rule-line"></span><span class="rule-gem">&#9670;</span><span class="rule-line"></span>
+            </div>
+            <div id="menu-buttons">
+                <button class="menu-btn hidden" id="menu-continue">CONTINUE</button>
+                <button class="menu-btn" id="menu-start">BEGIN THE EXCAVATION</button>
+                <button class="menu-btn" id="menu-controls">CONTROLS</button>
+                <button class="menu-btn" id="menu-mapview">SITE OVERVIEW</button>
+            </div>
             <div id="menu-controls-panel" class="hidden">
-                W A S D — MOVE &nbsp;&middot;&nbsp; MOUSE — LOOK (CLICK TO CAPTURE)<br>
-                SPACE — INTERACT / JUMP &nbsp;&middot;&nbsp; SHIFT — SPRINT &nbsp;&middot;&nbsp; E — FOCUS<br>
-                TAB — STATS &nbsp;&middot;&nbsp; ESC — PAUSE
+                <span class="key">W</span><span class="key">A</span><span class="key">S</span><span class="key">D</span> MOVE &nbsp;&middot;&nbsp; <span class="key">MOUSE</span> LOOK (CLICK TO CAPTURE)<br>
+                <span class="key">SPACE</span> INTERACT / JUMP &nbsp;&middot;&nbsp; <span class="key">SHIFT</span> SPRINT &nbsp;&middot;&nbsp; <span class="key">E</span> FOCUS<br>
+                <span class="key">TAB</span> STATS &nbsp;&middot;&nbsp; <span class="key">ESC</span> PAUSE
             </div>
             <div id="menu-version">V3 — 3D BUILD &nbsp;&middot;&nbsp; ACT I</div>
         </div>
