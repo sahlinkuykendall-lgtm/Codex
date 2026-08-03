@@ -626,8 +626,10 @@ const CH1_BUILDERS = {
         const slope = Math.hypot(halfD, rise) + 6;
         const ang = Math.atan2(rise, halfD);
         for (const s of [-1, 1]) {
+            // Tilt each slab so its inner edge meets the ridge and its outer
+            // edge drops past the eaves (sign flipped: -s*ang made a valley)
             const r = put(g, gBox(w + 16, 4, slope), M.tent, 0, (wallH + ridgeH) / 2, s * halfD / 2);
-            r.rotation.x = -s * ang;
+            r.rotation.x = s * ang;
         }
         put(g, gBox(w + 18, 5, 10), M.tentDark, 0, ridgeH + 1, 0); // ridge cap
         // gable ends close the roof (at x = ±w/2, facing outward)
@@ -1871,6 +1873,18 @@ function syncWorldVisibility() {
     for (const e of objectEntries) {
         const hidden = isObjectResolved(e.o);
         e.mesh.visible = !hidden;
+        // The dig gate's sign is baked into a sprite texture — repaint it
+        // once the gate actually opens (labels are otherwise static)
+        if (e.o.id === 'dig_gate' && e.label && !e.labelOpened && gameState.flags.scene3Triggered) {
+            e.labelOpened = true;
+            const fresh = makeLabelSprite('Dig Zone Gate — OPEN', '#f4e4b0');
+            fresh.position.copy(e.label.position);
+            e.label.parent.add(fresh);
+            e.label.parent.remove(e.label);
+            e.label.material.map.dispose();
+            e.label.material.dispose();
+            e.label = fresh;
+        }
         if (e.label) {
             // Distance fade: invisible when too close (would fill the screen)
             // or too far (horizon clutter); full strength in the mid band.
@@ -2499,10 +2513,89 @@ document.getElementById('menu-controls').addEventListener('click', () => {
     document.getElementById('menu-controls-panel').classList.toggle('hidden');
 });
 window.addEventListener('keydown', e => {
-    if ((e.key === ' ' || e.key === 'Enter') && gameState.currentScreen === 'START_MENU') {
+    if ((e.key === ' ' || e.key === 'Enter') && gameState.currentScreen === 'START_MENU' && !mapView.active) {
         e.preventDefault();
         begin3dGame();
     }
+});
+
+// ---- SITE OVERVIEW (drone shots of the current map, from the menu) ----
+// A few fixed perspectives over the whole map so layout issues can be
+// spotted (and screenshotted) without walking there in game.
+const mapView = { active: false, idx: 0 };
+const MAP_VIEWS = [
+    'TOP-DOWN — FULL SITE',
+    'OBLIQUE — FROM SOUTH-EAST',
+    'OBLIQUE — FROM NORTH-WEST',
+    'LOW DRONE — SLOW ORBIT',
+];
+const mapViewHudEl = document.getElementById('mapview-hud');
+const mapViewHintEl = document.getElementById('mapview-hint');
+const mapViewCaptionEl = document.getElementById('mapview-caption');
+
+function syncMapViewCaption() {
+    mapViewCaptionEl.textContent = `${mapView.idx + 1} / ${MAP_VIEWS.length} · ${MAP_VIEWS[mapView.idx]}`;
+}
+
+function setMapView(active) {
+    if (active && gameState.currentScreen !== 'START_MENU') return;
+    mapView.active = active;
+    mapViewHudEl.classList.toggle('hidden', !active);
+    mapViewHintEl.classList.toggle('hidden', !active);
+    menuOverlayEl.classList.toggle('hidden', active);
+    if (active) syncMapViewCaption();
+    else {
+        cam3.up.set(0, 1, 0); // top-down view tilts the up vector
+        if (scene3.fog) { scene3.fog.near = fogBase[0]; scene3.fog.far = fogBase[1]; }
+    }
+}
+
+function cycleMapView(dir) {
+    mapView.idx = (mapView.idx + dir + MAP_VIEWS.length) % MAP_VIEWS.length;
+    syncMapViewCaption();
+}
+
+function positionMapViewCamera() {
+    const cx = WORLD.width / 2, cz = WORLD.height / 2;
+    const maxDim = Math.max(WORLD.width, WORLD.height);
+    cam3.up.set(0, 1, 0);
+    switch (mapView.idx) {
+        case 0: { // straight down, whole map in frame, north at the top
+            const tanH = Math.tan(cam3.fov * Math.PI / 360);
+            const h = Math.max(WORLD.height / 2 / tanH,
+                               WORLD.width / 2 / (tanH * cam3.aspect)) * 1.12;
+            cam3.position.set(cx, h, cz);
+            cam3.up.set(0, 0, -1);
+            cam3.lookAt(cx, 0, cz);
+            break;
+        }
+        case 1:
+            cam3.position.set(WORLD.width * 1.18, maxDim * 0.62, WORLD.height * 1.18);
+            cam3.lookAt(cx, 0, cz);
+            break;
+        case 2:
+            cam3.position.set(-WORLD.width * 0.18, maxDim * 0.62, -WORLD.height * 0.18);
+            cam3.lookAt(cx, 0, cz);
+            break;
+        case 3: { // low sweep — slow full circle at prop height
+            const ang = performance.now() / 1000 * 0.08;
+            cam3.position.set(cx + Math.cos(ang) * maxDim * 0.34, 560,
+                              cz + Math.sin(ang) * maxDim * 0.34);
+            cam3.lookAt(cx, 40, cz);
+            break;
+        }
+    }
+}
+
+document.getElementById('menu-mapview').addEventListener('click', () => setMapView(true));
+document.getElementById('mapview-back').addEventListener('click', () => setMapView(false));
+document.getElementById('mapview-prev').addEventListener('click', () => cycleMapView(-1));
+document.getElementById('mapview-next').addEventListener('click', () => cycleMapView(1));
+window.addEventListener('keydown', e => {
+    if (!mapView.active || gameState.currentScreen !== 'START_MENU') return;
+    if (e.key === 'ArrowLeft')  { e.preventDefault(); cycleMapView(-1); }
+    else if (e.key === 'ArrowRight') { e.preventDefault(); cycleMapView(1); }
+    else if (e.key === 'Escape') setMapView(false);
 });
 
 // The smiley (with hair) from the 2D title screen lives on here
@@ -2538,14 +2631,26 @@ function gameLoop3d() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     if (gameState.currentScreen === 'START_MENU') {
+        ensureWorldBuilt();
+        updateAtmosphere3d();
+
+        if (mapView.active) {
+            // Drone shots: fog pushed out so the whole site reads, labels
+            // shown so things can be named in a bug report screenshot.
+            for (const e of objectEntries) if (e.label) { e.label.visible = true; e.label.material.opacity = 1; }
+            if (scene3.fog) { scene3.fog.near = 60000; scene3.fog.far = 90000; }
+            positionMapViewCamera();
+            renderer3.render(scene3, cam3);
+            if (glCanvas.style.filter) glCanvas.style.filter = '';
+            return;
+        }
+
         // Live vista: slow orbit over the night camp behind the DOM menu
         if (menuOverlayEl.classList.contains('hidden')) {
             menuOverlayEl.classList.remove('hidden');
             syncContinueButton(); // returning to menu — a save may now exist
         }
-        ensureWorldBuilt();
         for (const e of objectEntries) if (e.label) e.label.visible = false;
-        updateAtmosphere3d();
         const t = performance.now() / 1000;
         const ang = t * 0.055;
         const cx = 1703, cz = 2400; // tent compound center
