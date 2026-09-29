@@ -12,6 +12,18 @@ Other docs:
 
 ---
 
+## V4.0.5 — 2026-09-29 — Downloaded 3D models: a pipeline and two test characters
+- **The game can now use downloaded 3D models.** A converter (`tools/convert_models.js`)
+  takes .fbx, .glb or .gltf files, merges in Mixamo animations, shrinks textures, and packs
+  the result into `models/`, so it works when index.html is opened from your folder and
+  on GitHub Pages.
+- **Two test people stand in front of Miriam's tent:**
+  - **Low-poly:** "Man in Suit" by Quaternius (0.7 MB, 11 built-in animations). He idles
+    and claps now and then.
+  - **Realistic:** "Remy" from Mixamo, with Mixamo's Walking animation (11 MB after
+    shrinking from 28 MB). He walks up and down in front of the tent.
+- The test people are temporary, so you can compare the two styles.
+
 ## V4.0.4 — 2026-09-29 — Bosta the camp dog, the turning loop, the Bedouin camp, office fixes
 - **Bosta, the camp dog.** She's a sandy baladi dog: one ear up, one flopped, a curled
   tail. She arrived in the back of the post van, hence the name, and she's now fully

@@ -45,6 +45,18 @@
   (poses: stand, sit, lie, sleep, roll; a trot gait), a behaviour loop (sleep, wander, idle,
   home, or follow the player's breadcrumb trail), synthesized bark, growl and whimper, and
   her dialogue. Her interaction box and label move with her every frame.
+- **Downloaded 3D models.**
+  - `tools/convert_models.js` (Node + Playwright) converts .fbx/.glb/.gltf into a compact
+    .glb. It merges in Mixamo animations (`--anim walk=Walking.fbx`), `--inplace` strips
+    root motion, and `--tex` caps texture size. It writes `models/<name>.js`, the .glb as
+    base64, which loads from file:// and from GitHub Pages. Run it with
+    `NODE_PATH=<dir with playwright>`.
+  - `models3d.js`: `modelSpawn(name, {height, clip})` gives an independent, skinned,
+    animated copy scaled to world units; `.play(clip)` crossfades. It uses
+    `lib/GLTFLoader.js` and `lib/SkeletonUtils.js` (three r147 examples/js).
+  - Source files go in `avatars/`. The web uploader caps files at 25 MB, but the converter
+    reads them from anywhere.
+  - `ch1_testmodels.js` is TEMPORARY: two test people in front of the tent.
 - The supply line runs one forward-only route: in from the desert, round the balloon loop
   (`CH1_RAIL_LOOP` in `ch1_layout.js`), and back out. So the loco always leads.
 - **The new story (V4.0.0+).** `story_core.js` and `ch1a_story.js` load LAST (after
