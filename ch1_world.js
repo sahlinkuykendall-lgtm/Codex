@@ -1597,24 +1597,26 @@ function ch1MergeByMaterial(root) {
 function buildCh1Occluders(group) {
     const M = ch1Mats();
     const rng = seededRng('occluders');
-    const chalk = M.chalk || (M.chalk = new THREE.MeshStandardMaterial({ map: M.tex.rock, color: 0xf2ece0, roughness: 0.95, flatShading: true }));
+    const chalk = M.chalk || (M.chalk = ch1ChalkMat());
 
-    // White Desert chalk: fins streamlined north-south, and mushrooms
+    // White Desert chalk: wind-sculpted, smooth and pale — mushrooms with an
+    // undercut neck and a lumpy cap, and whaleback yardangs streamlined
+    // north-south (blunt nose into the wind, tapering tail)
     for (const y of ch1YardangSpots()) {
-        const gh = Math.min(ch1HeightBase(y.x, y.z), ch1HeightBase(y.x + y.w / 2, y.z), ch1HeightBase(y.x - y.w / 2, y.z)) - 8;
+        const gh = Math.min(ch1HeightBase(y.x, y.z), ch1HeightBase(y.x + y.w / 2, y.z), ch1HeightBase(y.x - y.w / 2, y.z)) - 6;
         const g = new THREE.Group();
         g.position.set(y.x, gh, y.z);
         g.rotation.y = (vnoise3(y.seed, 1, 1) - 0.5) * 0.5;
         if (y.kind === 'fin') {
-            const geo = ch1CliffGeo(y.w, y.h, y.l, y.seed, { amp: 16, taper: (u, v) => (1 - 0.72 * Math.pow(u, 1.4)) * (0.55 + 0.45 * Math.sin(Math.PI * clamp01(v))) });
-            put(g, geo, chalk, 0, y.h / 2, 0);
+            put(g, ch1ChalkWhaleback(y.w * 0.55, y.h * 0.7, y.l * 0.62, y.seed), chalk, 0, 0, 0);
         } else {
-            const stem = ch1CliffGeo(y.w * 0.45, y.h * 0.62, y.w * 0.45, y.seed, { amp: 10, taper: () => 1 });
-            put(g, stem, chalk, 0, y.h * 0.31, 0);
-            const cap = ch1CliffGeo(y.w * 1.15, y.h * 0.36, y.w * 0.95, y.seed + 3, { amp: 14, taper: (u, v) => 0.6 + 0.4 * Math.sin(Math.PI * clamp01(u)) * Math.sin(Math.PI * clamp01(v)) });
-            put(g, cap, chalk, 0, y.h * 0.62 + y.h * 0.14, 0);
+            put(g, ch1ChalkMushroom(y.w * 0.5, y.h, y.seed), chalk, 0, 0, 0);
         }
-        for (let i = 0; i < 5; i++) ch1AddRock(g, (rng() - 0.5) * y.w * 1.6, 0, (rng() - 0.5) * y.l, 8 + rng() * 16, rng, chalk);
+        // a skirt of fallen chalk and wind-cut pebbles
+        for (let i = 0; i < 7; i++) {
+            const a = rng() * 6.28, d = y.w * (0.45 + rng() * 0.6);
+            ch1AddRock(g, Math.cos(a) * d, 0, Math.sin(a) * d * (y.kind === 'fin' ? 1.6 : 1), 5 + rng() * 11, rng, chalk);
+        }
         group.add(g);
     }
 
@@ -1883,4 +1885,63 @@ function ch1TamariskMat(M) {
     });
     M.tamarisk = new THREE.MeshStandardMaterial({ map: tamTex, transparent: true, alphaTest: 0.35, side: THREE.DoubleSide, roughness: 1 });
     return M.tamarisk;
+}
+
+// ---- White Desert chalk forms ----
+function ch1ChalkMat() {
+    const tex = makeTex('c1chalk2', 256, 256, 1, 2, (cc, w, h) => {
+        cc.fillStyle = '#ece6d8'; cc.fillRect(0, 0, w, h);
+        // wind-scoured horizontal banding
+        for (let y = 0; y < h; y += 3 + Math.random() * 9) {
+            cc.fillStyle = `rgba(${Math.random() < 0.5 ? '170,160,140' : '255,252,244'},${0.12 + Math.random() * 0.2})`;
+            cc.fillRect(0, y, w, 1 + Math.random() * 3);
+        }
+        blotches(cc, w, h, ['rgba(200,186,160,A)', 'rgba(255,250,240,A)'], 16, 10, 50, 0.3);
+        // pits and flint nodules
+        for (let i = 0; i < 90; i++) { cc.fillStyle = `rgba(120,110,96,${0.2 + Math.random() * 0.4})`; cc.beginPath(); cc.arc(Math.random() * w, Math.random() * h, 0.8 + Math.random() * 2, 0, 7); cc.fill(); }
+        for (let i = 0; i < 8; i++) { cc.fillStyle = 'rgba(60,54,48,0.7)'; cc.beginPath(); cc.ellipse(Math.random() * w, Math.random() * h, 2 + Math.random() * 3, 1.5 + Math.random() * 2, 0, 0, 7); cc.fill(); }
+    });
+    return new THREE.MeshStandardMaterial({ map: tex, color: 0xfaf6ee, roughness: 0.92, emissive: 0x0e0d0a, emissiveIntensity: 1 });
+}
+
+// displace a sphere by a shaping function (position-based, so seams hold)
+function ch1ShapedSphere(seed, shape) {
+    const geo = new THREE.SphereGeometry(1, 36, 26);
+    const p = geo.attributes.position, v = new THREE.Vector3();
+    for (let i = 0; i < p.count; i++) {
+        v.set(p.getX(i), p.getY(i), p.getZ(i));
+        shape(v, fbm3(v.x * 1.6 + seed, v.y * 1.6, v.z * 1.6 - seed, 3) - 0.5, vnoise3(v.x * 5 + seed, v.y * 5, v.z * 5));
+        p.setXYZ(i, v.x, v.y, v.z);
+    }
+    geo.computeVertexNormals();
+    return geo;
+}
+
+// mushroom: a broad base, a neck the wind has undercut, a lumpy cap
+function ch1ChalkMushroom(r, h, seed) {
+    return ch1ShapedSphere(seed, (v, n, fine) => {
+        const u = (v.y + 1) / 2;                                   // 0 bottom … 1 top
+        let rad;
+        if (u < 0.35) rad = 1 - u * 0.9;                           // flared foot
+        else if (u < 0.62) rad = 0.62 - Math.sin((u - 0.35) / 0.27 * Math.PI) * 0.22; // pinched neck
+        else rad = 0.95 + Math.sin((u - 0.62) / 0.38 * Math.PI) * 0.45;              // overhanging cap
+        rad *= 1 + n * 0.5 + (fine - 0.5) * 0.1;
+        const bands = 1 + Math.sin(u * 40 + n * 6) * 0.025;        // wind-cut ledges
+        v.x *= r * rad * bands;
+        v.z *= r * rad * bands * (0.85 + n * 0.2);
+        v.y = Math.max(0, u) * h + n * h * 0.06;
+        if (u > 0.93) v.y -= (u - 0.93) * h * 1.6;                 // flattish top
+    });
+}
+
+// whaleback yardang: streamlined along z, blunt nose north, long tail south
+function ch1ChalkWhaleback(r, h, len, seed) {
+    return ch1ShapedSphere(seed, (v, n, fine) => {
+        const along = (v.z + 1) / 2;                               // 0 nose … 1 tail
+        const taper = along < 0.25 ? 0.75 + along : 1 - Math.pow((along - 0.25) / 0.75, 1.6) * 0.8;
+        const bands = 1 + Math.sin(v.y * 22 + n * 5) * 0.03;
+        v.x *= r * taper * (1 + n * 0.3) * bands;
+        v.z *= len;
+        v.y = Math.max(-0.05, v.y) * h * taper * (1 + n * 0.25) + (fine - 0.5) * 2;
+    });
 }

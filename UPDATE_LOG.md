@@ -13,6 +13,13 @@ Other docs:
 
 ---
 
+## V3.8.1 — 2026-09-29 — Chalk formations reshaped
+- The White Desert rock formations looked like dark "post and slab" blocks. They're now
+  smooth, wind-sculpted chalk: bright pale stone with faint wind-cut banding, pits
+  and dark flint nodules. **Mushrooms** have a flared foot, a neck undercut by the wind
+  and a lumpy overhanging cap. **Whaleback yardangs** are streamlined north–south, with a
+  blunt nose and a long tapering tail. Each sits in a skirt of fallen chalk. Collision is unchanged.
+
 ## V3.8.0 — 2026-09-29 — Chapter 1 interiors; vegetation where the water is
 - **Interiors** (`ch1_interiors.js`): the three Chapter 1 buildings are fully built
   rooms now instead of grey boxes, lit by warm lamps (tone mapped, and the Brightness
