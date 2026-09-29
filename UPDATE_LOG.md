@@ -12,6 +12,9 @@ Other docs:
 
 ---
 
+## V4.0.6 — 2026-09-29 — Remy dodges
+- The realistic test character (Remy) now has a second Mixamo animation, **Dodging Right**. He walks his beat in front of the tent, and at each end dodges to the right, then walks back. The new animation added only 0.05 MB, because it was downloaded without a skin.
+
 ## V4.0.5 — 2026-09-29 — Downloaded 3D models: a pipeline and two test characters
 - **The game can now use downloaded 3D models.** A converter (`tools/convert_models.js`)
   takes .fbx, .glb or .gltf files, merges in Mixamo animations, shrinks textures, and packs
