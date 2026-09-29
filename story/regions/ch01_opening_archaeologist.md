@@ -132,12 +132,16 @@ Dr. Miriam Hale, "left for family reasons" four days ago. Nobody at camp believe
 - Miriam's bookmarked Setne story in her tent: *"Coptos. The river. Why always the river?"*
   It pays off in Ch10
 
-## NOT YET DONE (visual follow-ups)
-- The chalk formations are still White Desert "mushrooms." The bible calls this area the
-  old limestone quarry, so they should be re-modelled as quarried blocks.
-- The old truck's model is a buried Land Rover with a Ministry roundel. It should become a
-  1920s expedition truck.
-- The find store uses the tool-shed model and its "TOOLS" sign.
+## VISUALS (V4.0.1)
+- **The old quarry.** The rock knobs are the limestone the pyramids were cut from: a rough,
+  weathered crown, cut faces stepping down in terraces, half-cut blocks still standing in
+  their channels, wedge sockets, and chips and abandoned blocks at the foot
+  (`ch1QuarryKnob` in `ch1_world.js`).
+- **The 1926 truck.** A Model T-era one-tonner with a brass radiator, spoked wheels, a roof
+  on posts and a slatted bed. The tailboard is stencilled HARVARD – BOSTON EXP. 1926. It's
+  half buried in a dune.
+- **The find store.** A steel door, a padlocked hasp under a Ministry seal of paper and red
+  wax, a "FIND STORE — MAGAZINE · MoTA" sign, and crates of finds against the wall.
 
 ## LEAVING
 Every exit leads to **Ch2 Cairo** (not built yet). The chapter-end card says so. Your choices

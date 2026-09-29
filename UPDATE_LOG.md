@@ -12,6 +12,19 @@ Other docs:
 
 ---
 
+## V4.0.1 — 2026-09-29 — Quarry, 1926 truck, find store (Chapter 1 visuals)
+- **The chalk towers are now the old limestone quarry** where the pyramids' stone was cut.
+  Each knob of bedrock has a rough, weathered crown and cut faces stepping down in
+  terraces. Half-cut blocks still stand in their separation channels, with wedge sockets
+  under the ledges and chip spoil and abandoned blocks at the foot. Collision and
+  sightlines are unchanged. Each knob is merged into a few meshes, so it still runs at 60 fps.
+- **The buried Land Rover is now the Harvard–Boston Expedition's 1926 truck:** a brass
+  radiator, spoked wheels, a roof on posts, a slatted bed, and a stencilled tailboard
+  hanging open, half swallowed by a dune.
+- **The find store looks like one:** a steel door, a padlock under a Ministry seal of paper
+  and red wax, a FIND STORE sign, and crates of finds outside. It's no longer the tool
+  shed with a "TOOLS" sign.
+
 ## V4.0.0 — 2026-09-29 — The new story begins: Chapter 1 rebuilt (the Archaeologist)
 - **New Game now opens a character-creation screen.** You pick a name, gender (pronouns
   and how people address you) and background. Only the Archaeologist is playable: the

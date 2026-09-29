@@ -1599,24 +1599,21 @@ function buildCh1Occluders(group) {
     const rng = seededRng('occluders');
     const chalk = M.chalk || (M.chalk = ch1ChalkMat());
 
-    // White Desert chalk: wind-sculpted, smooth and pale — mushrooms with an
-    // undercut neck and a lumpy cap, and whaleback yardangs streamlined
-    // north-south (blunt nose into the wind, tapering tail)
+    // The old limestone quarries (Giza's pyramid stone was cut right here):
+    // knobs of bedrock left standing where the masons stopped — a rough,
+    // weathered crown on top, and on the worked side the cut faces stepping
+    // down in terraces, half-cut blocks still standing on them with the
+    // separation channels round them, wedge sockets, and the spoil of
+    // chips and abandoned blocks at the foot.
+    const Q = ch1QuarryMats();
     for (const y of ch1YardangSpots()) {
         const gh = Math.min(ch1HeightBase(y.x, y.z), ch1HeightBase(y.x + y.w / 2, y.z), ch1HeightBase(y.x - y.w / 2, y.z)) - 6;
         const g = new THREE.Group();
         g.position.set(y.x, gh, y.z);
-        g.rotation.y = (vnoise3(y.seed, 1, 1) - 0.5) * 0.5;
-        if (y.kind === 'fin') {
-            put(g, ch1ChalkWhaleback(y.w * 0.55, y.h * 0.7, y.l * 0.62, y.seed), chalk, 0, 0, 0);
-        } else {
-            put(g, ch1ChalkMushroom(y.w * 0.5, y.h, y.seed), chalk, 0, 0, 0);
-        }
-        // a skirt of fallen chalk and wind-cut pebbles
-        for (let i = 0; i < 7; i++) {
-            const a = rng() * 6.28, d = y.w * (0.45 + rng() * 0.6);
-            ch1AddRock(g, Math.cos(a) * d, 0, Math.sin(a) * d * (y.kind === 'fin' ? 1.6 : 1), 5 + rng() * 11, rng, chalk);
-        }
+        // worked face either way round; small skew only (collision is an axis box)
+        g.rotation.y = (vnoise3(y.seed, 1, 1) - 0.5) * 0.4 + (y.seed > 50 ? Math.PI : 0);
+        if (y.kind === 'fin') ch1QuarryKnob(g, Q, y.w * 0.95, y.l * 0.9, y.h * 0.62, y.seed, rng);
+        else ch1QuarryKnob(g, Q, y.w * 0.85, y.w * 0.85, y.h * 0.8, y.seed, rng);
         group.add(g);
     }
 
@@ -1952,4 +1949,168 @@ function ch1ChalkWhaleback(r, h, len, seed) {
         v.z *= len;
         v.y = Math.max(-0.05, v.y) * h * taper * (1 + n * 0.25) + (fine - 0.5) * 2;
     });
+}
+
+
+// ---- The old limestone quarries ----
+// Materials: fresh-cut faces (bedding lines, pick and chisel marks) and the
+// weathered crown the masons never touched; dark for sockets and channels.
+function ch1QuarryMats() {
+    const M = ch1Mats();
+    if (M.quarry) return M.quarry;
+    const cut = makeTex('c1quarryCut', 256, 256, 1, 1, (cc, w, h) => {
+        cc.fillStyle = '#d9c7a2'; cc.fillRect(0, 0, w, h);
+        blotches(cc, w, h, ['rgba(186,160,118,A)', 'rgba(236,222,190,A)', 'rgba(170,150,120,A)'], 14, 20, 70, 0.35);
+        // bedding: the stone's own layers, slightly wavy
+        for (let y = 6; y < h; y += 18 + Math.random() * 26) {
+            cc.strokeStyle = `rgba(120,98,66,${0.25 + Math.random() * 0.25})`;
+            cc.lineWidth = 1 + Math.random() * 1.6;
+            cc.beginPath(); cc.moveTo(0, y);
+            for (let x = 0; x <= w; x += 16) cc.lineTo(x, y + Math.sin(x * 0.05 + y) * 1.6);
+            cc.stroke();
+        }
+        // pick marks: short diagonal strokes in rows, the masons' rhythm
+        for (let row = 0; row < 14; row++) {
+            const y0 = Math.random() * h, slant = Math.random() < 0.5 ? 1 : -1;
+            for (let x = Math.random() * 12; x < w; x += 7 + Math.random() * 6) {
+                cc.strokeStyle = `rgba(110,90,60,${0.18 + Math.random() * 0.22})`;
+                cc.lineWidth = 1.2;
+                cc.beginPath(); cc.moveTo(x, y0); cc.lineTo(x + slant * 4, y0 + 7 + Math.random() * 4); cc.stroke();
+            }
+        }
+        speckle(cc, w, h, null, ['#8a7454', '#f0e4c8', '#6a5a44'], 900, 0.6, 2.2);
+    });
+    const rough = makeTex('c1quarryRough', 256, 256, 1, 1, (cc, w, h) => {
+        cc.fillStyle = '#b9a47e'; cc.fillRect(0, 0, w, h);
+        blotches(cc, w, h, ['rgba(120,100,72,A)', 'rgba(210,194,160,A)', 'rgba(90,80,64,A)'], 22, 14, 60, 0.4);
+        for (let i = 0; i < 70; i++) { cc.fillStyle = `rgba(90,76,56,${0.12 + Math.random() * 0.2})`; cc.beginPath(); cc.arc(Math.random() * w, Math.random() * h, 0.8 + Math.random() * 3, 0, 7); cc.fill(); }
+        speckle(cc, w, h, null, ['#5a4a38', '#e0d0b0'], 700, 0.6, 2.4);
+    });
+    M.quarry = {
+        cut: new THREE.MeshStandardMaterial({ map: cut, color: 0xf2e8d2, roughness: 0.93 }),
+        rough: new THREE.MeshStandardMaterial({ map: rough, color: 0xe0d0b0, roughness: 1, flatShading: true }),
+        dark: new THREE.MeshStandardMaterial({ color: 0x2a2219, roughness: 1 }),
+        socket: new THREE.MeshStandardMaterial({ color: 0x6a5840, roughness: 1 }),
+    };
+    return M.quarry;
+}
+
+// A box whose UVs follow real size (1 texture tile ≈ 96 units), so big
+// cut faces don't stretch the tool marks
+function ch1QBox(w, h, d) {
+    const geo = new THREE.BoxGeometry(w, h, d);
+    const uv = geo.attributes.uv;
+    const sizes = [[d, h], [d, h], [w, d], [w, d], [w, h], [w, h]];
+    for (let f = 0; f < 6; f++) for (let k = 0; k < 4; k++) {
+        const i = f * 4 + k;
+        uv.setXY(i, uv.getX(i) * sizes[f][0] / 96, uv.getY(i) * sizes[f][1] / 96);
+    }
+    return geo;
+}
+
+// Merge meshes' geometries (world-baked into the group's frame) by material
+function ch1QMerge(parts) {
+    const byMat = new Map();
+    for (const { geo, mat, matrix } of parts) {
+        const g = (geo.index ? geo.toNonIndexed() : geo.clone());
+        g.applyMatrix4(matrix);
+        if (!byMat.has(mat)) byMat.set(mat, []);
+        byMat.get(mat).push(g);
+    }
+    const out = [];
+    for (const [mat, list] of byMat) {
+        let n = 0;
+        for (const g of list) n += g.attributes.position.count;
+        const pos = new Float32Array(n * 3), nor = new Float32Array(n * 3), uv = new Float32Array(n * 2);
+        let o = 0;
+        for (const g of list) {
+            if (!g.attributes.normal) g.computeVertexNormals();
+            pos.set(g.attributes.position.array, o * 3);
+            nor.set(g.attributes.normal.array, o * 3);
+            if (g.attributes.uv) uv.set(g.attributes.uv.array, o * 2);
+            o += g.attributes.position.count;
+            g.dispose();
+        }
+        const geo = new THREE.BufferGeometry();
+        geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+        geo.setAttribute('normal', new THREE.BufferAttribute(nor, 3));
+        geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+        geo.computeBoundingSphere();
+        out.push(new THREE.Mesh(geo, mat));
+    }
+    return out;
+}
+
+// One knob of unquarried bedrock, W wide, L deep, H tall; the worked face
+// looks down -z (local)
+function ch1QuarryKnob(g, Q, W, L, H, seed, rng) {
+    const parts = [];
+    const add = (geo, mat, x, y, z, ry, rx, rz) => {
+        const m = new THREE.Object3D();
+        m.position.set(x, y, z);
+        m.rotation.set(rx || 0, ry || 0, rz || 0);
+        m.updateMatrix();
+        parts.push({ geo, mat, matrix: m.matrix.clone() });
+    };
+    const n = H > 150 ? 4 : 3;
+    const Hc = H * 0.7;                          // the cut part; the rough crown sits above
+    const stepD = L * 0.15;
+    const hs = [];
+    for (let i = 0; i < n; i++) hs.push(0.8 + rng() * 0.4);
+    const hsum = hs.reduce((a, b) => a + b, 0);
+    let y0 = 0;
+    const levels = [];
+    for (let i = 0; i < n; i++) {
+        const h = Hc * hs[i] / hsum;
+        const w = W * (1 - i * 0.07) * (0.94 + rng() * 0.06);
+        const d = L - i * stepD;
+        const dx = (rng() - 0.5) * W * 0.06;
+        add(ch1QBox(w, h + 0.5, d), Q.cut, dx, y0 + h / 2, (L - d) / 2);
+        levels.push({ y0, h, w, d, dx, zFront: L / 2 - d });
+        y0 += h;
+    }
+    // the untouched crown and the rough back and shoulders
+    const crownH = H - Hc + H * 0.12;
+    // weathered bedrock: craggy, rounded, never touched by a chisel (blunt
+    // end buried in the cut stack, tapering away behind it)
+    add(ch1ChalkWhaleback(W * 0.56, crownH * 1.15, L * 0.34, seed), Q.rough, 0, Hc - crownH * 0.3, L * 0.16);
+    add(ch1ChalkWhaleback(W * 0.6, Hc * 1.02, L * 0.3, seed + 3), Q.rough, 0, 0, L * 0.3);
+    for (const s of [-1, 1]) add(ch1ChalkWhaleback(W * 0.16, Hc * (0.55 + rng() * 0.3), L * 0.42, seed + (s > 0 ? 7 : 11)), Q.rough, s * W * 0.46, 0, L * 0.08);
+    // on each terrace: blocks half cut free, channels round them, wedge sockets
+    for (let i = 0; i < n - 1; i++) {
+        const lv = levels[i], nx = levels[i + 1];
+        const stripZ0 = lv.zFront, stripZ1 = nx.zFront;       // the terrace strip in front of the next face
+        const bd = (stripZ1 - stripZ0) * 0.62;
+        const bh = nx.h * (0.55 + rng() * 0.35);
+        const count = 1 + (rng() * 2.4 | 0);
+        let x = lv.dx - lv.w / 2 + 8 + rng() * lv.w * 0.2;
+        for (let k = 0; k < count && x < lv.dx + lv.w / 2 - 20; k++) {
+            const bw = Math.min(lv.w * 0.3, 18 + rng() * 16);
+            const zc = stripZ0 + (stripZ1 - stripZ0) * 0.55;
+            add(ch1QBox(bw, bh, bd), Q.cut, x + bw / 2, lv.y0 + lv.h + bh / 2, zc);
+            // the channel the masons pounded out round it (dark strip at its foot)
+            add(gBox(bw + 5, 1.2, bd + 5), Q.dark, x + bw / 2, lv.y0 + lv.h + 0.4, zc);
+            x += bw + 5 + rng() * 10;
+        }
+        // wedge sockets in a row under the lip of the face above
+        const sy = lv.y0 + lv.h + nx.h * 0.82;
+        if (rng() < 0.6) for (let s = 0; s < 3; s++) {
+            const sx = nx.dx - nx.w * 0.18 + s * nx.w * 0.12 + (rng() - 0.5) * 3;
+            add(gBox(2.2, 2.8, 1), Q.socket, sx, sy, nx.zFront - 0.2);
+        }
+    }
+    // spoil at the foot: abandoned blocks, a slope of chips
+    for (let k = 0; k < 2 + (rng() * 3 | 0); k++) {
+        const bw = 16 + rng() * 22, bh = 12 + rng() * 16, bd = 14 + rng() * 18;
+        add(ch1QBox(bw, bh, bd), Q.cut, (rng() - 0.5) * W * 1.1, bh * 0.35, -L / 2 - 14 - rng() * 40, rng() * 3, (rng() - 0.5) * 0.3, (rng() - 0.5) * 0.4);
+    }
+    const chips = new THREE.SphereGeometry(1, 12, 6, 0, Math.PI * 2, 0, Math.PI / 2);
+    const cs = new THREE.Object3D();
+    cs.position.set(0, -2, -L / 2 - 10);
+    cs.scale.set(W * 0.55, Math.min(24, H * 0.12), 34);
+    cs.updateMatrix();
+    parts.push({ geo: chips, mat: Q.rough, matrix: cs.matrix.clone() });
+    for (const m of ch1QMerge(parts)) g.add(m);
+    // a few loose stones (their own shapes, left unmerged)
+    for (let k = 0; k < 5; k++) ch1AddRock(g, (rng() - 0.5) * W * 1.3, 0, -L / 2 - rng() * 60, 4 + rng() * 8, rng, Q.rough);
 }

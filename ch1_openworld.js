@@ -257,21 +257,67 @@ Object.assign(CH1_BUILDERS, {
         return g;
     },
     ow_wreck(o, M, rng) {
+        // the Harvard–Boston Expedition's truck, 1926: a Model T-era
+        // one-tonner — long bonnet, brass radiator, open cab under a flat
+        // roof on posts, a slatted wooden bed — sandblasted to rust and
+        // half swallowed by the dune
         const g = new THREE.Group();
-        const alu = new THREE.MeshStandardMaterial({ color: 0x9a9890, roughness: 0.5, metalness: 0.6 });
-        const car = new THREE.Group();
-        put(car, gBox(o.w * 0.9, 40, o.h * 0.8), alu, 0, 30, 0);
-        put(car, gBox(o.w * 0.5, 30, o.h * 0.76), alu, -o.w * 0.12, 64, 0);
-        put(car, gBox(o.w * 0.52, 18, o.h * 0.78), M.black, -o.w * 0.12, 66, 0);
-        put(car, gCyl(18, 18, 10, 14), M.rubber, o.w * 0.46, 40, 0, 0, Math.PI / 2);  // spare wheel on the bonnet
-        put(car, gBox(22, 22, 1), signMat('roundel', [['MoA', 40]], '#d8d0b8', '#2a3a6a', 64, 64), 0, 32, o.h * 0.41);
-        car.rotation.set(0.12, 0.3, -0.18);
-        car.position.y = -16;
-        g.add(car);
-        // the dune that swallowed it
-        const drift = put(g, new THREE.SphereGeometry(1, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2), M.sand, o.w * 0.2, -6, 10);
-        drift.scale.set(o.w * 0.7, 40, o.h * 0.9);
-        g.userData.h = 90;
+        const paint = new THREE.MeshStandardMaterial({ map: makeTex('c1truckPaint', 128, 128, 1, 1, (cc, w, h) => {
+            cc.fillStyle = '#6a4a30'; cc.fillRect(0, 0, w, h);
+            blotches(cc, w, h, ['rgba(52,62,44,A)', 'rgba(150,90,50,A)', 'rgba(90,60,40,A)'], 18, 8, 40, 0.6);  // old green paint, rust
+            speckle(cc, w, h, null, ['#c08a5a', '#3a2a1c', '#8a9a7a'], 500, 0.8, 3);
+        }), roughness: 0.85, metalness: 0.35 });
+        const brass = new THREE.MeshStandardMaterial({ color: 0x8a6a2a, roughness: 0.45, metalness: 0.8 });
+        const L = o.w * 0.95, W = Math.min(o.h * 0.8, 64);
+        const t = new THREE.Group();
+        // chassis rails
+        for (const s of [-1, 1]) put(t, gBox(L, 5, 4), M.metalDark, 0, 24, s * W * 0.32);
+        // bonnet, radiator, mudguards
+        put(t, gBox(L * 0.26, 20, W * 0.52), paint, L * 0.34, 38, 0);
+        put(t, gBox(4, 26, W * 0.56), brass, L * 0.475, 38, 0);
+        put(t, gBox(2, 20, W * 0.44), M.black, L * 0.482, 38, 0);
+        for (const s of [-1, 1]) {
+            put(t, gCyl(4.5, 4.5, 3, 10), brass, L * 0.47, 42, s * W * 0.36, 0, Math.PI / 2);   // headlamps
+            const guard = put(t, new THREE.CylinderGeometry(15, 15, 11, 12, 1, true, 0, Math.PI), paint, L * 0.3, 22, s * W * 0.42);
+            guard.rotation.set(Math.PI / 2, 0, 0);
+            guard.material = paint.clone(); guard.material.side = THREE.DoubleSide;
+        }
+        // the open cab: seat box, dash, flat roof on four posts (one bent)
+        put(t, gBox(L * 0.16, 16, W * 0.9), paint, L * 0.1, 36, 0);
+        put(t, gBox(3, 22, W * 0.9), paint, L * 0.2, 46, 0);
+        put(t, gBox(L * 0.22, 2.5, W * 0.95), M.woodDark, L * 0.09, 86, 0, 0, 0.06);
+        for (const [x, z, bend] of [[L * 0.2, -1, 0], [L * 0.2, 1, 0], [-L * 0.02, -1, 0.35], [-L * 0.02, 1, 0]])
+            put(t, gCyl(1.2, 1.2, 42, 5), M.metalDark, x, 64, z * W * 0.44, 0, bend);
+        put(t, new THREE.TorusGeometry(7, 1, 5, 14), M.black, L * 0.16, 52, -W * 0.18, Math.PI / 2, 0.5);  // steering wheel
+        // the slatted bed
+        put(t, gBox(L * 0.5, 3, W), M.woodDark, -L * 0.24, 30, 0);
+        for (const s of [-1, 1]) for (let k = 0; k < 3; k++) {
+            if (rng() < 0.25) continue;   // missing slats
+            put(t, gBox(L * 0.5, 3.5, 1.5), M.woodPale, -L * 0.24, 36 + k * 7, s * W * 0.49);
+        }
+        const tail = put(t, gBox(2, 22, W), M.woodPale, -L * 0.49, 42, 0);
+        tail.rotation.z = -0.5;   // tailboard hanging open
+        const sten = put(t, gBox(1, 14, W * 0.8), signMat('c1truckStencil', [['HARVARD – BOSTON', 20], ['EXP.  1926', 20]], '#8a7a5a', '#e8dcc0', 256, 64), -L * 0.505, 40, 0);
+        sten.rotation.z = -0.5;
+        sten.position.x -= 1.6;
+        // spoked wheels (one missing, one sunk)
+        const wheel = (x, z) => {
+            const wg = new THREE.Group();
+            put(wg, new THREE.TorusGeometry(13, 2.6, 6, 16), M.rubber, 0, 0, 0);
+            for (let k = 0; k < 10; k++) { const sp = put(wg, gBox(1.2, 22, 1.2), M.woodPale, 0, 0, 0); sp.rotation.z = k * Math.PI / 10; }
+            put(wg, gCyl(3, 3, 5, 8), M.metalDark, 0, 0, 0, 0, 0, Math.PI / 2);
+            wg.position.set(x, 13, z);
+            t.add(wg);
+        };
+        wheel(L * 0.3, -W * 0.5); wheel(L * 0.3, W * 0.5); wheel(-L * 0.3, W * 0.5);
+        put(t, gCyl(2.5, 2.5, W, 6), M.metalDark, -L * 0.3, 13, 0, 0, 0, Math.PI / 2);          // bare axle stub
+        t.rotation.set(0.08, 0.35, -0.12);
+        t.position.y = -5;
+        g.add(t);
+        // the dune that has it up to the axles
+        const drift = put(g, new THREE.SphereGeometry(1, 18, 8, 0, Math.PI * 2, 0, Math.PI / 2), M.sand, -o.w * 0.15, -8, 12);
+        drift.scale.set(o.w * 0.45, 26, o.h * 0.9);
+        g.userData.h = 96;
         return g;
     },
     ow_shelter(o, M, rng) {

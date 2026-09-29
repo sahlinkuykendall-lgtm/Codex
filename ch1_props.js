@@ -1096,6 +1096,7 @@ const CH1_LABEL_BUILDERS = {
     },
     "sam's tool shed": (o, M, rng) => {
         const g = new THREE.Group();
+        if (o.id === 'fl_toolshed') { subFindStore(g, M, o.w, o.h, 70, rng); g.userData.h = 90; return g; }
         subShed(g, M, o.w, o.h, 70, rng);
         g.userData.h = 90;
         return g;
@@ -1265,6 +1266,30 @@ function subShed(g, M, w, d, hWall, rng) {
         subBeam(g, M.woodPale, new THREE.Vector3(x, 0, d / 2 + 14), new THREE.Vector3(x + 3, 58, d / 2 + 2), 1.1);
         put(g, gBox(10, 12, 1.5), M.steel, x, 4, d / 2 + 14, 0, 0, 0).rotation.x = -0.2;
     }
+    return hWall + 14;
+}
+
+// The dig's find store (magazine): a corrugated store like the tool shed,
+// but with a steel door, a padlocked hasp under a Ministry seal of paper and
+// red wax, a stencilled sign, and finds crates stacked against the wall
+function subFindStore(g, M, w, d, hWall, rng) {
+    put(g, gBox(w, hWall, d), M.corrugated, 0, hWall / 2, 0);
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) put(g, gBox(5, hWall + 4, 5), M.woodDark, sx * w / 2, (hWall + 4) / 2, sz * d / 2);
+    const roof = put(g, gBox(w + 20, 4, d + 20), M.corrugated, 0, hWall + 6, 0);
+    roof.rotation.z = 0.08;
+    const door = new THREE.MeshStandardMaterial({ color: 0x4a5058, roughness: 0.55, metalness: 0.7 });
+    const dx = -w * 0.12, dz = d / 2 + 1.2;
+    put(g, gBox(w * 0.4, hWall * 0.84, 2.4), door, dx, hWall * 0.42, dz);
+    for (const y of [0.2, 0.62]) put(g, gBox(w * 0.4, 2.2, 3), M.metalDark, dx, hWall * y, dz + 0.4);   // braces
+    // hasp, padlock, and the Ministry seal across them: a paper strip and a blob of red wax
+    put(g, gBox(10, 3, 2), M.metalDark, dx + w * 0.16, hWall * 0.46, dz + 1.6);
+    put(g, gBox(4, 5, 3), M.brass || M.steel, dx + w * 0.16 + 5, hWall * 0.42, dz + 2.4);
+    put(g, gBox(3, 12, 0.4), M.paper, dx + w * 0.16 + 1, hWall * 0.46, dz + 3.2);
+    put(g, new THREE.SphereGeometry(2.6, 10, 8), new THREE.MeshStandardMaterial({ color: 0x9a1a14, roughness: 0.4 }), dx + w * 0.16 + 1, hWall * 0.46, dz + 3.6).scale.z = 0.5;
+    // the sign
+    put(g, gBox(38, 18, 2), signMat('findstore', [['FIND STORE', 22], ['MAGAZINE · MoTA', 13]], '#e8dcb8', '#2a1c10', 192, 96), w * 0.24, hWall * 0.72, d / 2 + 1.5);
+    // crates of finds against the side wall, with Miriam's labels
+    for (let i = 0; i < 3; i++) subCrate(g, M, w / 2 + 16, i < 2 ? 0 : 22, -d * 0.25 + i * 26 - (i === 2 ? 26 : 0), 22, (rng() - 0.5) * 0.2);
     return hWall + 14;
 }
 
