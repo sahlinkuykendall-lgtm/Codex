@@ -966,7 +966,7 @@ function updatePersons3d() {
 // ---- MOUSE LOOK (POINTER LOCK) ----
 function gameplayInputActive() {
     return gameState.currentScreen === 'GAME' && !gameState.isDialogueActive &&
-           !gameState.isPaused && !activePuzzle;
+           !gameState.isPaused && !activePuzzle && !(typeof bpOpen !== 'undefined' && bpOpen);
 }
 
 glCanvas.addEventListener('click', () => {
@@ -1059,7 +1059,7 @@ function updatePlayer3d() {
         }
     }
 
-    if (gameState.isDialogueActive || gameState.isResting || gameState.isPaused || activePuzzle) {
+    if (gameState.isDialogueActive || gameState.isResting || gameState.isPaused || activePuzzle || (typeof bpOpen !== 'undefined' && bpOpen)) {
         moveVel.x = moveVel.z = 0; moveVel.moving = false;
         return;
     }
@@ -1425,7 +1425,8 @@ function updateSanityFX3d() {
     const beat = Math.pow(Math.max(0, Math.sin(heartbeatPhase * Math.PI * 2)), 6);
     // a small FOV kick while sprinting sells the speed
     const sprintKick = (gameState.isSprinting && moveVel.moving && !gfxSettings().reduceMotion) ? 6 : 0;
-    const fovTarget = (gfxSettings().fov || 70) + sprintKick + beat * 1.6 * low * (gfxSettings().reduceMotion ? 0.2 : 1);
+    const zoomFov = (typeof bpZoomFov === 'function') ? bpZoomFov() : null; // field glasses
+    const fovTarget = zoomFov ? zoomFov : (gfxSettings().fov || 70) + sprintKick + beat * 1.6 * low * (gfxSettings().reduceMotion ? 0.2 : 1);
     if (!mgHandlesPuzzle() && !cineActive() && Math.abs(cam3.fov - fovTarget) > 0.01) {
         cam3.fov += (fovTarget - cam3.fov) * (Math.abs(fovTarget - cam3.fov) > 3 ? 0.12 : 0.35);
         cam3.updateProjectionMatrix();
@@ -1818,6 +1819,8 @@ function gameLoop3d() {
         cineAfterCamera();
     }
     cineTypeTick();
+    if (typeof bpUpdateView === 'function') bpUpdateView(); // the held tool, first person
+    if (typeof tipsUpdate === 'function') tipsUpdate();    // first-steps tips
     renderer3.render(scene3, cam3);
 
     drawOverlays();

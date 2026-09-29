@@ -164,6 +164,9 @@ function ch1PathLampSpots() {
     return spots;
 }
 
+// the supply line's rails: buffer stop → loading bay → out through the dunes
+const CH1_RAIL = [[4420, 7204], [4000, 7204], [3420, 7320], [2860, 7610], [2340, 7990], [1700, 8620], [700, 9520], [-900, 10700]];
+
 // ---- TRACKS: the camp's desire lines and roads ----
 // pts in new world coordinates; w = half width; kind 1 = vehicle road
 const CH1_TRACKS = [
@@ -192,6 +195,8 @@ const CH1_TRACKS = [
     { kind: 0, w: 28, lamps: false, pts: [[1250, 3450], [1500, 2800], [2000, 2250]] },
     // trench ↔ lookout ridge (a climbing trail)
     { kind: 0, w: 26, lamps: false, pts: [[8460, 3000], [8850, 2700], [9150, 2450], [9350, 2150]] },
+    // the rail bed (levelled, no surface strip, no lamps)
+    { kind: 3, w: 34, lamps: false, rail: true, pts: CH1_RAIL.slice(0, 5) },
 ];
 
 // Point on the site for the menu camera / sound sources: an object's centre
@@ -220,18 +225,18 @@ const CH1_RIDGES = [
     { pts: [[8150, 6200], [8450, 7100], [8650, 7900]], h: 140, w: 280 },                // ministry ↔ shelter
     { pts: [[1900, 6250], [3000, 6500], [4150, 6600]], h: 130, w: 280 },                // workers' camp ↔ the wreck
     { pts: [[1150, 5400], [700, 6300]], h: 120, w: 260 },                               // south-west swell
-    { pts: [[9700, 3000], [9850, 4500], [9750, 6000]], h: 150, w: 300 },                // behind the ministry
+    { pts: [[9950, 2900], [10060, 4300], [10000, 5700]], h: 140, w: 240 },               // behind the ministry (kept well back)
 ];
 // where the ridges must lie down: the places people built
 const CH1_KEEPOUT = [
-    [5600, 5150, 780], [2300, 4600, 760], [8950, 5300, 700], [8150, 3400, 700], [5000, 7350, 560],
+    [5600, 5150, 780], [2300, 4600, 760], [8950, 5300, 880], [8150, 3400, 700], [5000, 7350, 560],
     [1300, 3500, 560], [2080, 2300, 520], [3300, 3250, 520], [7400, 6900, 480], [3500, 7000, 420],
     [9380, 2130, 380], [6900, 3000, 360],
 ];
 // chalk formation clusters: [x, z, count, scale]
 const CH1_YARDANGS = [
     [4380, 4250, 4, 1.0], [7650, 6150, 4, 1.1], [1650, 6000, 3, 0.9], [6620, 2620, 3, 0.9],
-    [4250, 7950, 4, 1.0], [9750, 4150, 3, 1.2], [2550, 1720, 3, 1.0], [7200, 3650, 3, 0.8],
+    [4250, 7950, 4, 1.0], [10020, 3450, 3, 1.2], [2550, 1720, 3, 1.0], [7200, 3650, 3, 0.8],
     [4700, 3250, 3, 0.8], [1250, 2450, 3, 1.1],
 ];
 // palm plantation between the workers' camp and the oasis, acacias in the wadi

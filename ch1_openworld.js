@@ -20,18 +20,22 @@
 
 const OW = {
     sherds: [
-        [2150, 2250], [1150, 3330], [9290, 2210], [6950, 3050],
-        [3440, 6960], [3250, 3120], [4980, 1560], [7470, 6960],
+        [2290, 2200], [1150, 3320], [9290, 2210], [6950, 3060],
+        [3380, 7075], [3060, 3200], [4980, 1560], [7575, 7020],
     ],
     caches: [
         { at: [3560, 7090], reward: { funds: 120 }, text: 'A rusted biscuit tin. Inside, folded tight in plastic: 120 EGP and a bus ticket from 1994.' },
         { at: [960, 4150], reward: { funds: 80 }, text: 'A handful of old coins — not ancient, just lost. The exchange office in Giza will give you 80 EGP for them.' },
         { at: [2320, 2500], reward: { item: 'Karkadeh' }, text: 'A sealed thermos, still full. Karkadeh — hibiscus, sour and cold. Someone buried their lunch and never came back for it.\n\n(Stamina recovers faster.)' },
         { at: [7050, 2960], reward: { funds: 60 }, text: 'A brass belt buckle and a coil of copper wire. The camp buys scrap: 60 EGP.' },
-        { at: [9560, 2380], reward: { sanity: 1.0 }, text: 'A child\'s tin compass, needle still swinging true. You hold it a while. North is still north.' },
+        { at: [9560, 2380], reward: { sanity: 1.0, bp: 'tin_compass' }, text: 'A child\'s tin compass, needle still swinging true. You hold it a while. North is still north.' },
         { at: [7620, 7080], reward: { funds: 150 }, text: 'A cloth bundle under a flat stone: 150 EGP in old notes. Bedouin savings, left for whoever needed it more. You leave a note of thanks under the stone.' },
         { at: [4180, 6320], reward: { funds: 50 }, text: 'A lost multitool. Tariq will pay 50 EGP for it — it\'s his.' },
         { at: [8620, 6620], reward: { item: 'Mint Tea' }, text: 'A tin of dried mint and a blackened pot. Enough for a week of proper tea.\n\n(Stamina recovers faster.)' },
+        { at: [6260, 6920], reward: { bp: 'field_glasses' }, text: 'A leather case, cracked, and inside it a pair of brass-bound field glasses — a surveyor\'s, from the look of the markings. The lenses are clean.\n\n(Hold them with G, look with the right mouse button.)' },
+        { at: [1620, 6150], reward: { bp: 'signal_mirror' }, text: 'A soldier\'s signalling mirror in a canvas sleeve, the silvering flaking at the edges. It throws the moon back at you.' },
+        { at: [4620, 3320], reward: { bp: 'dates', qty: 4 }, text: 'A tin with a tight lid: dates, packed in their own sugar. Somebody\'s emergency ration.' },
+        { at: [2750, 3100], reward: { funds: 90 }, text: 'A leather purse gone hard as wood. Inside, 90 EGP in coins that still spend.' },
     ],
     places: [
         { id: 'hub',      name: "ELLIS' CAMP",        at: [5600, 5150], r: 650 },
@@ -70,7 +74,7 @@ const OW = {
     add({ id: 'ow_spoil',   x: 3120, y: 3080, w: 420, h: 320, label: 'Spoil Heaps', interactScene: null, decorative: true });
     add({ id: 'ow_sieve',   x: 3300, y: 3300, w: 70,  h: 50,  label: 'Sieve', interactScene: 'ow_sieve' });
     add({ id: 'ow_tea',     x: 1990, y: 4870, w: 34,  h: 30,  label: 'Tea Kettle', interactScene: 'ow_tea' });
-    add({ id: 'ow_detector', x: 5470, y: 5000, w: 30, h: 30,  label: 'Metal Detector', interactScene: 'ow_detector', owFlag: 'ow_detector' });
+    add({ id: 'ow_detector', x: 5930, y: 5150, w: 30, h: 30,  label: 'Metal Detector', interactScene: 'ow_detector', owFlag: 'ow_detector' });
     OW.sherds.forEach(([x, z], i) => add({ id: 'ow_sherd' + i, x: x - 12, y: z - 12, w: 24, h: 24, label: 'Painted Sherd', interactScene: 'ow_sherd' + i, owFlag: 'ow_sherd' + i, sherd: true }));
     OW.caches.forEach((c, i) => add({ id: 'ow_cache' + i, x: c.at[0] - 20, y: c.at[1] - 20, w: 40, h: 40, label: 'Something Buried', interactScene: 'ow_cache' + i, owFlag: 'ow_cache' + i, cache: true }));
     // the pond is water — you walk round it
@@ -82,7 +86,7 @@ const OW = {
     const _isResolved = isObjectResolved;
     isObjectResolved = function (o) {
         if (o.owFlag && gameState.flags[o.owFlag]) return true;
-        if (o.cache && !gameState.flags.ow_detector) return true; // needs the detector to find
+        if (o.cache && !(typeof bpEquipped === 'function' && bpEquipped() === 'metal_detector')) return true; // dig only with the detector in hand
         return _isResolved(o);
     };
 })();
@@ -108,7 +112,14 @@ Object.assign(storyData, {
                 if (gameState.flags.ow_well_used && Date.now() - gameState.flags.ow_well_used < 90000) { closeDialogue(); return; }
                 gameState.flags.ow_well_used = Date.now();
                 owReward({ stamina: true, sanity: 0.4 });
+                const c = typeof bpFind === 'function' && bpFind('canteen');
+                if (c) { c.charges = 3; owToast('CANTEEN FILLED', '3 drinks (Q)'); }
                 startDialogue('ow_well_drink');
+            } },
+            { text: 'Take the old canteen hanging on the post.', onSelect: () => {
+                if (gameState.flags.ow_canteen_taken) { closeDialogue(); return; }
+                if (bpAdd('canteen', 1, { charges: 3 })) { gameState.flags.ow_canteen_taken = true; owToast('WATER CANTEEN', 'Full · Q to drink anywhere'); }
+                closeDialogue();
             } },
             { text: 'Leave it.', onSelect: () => closeDialogue() },
         ] },
@@ -126,7 +137,7 @@ Object.assign(storyData, {
     'ow_wreck_found': { speaker: 'System', text: 'Maps of a Cairo that no longer exists, a tin of boiled sweets fused into one lump, and 40 EGP in coins.', choices: [{ text: 'Pocket the coins.', onSelect: () => closeDialogue() }] },
     'ow_wreck_empty': { speaker: 'System', text: 'Just the fused sweets. You leave them for the next archaeologist.', choices: [{ text: 'Fair.', onSelect: () => closeDialogue() }] },
     'ow_shelter': { speaker: 'System', text: 'Poles and goat-hair cloth, a ring of blackened stones, a water skin hung from the ridge-pole. Bedouin — gone for the season, or just gone for the night. A clay dish of dates sits covered on a flat stone, the way you leave food for a guest.',
-        choices: [{ text: 'Take one date. Only one.', onSelect: () => { if (!gameState.flags.ow_dates) { gameState.flags.ow_dates = true; owReward({ sanity: 0.6 }); } closeDialogue(); } },
+        choices: [{ text: 'Take a handful of dates for the road.', onSelect: () => { if (!gameState.flags.ow_dates && bpAdd('dates', 3)) { gameState.flags.ow_dates = true; owReward({ sanity: 0.4 }); owToast('DATES ×3', 'In your pack · eat one from the backpack (I)'); } closeDialogue(); } },
                   { text: 'Leave everything as it is.', onSelect: () => closeDialogue() }] },
     'ow_bones': { speaker: 'System', text: 'A camel\'s skeleton in the dry wadi, bleached and articulated, as if it lay down to sleep and the sand simply took the rest. The ribs make a cage around nothing.',
         choices: [{ text: 'Walk on.', onSelect: () => closeDialogue() }] },
@@ -145,12 +156,13 @@ Object.assign(storyData, {
             { text: 'Leave it.', onSelect: () => closeDialogue() },
         ] },
     'ow_detector': { speaker: 'System', text: 'Sam\'s metal detector, leaning where he left it — tape round the handle, "S.O." scratched into the housing. The battery light still comes on.\n\nWith it switched on you\'ll hear a tick that quickens near anything buried.',
-        choices: [{ text: 'Take it.', onSelect: () => { gameState.flags.ow_detector = true; owReward({}); owToast('METAL DETECTOR', 'It ticks faster near buried things. Walk the open ground.'); closeDialogue(); } },
+        choices: [{ text: 'Take it.', onSelect: () => { if (bpAdd('metal_detector')) { gameState.flags.ow_detector = true; owReward({}); owToast('METAL DETECTOR', 'In your pack · press G to hold it'); } closeDialogue(); } },
                   { text: 'Leave it.', onSelect: () => closeDialogue() }] },
 });
 OW.sherds.forEach((_, i) => {
     storyData['ow_sherd' + i] = { speaker: 'System', text: () => 'A painted sherd, the size of your palm — a band of red ochre and a black line, some potter\'s steady hand. (' + (owSherdCount() + 1) + ' of ' + OW.sherds.length + ')',
         choices: [{ text: 'Bag it for the finds register.', onSelect: () => {
+            if (!bpAdd('sherd')) { closeDialogue(); return; }
             gameState.flags['ow_sherd' + i] = true;
             owReward({ funds: 15 });
             if (owSherdCount() === OW.sherds.length) startDialogue('ow_sherds_all');
@@ -158,10 +170,13 @@ OW.sherds.forEach((_, i) => {
         } }] };
 });
 storyData['ow_sherds_all'] = { speaker: 'System', text: 'Eight sherds. Laid out on your field table they fit — not one pot, but one hand: the same black line, the same flick at the end. One potter, a whole village\'s worth of jars, scattered across a mile of sand.\n\nThe register pays a bounty for a set. (+250 EGP)',
-    choices: [{ text: 'Log the set.', onSelect: () => { owReward({ funds: 250, sanity: 0.8 }); closeDialogue(); } }] };
+    choices: [{ text: 'Log the set.', onSelect: () => { if (bpHas('sherd')) bpRemove('sherd'); owReward({ funds: 250, sanity: 0.8 }); closeDialogue(); } }] };
 OW.caches.forEach((c, i) => {
     storyData['ow_cache' + i] = { speaker: 'System', text: 'The detector shrieks. You dig with your hands.\n\n' + c.text,
-        choices: [{ text: 'Take it.', onSelect: () => { gameState.flags['ow_cache' + i] = true; owReward(c.reward); closeDialogue(); } }] };
+        choices: [{ text: 'Take it.', onSelect: () => {
+            if (c.reward.bp && !bpAdd(c.reward.bp, c.reward.qty)) { closeDialogue(); return; } // no room: it waits for you
+            gameState.flags['ow_cache' + i] = true; owReward(c.reward); closeDialogue();
+        } }] };
 });
 
 // minigame definitions (played by ch1_minigames.js)
@@ -346,29 +361,67 @@ Object.assign(CH1_BUILDERS, {
         return g;
     },
     ow_detector(o, M) {
+        // Sam's detector, propped on its coil against a crate
         const g = new THREE.Group();
-        subBeam(g, M.metalDark, new THREE.Vector3(0, 0, 0), new THREE.Vector3(6, 58, -8), 1.2);
-        put(g, gCyl(12, 12, 2.4, 16), M.paintYellow, 0, 1.2, 4, 0, 0, 0.1);
-        put(g, gBox(10, 7, 5), M.dark, 5, 44, -6);
-        put(g, gBox(2, 2, 1), new THREE.MeshBasicMaterial({ color: 0x40ff60, toneMapped: false }), 5, 47, -3.2);
-        g.userData.h = 70;
+        subCrate(g, M, 16, 0, -10, 26, 0.3);
+        const d = bpMakeDetectorModel(M);
+        d.rotation.set(0.32, 0.6, 0.12);
+        d.position.set(-6, 0, 6);
+        g.add(d);
+        g.userData.h = 76;
         return g;
     },
 });
 
 // sherds glint; caches are just disturbed sand (you find them by ear)
+const _owFlareTex = () => makeTex('c1flare', 128, 128, 1, 1, (cc, w, h) => {
+    cc.clearRect(0, 0, w, h);
+    for (const [ax, ay] of [[1, 0], [0, 1]]) {
+        const g = cc.createLinearGradient(64 - ax * 64, 64 - ay * 64, 64 + ax * 64, 64 + ay * 64);
+        g.addColorStop(0, 'rgba(255,240,200,0)'); g.addColorStop(0.5, 'rgba(255,240,200,1)'); g.addColorStop(1, 'rgba(255,240,200,0)');
+        cc.fillStyle = g;
+        if (ax) cc.fillRect(0, 62, w, 4); else cc.fillRect(62, 0, 4, h);
+    }
+});
 const _owGlintTex = () => radialTex('c1glint', [[0, 'rgba(255,250,220,1)'], [0.2, 'rgba(255,220,150,0.5)'], [1, 'rgba(255,200,120,0)']]);
 for (let i = 0; i < OW.sherds.length; i++) {
     CH1_BUILDERS['ow_sherd' + i] = (o, M, rng) => {
+        // a curved piece of a jar's shoulder, painted in red ochre and
+        // black, pushed up out of the sand at an angle
         const g = new THREE.Group();
-        put(g, gBox(10, 1.6, 7), M.terracotta, 0, 1, 0, rng() * 3, 0.1);
-        put(g, gBox(10.2, 0.4, 2), M.paintRed, 0, 1.9, 0, 0, 0.1);
-        const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: _owGlintTex(), blending: THREE.AdditiveBlending, transparent: true, depthWrite: false, toneMapped: false, opacity: 0.8 }));
-        s.scale.set(16, 16, 1); s.position.y = 4;
+        const paint = makeTex('c1sherdPaint', 128, 128, 1, 1, (cc, w, h) => {
+            cc.fillStyle = '#b8764a'; cc.fillRect(0, 0, w, h);
+            speckle(cc, w, h, null, ['#9a5a34', '#d0906a', '#7a4a2a'], 500, 1, 3);
+            cc.fillStyle = '#8a2a18'; cc.fillRect(0, 44, w, 18);                 // ochre band
+            cc.strokeStyle = '#1a120c'; cc.lineWidth = 4;
+            cc.beginPath(); cc.moveTo(0, 40); cc.lineTo(w, 40); cc.stroke();
+            cc.beginPath(); cc.moveTo(0, 66); cc.lineTo(w, 66); cc.stroke();
+            cc.lineWidth = 3;                                                    // the potter's flick
+            for (let x = 8; x < w; x += 26) { cc.beginPath(); cc.moveTo(x, 84); cc.quadraticCurveTo(x + 8, 96, x + 18, 86); cc.stroke(); }
+            cc.fillStyle = '#1a120c';
+            for (let x = 14; x < w; x += 26) { cc.beginPath(); cc.arc(x, 24, 3, 0, 7); cc.fill(); }
+        });
+        const mat = new THREE.MeshStandardMaterial({ map: paint, roughness: 0.85, side: THREE.DoubleSide });
+        const shard = new THREE.Mesh(new THREE.CylinderGeometry(9, 10.5, 12, 10, 1, true, 0, 1.3), mat);
+        shard.rotation.set(1.1, rng() * 6.28, 0.3);
+        shard.position.y = 5;
+        shard.scale.setScalar(1.8);
+        g.add(shard);
+        const edge = new THREE.Mesh(new THREE.CylinderGeometry(9.6, 11.1, 12.2, 10, 1, true, 0, 1.3), new THREE.MeshStandardMaterial({ color: 0x9a5a34, side: THREE.BackSide, roughness: 1 }));
+        edge.rotation.copy(shard.rotation); edge.position.copy(shard.position); edge.scale.setScalar(1.8);
+        g.add(edge);
+        // a glint you can catch from a distance: a soft halo and a cross flare
+        const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: _owGlintTex(), blending: THREE.AdditiveBlending, transparent: true, depthWrite: false, toneMapped: false, opacity: 1 }));
+        s.scale.set(26, 26, 1); s.position.y = 8;
         s.userData.noShadow = true;
         g.add(s);
-        ch1FX.glows.push({ sprite: s, base: 0.8, phase: rng() * 10, steady: false });
-        g.userData.h = 24;
+        const flare = new THREE.Sprite(new THREE.SpriteMaterial({ map: _owFlareTex(), blending: THREE.AdditiveBlending, transparent: true, depthWrite: false, toneMapped: false, opacity: 0.9, color: 0xffe0a0 }));
+        flare.scale.set(40, 40, 1); flare.position.y = 8;
+        flare.userData.noShadow = true;
+        g.add(flare);
+        ch1FX.glows.push({ sprite: s, base: 1, phase: rng() * 10, steady: false });
+        ch1FX.sway.push({ obj: flare.material, axis: 'rotation', base: 0, amp: 0.6, speed: 0.7, phase: rng() * 6 });
+        g.userData.h = 30;
         return g;
     };
 }
@@ -463,11 +516,13 @@ function owUpdateHud() {
 
     // the metal detector: a tick that quickens near buried things
     const det = document.getElementById('ow-detector');
-    if (f.ow_detector) {
+    OW.detector.strength = 0;
+    if (typeof bpEquipped === 'function' && bpEquipped() === 'metal_detector') {
         let best = 1e9;
         OW.caches.forEach((c, i) => { if (!f['ow_cache' + i]) best = Math.min(best, Math.hypot(c.at[0] - px, c.at[1] - pz)); });
         det.classList.remove('hidden');
         const strength = best < 900 ? 1 - best / 900 : 0;
+        OW.detector.strength = strength;
         document.getElementById('ow-det-fill').style.width = (strength * 100).toFixed(0) + '%';
         const now = performance.now();
         if (strength > 0 && now > OW.detector.beepAt) {

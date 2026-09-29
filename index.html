@@ -92,7 +92,7 @@
         #mapview-caption { color: #d4af37; font-size: 13px; letter-spacing: 3px; min-width: 320px; text-align: center; }
         #mapview-hint { position: absolute; top: 14px; left: 0; right: 0; text-align: center; z-index: 9; color: rgba(212,175,55,0.65); font-size: 11.5px; letter-spacing: 3px; text-shadow: 0 1px 2px #000; pointer-events: none; }
     </style>
-    <link rel="stylesheet" href="ui3d.css?v=4">
+    <link rel="stylesheet" href="ui3d.css?v=6">
 </head>
 <body>
     <div id="game-container">
@@ -101,11 +101,30 @@
         <div id="interaction-prompt" class="hidden">Press <span class="key">SPACE</span> to interact</div>
         <div id="crosshair" class="hidden"></div>
         <div id="cine-bars"><i></i><i></i></div>
+        <!-- First-steps tips (tips3d.js) -->
+        <div id="tip-card"><div class="tip-count"></div><div class="tip-text"></div><div class="tip-hold"><span>HOLD <span class="key">X</span> TO TURN TIPS OFF FOR THIS GAME</span><div><i></i></div></div></div>
+        <!-- Backpack (backpack.js) -->
+        <div id="bp-panel" class="hidden">
+            <div class="bp-head">
+                <h2>BACKPACK</h2>
+                <div class="bp-capwrap"><span>SPACE</span><div class="bp-cap-bar"><i id="bp-cap-fill"></i></div><b id="bp-cap"></b></div>
+                <button id="bp-close">CLOSE <span class="key">I</span></button>
+            </div>
+            <div class="bp-body">
+                <div id="bp-grid"></div>
+                <div class="bp-side">
+                    <h3>POCKETS</h3>
+                    <ul id="bp-pockets"></ul>
+                    <div class="bp-funds">FUNDS <b id="bp-funds"></b></div>
+                    <div class="bp-keys"><span class="key">G</span> hold / put away tool<br><span class="key">Q</span> drink from canteen<br><span class="key">RMB</span> look through field glasses</div>
+                </div>
+            </div>
+        </div>
         <!-- Open-world HUD (ch1_openworld.js) -->
         <div id="ow-compass" class="hidden"><div id="ow-ticks"></div><div id="ow-marks"></div><div class="ow-needle"></div></div>
         <div id="ow-toast"></div>
         <div id="ow-detector" class="hidden"><span>DETECTOR</span><div><i id="ow-det-fill"></i></div></div>
-        <div id="hud-hint" class="hidden">TAB: Stats &nbsp;|&nbsp; E: Focus &nbsp;|&nbsp; ESC: Pause &nbsp;|&nbsp; SHIFT: Sprint &nbsp;|&nbsp; SPACE: Interact / Jump &nbsp;|&nbsp; Click: Mouse Look</div>
+        <div id="hud-hint" class="hidden">TAB: Stats &nbsp;|&nbsp; E: Focus &nbsp;|&nbsp; ESC: Pause &nbsp;|&nbsp; SHIFT: Sprint &nbsp;|&nbsp; SPACE: Interact / Jump &nbsp;|&nbsp; I: Backpack &nbsp;|&nbsp; G: Hold tool &nbsp;|&nbsp; Click: Mouse Look</div>
         <div id="ui-overlay" class="hidden">
             <div id="dialogue-box">
                 <div id="speaker-name"></div>
@@ -252,18 +271,21 @@
         })();
     </script>
     <script src="lib/three.min.js"></script>
-    <script src="data.js?v=17"></script>
+    <script src="data.js?v=18"></script>
     <script src="dialogue.js?v=12"></script>
     <script src="engine.js?v=14"></script>
-    <script src="settings.js?v=2"></script>
+    <script src="settings.js?v=3"></script>
+    <script src="backpack.js?v=2"></script>
     <script src="ambience.js?v=2"></script>
     <script src="ch1_layout.js?v=2"></script>
-    <script src="ch1_world.js?v=4"></script>
+    <script src="ch1_world.js?v=5"></script>
     <script src="ch1_props.js?v=4"></script>
     <script src="ch1_minigames.js?v=4"></script>
-    <script src="ch1_openworld.js?v=2"></script>
-    <script src="cine3d.js?v=1"></script>
-    <script src="engine3d.js?v=8"></script>
+    <script src="ch1_openworld.js?v=4"></script>
+    <script src="ch1_supply.js?v=2"></script>
+    <script src="cine3d.js?v=2"></script>
+    <script src="tips3d.js?v=1"></script>
+    <script src="engine3d.js?v=9"></script>
     <script src="title3d.js?v=2"></script>
 </body>
 </html>

@@ -120,7 +120,7 @@ const SETTINGS_TABS = [
 
 const KEY_LIST = [
     ['W A S D', 'Move'], ['Mouse', 'Look (click the world to capture)'], ['Shift', 'Sprint'],
-    ['Space', 'Interact / Jump'], ['E', 'Focus — clear the phantoms'], ['Tab', 'Stats'], ['Esc', 'Pause / back'],
+    ['Space', 'Interact / Jump'], ['E', 'Focus — clear the phantoms'], ['F', 'Interact (also SPACE)'], ['I', 'Backpack'], ['G', 'Hold / put away tool'], ['Q', 'Drink from canteen'], ['RMB', 'Look through field glasses'], ['Tab', 'Stats'], ['Esc', 'Pause / back'],
 ];
 
 let settingsTab = 'graphics';

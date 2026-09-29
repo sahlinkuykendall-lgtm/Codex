@@ -13,6 +13,48 @@ Other docs:
 
 ---
 
+## V3.7.0 — 2026-09-29 — Paths, living supply line, backpack, tips
+- **Paths are clearly defined now:** every track is its own surface laid over the sand.
+  Roads are compacted dirt with gravel and two dark tyre ruts, and footpaths are packed
+  sand with footprints. Both feather into the desert at the edges and follow the ground
+  exactly, and the bed under them is levelled a little wider than the track. Footpaths
+  are lined with whitewashed stones, the way Egyptian camps and posts mark theirs.
+- **The supply line is alive:** a narrow-gauge line runs from a loading bay by the camp
+  gate, south-west through its own cutting in the dunes and out of the site. A worker
+  (not interactive) shovels spoil into three tipping skips. When they're full the little
+  yellow diesel sounds its horn and hauls them away (smoke, rolling wheels) until they're
+  gone in the haze, then brings them back empty and the cycle repeats. You can watch it
+  leave, but the dunes won't let you follow. The Supply Line story interaction is
+  unchanged, and the bay has a sign, a lamp and crates.
+- **Painted sherds:** now curved pieces of a jar's shoulder with a red-ochre band and
+  black lines, half-buried at an angle, with a bright halo and a slowly turning cross flare.
+  The one at the wreck (and two others) were buried in props; they're in the open now.
+- **The horizon pyramids** have limestone block courses, block-to-block tone, weathering
+  streaks and missing blocks, with Khafre's white casing surviving at the top. They're
+  larger now too, so they rise above the new dunes.
+- **Backpack** (`backpack.js`): 10 units of space. The metal detector takes 4, the canteen
+  and field glasses 2, small things 1, and sherds and dates stack. Story items ride in your
+  pockets and never take space. **I** opens it (hold, use, drop), **G** holds or puts away
+  a tool, **Q** drinks from the canteen.
+  - **Metal detector:** moved off the tent door to a crate by the equipment table, with a real
+    model (S-shaft, control box with LCD, search coil, coiled cable). It must be held
+    (G): you see it in first person, the coil sweeping as you walk, and it only ticks and
+    reveals caches while it's in your hands.
+  - **More to find:** a canteen at the oasis well (3 drinks, refilled at the well), dates at
+    the Bedouin shelter, 4 new buried caches (field glasses, a signal mirror, a date tin,
+    coins), and the tin compass is now a keepsake item. **Field glasses:** hold them,
+    then right-click to look far.
+- **Cairo (Chapter 3):** the tea vendor also sells a canvas rucksack (350 EGP) that raises
+  backpack space to 16. Nothing else in that chapter changed.
+- **First-steps tips** on a new game: 8 tips in the bottom-left corner, each shown for ~10 s,
+  a 5 s rest, then the next (paused during conversations, menus and minigames). Hold
+  **X** to switch them off for that game.
+- **Fixes:** the rock that looked like it sat on the guard booth (a chalk formation behind
+  it) and the ridge crowding the ministry post were moved back, and the ministry area has
+  more level ground. Cliff rocks no longer land on the dig fence line.
+
+---
+
 ## V3.6.0 — 2026-09-29 — Chapter 1: breaking the sightlines
 Before this, you could see about 10 of the other 11 areas from any area (the camp sat in a flat bowl),
 so the map read as one small space. Using open-world level-design practice (block

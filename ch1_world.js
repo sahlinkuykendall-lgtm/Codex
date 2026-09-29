@@ -210,7 +210,7 @@ for (const p of CH1_TRACKS) {
 
 // [mask 0..1 (1.25 in tyre ruts), kind]
 function ch1PathMask(x, z) {
-    let best = 0, kindAt = 0;
+    let best = 0, kindAt = 0, flat = 0;
     for (const s of CH1_SEGS) {
         if (x < s.minx || x > s.maxx || z < s.minz || z > s.maxz) continue;
         const dx = s.x2 - s.x1, dz = s.z2 - s.z1;
@@ -219,9 +219,10 @@ function ch1PathMask(x, z) {
         const edgeJitter = (vnoise3(x * 0.02, z * 0.02, 3.3) - 0.5) * s.hw * 0.5;
         const m = 1 - smooth(s.hw * 0.45, s.hw + edgeJitter, d);
         if (m > best) { best = m; kindAt = s.kind; }
+        flat = Math.max(flat, 1 - smooth(s.hw * 1.1, s.hw * 1.9, d)); // the bed is levelled a bit wider than the track
         if (s.kind === 1 && m > 0.5 && Math.abs(d - s.hw * 0.42) < 7) { best = Math.max(best, 1.25); kindAt = 2; }
     }
-    return [best, kindAt];
+    return [best, kindAt, flat];
 }
 
 // Height without the trench cut (planks, spoil lips sit at grade)
@@ -244,10 +245,10 @@ function ch1HeightBase(x, z) {
     h += 36 * Math.exp(-(Math.pow(x - 2300, 2) + Math.pow(z - 4600, 2)) / (2 * 900 * 900));
 
     // worn tracks: flattened and sunk a little into the sand
-    const [pm] = ch1PathMask(x, z);
-    if (pm > 0) {
-        const m = Math.min(1, pm);
-        h -= (dunes * Math.max(0.12, Math.min(1, (d - 35) / 165))) * 0.6 * m + 3 * m;
+    const [pm, , flat] = ch1PathMask(x, z);
+    if (flat > 0) {
+        const m = flat;
+        h -= (dunes * Math.max(0.12, Math.min(1, (d - 35) / 165))) * 0.85 * m + 4 * m;
     }
 
     // spoil thrown up along both lips of the east trench
@@ -270,6 +271,12 @@ function ch1HeightBase(x, z) {
         for (const [rx, rz] of CH1_LAYOUT.roadExits) {
             const dd = Math.hypot(x - rx, (z - rz) * 0.35);
             cut = Math.max(cut, 1 - smooth(90, 260, dd));
+        }
+        // and the supply line through a cutting of its own
+        for (let i = 3; i < CH1_RAIL.length - 1; i++) {
+            const [ax, az] = CH1_RAIL[i], [bx, bz] = CH1_RAIL[i + 1];
+            const dx = bx - ax, dz = bz - az, tt = clamp01(((x - ax) * dx + (z - az) * dz) / (dx * dx + dz * dz));
+            cut = Math.max(cut, 1 - smooth(80, 240, Math.hypot(x - (ax + dx * tt), z - (az + dz * tt))));
         }
         const rise = 420 * smooth(-240, 650, out) + smooth(0, 1400, out) * (140 + big);
         h += rise * (1 - cut * 0.9);
@@ -839,14 +846,45 @@ function makeCh1Moon() {
 
 // Giza on the horizon — lit by the same moon, hazed by distance
 function addCh1Horizon(group) {
-    const courses = makeTex('c1courses', 64, 256, 1, 1, (cc, w, h) => {
-        cc.fillStyle = '#fff'; cc.fillRect(0, 0, w, h);
-        for (let y = 0; y < h; y += 4) { cc.fillStyle = `rgba(0,0,0,${0.12 + Math.random() * 0.12})`; cc.fillRect(0, y, w, 1.2); }
-    });
-    const mat = new THREE.MeshBasicMaterial({ map: courses, vertexColors: true, fog: false, toneMapped: false });
+    // Limestone block courses: staggered joints, block-to-block tone,
+    // weathering streaks, gaps where blocks have gone; Khafre keeps a cap
+    // of its smooth white casing near the top
+    const blocks = (name, casing) => {
+        const t = makeTex(name, 512, 1024, 4, 1, (cc, w, h) => {
+            const rows = 96, rh = h / rows;
+            for (let r = 0; r < rows; r++) {
+                const y = h - (r + 1) * rh;
+                const bw = 22 + Math.random() * 14;
+                let x = -Math.random() * bw;
+                while (x < w) {
+                    const v = 180 + Math.random() * 55;
+                    cc.fillStyle = `rgb(${v | 0},${(v * 0.95) | 0},${(v * 0.86) | 0})`;
+                    cc.fillRect(x, y, bw - 1.2, rh - 1.4);
+                    if (Math.random() < 0.035) { cc.fillStyle = 'rgba(40,34,28,0.7)'; cc.fillRect(x, y, bw - 1.2, rh - 1.4); } // a block gone
+                    x += bw;
+                }
+                cc.fillStyle = 'rgba(60,50,40,0.55)';                   // the course line (shadowed step)
+                cc.fillRect(0, y + rh - 1.6, w, 1.6);
+            }
+            for (let i = 0; i < 40; i++) {                              // weathering streaks
+                const x = Math.random() * w, y = Math.random() * h, len = 40 + Math.random() * 160;
+                const g = cc.createLinearGradient(0, y, 0, y + len);
+                g.addColorStop(0, 'rgba(90,76,60,0.25)'); g.addColorStop(1, 'rgba(90,76,60,0)');
+                cc.fillStyle = g; cc.fillRect(x, y, 2 + Math.random() * 5, len);
+            }
+            if (casing) {                                               // the surviving casing, top fifth
+                const g = cc.createLinearGradient(0, 0, 0, h * 0.22);
+                g.addColorStop(0, 'rgba(236,230,214,1)'); g.addColorStop(0.85, 'rgba(236,230,214,1)'); g.addColorStop(1, 'rgba(236,230,214,0)');
+                cc.fillStyle = g; cc.fillRect(0, 0, w, h * 0.22);
+                speckle(cc, w, h * 0.2, null, ['#c8c0ac', '#f4f0e4'], 800, 1, 3);
+            }
+        });
+        return new THREE.MeshBasicMaterial({ map: t, vertexColors: true, fog: false, toneMapped: false });
+    };
+    const mat = blocks('c1pyrBlocks', false), matCased = blocks('c1pyrCased', true);
     const hazeC = CH1_HAZE.clone();
     const base = new THREE.Color(0x8c8272);
-    const pyramid = (x, z, r, h, rot, hazeAmt) => {
+    const pyramid = (x, z, r, h, rot, hazeAmt, cased) => {
         const geo = new THREE.ConeGeometry(r, h, 4, 1, true).toNonIndexed();
         geo.computeVertexNormals();
         const n = geo.attributes.normal, cols = [];
@@ -855,21 +893,21 @@ function addCh1Horizon(group) {
         for (let i = 0; i < n.count; i++) {
             v.set(n.getX(i), n.getY(i), n.getZ(i)).applyMatrix4(m4);
             const lit = 0.1 + 0.9 * Math.max(0, v.dot(CH1_MOON_DIR));
-            const c = base.clone().multiplyScalar(0.18 + lit * 0.42).lerp(hazeC, hazeAmt);
+            const c = base.clone().multiplyScalar(0.22 + lit * 0.5).lerp(hazeC, hazeAmt * 0.85);
             cols.push(c.r, c.g, c.b);
         }
         geo.setAttribute('color', new THREE.Float32BufferAttribute(cols, 3));
-        const m = new THREE.Mesh(geo, mat);
-        m.position.set(x, h / 2 - 40 + ch1HeightBase(x, z) * 0.6, z);
+        const m = new THREE.Mesh(geo, cased ? matCased : mat);
+        m.position.set(x, h / 2 - 80 + ch1HeightBase(x, z) * 0.85, z);
         m.rotation.y = rot;
         m.userData.noShadow = true;
         group.add(m);
     };
     // Khufu, Khafre (with its cap), Menkaure and the queens — north-west
-    pyramid(-7000, -5200, 3000, 2000, Math.PI / 4 + 0.1, 0.42);
-    pyramid(-3800, -8600, 2900, 1960, Math.PI / 4 + 0.1, 0.48);
-    pyramid(-200, -10600, 1600, 1040, Math.PI / 4 + 0.1, 0.55);
-    for (let i = 0; i < 3; i++) pyramid(1800 + i * 760, -11300 - i * 80, 360, 250, Math.PI / 4, 0.6);
+    pyramid(-7200, -5400, 4600, 3150, Math.PI / 4 + 0.1, 0.4);
+    pyramid(-3400, -9400, 4400, 3050, Math.PI / 4 + 0.1, 0.46, true); // Khafre, casing at the top
+    pyramid(600, -11600, 2400, 1650, Math.PI / 4 + 0.1, 0.52);
+    for (let i = 0; i < 3; i++) pyramid(3000 + i * 1000, -12500 - i * 100, 560, 380, Math.PI / 4, 0.58);
 
     // Distant plateau line under the pyramids
     const ridge = new THREE.Mesh(new THREE.BoxGeometry(14000, 160, 900),
@@ -914,12 +952,26 @@ function addCh1Horizon(group) {
 // ============================================================
 // GROUND MESHES
 // ============================================================
+let CH1_GROUND_GRID = null;
+// Height of the rendered ground mesh (its triangles), for things laid flat on it
+function ch1MeshHeight(x, z) {
+    const G = CH1_GROUND_GRID;
+    if (!G) return ch1Height(x, z);
+    const gx = (x - G.x0) / G.sx, gz = (z - G.z0) / G.sz;
+    const ix = Math.floor(gx), iz = Math.floor(gz), fx = gx - ix, fz = gz - iz;
+    const X0 = G.x0 + ix * G.sx, Z0 = G.z0 + iz * G.sz;
+    const a = ch1Height(X0, Z0), b = ch1Height(X0 + G.sx, Z0), c = ch1Height(X0, Z0 + G.sz), d = ch1Height(X0 + G.sx, Z0 + G.sz);
+    // PlaneGeometry splits each quad along the a–d diagonal
+    return fx + fz <= 1 ? a + (b - a) * fx + (c - a) * fz : d + (c - d) * (1 - fx) + (b - d) * (1 - fz);
+}
+
 function buildCh1Ground(group) {
     const M = ch1Mats();
     const PAD = 900;
     const W = CH1_W + PAD * 2, H = CH1_H + PAD * 2;
     const SEG = 36;
     const nx = Math.round(W / SEG), nz = Math.round(H / SEG);
+    CH1_GROUND_GRID = { x0: -PAD, z0: -PAD, sx: W / nx, sz: H / nz };
     const geo = new THREE.PlaneGeometry(W, H, nx, nz);
     geo.rotateX(-Math.PI / 2);
     const pos = geo.attributes.position, uv = geo.attributes.uv;
@@ -1291,6 +1343,7 @@ function buildCh1Environment(group, scene) {
         ch1FX.pool.push(l);
     }
 
+    buildCh1Paths(group);
     buildCh1Occluders(group);
     if (!q || q.dust) ch1AddDust(group);
     addCh1Scatter(group);
@@ -1470,10 +1523,13 @@ function updateCh1FX(focusX, focusZ) {
         p.needsUpdate = true;
     }
 
+    if (typeof updateCh1SupplyLine === 'function') updateCh1SupplyLine(dt, t);
+
     // palms and pennants sway
     for (const s of ch1FX.sway) {
         const v = Math.sin(t * s.speed + s.phase) * s.amp + Math.sin(t * s.speed * 2.3 + s.phase) * s.amp * 0.3;
-        (s.scale ? s.obj.scale : s.obj.rotation)[s.axis] = s.base + v;
+        if (s.axis === 'rotation') s.obj.rotation = s.base + v; // a sprite material's spin
+        else (s.scale ? s.obj.scale : s.obj.rotation)[s.axis] = s.base + v;
     }
 }
 
@@ -1674,4 +1730,123 @@ function buildCh1Occluders(group) {
         im.userData.noShadow = true;
         group.add(im);
     }
+}
+
+// ============================================================
+// PATHS — clearly-made tracks laid over the sand
+// ============================================================
+// Each track is a ribbon mesh following the terrain: roads are
+// compacted dirt with two dark tyre ruts and gravel; footpaths are
+// packed sand with scuffed footprints; both feather into the sand at the
+// edges. Footpaths are lined with whitewashed stones, the way camps and
+// army posts in Egypt mark theirs.
+function ch1PathTextures() {
+    const road = makeTex('c1roadTex', 256, 512, 1, 1, (cc, w, h) => {
+        const g = cc.createLinearGradient(0, 0, w, 0);
+        g.addColorStop(0, 'rgba(92,76,58,0)'); g.addColorStop(0.08, 'rgba(92,76,58,0.97)');
+        g.addColorStop(0.92, 'rgba(92,76,58,0.97)'); g.addColorStop(1, 'rgba(92,76,58,0)');
+        cc.fillStyle = g; cc.fillRect(0, 0, w, h);
+        // gravel
+        for (let i = 0; i < 2600; i++) {
+            const x = 20 + Math.random() * (w - 40), y = Math.random() * h;
+            cc.fillStyle = ['rgba(70,58,44,0.7)', 'rgba(128,112,90,0.6)', 'rgba(56,46,36,0.6)', 'rgba(140,124,100,0.45)'][(Math.random() * 4) | 0];
+            cc.beginPath(); cc.arc(x, y, 0.6 + Math.random() * 1.2, 0, 7); cc.fill();
+        }
+        // two tyre ruts with tread marks
+        for (const cx of [w * 0.3, w * 0.7]) {
+            const rg = cc.createLinearGradient(cx - 22, 0, cx + 22, 0);
+            rg.addColorStop(0, 'rgba(60,48,36,0)'); rg.addColorStop(0.5, 'rgba(60,48,36,0.55)'); rg.addColorStop(1, 'rgba(60,48,36,0)');
+            cc.fillStyle = rg; cc.fillRect(cx - 22, 0, 44, h);
+            cc.strokeStyle = 'rgba(40,32,24,0.35)'; cc.lineWidth = 2;
+            for (let y = 0; y < h; y += 9) { cc.beginPath(); cc.moveTo(cx - 12, y); cc.lineTo(cx + 12, y + 4); cc.stroke(); }
+        }
+    });
+    const foot = makeTex('c1footTex', 128, 256, 1, 1, (cc, w, h) => {
+        const g = cc.createLinearGradient(0, 0, w, 0);
+        g.addColorStop(0, 'rgba(118,98,74,0)'); g.addColorStop(0.14, 'rgba(118,98,74,0.95)');
+        g.addColorStop(0.86, 'rgba(118,98,74,0.95)'); g.addColorStop(1, 'rgba(118,98,74,0)');
+        cc.fillStyle = g; cc.fillRect(0, 0, w, h);
+        for (let i = 0; i < 900; i++) {
+            const x = 18 + Math.random() * (w - 36), y = Math.random() * h;
+            cc.fillStyle = ['rgba(100,82,60,0.5)', 'rgba(190,170,140,0.5)'][(Math.random() * 2) | 0];
+            cc.fillRect(x, y, 1.5, 1.5);
+        }
+        // footprints, staggered
+        for (let y = 8; y < h; y += 22) {
+            const x = w / 2 + ((y / 22) % 2 ? 10 : -10) + (Math.random() - 0.5) * 8;
+            cc.fillStyle = 'rgba(80,64,46,0.35)';
+            cc.beginPath(); cc.ellipse(x, y, 4, 8, (Math.random() - 0.5) * 0.4, 0, 7); cc.fill();
+        }
+    });
+    for (const t of [road, foot]) { t.wrapS = THREE.ClampToEdgeWrapping; t.wrapT = THREE.RepeatWrapping; }
+    return { road, foot };
+}
+
+function buildCh1Paths(group) {
+    const M = ch1Mats();
+    const tex = ch1PathTextures();
+    const mat = (map) => new THREE.MeshStandardMaterial({ map, transparent: true, depthWrite: false, roughness: 1, side: THREE.DoubleSide,
+        polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 });
+    const roadMat = mat(tex.road), footMat = mat(tex.foot);
+    const whiteStone = new THREE.MeshStandardMaterial({ color: 0xcfc8b8, roughness: 0.95, flatShading: true });
+    const stones = [];
+    const rng = seededRng('pathstones');
+    for (const p of CH1_TRACKS) {
+        if (p.rail) continue; // the rails lay their own bed
+        // smooth the polyline, then sample every ~22 units
+        const curve = new THREE.CatmullRomCurve3(p.pts.map(([x, z]) => new THREE.Vector3(x, 0, z)), false, 'centripetal', 0.3);
+        const len = curve.getLength();
+        const n = Math.max(2, Math.round(len / 22));
+        const across = 5, W = p.w * (p.kind === 1 ? 1.05 : 0.95);
+        const pos = [], uv = [], idx = [];
+        let dist = 0, prev = null;
+        for (let i = 0; i <= n; i++) {
+            const t = i / n;
+            const c = curve.getPointAt(t), tan = curve.getTangentAt(t);
+            if (prev) dist += c.distanceTo(prev);
+            prev = c;
+            const nx = -tan.z, nz = tan.x;
+            const wob = 1 + (vnoise3(c.x * 0.01, c.z * 0.01, 4.2) - 0.5) * 0.25;
+            for (let k = 0; k < across; k++) {
+                const u = k / (across - 1), off = (u - 0.5) * 2 * W * wob;
+                const x = c.x + nx * off, z = c.z + nz * off;
+                pos.push(x, ch1MeshHeight(x, z) + 0.7, z);
+                uv.push(u, dist / (p.kind === 1 ? 320 : 160));
+            }
+            // whitewashed stones along both edges of the footpaths
+            if (p.kind === 0 && i % 2 === 0 && i > 0 && i < n) {
+                for (const s of [-1, 1]) {
+                    const off = s * (W + 6 + rng() * 5);
+                    const x = c.x + nx * off, z = c.z + nz * off;
+                    if (rng() < 0.85) stones.push([x, z, 1.8 + rng() * 1.4]);
+                }
+            }
+        }
+        for (let i = 0; i < n; i++) for (let k = 0; k < across - 1; k++) {
+            const a = i * across + k, b = a + 1, c2 = a + across, d = c2 + 1;
+            idx.push(a, c2, b, b, c2, d);
+        }
+        const geo = new THREE.BufferGeometry();
+        geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+        geo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+        geo.setIndex(idx);
+        geo.computeVertexNormals();
+        const mesh = new THREE.Mesh(geo, p.kind === 1 ? roadMat : footMat);
+        mesh.receiveShadow = true;
+        mesh.userData.noCast = true;
+        mesh.renderOrder = 1;
+        group.add(mesh);
+    }
+    // the stones, instanced (hundreds of them)
+    const im = new THREE.InstancedMesh(ch1RockGeo(2), whiteStone, stones.length);
+    const d = new THREE.Object3D();
+    stones.forEach(([x, z, s], i) => {
+        d.position.set(x, ch1Height(x, z) - s * 0.15, z);
+        d.scale.set(s * 1.2, s * 0.8, s);
+        d.rotation.set(0, rng() * 6.28, 0);
+        d.updateMatrix();
+        im.setMatrixAt(i, d.matrix);
+    });
+    im.userData.noCast = true;
+    group.add(im);
 }

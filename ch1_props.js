@@ -1520,6 +1520,7 @@ function ch1BuildWall(group, wall) {
         const rng = seededRng('ridge' + wall.x);
         for (let i = 0; i < 14; i++) {
             const z = wall.y + rng() * wall.h, x = cx - wall.side * (wall.w / 2 + 10 + rng() * 60);
+            if (Math.abs(z - CH1_LAYOUT.fenceZ) < 90) continue; // keep the fence line clear
             ch1AddRock(group, x, ch1Height(x, z), z, 14 + rng() * 30, rng, rng() < 0.4 ? M.rockDark : M.rock);
         }
         return;
@@ -1722,4 +1723,5 @@ function addCh1Dressing(group) {
             put(group, gBox(Math.min(58, len * 0.06), 20, 1.2), M.planksDark, x + (bx - ax) / len * 30, ch1HeightBase(x, z) + 16, z + (bz - az) / len * 30, -Math.atan2(bz - az, bx - ax), (rng() - 0.5) * 0.1);
         }
     }
+    if (typeof buildCh1SupplyLine === 'function') buildCh1SupplyLine(group);
 }
