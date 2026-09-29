@@ -17,60 +17,60 @@ Type your answer after each "ANSWER:". Keep it short if you like.
    - Kostas:
    - Lei:
    - Maren:
-ANSWER:
+ANSWER:you can keep some of it or not im thinking a entire new story 
 
 2. What bugged you. What specifically didn't make sense or felt thin in the old story? Name 2-3 moments if you can.
-ANSWER:
+ANSWER: things just didnt seem like they mattered i did the trenches and stuff in the first one and it seemed like does it didnt mater i want everything you do to not change the story but actually have a meaning to do it not just be there i mean a few things like thats fine but it seemed not interactive i liked things like when you would see a car pull up when they said a car is about to pul up 
 
 3. Tone. Pick a mix of these, or describe your own:
    - Grounded archaeology thriller (Indiana Jones or Uncharted)
    - Slow-burn mystery or horror (where the sanity system matters)
    - Mythic or supernatural epic
-ANSWER:
+ANSWER:im thinking a mix of the first 2 mostly 1 but can turn into 2 depending i think we should have a few endings that are completely different 
 
 4. The truth underneath. Do you want a big secret at the heart of it (ancient species, lost civilization, something else)? Or should it stay more human, like treasure, conspiracies and history?
-ANSWER:
+ANSWER: maybe both maybe depending what you find depdnds what story line you go with 
 
 5. When it's set. Keep present day (the 2020s), or move it? A 1920s-era setting (tomb-raiding era, colonial expeditions) would change the tech, weapons and economy a lot.
-ANSWER:
+ANSWER: modern day 
 
 ==================== B. THE PLAYER CHARACTER ====================
 
 6. Who we play. One fixed character (Ellis), or does the player choose a name, gender or background at the start?
-ANSWER:
+ANSWER: lets let the player chose 
 
 7. Backstory. If there are backgrounds, which ones? For example: archaeologist, smuggler, journalist, ex-soldier. Should they unlock different dialogue or opening areas?
-ANSWER:
+ANSWER: absolutely i love that idea i dont think it should change much other than the opening maybe each background gets to start in their own unique place then each background would advance to the same next place so they all end up in the same story line and they cant go to each others so you have to play each to see the starting story of each. But maybe it can effect the story slightly because youd start with different relationshjips with people depending who you are. 
 
 8. Motivation. Why is the player in Egypt? Grief over Sam, money, a debt, a missing person, something else?
-ANSWER:
+ANSWER:each person could have s different reason they came to egypt 
 
 9. Romance. Do you want romances or deep companion relationships? Can companions leave you, betray you or die permanently?
-ANSWER:
+ANSWER: yes and it can effect the story but make sure you can never break the story i dont think early on you should be able to make a choice that permanently decides the ending. I also want there to be checkpoints and you can make choices that kill you and you have to respawn if you do you lose money  
 
 10. Companions. Is there a party that follows you (like Mass Effect or Dragon Age), or do you travel solo with allies you meet?
-ANSWER:
+ANSWER: travel solo with allies we meet if we get into a big fight we can bring someone
 
 ==================== C. BRANCHING AND CHOICES ====================
 
 11. How big the branches are. Should the three ways out of Chapter 1 lead to different next regions (a truly separate path)? Or to the same regions with a different situation (who's hostile, what's open)?
     Fully separate paths multiply writing and building fast, so I'd suggest mostly the second, with a few truly exclusive regions. Is that OK?
-ANSWER:
+ANSWER: yes mostly second but a few exclusives maybe also some interiors in cities that lock or unlock or items or npcs or side missions lock and unlock with choices 
 
 12. Endings. How many do you want? The old story had about 8. Should they come from a few big choices, or be computed from everything (reputation, relationships, who's alive)?
-ANSWER:
+ANSWER: lets do 6-8 endings give or take 1-2 if it makes sense  and i think maybe a mix maybe 2-3 big choices and then the big choice endings are effected by relationships and stuff and even they have verations to end (exsample like ending 1 he goes to burger king and get a whooper but theres a variation where he gets a drink but the other big ending is wendys and they get 2 different items)
 
 13. Visible or hidden. Should the game ever show that a choice mattered (like "Tariq will remember this")? Or keep it hidden so players discover it on replay?
-ANSWER:
+ANSWER: yes or make setting to turn on  and off before you start
 
 14. Point of no return. Can a bad early choice lock you out of an ending entirely, or should every ending stay reachable until late?
-ANSWER:
+ANSWER: id say mid to late is where endings start locking but dont make it obvius one just locked maybe one can be obvius 
 
 15. Failure. Can the main character die for good (game over)? Or does failing branch the story instead (captured, robbed, injured)?
-ANSWER:
+ANSWER: i like the captured and robbed injured parts where you have to go to hospital breeak out of a jail just adding a jail or interiror to a city or something robbed lose money more of those things to and i think you can die and respawn last checkpoint but few of those more branches the game should take hours to beat 
 
 16. Factions and reputation. Do you want a reputation system with several factions? For example: the Order, the Concern, the police or Ministry, locals and Bedouin tribes, smugglers. Could you join one and be locked out of another?
-ANSWER:
+ANSWER: yes i dont think that should matter for ending though unless it makes sense for maybe 1-2 maybe they mostly unlock secret buildings or armories. (most fighting missions should be stealth and only fight if need) 
 
 ==================== D. THE MAP AND CHAPTERS ====================
 
@@ -88,27 +88,27 @@ ANSWER:
     - The Delta marshes
     - Deep underground regions (tombs, the underground city)
     Is there a region you definitely want?
-ANSWER:
+ANSWER: idc its a new story 
 
 18. Travel. How do you get between regions: train, car, boat, camel, plane? Is it free travel from a world map, or unlocked by story?
-ANSWER:
+ANSWER:a mix of all whatever makes sense for the time 
 
 19. One-way regions. Which regions should you never be able to return to? The underground, a city that gets locked down, a place that's destroyed?
-ANSWER:
+ANSWER: sounds good to me make it with the story but i like those 
 
 20. Choice-locked regions. Do some regions only open through certain choices, a faction or a relationship? Can a whole region be missed on one playthrough?
-ANSWER:
+ANSWER: id say maybe 1--3 can be missed depending on your choices if you try and go it says restricted 
 
 21. Time of day. Is there a day/night cycle where shops close, NPCs follow schedules, and some things only happen at night?
-ANSWER:
+ANSWER: sounds awesome yes 
 
 ==================== E. ECONOMY AND SIDE CONTENT ====================
 
 22. Currency. Real Egyptian pounds or a simplified system? Should prices differ by region (cheap village, expensive Alexandria)?
-ANSWER:
+ANSWER: egyptian and yes make sure someone says something about it so it makes sense why prices differ 
 
 23. What's money for? Gear, bribes, permits, transport, housing or a base, repairs, paying debts, funding the dig? This decides what makes the economy challenging.
-ANSWER:
+ANSWER: i think all lets make it where money is a basically side thing where you can do side missions to make money to do more maybe buy a horse or something do deliveries kinda like how gta 5 makes you earn money but aslo has missions 
 
 24. Repeatable jobs. You mentioned fishing and woodcutting. Which of these do you want? More ideas:
     - Hauling at digs
@@ -119,57 +119,58 @@ ANSWER:
     - Carpentry and repairs
     - Photography jobs
     - Treasure hunting with the detector
-ANSWER:
+ANSWER:all sound good maybe add more maybe change some for better ones 
 
 25. Crafting and survival. Do you want crafting? What about survival needs like water, heat, hunger or fatigue, especially in the desert?
-ANSWER:
+ANSWER:no crafting i do want water and food but dont make it where its a main focus and add wells to drink around and food on trees and stuff naturally so its not hard because of it its just a side thing 
 
 26. Selling artifacts. Should selling real antiquities be a moral and legal system (the police notice, factions react)?
-ANSWER:
+ANSWER: sounds interesting lets do it 
 
 27. A home base. Should you have one to upgrade: a tent, then a Cairo flat, then a boat?
-ANSWER:
+ANSWER: yes love the idea 
 
 ==================== F. GAMEPLAY FEEL (IT AFFECTS THE STORY) ====================
 
 28. Combat. None, light (stealth and escapes), or real combat? That changes how conflicts and villains get written.
-ANSWER:
+ANSWER:light 
 
 29. Sanity. Keep sanity as a core mechanic that affects story and endings?
-ANSWER:
+ANSWER: not core mechanic 
 
 30. Puzzles. How heavy should tomb puzzles be: occasional or a major pillar? Should some be optional, guarding the best loot?
-ANSWER:
+ANSWER:id say between light and heavy and yes hide some optional with loot 
 
 31. Skills. Should the character level up or gain skills (languages, lockpicking, climbing, reading hieroglyphs) that open new dialogue and areas?
-ANSWER:
+ANSWER:yes love that 
 
 32. Languages. Should learning Arabic or hieroglyphs be a progression (signs and NPCs become readable as you learn)?
-ANSWER:
+ANSWER: yes maybe make it where you cant progress to areas until you learn a language so you have to repeat things to get xp and level up in a area say to like get a boat person to give you a ride you need to learn his language 
 
 ==================== G. SCOPE AND PROCESS ====================
 
 33. Length. For about 25 hours of main story, I'd estimate 10-14 main regions. How many chapters feels right to you?
-ANSWER:
+ANSWER:14 sounds fine to me i was thinking 13-17
 
 34. Existing Chapter 1. Should the Giza camp we just built stay as the opening area, reworked to fit the new story? Everything built there (the camp, the White Desert, the minigames) can stay if you want it to.
-ANSWER:
+ANSWER: rework per backstory selected 
 
 35. Old files. Should the old bible be archived (moved to an old_story folder) or deleted outright?
-ANSWER:
+ANSWER: idk do you think we make a new branch or redo this one i do have a copy of this one stored somewhere esle so it wont be gone forever do whatever is easier i think do it in the one we have is easier because its changing it not remakiung it delete anything we dont need i guess but lets keep the framework so you dont have to rewrite everything 
 
 36. Bible structure. One huge file, or a master bible plus separate files (one per region, one for characters, one choice and flag map, one for side quests, one for the economy)?
     I'd recommend separate files, so each chapter's rebuild has one file to follow.
-ANSWER:
+ANSWER: separate is good 
 
 37. Rating. How dark can it get? Violence, death on screen, language, mature themes?
-ANSWER:
+ANSWER: thats fine 
 
 38. Real history. Should real pharaohs, sites and history be accurate, with the fiction layered on top? Or is it fine to invent freely?
-ANSWER:
+ANSWER:love the real history feel maybe a few fictional but mostly real facts 
 
 39. Inspirations. Name any games, movies or shows you want it to feel like. For example: The Witcher 3, Red Dead 2, Uncharted, The Mummy, Assassin's Creed Origins, Mass Effect.
-ANSWER:
+ANSWER: playwise like gta 5 where its got a economy side missions and main missions or even like a mix of that nad house of ashes story component 
 
 40. Anything else. Is there any must-have moment, scene, twist or character you already have in your head?
-ANSWER:
+ANSWER: nope 
+
