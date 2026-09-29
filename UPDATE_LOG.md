@@ -13,6 +13,25 @@ Other docs:
 
 ---
 
+## V3.3.0 — 2026-09-29 — Ch1 minigames played in the world
+Both Chapter 1 minigames now play in 3D in the actual place, like a PC game
+instead of a flat pop-up card. Rules, flags, records and story scenes are unchanged.
+- **The Tunnel Gate Seal:** the camera steps up to the stela. Mouse over the real
+  glyph stones and click to press them (or use keys 1–4). Pressed stones sink and light up.
+  The resonance timer is a ring of beads around the seal, and the core pings every
+  8 seconds like the Codex. A wrong stone fires the cedar trap dart out of the rock into
+  the timber brace, the screen shakes, and the stones grind round to new positions.
+  Solving it spins the ring. Right-click or ESC steps back.
+- **Camp Darts:** first person at the throwing line. Aim with the mouse against
+  natural hand sway. Hold the left button to steady your breath (the view tightens
+  and a breath bar shows how steady you are), but hold too long and your arm shakes.
+  Release to throw. Darts fly, stick in the board and stay there. Score popups appear
+  at the board. The result panel has Throw Again (R) / Walk Away (ESC).
+- The seal stela was rebuilt to match its description: a pale ring, a dark amber core,
+  four glyph stones at the compass points, and a timber brace for the trap.
+- The dartboard's rings now match the scoring zones. Sam's chalk "S — 132" is on the plank.
+- The 2D build still uses the original 2D versions.
+
 ## V3.2.0 — 2026-09-29 — Chapter 1 camp visual overhaul
 The first open area (the Giza dig camp, up to the Tunnel Gate Seal) was
 rebuilt visually from scratch. No story, dialogue, flags or collision changed.

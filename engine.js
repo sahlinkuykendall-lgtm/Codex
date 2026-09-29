@@ -1325,7 +1325,9 @@ document.addEventListener('visibilitychange', () => { if (document.hidden) { hel
 window.addEventListener('pointerdown', (e) => {
     if (e.target.className === 'choice-button') return;
 
-    // Puzzle click handling — highest priority
+    // Puzzle click handling — highest priority (the 3D build plays some
+    // minigames in the world; it gets first refusal)
+    if (activePuzzle && typeof puzzle3dPointerDown === 'function' && puzzle3dPointerDown(e)) return;
     if (activePuzzle) {
         const rect = canvas.getBoundingClientRect();
         const canvasX = (e.clientX - rect.left) * (canvas.width / rect.width);

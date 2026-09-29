@@ -113,6 +113,21 @@ function subRope(g, mat, a, b, sag, r) {
     return curve;
 }
 
+// A throwing dart: steel barrel, shaft and three flights, pointing -z
+function ch1MakeDart(M) {
+    const d = new THREE.Group();
+    put(d, new THREE.ConeGeometry(0.35, 3, 6), M.steel, 0, 0, -8.5, 0, 0, 0).rotation.x = -Math.PI / 2;
+    put(d, gCyl(0.6, 0.6, 5, 8), new THREE.MeshStandardMaterial({ color: 0x8a7a50, roughness: 0.35, metalness: 0.7 }), 0, 0, -4.5).rotation.x = Math.PI / 2;
+    put(d, gCyl(0.3, 0.3, 5, 6), M.dark, 0, 0, 0.5).rotation.x = Math.PI / 2;
+    const flightMat = new THREE.MeshStandardMaterial({ color: 0xc8a030, side: THREE.DoubleSide, roughness: 0.7 });
+    for (let i = 0; i < 3; i++) {
+        const f = put(d, new THREE.PlaneGeometry(3.4, 2.6), flightMat, 0, 0, 3.2);
+        f.rotation.set(0, Math.PI / 2, i * Math.PI / 3);
+        f.geometry.translate(0, 1.3, 0);
+    }
+    return d;
+}
+
 // Orient a plane so its local +x runs along xAxis and local +y along yDir
 function orientPlane(mesh, xAxis, yDir) {
     const x = xAxis.clone().normalize();
@@ -412,28 +427,73 @@ const CH1_BUILDERS = {
 
     // — the stela that holds the Tunnel Gate Seal —
     puzzle_glyph(o, M, rng) {
+        // The Tunnel Gate Seal: a ring of pale stone around a dark amber
+        // core, four glyph stones at the compass points (dialogue:
+        // puzzle_start_glyph_lock). ch1_minigames.js plays it in place.
         const g = new THREE.Group();
         const w = o.w;
         put(g, gBox(w + 20, 10, w * 0.7 + 10), M.limestone, 0, 5, 0);
         put(g, gBox(w, 10, w * 0.6), M.limestone, 0, 15, 0);
-        const slab = put(g, gBox(w * 0.78, 132, 18), M.glyphs, 0, 20 + 66, 0);
+        put(g, gBox(w * 0.78, 132, 18), M.glyphs, 0, 20 + 66, 0);
         const top = put(g, new THREE.CylinderGeometry(w * 0.39, w * 0.39, 18, 20, 1, false, -Math.PI / 2, Math.PI), M.glyphs, 0, 152, 0);
         top.rotation.x = -Math.PI / 2;
-        // the seal: a ring of stones around a faintly living disc
-        const seal = put(g, gCyl(19, 19, 3, 28), new THREE.MeshStandardMaterial({ color: 0x2a1c06, emissive: 0xc89a30, emissiveIntensity: 0.45, roughness: 0.4 }), 0, 98, 10.5, 0, 0, 0);
-        seal.rotation.x = Math.PI / 2;
-        seal.userData.noShadow = true;
-        const ring = put(g, new THREE.TorusGeometry(23, 3, 6, 28), M.limestone, 0, 98, 10);
-        for (let i = 0; i < 8; i++) {
-            const a = i / 8 * Math.PI * 2;
-            put(g, gBox(6, 6, 4), M.rockDark, Math.cos(a) * 23, 98 + Math.sin(a) * 23, 12, 0, a);
+        const seal = new THREE.Group();
+        seal.position.set(0, 96, 9);
+        g.add(seal);
+        const pale = new THREE.MeshStandardMaterial({ color: 0xe0d4b8, roughness: 0.85 });
+        const ring = put(seal, new THREE.TorusGeometry(23, 3.4, 8, 40), pale, 0, 0, 1);
+        for (let i = 0; i < 16; i++) { // notches cut in the ring
+            const a = i / 16 * Math.PI * 2;
+            put(ring, gBox(1.2, 5, 2), M.rockDark, Math.cos(a) * 23, Math.sin(a) * 23, 2.6, 0, a);
         }
-        g.add(ch1GlowSprite(0, 98, 18, 60, 0xd4af37, 0.3));
-        ch1FX.glows.push({ sprite: g.children[g.children.length - 1], base: 0.3, phase: 1, steady: false });
+        const coreMat = new THREE.MeshStandardMaterial({ color: 0x2a1a06, emissive: 0xc8902a, emissiveIntensity: 0.25, roughness: 0.3, metalness: 0.2 });
+        const core = put(seal, gCyl(11, 11, 3, 28), coreMat, 0, 0, 1.5);
+        core.rotation.x = Math.PI / 2;
+        put(seal, new THREE.TorusGeometry(11.5, 1.2, 6, 28), M.rockDark, 0, 0, 2.5);
+        // resonance beads round the outside (lit while the seal listens)
+        const beads = [];
+        for (let i = 0; i < 24; i++) {
+            const a = Math.PI / 2 - (i / 24) * Math.PI * 2;
+            const b = put(seal, new THREE.SphereGeometry(1.1, 6, 5), new THREE.MeshStandardMaterial({ color: 0x3a2a14, emissive: 0xffc860, emissiveIntensity: 0 }), Math.cos(a) * 29.5, Math.sin(a) * 29.5, 1.5);
+            beads.push(b);
+        }
+        // the four glyph stones (index = glyph: eye, lion, owl, serpent)
+        const glyphs = (PUZZLES['puzzle_glyph_lock'] || {}).glyphs || ['𓂀', '𓃭', '𓅓', '𓆑'];
+        const stones = glyphs.map((ch, i) => {
+            const tex = makeTex('sealglyph' + i, 128, 128, 1, 1, (cc, W, H) => {
+                const gr = cc.createRadialGradient(54, 50, 8, 64, 64, 64);
+                gr.addColorStop(0, '#d8cbb0'); gr.addColorStop(1, '#a8987a');
+                cc.fillStyle = gr; cc.fillRect(0, 0, W, H);
+                speckle(cc, W, H, null, ['#8a7a5c', '#efe4cc'], 300, 1, 2.5);
+                cc.fillStyle = '#3a2c18';
+                cc.textAlign = 'center'; cc.textBaseline = 'middle';
+                cc.font = '78px "Segoe UI Historic", "Noto Sans Egyptian Hieroglyphs", serif';
+                cc.strokeStyle = '#3a2c18'; cc.lineWidth = 3.5; cc.lineJoin = 'round';
+                cc.strokeText(ch, 64, 70);
+                cc.fillText(ch, 64, 70);
+            });
+            const mat = new THREE.MeshStandardMaterial({ map: tex, roughness: 0.8, emissive: 0x000000 });
+            const side = new THREE.MeshStandardMaterial({ color: 0xc8bca0, roughness: 0.9 });
+            const stone = new THREE.Mesh(new THREE.CylinderGeometry(7.5, 8, 5, 20), [side, mat, side]);
+            stone.rotation.x = Math.PI / 2;
+            stone.userData.glyphIdx = i;
+            seal.add(stone);
+            return stone;
+        });
+        const slots = [[0, 23], [23, 0], [0, -23], [-23, 0]]; // top, right, bottom, left (x, y)
+        const order = (PUZZLES['puzzle_glyph_lock'] || {})._order || [0, 1, 2, 3];
+        order.forEach((gi, slot) => stones[gi].position.set(slots[slot][0], slots[slot][1], 4));
+        const glow = ch1GlowSprite(0, 96, 18, 58, 0xd4af37, 0.2);
+        g.add(glow);
+        // the timber brace across the approach, where the trap's darts end up
+        put(g, gBox(10, 92, 10), M.woodDark, 96, 46, 30);
+        put(g, gBox(10, 10, 60), M.woodDark, 96, 88, 30);
+        window.ch1Seal = { group: g, seal, ring, core, coreMat, beads, stones, slots, glow };
         g.userData.h = 172;
         g.userData.keep = true;
         return g;
     },
+
 
     // — generator on its skid (collision rect sits a little east) —
     generator(o, M, rng) {
@@ -628,29 +688,59 @@ const CH1_BUILDERS = {
     },
 
     camp_darts(o, M, rng) {
+        // Board rings match the game's scoring zones (radius of 150:
+        // 13→50, 36→25, 72→20, 112→10, 150→5). Played in place by
+        // ch1_minigames.js.
         const g = new THREE.Group();
-        const face = makeTex('c1dartboard', 128, 128, 1, 1, (cc, w, h) => {
-            cc.fillStyle = '#1a1a1a'; cc.beginPath(); cc.arc(64, 64, 64, 0, 7); cc.fill();
-            for (let i = 0; i < 20; i++) {
-                const a0 = (i / 20) * Math.PI * 2, a1 = ((i + 1) / 20) * Math.PI * 2;
-                for (const [r0, r1, c] of [[50, 58, i % 2 ? '#1e6a2a' : '#a82020'], [12, 50, i % 2 ? '#e8dcc0' : '#1a1a1a'], [30, 34, i % 2 ? '#1e6a2a' : '#a82020']]) {
-                    cc.fillStyle = c; cc.beginPath(); cc.arc(64, 64, r1, a0, a1); cc.arc(64, 64, r0, a1, a0, true); cc.fill();
-                }
+        const face = makeTex('c1dartboard2', 256, 256, 1, 1, (cc, w, h) => {
+            const C = 128, S = 128 / 150;
+            const rings = [[150, '#1c1a16'], [112, '#e2d6b8'], [72, '#1c1a16'], [36, '#9a2020'], [13, '#d4af37']];
+            for (const [r, col] of rings) { cc.fillStyle = col; cc.beginPath(); cc.arc(C, C, r * S, 0, 7); cc.fill(); }
+            for (let i = 0; i < 20; i++) { // alternating sector tint on the big rings
+                const a0 = i / 20 * Math.PI * 2, a1 = (i + 1) / 20 * Math.PI * 2;
+                if (i % 2) continue;
+                cc.fillStyle = 'rgba(40,110,50,0.55)';
+                cc.beginPath(); cc.arc(C, C, 150 * S, a0, a1); cc.arc(C, C, 112 * S, a1, a0, true); cc.fill();
+                cc.fillStyle = 'rgba(30,30,26,0.6)';
+                cc.beginPath(); cc.arc(C, C, 72 * S, a0, a1); cc.arc(C, C, 36 * S, a1, a0, true); cc.fill();
             }
-            cc.fillStyle = '#1e6a2a'; cc.beginPath(); cc.arc(64, 64, 8, 0, 7); cc.fill();
-            cc.fillStyle = '#a82020'; cc.beginPath(); cc.arc(64, 64, 3.5, 0, 7); cc.fill();
+            cc.strokeStyle = 'rgba(200,200,190,0.7)'; cc.lineWidth = 1.2;
+            for (const [r] of rings) { cc.beginPath(); cc.arc(C, C, r * S, 0, 7); cc.stroke(); }
+            for (let i = 0; i < 20; i++) {
+                const a = i / 20 * Math.PI * 2;
+                cc.beginPath(); cc.moveTo(C + Math.cos(a) * 36 * S, C + Math.sin(a) * 36 * S); cc.lineTo(C + Math.cos(a) * 150 * S, C + Math.sin(a) * 150 * S); cc.stroke();
+            }
+            cc.fillStyle = 'rgba(240,230,200,0.85)'; cc.font = 'bold 11px Arial'; cc.textAlign = 'center';
+            [[50, 0], [25, 24], [20, 54], [10, 92], [5, 131]].forEach(([v, r]) => cc.fillText(String(v), C, C - r * S + 4));
+            speckle(cc, w, h, null, ['#000'], 120, 1, 2, 0.2, 0.5); // old holes
         });
-        put(g, gBox(6, 70, 6), M.woodDark, 0, 35, -4);
-        put(g, gBox(40, 40, 3), M.planksDark, 0, 54, -1);
-        const board = put(g, gCyl(15, 15, 3, 24), new THREE.MeshStandardMaterial({ map: face, roughness: 0.9 }), 0, 54, 1.5);
+        put(g, gBox(6, 76, 6), M.woodDark, 0, 38, -4);
+        const back = put(g, gBox(46, 46, 3), M.planksDark, 0, 54, -1);
+        const boardMat = new THREE.MeshStandardMaterial({ map: face, roughness: 0.95 });
+        const side = new THREE.MeshStandardMaterial({ color: 0x1a1612, roughness: 0.9 });
+        const board = put(g, new THREE.CylinderGeometry(15, 15, 3, 36), [side, boardMat, side], 0, 54, 1.5);
         board.rotation.x = Math.PI / 2;
-        for (const [x, y] of [[-4, 57], [6, 50], [1, 62]]) {
-            put(g, gCyl(0.5, 0.5, 8, 4), M.steel, x, y, 7, 0, 0, 0).rotation.x = Math.PI / 2 - 0.2;
-            put(g, gBox(3, 3, 0.4), M.paintRed, x, y + 0.5, 11);
+        // Sam's chalk on the plank beside it
+        const chalk = makeTex('c1chalk', 128, 64, 1, 1, (cc, w, h) => {
+            cc.fillStyle = '#3a2c1c'; cc.fillRect(0, 0, w, h);
+            cc.fillStyle = 'rgba(230,226,210,0.55)'; cc.font = 'italic 26px Georgia, serif';
+            cc.fillText('S — 132', 10, 40);
+        });
+        put(g, gBox(30, 14, 1.5), new THREE.MeshStandardMaterial({ map: chalk, roughness: 1 }), 34, 40, 0.5);
+        // three darts holstered in the post
+        const holstered = [];
+        for (let i = 0; i < 3; i++) {
+            const d = ch1MakeDart(M);
+            d.position.set(3.5, 20 + i * 5, 2);
+            d.rotation.set(0, Math.PI / 2, 0.2);
+            g.add(d);
+            holstered.push(d);
         }
-        g.userData.h = 76;
+        window.ch1Darts = { group: g, board, radius: 15, center: new THREE.Vector3(0, 54, 3), holstered, stuck: [] };
+        g.userData.h = 82;
         return g;
     },
+
 
     camp_radio(o, M, rng) {
         const g = new THREE.Group();

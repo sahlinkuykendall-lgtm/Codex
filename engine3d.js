@@ -964,7 +964,7 @@ function gameplayInputActive() {
 }
 
 glCanvas.addEventListener('click', () => {
-    if (gameplayInputActive() && document.pointerLockElement !== glCanvas) {
+    if ((gameplayInputActive() || mgWantsPointerLock()) && document.pointerLockElement !== glCanvas) {
         glCanvas.requestPointerLock();
     }
 });
@@ -996,7 +996,7 @@ window.addEventListener('keydown', e => {
 // Release the mouse whenever a UI surface takes over (dialogue choices,
 // pause menu, puzzles, start menu) so the cursor is usable.
 function syncPointerLock() {
-    if (document.pointerLockElement === glCanvas && !gameplayInputActive()) {
+    if (document.pointerLockElement === glCanvas && !gameplayInputActive() && !mgWantsPointerLock()) {
         document.exitPointerLock();
     }
 }
@@ -1313,7 +1313,7 @@ function updateSanityFX3d() {
     // Heartbeat FOV pump, only when genuinely low
     const beat = Math.pow(Math.max(0, Math.sin(heartbeatPhase * Math.PI * 2)), 6);
     const fovTarget = 70 + beat * 1.6 * low;
-    if (Math.abs(cam3.fov - fovTarget) > 0.01) {
+    if (!mgHandlesPuzzle() && Math.abs(cam3.fov - fovTarget) > 0.01) {
         cam3.fov = fovTarget;
         cam3.updateProjectionMatrix();
     }
@@ -1509,7 +1509,7 @@ function drawOverlays() {
     drawInteriorFade();
 
     // Puzzle mini-game overlay (clicks already handled by engine.js)
-    if (activePuzzle) drawPuzzle();
+    if (activePuzzle && !mgHandlesPuzzle()) drawPuzzle();
 
     // Fade in from black when the game first starts (mirrors 2D gameLoop)
     if (menuPhase === 'GAMEFADEIN' && overlayAlpha > 0) {
@@ -1717,7 +1717,8 @@ function gameLoop3d() {
     updateSanityFX3d();
     updateHallucinations3d();
     updateCamera();      // keeps the 2D camera roughly centered for overlay draw math
-    positionCamera();
+    mgUpdate();          // Ch1 minigames played in the world (ch1_minigames.js)
+    if (!mgDrivesCamera()) { positionCamera(); mgAfterCamera(); }
     renderer3.render(scene3, cam3);
 
     drawOverlays();

@@ -77,6 +77,40 @@
         #menu-controls-panel { margin-top: 24px; padding: 18px 30px; background: rgba(5,4,2,0.88); border: 1px solid rgba(212,175,55,0.3); backdrop-filter: blur(4px); color: #b9a877; font-size: 12.5px; line-height: 2.4; letter-spacing: 1px; text-align: center; box-shadow: 0 14px 44px rgba(0,0,0,0.65); animation: fadeUp 0.35s ease both; }
         #menu-controls-panel .key { display: inline-block; border: 1px solid rgba(212,175,55,0.65); border-radius: 4px; padding: 0 8px; margin: 0 3px; color: #ffd97a; font-weight: bold; font-size: 11px; letter-spacing: 2px; line-height: 1.8; background: rgba(212,175,55,0.08); box-shadow: 0 2px 0 rgba(212,175,55,0.3); }
         #menu-version { position: absolute; bottom: 14px; left: 18px; color: rgba(140,120,70,0.55); font-size: 11px; letter-spacing: 3px; text-shadow: 0 1px 2px #000; }
+        /* ---- In-world minigames (ch1_minigames.js) ---- */
+        #game-container.in-minigame #hud-hint, #game-container.in-minigame #hud-bottomleft { display: none !important; }
+        #mg-hud { position: absolute; inset: 0; z-index: 7; pointer-events: none; font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; }
+        #mg-title { position: absolute; top: 26px; left: 0; right: 0; text-align: center; color: #e8c874; font-family: Georgia, 'Palatino Linotype', serif; font-size: 20px; letter-spacing: 0.35em; text-shadow: 0 2px 8px #000, 0 0 24px rgba(212,175,55,0.35); animation: fadeUp 0.6s ease both; }
+        #mg-title::after { content: ''; display: block; width: 220px; height: 1px; margin: 10px auto 0; background: linear-gradient(90deg, transparent, rgba(212,175,55,0.7), transparent); }
+        #mg-hint { position: absolute; top: 72px; left: 50%; transform: translateX(-50%); width: min(620px, 80%); text-align: center; color: rgba(222,208,170,0.72); font-style: italic; font-size: 13.5px; line-height: 1.6; text-shadow: 0 1px 4px #000; font-family: Georgia, serif; animation: fadeUp 0.8s ease 0.2s both; }
+        #mg-status { position: absolute; bottom: 82px; left: 0; right: 0; text-align: center; color: #cdbf98; font-size: 13px; letter-spacing: 0.28em; text-shadow: 0 1px 4px #000, 0 0 12px #000; transition: color 0.2s ease; }
+        #mg-status[data-kind="live"] { color: #ffd97a; }
+        #mg-status[data-kind="bad"] { color: #ff8a6a; }
+        #mg-status[data-kind="good"] { color: #fff0b8; font-size: 16px; }
+        #mg-keys { position: absolute; bottom: 30px; left: 0; right: 0; text-align: center; color: rgba(200,186,146,0.7); font-size: 11px; letter-spacing: 0.18em; text-shadow: 0 1px 3px #000; }
+        #mg-keys .key, .mg-buttons .key { display: inline-block; border: 1px solid rgba(212,175,55,0.6); border-radius: 3px; padding: 1px 7px; margin: 0 3px; color: #ffd97a; font-weight: 600; font-size: 10.5px; background: rgba(12,9,4,0.6); box-shadow: 0 2px 0 rgba(212,175,55,0.3); }
+        #mg-stats { position: absolute; }
+        #mg-hud[data-mode="seal"] #mg-stats { bottom: 112px; left: 0; right: 0; text-align: center; color: #ffe9a8; font-family: Georgia, serif; font-size: 15px; letter-spacing: 0.3em; text-shadow: 0 0 12px rgba(212,175,55,0.6), 0 1px 3px #000; }
+        #mg-hud[data-mode="darts"] #mg-stats { top: 24px; left: 24px; padding: 14px 18px; background: linear-gradient(168deg, rgba(20,16,9,0.82), rgba(9,8,5,0.9)); border: 1px solid rgba(212,175,55,0.4); border-left: 3px solid #d4af37; min-width: 190px; }
+        #mg-stats div { display: flex; justify-content: space-between; gap: 20px; font-size: 11px; letter-spacing: 0.2em; color: rgba(205,191,152,0.75); line-height: 2; }
+        #mg-stats b { color: #ffe9a8; font-size: 14px; letter-spacing: 0.1em; }
+        #mg-cross, #mg-breath { display: none; position: absolute; left: 50%; top: 50%; }
+        #mg-hud[data-mode="darts"] #mg-cross, #mg-hud[data-mode="darts"] #mg-breath { display: block; }
+        #mg-cross { width: 18px; height: 18px; margin: -9px 0 0 -9px; border: 1.5px solid rgba(255,233,168,0.75); border-radius: 50%; box-shadow: 0 0 6px rgba(0,0,0,0.8); }
+        #mg-cross::after { content: ''; position: absolute; left: 50%; top: 50%; width: 3px; height: 3px; margin: -1.5px 0 0 -1.5px; background: #ffe9a8; border-radius: 50%; }
+        #mg-breath { width: 90px; height: 4px; margin: 26px 0 0 -45px; background: rgba(0,0,0,0.55); border: 1px solid rgba(212,175,55,0.3); }
+        #mg-breath-fill { height: 100%; width: 0; background: #cdbf98; transition: width 0.08s linear, background 0.2s; }
+        #mg-breath-fill[data-state="steady"] { background: #9fdf7f; }
+        #mg-breath-fill[data-state="tired"] { background: #ff7a5a; }
+        #mg-flash { position: absolute; inset: 0; opacity: 0; }
+        #mg-flash[data-kind="fail"] { background: radial-gradient(ellipse at center, rgba(160,20,20,0.1), rgba(120,10,10,0.55)); }
+        #mg-flash[data-kind="win"] { background: radial-gradient(ellipse at center, rgba(255,210,120,0.35), rgba(212,175,55,0.1)); }
+        #mg-result { position: absolute; left: 50%; bottom: 120px; transform: translateX(-50%); width: min(620px, 86%); padding: 22px 28px 20px; text-align: center; pointer-events: auto; background: linear-gradient(168deg, rgba(20,16,9,0.94), rgba(9,8,5,0.97)); border: 1px solid rgba(212,175,55,0.5); box-shadow: 0 16px 48px rgba(0,0,0,0.75); animation: dlgBox 0.3s ease both; }
+        #mg-result-score { color: #ffe9a8; font-family: Georgia, serif; font-size: 26px; letter-spacing: 0.12em; }
+        #mg-result-line { color: #b9a877; font-family: Georgia, serif; font-style: italic; font-size: 14px; margin: 10px 0 18px; line-height: 1.6; }
+        .mg-buttons { display: flex; justify-content: center; gap: 14px; }
+        .mg-buttons button { background: rgba(212,175,55,0.06); border: 1px solid rgba(212,175,55,0.4); color: #e0d4a8; font-family: inherit; font-size: 12px; letter-spacing: 0.25em; padding: 10px 18px; cursor: pointer; transition: all 0.15s ease; }
+        .mg-buttons button:hover { background: rgba(212,175,55,0.2); border-color: #d4af37; color: #fff0c0; }
         /* ---- Boot failure panel (shown when the 3D engine can't start) ---- */
         #boot-error { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 20; width: min(640px, 86%); background: rgba(12,9,4,0.97); border: 1px solid #d4af37; padding: 26px 32px; box-shadow: 0 20px 60px rgba(0,0,0,0.9); }
         #boot-error h2 { margin: 0 0 14px; color: #ffd97a; font-size: 16px; letter-spacing: 4px; }
@@ -111,6 +145,22 @@
         <div id="hud-bottomleft" class="hidden">
             <div>Stamina: <span id="stat-stamina">20.0</span> / 20
                 <div id="stamina-bar-bg"><div id="stamina-bar-fill" style="width: 100%;"></div></div>
+            </div>
+        </div>
+        <!-- In-world minigame HUD (ch1_minigames.js) -->
+        <div id="mg-hud" class="hidden">
+            <div id="mg-flash"></div>
+            <div id="mg-title"></div>
+            <div id="mg-hint"></div>
+            <div id="mg-stats"></div>
+            <div id="mg-cross"></div>
+            <div id="mg-breath"><div id="mg-breath-fill"></div></div>
+            <div id="mg-status"></div>
+            <div id="mg-keys"></div>
+            <div id="mg-result" class="hidden">
+                <div id="mg-result-score"></div>
+                <div id="mg-result-line"></div>
+                <div class="mg-buttons"><button id="mg-again">THROW AGAIN <span class="key">R</span></button><button id="mg-leave">WALK AWAY <span class="key">ESC</span></button></div>
             </div>
         </div>
         <!-- Main menu over a live 3D vista of the dig site -->
@@ -197,11 +247,12 @@
         })();
     </script>
     <script src="lib/three.min.js"></script>
-    <script src="data.js?v=13"></script>
+    <script src="data.js?v=14"></script>
     <script src="dialogue.js?v=12"></script>
-    <script src="engine.js?v=12"></script>
+    <script src="engine.js?v=13"></script>
     <script src="ch1_world.js?v=1"></script>
-    <script src="ch1_props.js?v=1"></script>
-    <script src="engine3d.js?v=2"></script>
+    <script src="ch1_props.js?v=2"></script>
+    <script src="ch1_minigames.js?v=1"></script>
+    <script src="engine3d.js?v=3"></script>
 </body>
 </html>
