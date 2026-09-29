@@ -12,6 +12,11 @@ Other docs:
 
 ---
 
+## V4.0.2 — 2026-09-29 — Gender: male or female
+- The character-creation screen now offers only **Male** or **Female** (the Non-binary
+  option is removed), and the row is labelled GENDER. Pronouns and forms of address follow
+  the choice ("ya basha" / "ya hanem"). The default is Male.
+
 ## V4.0.1 — 2026-09-29 — Quarry, 1926 truck, find store (Chapter 1 visuals)
 - **The chalk towers are now the old limestone quarry** where the pyramids' stone was cut.
   Each knob of bedrock has a rough, weathered crown and cut faces stepping down in

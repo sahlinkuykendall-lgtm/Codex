@@ -30,9 +30,8 @@ const STORY_BACKGROUNDS = [
 ];
 
 const STORY_GENDERS = {
-    man:   { label: 'Man',        they: 'he',   them: 'him',  their: 'his',   honor: 'ya basha', title: 'Mister' },
-    woman: { label: 'Woman',      they: 'she',  them: 'her',  their: 'her',   honor: 'ya hanem', title: 'Madame' },
-    nb:    { label: 'Non-binary', they: 'they', them: 'them', their: 'their', honor: 'ya doktor', title: '' },
+    man:   { label: 'Male',   they: 'he',   them: 'him',  their: 'his',   honor: 'ya basha', title: 'Mister' },
+    woman: { label: 'Female', they: 'she',  them: 'her',  their: 'her',   honor: 'ya hanem', title: 'Madame' },
 };
 
 // A fresh story record. `opts` comes from the character-creation screen.
@@ -41,7 +40,7 @@ function storyFresh(opts) {
     return {
         v: 2,
         name: (opts.name || 'Morgan Hale').trim() || 'Morgan Hale',
-        gender: STORY_GENDERS[opts.gender] ? opts.gender : 'nb',
+        gender: STORY_GENDERS[opts.gender] ? opts.gender : 'man',
         bg: opts.bg || 'archaeologist',
         notices: opts.notices !== false,
         rel: {}, rep: {}, heat: 0,
@@ -60,7 +59,7 @@ const PC = {
     get name() { return S().name; },
     get surname() { const p = S().name.trim().split(/\s+/); return p[p.length - 1]; },
     get first() { return S().name.trim().split(/\s+/)[0]; },
-    get g() { return STORY_GENDERS[S().gender] || STORY_GENDERS.nb; },
+    get g() { return STORY_GENDERS[S().gender] || STORY_GENDERS.man; },
     get they() { return this.g.they; }, get them() { return this.g.them; }, get their() { return this.g.their; },
     get honor() { return this.g.honor; },
     get doctor() { return 'Doctor ' + this.surname; },
@@ -196,7 +195,7 @@ let STORY_PENDING = null; // choices from the creation screen, applied on startG
 })();
 
 // ---- the character-creation screen (New Game) ----
-const CREATE = { gender: 'nb', bg: 'archaeologist', notices: true };
+const CREATE = { gender: 'man', bg: 'archaeologist', notices: true };
 
 function storyBuildCreate() {
     if (document.getElementById('create-panel')) return;
@@ -211,7 +210,7 @@ function storyBuildCreate() {
             <input id="cr-name" maxlength="28" spellcheck="false" autocomplete="off" placeholder="First and last name">
         </div>
         <div class="cr-row">
-            <label>YOU ARE</label>
+            <label>GENDER</label>
             <div class="cr-segs" id="cr-gender">
                 ${Object.entries(STORY_GENDERS).map(([k, g]) => `<button class="seg" data-g="${k}">${g.label}</button>`).join('')}
             </div>
