@@ -147,8 +147,8 @@ const CH1_CLIFF_Z = CH1_LAYOUT.cliffZ;
 let ch1Rects = null, ch1RectGrid = null;
 const CH1_GRID = 400;
 function ch1BuildRectGrid() {
-    ch1Rects = [...(mapWalls[1] || []).filter(w => !/^(boundary|ridge|cliffBase)$/.test(w.kind || '')),
-                ...(mapObjects[1] || [])];
+    ch1Rects = [...(mapWalls[1] || []).filter(w => !/^(boundary|ridge|cliffBase|trunk)$/.test(w.kind || '')),
+                ...(mapObjects[1] || []).filter(o => !/^ow_(pathlamp|sherd|cache|roadblock)/.test(o.id || ''))];
     ch1RectGrid = new Map();
     for (const r of ch1Rects) {
         const gx0 = Math.floor((r.x - 220) / CH1_GRID), gx1 = Math.floor((r.x + r.w + 220) / CH1_GRID);
@@ -228,12 +228,15 @@ function ch1PathMask(x, z) {
 function ch1HeightBase(x, z) {
     // open-desert dunes, levelled near anything built
     const dunes =
-        26  * Math.sin(x * 0.0009 + 1.7) * Math.sin(z * 0.0008 + 0.6) +
-        16  * Math.sin(x * 0.0017 + z * 0.0013 + 4.2) +
-        7   * Math.sin(x * 0.0043 - z * 0.0031 + 2.2) +
+        34  * Math.sin(x * 0.0009 + 1.7) * Math.sin(z * 0.0008 + 0.6) +
+        22  * Math.sin(x * 0.0017 + z * 0.0013 + 4.2) +
+        9   * Math.sin(x * 0.0043 - z * 0.0031 + 2.2) +
         3   * Math.sin(x * 0.011 + z * 0.009);
     const d = ch1StructDist(x, z);
     let h = dunes * Math.max(0.12, Math.min(1, (d - 35) / 165));
+
+    // seif ridges between the areas (big-scale occluders; walkable)
+    h += ch1RidgeHeight(x, z) * Math.max(0.3, Math.min(1, (d - 35) / 165));
 
     // the dig zone plateau and the lookout ridge; a low rise under the worker camp
     h += 135 * ch1PlateauMask(x, z);
@@ -1288,6 +1291,7 @@ function buildCh1Environment(group, scene) {
         ch1FX.pool.push(l);
     }
 
+    buildCh1Occluders(group);
     if (!q || q.dust) ch1AddDust(group);
     addCh1Scatter(group);
 }
@@ -1474,3 +1478,200 @@ function updateCh1FX(focusX, focusZ) {
 }
 
 function ch1Deactivate() { ch1FX.active = false; }
+
+// ============================================================
+// SIGHTLINE BREAKERS (data in ch1_layout.js)
+// ============================================================
+// Seif ridges: knife-edged dunes along a polyline, lying down near the
+// places people built and into saddles where the tracks cross
+function ch1RidgeHeight(x, z) {
+    let h = 0;
+    for (const r of CH1_RIDGES) {
+        if (!r.bb) {
+            const xs = r.pts.map(p => p[0]), zs = r.pts.map(p => p[1]);
+            r.bb = [Math.min(...xs) - r.w * 1.6, Math.max(...xs) + r.w * 1.6, Math.min(...zs) - r.w * 1.6, Math.max(...zs) + r.w * 1.6];
+            r.len = 0; for (let i = 0; i < r.pts.length - 1; i++) r.len += Math.hypot(r.pts[i + 1][0] - r.pts[i][0], r.pts[i + 1][1] - r.pts[i][1]);
+        }
+        if (x < r.bb[0] || x > r.bb[1] || z < r.bb[2] || z > r.bb[3]) continue;
+        let best = 1e9, along = 0, acc = 0;
+        for (let i = 0; i < r.pts.length - 1; i++) {
+            const [ax, az] = r.pts[i], [bx, bz] = r.pts[i + 1];
+            const dx = bx - ax, dz = bz - az, L = Math.hypot(dx, dz);
+            const t = clamp01(((x - ax) * dx + (z - az) * dz) / (L * L));
+            const d = Math.hypot(x - (ax + dx * t), z - (az + dz * t));
+            if (d < best) { best = d; along = (acc + t * L) / r.len; }
+            acc += L;
+        }
+        // asymmetric profile: a steep slip face on the east, a long back on the west
+        const side = (x - (r.pts[0][0] + (r.pts[r.pts.length - 1][0] - r.pts[0][0]) * along)) > 0 ? 0.75 : 1.15;
+        const wob = 0.8 + 0.4 * vnoise3(x * 0.0016, z * 0.0016, 7.7);
+        const prof = Math.pow(Math.max(0, 1 - best / (r.w * side * wob)), 1.7);
+        const ends = smooth(0, 0.18, along) * smooth(1, 0.82, along);
+        const crest = 0.8 + 0.35 * vnoise3(along * 6 + r.h, 0.3, 1.9);
+        h = Math.max(h, r.h * prof * ends * crest);
+    }
+    if (h <= 0) return 0;
+    // saddles where tracks cross
+    let dT = 1e9;
+    for (const s of CH1_SEGS) {
+        if (x < s.minx - 380 || x > s.maxx + 380 || z < s.minz - 380 || z > s.maxz + 380) continue;
+        const dx = s.x2 - s.x1, dz = s.z2 - s.z1;
+        const t = clamp01(((x - s.x1) * dx + (z - s.z1) * dz) / (dx * dx + dz * dz));
+        dT = Math.min(dT, Math.hypot(x - (s.x1 + dx * t), z - (s.z1 + dz * t)));
+    }
+    h *= 0.36 + 0.64 * smooth(80, 300, dT); // a saddle you walk over, not a gap you see through
+    // and lie flat round the places people built
+    for (const [kx, kz, kr] of CH1_KEEPOUT) {
+        const d = Math.hypot(x - kx, z - kz);
+        if (d < kr * 1.3) h *= smooth(kr * 0.75, kr * 1.3, d);
+    }
+    return h;
+}
+
+// Merge a group's meshes into one geometry per material (for instancing)
+function ch1MergeByMaterial(root) {
+    root.updateMatrixWorld(true);
+    const buckets = new Map();
+    root.traverse(m => {
+        if (!m.isMesh) return;
+        let g = m.geometry.index ? m.geometry.toNonIndexed() : m.geometry.clone();
+        g.applyMatrix4(m.matrixWorld);
+        if (!buckets.has(m.material)) buckets.set(m.material, []);
+        buckets.get(m.material).push(g);
+    });
+    const out = [];
+    for (const [mat, geos] of buckets) {
+        let n = 0;
+        for (const g of geos) n += g.attributes.position.count;
+        const pos = new Float32Array(n * 3), nor = new Float32Array(n * 3), uv = new Float32Array(n * 2);
+        let o = 0;
+        for (const g of geos) {
+            const c = g.attributes.position.count;
+            pos.set(g.attributes.position.array, o * 3);
+            if (g.attributes.normal) nor.set(g.attributes.normal.array, o * 3);
+            if (g.attributes.uv) uv.set(g.attributes.uv.array, o * 2);
+            o += c;
+            g.dispose();
+        }
+        const geo = new THREE.BufferGeometry();
+        geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+        geo.setAttribute('normal', new THREE.BufferAttribute(nor, 3));
+        geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+        geo.computeBoundingSphere();
+        out.push({ mat, geo });
+    }
+    return out;
+}
+
+function buildCh1Occluders(group) {
+    const M = ch1Mats();
+    const rng = seededRng('occluders');
+    const chalk = M.chalk || (M.chalk = new THREE.MeshStandardMaterial({ map: M.tex.rock, color: 0xf2ece0, roughness: 0.95, flatShading: true }));
+
+    // White Desert chalk: fins streamlined north-south, and mushrooms
+    for (const y of ch1YardangSpots()) {
+        const gh = Math.min(ch1HeightBase(y.x, y.z), ch1HeightBase(y.x + y.w / 2, y.z), ch1HeightBase(y.x - y.w / 2, y.z)) - 8;
+        const g = new THREE.Group();
+        g.position.set(y.x, gh, y.z);
+        g.rotation.y = (vnoise3(y.seed, 1, 1) - 0.5) * 0.5;
+        if (y.kind === 'fin') {
+            const geo = ch1CliffGeo(y.w, y.h, y.l, y.seed, { amp: 16, taper: (u, v) => (1 - 0.72 * Math.pow(u, 1.4)) * (0.55 + 0.45 * Math.sin(Math.PI * clamp01(v))) });
+            put(g, geo, chalk, 0, y.h / 2, 0);
+        } else {
+            const stem = ch1CliffGeo(y.w * 0.45, y.h * 0.62, y.w * 0.45, y.seed, { amp: 10, taper: () => 1 });
+            put(g, stem, chalk, 0, y.h * 0.31, 0);
+            const cap = ch1CliffGeo(y.w * 1.15, y.h * 0.36, y.w * 0.95, y.seed + 3, { amp: 14, taper: (u, v) => 0.6 + 0.4 * Math.sin(Math.PI * clamp01(u)) * Math.sin(Math.PI * clamp01(v)) });
+            put(g, cap, chalk, 0, y.h * 0.62 + y.h * 0.14, 0);
+        }
+        for (let i = 0; i < 5; i++) ch1AddRock(g, (rng() - 0.5) * y.w * 1.6, 0, (rng() - 0.5) * y.l, 8 + rng() * 16, rng, chalk);
+        group.add(g);
+    }
+
+    // date palms, instanced from a few templates (a plantation's worth
+    // would otherwise cost thousands of draw calls)
+    const templates = [];
+    for (let t = 0; t < 3; t++) {
+        const tg = new THREE.Group();
+        subPalm(tg, M, 1.2 + t * 0.15, seededRng('palmT' + t));
+        ch1FX.sway.length = Math.max(0, ch1FX.sway.length - 1); // the template's crown doesn't sway
+        templates.push(ch1MergeByMaterial(tg));
+    }
+    const buckets = templates.map(() => []);
+    CH1_GROVES.forEach(([x, z], i) => buckets[i % 3].push([x + (rng() - 0.5) * 30, z + (rng() - 0.5) * 30]));
+    const dummy = new THREE.Object3D();
+    templates.forEach((parts, t) => {
+        const spots = buckets[t];
+        for (const { mat, geo } of parts) {
+            const im = new THREE.InstancedMesh(geo, mat, spots.length);
+            spots.forEach(([x, z], i) => {
+                dummy.position.set(x, ch1Height(x, z) - 2, z);
+                dummy.rotation.set(0, rng() * 6.28, 0);
+                dummy.scale.setScalar(0.85 + rng() * 0.35);
+                dummy.updateMatrix();
+                im.setMatrixAt(i, dummy.matrix);
+            });
+            im.castShadow = true; im.receiveShadow = true;
+            im.userData.noShadow = true; // (already set up)
+            group.add(im);
+        }
+    });
+
+    // acacias in the wadi: twisted trunks under flat umbrella crowns
+    const leaf = M.acacia || (M.acacia = new THREE.MeshStandardMaterial({ color: 0x3e4a26, roughness: 0.95, flatShading: true }));
+    for (const [x, z] of CH1_ACACIAS) {
+        const g = new THREE.Group();
+        g.position.set(x, ch1Height(x, z), z);
+        g.rotation.y = rng() * 6.28;
+        subBeam(g, M.trunk, new THREE.Vector3(0, 0, 0), new THREE.Vector3(8, 70, 4), 4.5, 7);
+        subBeam(g, M.trunk, new THREE.Vector3(8, 70, 4), new THREE.Vector3(40, 118, 10), 3, 6);
+        subBeam(g, M.trunk, new THREE.Vector3(8, 70, 4), new THREE.Vector3(-30, 112, -12), 3, 6);
+        for (const [cx, cy, cz, r] of [[36, 122, 8, 58], [-28, 116, -10, 50], [4, 128, 2, 44]]) {
+            const c = put(g, new THREE.IcosahedronGeometry(1, 1), leaf, cx, cy, cz);
+            c.scale.set(r, r * 0.22, r * 0.9);
+        }
+        group.add(g);
+    }
+
+    // tamarisk thickets: feathery grey-green, head-high — along the wadi,
+    // round the oasis and at the feet of the ridges
+    const tamTex = makeTex('c1tamarisk2', 128, 128, 1, 1, (cc, w, h) => {
+        // a soft, rounded mass of feathery sprays on a few woody stems
+        cc.clearRect(0, 0, w, h);
+        cc.strokeStyle = '#4a3c2c'; cc.lineWidth = 3;
+        for (let i = 0; i < 4; i++) { cc.beginPath(); cc.moveTo(64 + (i - 1.5) * 6, h); cc.lineTo(64 + (i - 1.5) * 14, h * 0.55); cc.stroke(); }
+        for (let i = 0; i < 520; i++) {
+            const a = Math.random() * Math.PI, r = Math.sqrt(Math.random());
+            const x = 64 + Math.cos(a) * r * 58, y = 78 - Math.sin(a) * r * 70;
+            cc.fillStyle = ['#6f7a56', '#7d8762', '#5e6848', '#8b8a74', '#a09080'][(Math.random() * 5) | 0];
+            cc.globalAlpha = 0.55 + Math.random() * 0.45;
+            cc.beginPath(); cc.ellipse(x, y, 1.6 + Math.random() * 2.4, 3 + Math.random() * 4, (Math.random() - 0.5) * 0.8, 0, 7); cc.fill();
+        }
+        cc.globalAlpha = 1;
+    });
+    const tamMat = new THREE.MeshStandardMaterial({ map: tamTex, transparent: true, alphaTest: 0.35, side: THREE.DoubleSide, roughness: 1 });
+    const quad = new THREE.PlaneGeometry(110, 100); quad.translate(0, 48, 0);
+    const spots = [];
+    const addThicket = (cx, cz, n, spread) => { for (let i = 0; i < n; i++) spots.push([cx + (rng() - 0.5) * spread, cz + (rng() - 0.5) * spread]); };
+    for (const [x, z] of CH1_ACACIAS.slice(0, 5)) addThicket(x, z, 8, 360);
+    addThicket(1250, 3470, 16, 820);
+    for (const r of CH1_RIDGES) for (let k = 0; k < 3; k++) { const p = r.pts[(rng() * r.pts.length) | 0]; addThicket(p[0] + (rng() - 0.5) * r.w * 2.4, p[1], 5, 260); }
+    const walls = (mapWalls[1] || []).filter(w => w.kind !== 'boundary');
+    const ok = ([x, z]) => ch1PathMask(x, z)[0] < 0.1 && !walls.some(w => x > w.x - 20 && x < w.x + w.w + 20 && z > w.y - 20 && z < w.y + w.h + 20) &&
+        !(mapObjects[1] || []).some(o => !/^ow_(oasis|spoil|ruins)$/.test(o.id) && x > o.x - 30 && x < o.x + o.w + 30 && z > o.y - 30 && z < o.y + o.h + 30);
+    const good = spots.filter(ok);
+    for (const rot of [0, Math.PI / 3, -Math.PI / 3]) {
+        const im = new THREE.InstancedMesh(quad, tamMat, good.length);
+        const r2 = seededRng('tam' + rot);
+        good.forEach(([x, z], i) => {
+            dummy.position.set(x, ch1Height(x, z) - 3, z);
+            dummy.rotation.set(0, rot + r2() * 0.4, 0);
+            const s = 0.7 + r2() * 0.8;
+            dummy.scale.set(s, s * (0.8 + r2() * 0.5), s);
+            dummy.updateMatrix();
+            im.setMatrixAt(i, dummy.matrix);
+        });
+        im.castShadow = true;
+        im.userData.noShadow = true;
+        group.add(im);
+    }
+}

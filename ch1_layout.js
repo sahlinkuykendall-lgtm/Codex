@@ -200,7 +200,80 @@ function ch1At(id) {
     return o ? [o.x + o.w / 2, o.y + o.h / 2] : [CH1_LAYOUT.W / 2, CH1_LAYOUT.H / 2];
 }
 
+// ---- SIGHTLINE BREAKERS ----
+// Open-world maps feel big when you can't see all of them at once: the
+// areas hide from each other behind terrain at three scales, rock and
+// tree lines, and reveal themselves as you come over a rise. Egyptian
+// versions of those:
+//   - seif dunes: long knife-edged ridges running roughly north-south
+//     between the areas, with low saddles where the tracks cross
+//   - White Desert chalk: wind-carved "mushroom" and fin formations
+//     (yardangs), in clusters; they also glow under the moon (landmarks)
+//   - palms, acacia and tamarisk along the water and the dry wadi
+// [points..., height, half-width]
+const CH1_RIDGES = [
+    { pts: [[4150, 2950], [3950, 3900], [3820, 5000], [3700, 6400], [3900, 7600]], h: 175, w: 330 },  // camp ↔ workers' camp
+    { pts: [[7350, 3900], [7150, 4800], [7000, 5700], [6850, 6800], [7000, 7900]], h: 170, w: 320 },  // camp ↔ ministry
+    { pts: [[6250, 6300], [6320, 7300], [6450, 8200]], h: 135, w: 280 },                // road ↔ Bedouin shelter
+    { pts: [[2900, 3900], [2980, 2900], [3150, 1900]], h: 150, w: 300 },                // ruins/oasis ↔ spoil field
+    { pts: [[6100, 2900], [6400, 3800], [6700, 4700], [7050, 5350]], h: 155, w: 300 },                // camp ↔ trench (the wadi's west bank)
+    { pts: [[8150, 6200], [8450, 7100], [8650, 7900]], h: 140, w: 280 },                // ministry ↔ shelter
+    { pts: [[1900, 6250], [3000, 6500], [4150, 6600]], h: 130, w: 280 },                // workers' camp ↔ the wreck
+    { pts: [[1150, 5400], [700, 6300]], h: 120, w: 260 },                               // south-west swell
+    { pts: [[9700, 3000], [9850, 4500], [9750, 6000]], h: 150, w: 300 },                // behind the ministry
+];
+// where the ridges must lie down: the places people built
+const CH1_KEEPOUT = [
+    [5600, 5150, 780], [2300, 4600, 760], [8950, 5300, 700], [8150, 3400, 700], [5000, 7350, 560],
+    [1300, 3500, 560], [2080, 2300, 520], [3300, 3250, 520], [7400, 6900, 480], [3500, 7000, 420],
+    [9380, 2130, 380], [6900, 3000, 360],
+];
+// chalk formation clusters: [x, z, count, scale]
+const CH1_YARDANGS = [
+    [4380, 4250, 4, 1.0], [7650, 6150, 4, 1.1], [1650, 6000, 3, 0.9], [6620, 2620, 3, 0.9],
+    [4250, 7950, 4, 1.0], [9750, 4150, 3, 1.2], [2550, 1720, 3, 1.0], [7200, 3650, 3, 0.8],
+    [4700, 3250, 3, 0.8], [1250, 2450, 3, 1.1],
+];
+// palm plantation between the workers' camp and the oasis, acacias in the wadi
+const CH1_GROVES = [];
+for (let r = 0; r < 5; r++) for (let c = 0; c < 5; c++) CH1_GROVES.push([600 + c * 100 + (r % 2) * 45, 3950 + r * 130]);
+for (let i = 0; i < 12; i++) { const a = i / 12 * Math.PI * 2; CH1_GROVES.push([1250 + Math.cos(a) * 330, 3470 + Math.sin(a) * 260]); }
+const CH1_ACACIAS = [[6780, 2880], [7020, 3160], [6650, 3250], [7180, 2800], [6900, 3380], [5900, 6200], [8700, 4600], [2600, 5700]];
+
+// deterministic randomness (ch1_world.js's seededRng loads later)
+function ch1LayoutRng(str) {
+    let h = 2166136261;
+    for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
+    return () => { h = Math.imul(h ^ (h >>> 15), 2246822507); h = Math.imul(h ^ (h >>> 13), 3266489909); return ((h ^= h >>> 16) >>> 0) / 4294967296; };
+}
+
+// Collision for the chalk formations (the dunes you can walk over)
+function ch1YardangSpots() {
+    const out = [];
+    const rng = ch1LayoutRng('yardangs');
+    for (const [cx, cz, n, sc] of CH1_YARDANGS) {
+        for (let i = 0; i < n; i++) {
+            const a = rng() * Math.PI * 2, d = i === 0 ? 0 : 120 + rng() * 170;
+            const w = (60 + rng() * 70) * sc, l = w * (1.4 + rng() * 1.2);
+            out.push({ x: cx + Math.cos(a) * d, z: cz + Math.sin(a) * d, w, l, h: (120 + rng() * 150) * sc, kind: rng() < 0.45 ? 'mushroom' : 'fin', seed: rng() * 100 });
+        }
+    }
+    return out;
+}
+function ch1AddOccluderWalls() {
+    const walls = mapWalls[1];
+    if (!walls || walls._occ) return;
+    walls._occ = true;
+    for (const y of ch1YardangSpots()) {
+        const fw = y.kind === 'mushroom' ? y.w * 0.55 : y.w * 0.7, fl = y.kind === 'mushroom' ? y.w * 0.55 : y.l * 0.8;
+        walls.push({ x: y.x - fw / 2, y: y.z - fl / 2, w: fw, h: fl, kind: 'yardang' });
+    }
+    for (const [x, z] of CH1_GROVES) walls.push({ x: x - 10, y: z - 10, w: 20, h: 20, kind: 'trunk' });
+    for (const [x, z] of CH1_ACACIAS) walls.push({ x: x - 9, y: z - 9, w: 18, h: 18, kind: 'trunk' });
+}
+
 relayoutChapterOne();
+ch1AddOccluderWalls();
 
 // ---- engine hooks: world size, spawn, car, patrols ----
 if (typeof WORLD !== 'undefined') WORLD = { width: CH1_LAYOUT.W, height: CH1_LAYOUT.H };

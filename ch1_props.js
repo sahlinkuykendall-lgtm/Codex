@@ -1498,6 +1498,8 @@ function ch1BuildWall(group, wall) {
     // the world edge is the dune wall itself (terrain), the escarpment is
     // built by the environment
     if (kind === 'boundary' || kind === 'cliffBase') return;
+    // built elsewhere: chalk formations and trees (buildCh1Occluders), the oasis pond (its prop)
+    if (kind === 'yardang' || kind === 'trunk' || kind === 'pond') return;
 
     if (kind === 'northFence') {                                         // dig fence (built once)
         if (!group.userData.northFence) {

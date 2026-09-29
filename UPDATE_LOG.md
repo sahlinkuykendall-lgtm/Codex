@@ -13,6 +13,28 @@ Other docs:
 
 ---
 
+## V3.6.0 — 2026-09-29 — Chapter 1: breaking the sightlines
+Before this, you could see about 10 of the other 11 areas from any area (the camp sat in a flat bowl),
+so the map read as one small space. Using open-world level-design practice (block
+sightlines at several terrain scales, screen with rock and tree lines, let places reveal
+themselves as you come over a rise), with things you'd actually find in Egypt:
+- **Seif dunes:** 9 long knife-edged ridges (up to ~5 m) running roughly north–south
+  between the areas, with a steep slip face on one side and a long back on the other. You can walk
+  over them, and cresting one gives you a view. Where a track crosses, the ridge dips to a saddle
+  you walk over but can't see through. They lie down near anything built.
+- The general dunes are also taller, so there are three scales of terrain everywhere.
+- **White Desert chalk formations:** 10 clusters of wind-carved mushroom and fin rocks
+  (yardangs), streamlined north–south. They block the view, glow under the moon, work as
+  landmarks, and are solid.
+- **Vegetation:** a date-palm plantation west of the oasis, more palms round the oasis
+  itself, acacia trees in the dry wadi, and feathery tamarisk thickets along the wadi, the
+  oasis and the ridge feet. Palms and tamarisk are instanced, so they cost little to draw.
+- **Result:** from each area you now see only its neighbours plus the raised dig plateau
+  (on purpose — it's the landmark). Measured by a terrain line-of-sight check,
+  before counting the rocks and trees.
+
+---
+
 ## V3.5.0 — 2026-09-29 — Chapter 1 goes open world; cinematic conversations
 **The map (3D build only; the 2D build keeps the old map)** — `ch1_layout.js`
 - Chapter 1 is now an open desert of about 330 × 275 m (it was about 120 m square). Each
