@@ -41,6 +41,12 @@
 - `tips3d.js`: timed first-steps tips on a new game (hold X to disable).
 - `ch1_supply.js`: the animated supply-line train and worker (visual only).
 - `ch1_interiors.js`: art-directed tent / dorm / foreman office interiors.
+- `ch1_dog.js` (loads after `ch1a_story.js`): Bosta the camp dog. It has a rigged model
+  (poses: stand, sit, lie, sleep, roll; a trot gait), a behaviour loop (sleep, wander, idle,
+  home, or follow the player's breadcrumb trail), synthesized bark, growl and whimper, and
+  her dialogue. Her interaction box and label move with her every frame.
+- The supply line runs one forward-only route: in from the desert, round the balloon loop
+  (`CH1_RAIL_LOOP` in `ch1_layout.js`), and back out. So the loco always leads.
 - **The new story (V4.0.0+).** `story_core.js` and `ch1a_story.js` load LAST (after
   `title3d.js`), with `story.css`. The story bible in `story/` is the source of truth.
   - `story_core.js`: `gameState.story` holds the player (name, gender, pronouns, background),

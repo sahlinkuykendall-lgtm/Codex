@@ -166,6 +166,9 @@ function ch1PathLampSpots() {
 
 // the supply line's rails: buffer stop → loading bay → out through the dunes
 const CH1_RAIL = [[4420, 7204], [4000, 7204], [3420, 7320], [2860, 7610], [2340, 7990], [1700, 8620], [700, 9520], [-900, 10700]];
+// the turning (balloon) loop at the camp end: trains come in loco-first,
+// run round it and stand at the bay already facing out (J = CH1_RAIL[0])
+const CH1_RAIL_LOOP = [[4420, 7204], [4540, 7165], [4600, 7110], [4585, 6990], [4640, 6905], [4735, 6880], [4830, 6920], [4870, 7010], [4850, 7110], [4780, 7170], [4680, 7200], [4560, 7210], [4420, 7204]];
 
 // ---- TRACKS: the camp's desire lines and roads ----
 // pts in new world coordinates; w = half width; kind 1 = vehicle road
@@ -197,6 +200,7 @@ const CH1_TRACKS = [
     { kind: 0, w: 26, lamps: false, pts: [[8460, 3000], [8850, 2700], [9150, 2450], [9350, 2150]] },
     // the rail bed (levelled, no surface strip, no lamps)
     { kind: 3, w: 34, lamps: false, rail: true, pts: CH1_RAIL.slice(0, 5) },
+    { kind: 3, w: 34, lamps: false, rail: true, pts: CH1_RAIL_LOOP },
 ];
 
 // Point on the site for the menu camera / sound sources: an object's centre

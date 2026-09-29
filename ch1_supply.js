@@ -2,11 +2,13 @@
 // THE CODEX OF GIZA — THE SUPPLY LINE, ALIVE (ch1_supply.js)
 //
 // A narrow-gauge line runs from the loading bay by the camp gate,
-// south-west through a cutting in the dunes, out of the site. A worker
-// (not someone you can talk to — he's busy) shovels spoil into three
-// tipping skips; when they're full the little diesel toots and hauls
-// them away until they're gone in the haze, then brings them back
-// empty. You can watch it leave; the dunes won't let you follow.
+// south-west through a cutting in the dunes, out of the site. At the
+// camp end it runs round a turning (balloon) loop, so the train always
+// runs loco-first: it comes in from the haze, rounds the loop, stops at
+// the bay already facing out, a worker (busy — not someone you can talk
+// to) shovels spoil into three tipping skips, and the little diesel
+// toots and hauls them away. The route is one path the train only ever
+// moves forward along: desert → bay → loop → bay → desert.
 // The "Supply Line" interaction (scene2_carts) is unchanged.
 // Loaded after ch1_openworld.js, before engine3d.js.
 // ============================================================
@@ -63,13 +65,33 @@ function ch1MakeSkip(M) {
 
 function buildCh1SupplyLine(group) {
     const M = ch1Mats();
-    SUPPLY.curve = new THREE.CatmullRomCurve3(CH1_RAIL.map(([x, z]) => new THREE.Vector3(x, 0, z)), false, 'centripetal', 0.4);
+    // the route: in from the far end, round the loop, back out the same line
+    const inbound = CH1_RAIL.slice().reverse();
+    const route = inbound.concat(CH1_RAIL_LOOP.slice(1), CH1_RAIL.slice(1));
+    SUPPLY.curve = new THREE.CatmullRomCurve3(route.map(([x, z]) => new THREE.Vector3(x, 0, z)), false, 'centripetal', 0.4);
     SUPPLY.len = SUPPLY.curve.getLength();
-    SUPPLY.sBay = 420;           // where the loco's nose stops at the bay
+    // where the route passes the loop's junction (twice), and where the
+    // loco's nose stops at the bay on the way out
+    const [jx, jz] = CH1_RAIL[0];
+    let sJ1 = 0, sJ2 = 0, sNose = 0, sHeap = 0, best1 = 1e9, best2 = 1e9;
+    for (let q = 0; q <= SUPPLY.len; q += 4) {
+        const p = SUPPLY.curve.getPointAt(q / SUPPLY.len);
+        const d = Math.hypot(p.x - jx, p.z - jz);
+        if (q < SUPPLY.len * 0.5) { if (d < best1) { best1 = d; sJ1 = q; } }
+        else if (d < best2) { best2 = d; sJ2 = q; }
+    }
+    for (let q = sJ2; q <= SUPPLY.len; q += 2) {
+        const p = SUPPLY.curve.getPointAt(q / SUPPLY.len);
+        if (!sHeap && p.x <= 3960) sHeap = q;
+        if (p.x <= 3800) { sNose = q; break; }
+    }
+    SUPPLY.sJ1 = sJ1; SUPPLY.sJ2 = sJ2;
+    SUPPLY.trainLen = 70 + 3 * 52 + 4 * 6;
+    SUPPLY.sBay = sNose - SUPPLY.trainLen;   // the train's rear when it stands at the bay
     SUPPLY.smoke = [];
-    // rails and sleepers along the whole line
+    // rails and sleepers: the line in, and the loop (the way out is the same rails)
     const sleeperGeo = gBox(46, 3, 7);
-    const n = Math.floor(SUPPLY.len / 20);
+    const n = Math.floor(sJ2 / 20);
     const sleepers = new THREE.InstancedMesh(sleeperGeo, M.woodDark, n);
     const d = new THREE.Object3D();
     let prev = null;
@@ -90,12 +112,16 @@ function buildCh1SupplyLine(group) {
     }
     sleepers.userData.noCast = true;
     group.add(sleepers);
-    // buffer stop at the bay end
-    const b0 = ch1RailPoint(0);
-    put(group, gBox(50, 20, 10), M.woodDark, b0.x, b0.y + 12, b0.z, Math.atan2(b0.tx, b0.tz));
-    put(group, gBox(40, 8, 6), M.paintRed, b0.x - b0.tx * 6, b0.y + 18, b0.z - b0.tz * 6, Math.atan2(b0.tx, b0.tz));
+    // a switch lever at the loop's junction
+    const jp = ch1RailPoint(sJ1);
+    const lever = new THREE.Group();
+    lever.position.set(jp.x - jp.tz * 34, jp.y, jp.z + jp.tx * 34);
+    put(lever, gBox(14, 8, 10), M.metalDark, 0, 4, 0);
+    put(lever, gCyl(1, 1, 26, 5), M.metalDark, 0, 16, 0, 0, 0.4);
+    put(lever, new THREE.SphereGeometry(3, 8, 6), M.paintRed, -5, 28, 0);
+    group.add(lever);
     // the cutting where the line leaves: a warning sign by the rails
-    const ex = ch1RailPoint(SUPPLY.len * 0.36);
+    const ex = ch1RailPoint(sJ1 * 0.64);
     const sg = new THREE.Group();
     sg.position.set(ex.x - ex.tz * 60, ex.y, ex.z + ex.tx * 60);
     put(sg, gBox(4, 60, 4), M.woodDark, 0, 30, 0);
@@ -122,9 +148,9 @@ function buildCh1SupplyLine(group) {
         SUPPLY.worker = w;
         SUPPLY.shovel = shovel;
     }
-    // the spoil heap he's working from
-    const hp = ch1RailPoint(SUPPLY.sBay + 60);
-    SUPPLY.heapPos = new THREE.Vector3(hp.x + hp.tz * 70, hp.y, hp.z - hp.tx * 70);
+    // the spoil heap he's working from, beside the middle skip at the bay
+    const hp = ch1RailPoint(sHeap);
+    SUPPLY.heapPos = new THREE.Vector3(hp.x + hp.tz * 80, hp.y, hp.z - hp.tx * 80);
     const heap = put(group, new THREE.ConeGeometry(46, 40, 12, 2), M.sand, SUPPLY.heapPos.x, SUPPLY.heapPos.y + 14, SUPPLY.heapPos.z);
     heap.scale.set(1.3, 1, 1);
     SUPPLY.placeCars();
@@ -141,7 +167,7 @@ SUPPLY.placeCars = function () {
         c.position.set(p.x, p.y + 1, p.z);
         c.rotation.set(Math.atan2(b.y - a.y, len) * 0.9, Math.atan2(-p.tx, -p.tz), 0);
         c.rotation.order = 'YXZ';
-        c.visible = mid < SUPPLY.len - 40;
+        c.visible = mid > 40 && mid < SUPPLY.len - 40;
         c.userData.s = mid;
         s += len + 6;
     }
@@ -187,14 +213,18 @@ function updateCh1SupplyLine(dt, t) {
         if (S.s > S.len) { S.state = 'away'; S.timer = 0; }
     } else if (S.state === 'away') {
         if (S.timer > 18) {
-            S.state = 'returning'; S.timer = 0; S.v = 60;
+            // (turned round out in the desert, out of sight) — back in, loco first
+            S.state = 'returning'; S.timer = 0; S.v = 70; S.s = -S.trainLen;
             for (const c of S.cars.slice(1)) c.userData.load.scale.y = 0.01;
         }
     } else if (S.state === 'returning') {
-        const remain = S.s - S.sBay;
-        S.v = Math.max(12, Math.min(90, remain * 0.35));
-        S.s -= S.v * dt;
-        if (S.s <= S.sBay) { S.s = S.sBay; S.state = 'loading'; S.carIdx = 1; S.load = 0; S.timer = 0; }
+        const remain = S.sBay - S.s;
+        let v = Math.max(12, Math.min(90, remain * 0.35));
+        // take the loop's tight curve slowly
+        if (S.s + S.trainLen > S.sJ1 - 60 && S.s < S.sJ2) v = Math.min(v, 45);
+        S.v += (v - S.v) * Math.min(1, dt * 2);
+        S.s += S.v * dt;
+        if (S.s >= S.sBay) { S.s = S.sBay; S.state = 'loading'; S.carIdx = 1; S.load = 0; S.timer = 0; }
     }
     // tip the skips a touch as they roll; diesel smoke while moving
     const moving = S.state === 'departing' || S.state === 'returning';

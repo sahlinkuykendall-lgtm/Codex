@@ -321,17 +321,197 @@ Object.assign(CH1_BUILDERS, {
         return g;
     },
     ow_shelter(o, M, rng) {
+        // a Bedouin goat-hair tent (bayt al-sha'r): long and low, the woven
+        // strips sagging between the poles, a back wall, guy ropes staked
+        // out in the sand; kilims and cushions inside behind a patterned
+        // partition; a hearth with brass coffee pots out front, water
+        // skins on the poles, a saddle, and the camel couched beside it
         const g = new THREE.Group();
-        const goat = new THREE.MeshStandardMaterial({ color: 0x2a221c, roughness: 1, side: THREE.DoubleSide });
-        for (const x of [-o.w * 0.4, 0, o.w * 0.4]) for (const z of [-o.h * 0.35, o.h * 0.35]) put(g, gCyl(2, 2.4, 56 + (z < 0 ? 10 : 0), 6), M.woodPale, x, 30, z);
-        const roof = put(g, sagPlane(o.w * 0.95, o.h * 0.85, 8, 12, 6), goat, 0, 60, 0);
-        roof.rotation.x = -Math.PI / 2 + 0.12;
-        const back = put(g, sagPlane(o.w * 0.95, 56, 3, 12, 3), goat, 0, 32, -o.h * 0.36);
-        // hearth ring, rugs, water skin, dates
-        for (let i = 0; i < 9; i++) { const a = i / 9 * Math.PI * 2; ch1AddRock(g, Math.cos(a) * 18 + 30, 0, Math.sin(a) * 18 + 50, 5, rng, M.rockDark); }
-        put(g, gBox(80, 1.4, 60), M.rug, -30, 0.8, 0, 0.1).userData.noCast = true;
-        put(g, new THREE.SphereGeometry(8, 8, 6), new THREE.MeshStandardMaterial({ color: 0x5a3a20 }), o.w * 0.4 - 6, 36, o.h * 0.33).scale.set(1, 1.4, 0.8);
-        put(g, gCyl(10, 8, 5, 12), M.terracotta, -60, 4, 20);
+        const L = o.w * 1.35, D = o.h * 0.95;
+        const hair = makeTex('c1goathair', 256, 256, 1, 1, (cc, w, h) => {
+            cc.fillStyle = '#231b15'; cc.fillRect(0, 0, w, h);
+            // the tent is sewn from long woven strips: faint seams and a pale stripe or two
+            for (let x = 0; x < w; x += 32) {
+                cc.fillStyle = 'rgba(0,0,0,0.35)'; cc.fillRect(x, 0, 2, h);
+                if ((x / 32) % 3 === 1) { cc.fillStyle = 'rgba(190,170,140,0.28)'; cc.fillRect(x + 12, 0, 5, h); }
+            }
+            speckle(cc, w, h, null, ['#3a2e24', '#120d0a', '#4a3c30', '#6a5a48'], 2600, 0.6, 1.8, 0.2, 0.6);
+        });
+        hair.repeat.set(4, 2);
+        const cloth = new THREE.MeshStandardMaterial({ map: hair, roughness: 1, side: THREE.DoubleSide });
+        const sahah = makeTex('c1sahah', 256, 128, 1, 1, (cc, w, h) => {
+            // the partition curtain: bands of red, black, white and ochre with little lozenges
+            const bands = ['#8a1f1a', '#1a1410', '#e8dcc0', '#b8862a', '#8a1f1a', '#2a4a3a', '#e8dcc0', '#1a1410'];
+            const bh = h / bands.length;
+            bands.forEach((c, i) => { cc.fillStyle = c; cc.fillRect(0, i * bh, w, bh); });
+            for (let i = 0; i < bands.length; i += 2) for (let x = 6; x < w; x += 18) {
+                cc.fillStyle = i % 4 ? '#e8dcc0' : '#b8862a';
+                cc.beginPath(); cc.moveTo(x, i * bh + bh * 0.2); cc.lineTo(x + 5, i * bh + bh / 2); cc.lineTo(x, i * bh + bh * 0.8); cc.lineTo(x - 5, i * bh + bh / 2); cc.fill();
+            }
+        });
+        const sahahMat = new THREE.MeshStandardMaterial({ map: sahah, roughness: 1, side: THREE.DoubleSide });
+        const pole = M.woodPale;
+
+        // roof: height from the poles — a ridge of centre poles, lower at front and back,
+        // the cloth sagging between each pole along the length
+        const nPoles = 4, ridgeH = 64, frontH = 50, backH = 34;
+        const roofY = (x, z) => {
+            const u = (z + D / 2) / D;                                   // 0 back … 1 front
+            const across = u < 0.5 ? backH + (ridgeH - backH) * (u / 0.5) : ridgeH + (frontH - ridgeH) * ((u - 0.5) / 0.5);
+            const along = (x + L / 2) / L * (nPoles - 1);
+            const sag = Math.sin(Math.PI * (along - Math.floor(along))) * 7;
+            return across - sag;
+        };
+        const roof = new THREE.PlaneGeometry(L, D, 30, 12);
+        roof.rotateX(-Math.PI / 2);
+        const rp = roof.attributes.position;
+        for (let i = 0; i < rp.count; i++) {
+            const x = rp.getX(i), z = rp.getZ(i);
+            rp.setY(i, roofY(x, z) + (fbm3(x * 0.03, 1, z * 0.03, 2) - 0.5) * 3);
+        }
+        roof.computeVertexNormals();
+        const roofMesh = new THREE.Mesh(roof, cloth);
+        roofMesh.castShadow = true;
+        g.add(roofMesh);
+        // poles: centre ridge, front and back rows
+        for (let i = 0; i < nPoles; i++) {
+            const x = -L / 2 + (i / (nPoles - 1)) * L;
+            put(g, gCyl(1.6, 2, ridgeH, 6), pole, x * 0.96, ridgeH / 2, 0);
+            put(g, gCyl(1.4, 1.8, frontH, 6), pole, x * 0.96, frontH / 2, D / 2);
+            put(g, gCyl(1.4, 1.8, backH, 6), pole, x * 0.96, backH / 2, -D / 2);
+        }
+        // the back wall (ruffa), hanging from the back edge; half walls at the ends
+        const back = sagPlane(L, backH, 3, 16, 3);
+        const bw = put(g, back, cloth, 0, backH / 2, -D / 2);
+        bw.material = cloth;
+        for (const s of [-1, 1]) {
+            const side = put(g, new THREE.PlaneGeometry(D * 0.55, 40), cloth, s * L / 2, 20, -D * 0.22, Math.PI / 2);
+            side.material = cloth;
+        }
+        // guy ropes to stakes in the sand, front and back
+        for (let i = 0; i < nPoles; i++) {
+            const x = (-L / 2 + (i / (nPoles - 1)) * L) * 0.96;
+            for (const [zEdge, hEdge, out] of [[D / 2, frontH, 1], [-D / 2, backH, -1]]) {
+                const stake = new THREE.Vector3(x + (rng() - 0.5) * 10, 0, zEdge + out * (46 + rng() * 14));
+                subBeam(g, M.rope, new THREE.Vector3(x, hEdge, zEdge), stake, 0.35, 4);
+                put(g, gCyl(0.9, 1.2, 8, 5), pole, stake.x, 3, stake.z);
+            }
+        }
+        // the partition curtain, a third of the way along
+        const cur = put(g, new THREE.PlaneGeometry(D * 0.92, 44), sahahMat, -L / 6, 22, 0, Math.PI / 2);
+        cur.material = sahahMat;
+        // floor: kilims, cushions along the back, a camel saddle and a chest
+        const r1 = put(g, new THREE.PlaneGeometry(L * 0.55, D * 0.7), M.rug, L * 0.18, 0.8, 0);
+        r1.rotation.x = -Math.PI / 2; r1.userData.noCast = true;
+        const r2 = put(g, new THREE.PlaneGeometry(L * 0.28, D * 0.6), M.rug, -L * 0.36, 0.9, -4);
+        r2.rotation.set(-Math.PI / 2, 0, 0.08); r2.userData.noCast = true;
+        const cushionCols = [0x8a1f1a, 0x2a4a6a, 0xb8862a, 0x6a2a4a, 0x2a5a3a];
+        for (let i = 0; i < 6; i++) {
+            const c = put(g, new THREE.CapsuleGeometry(5, 16, 4, 8), new THREE.MeshStandardMaterial({ color: cushionCols[i % 5], roughness: 0.95 }), -L * 0.08 + i * 20, 5, -D / 2 + 12, 0, 0, Math.PI / 2);
+            c.scale.set(1, 1, 0.8);
+        }
+        // camel saddle (shadad): two wooden forks on a pad
+        const sad = new THREE.Group();
+        put(sad, gBox(26, 6, 18), new THREE.MeshStandardMaterial({ color: 0x6a2a1a, roughness: 1 }), 0, 3, 0);
+        for (const s of [-1, 1]) { const f = put(sad, new THREE.TorusGeometry(8, 1.2, 5, 10, Math.PI), M.woodDark, s * 9, 6, 0, Math.PI / 2); }
+        sad.position.set(L * 0.36, 0, -D * 0.18); sad.rotation.y = 0.6;
+        g.add(sad);
+        subCrate(g, M, L * 0.44, 0, D * 0.05, 18, 0.2);
+        // water skins (girba) hanging from the front poles
+        const skin = new THREE.MeshStandardMaterial({ color: 0x4a3020, roughness: 0.7 });
+        for (const i of [1, 2]) {
+            const x = (-L / 2 + (i / (nPoles - 1)) * L) * 0.96;
+            const w = put(g, new THREE.SphereGeometry(6, 10, 8), skin, x + 5, frontH - 16, D / 2 + 3);
+            w.scale.set(0.8, 1.3, 0.7);
+            subBeam(g, M.rope, new THREE.Vector3(x, frontH - 4, D / 2), new THREE.Vector3(x + 5, frontH - 9, D / 2 + 3), 0.3, 4);
+        }
+        // the hearth out front: a ring of stones, embers, brass coffee pots (dallah) and cups
+        const hx = L * 0.1, hz = D / 2 + 42;
+        for (let i = 0; i < 10; i++) { const a = i / 10 * Math.PI * 2; ch1AddRock(g, hx + Math.cos(a) * 16, 0, hz + Math.sin(a) * 16, 4.5, rng, M.rockDark); }
+        const coals = put(g, new THREE.SphereGeometry(10, 10, 5, 0, Math.PI * 2, 0, Math.PI / 2), M.ember, hx, -1, hz);
+        coals.scale.y = 0.35; coals.userData.noShadow = true;
+        g.add(ch1GlowSprite(hx, 6, hz, 60, 0xff8a3a, 0.45));
+        ch1FX.lamps.push({ anchor: (() => { const a = new THREE.Object3D(); a.position.set(hx, 16, hz); g.add(a); return a; })(), color: 0xff7a30, intensity: 1.0, dist: 320, steady: false, phase: rng() * 10, wp: null });
+        const brass = new THREE.MeshStandardMaterial({ color: 0xb8903a, roughness: 0.35, metalness: 0.85 });
+        const dallah = (x, z, s) => {
+            const d = new THREE.Group();
+            put(d, gCyl(4.2, 5.4, 7, 12), brass, 0, 3.5, 0);                 // belly
+            put(d, gCyl(2.2, 4.2, 5, 12), brass, 0, 9.5, 0);                 // waist
+            put(d, new THREE.ConeGeometry(3, 6, 12), brass, 0, 15, 0);       // lid, pointed
+            put(d, new THREE.SphereGeometry(0.9, 6, 5), brass, 0, 18.4, 0);
+            const beak = put(d, gCyl(0.6, 1.6, 9, 6), brass, 5.2, 10, 0);   // the long beak spout
+            beak.rotation.z = -1.05;
+            put(d, new THREE.TorusGeometry(3.4, 0.6, 5, 10, Math.PI), brass, -4.4, 8, 0, 0, Math.PI / 2);
+            d.position.set(x, 0, z); d.scale.setScalar(s); d.rotation.y = rng() * 6;
+            g.add(d);
+        };
+        dallah(hx + 20, hz - 4, 1); dallah(hx + 26, hz + 9, 0.8); dallah(hx - 3, hz + 3, 0.9);   // one on the coals
+        put(g, gCyl(9, 9, 1.2, 14), brass, hx + 38, 0.6, hz - 14);           // tray
+        for (let i = 0; i < 4; i++) put(g, gCyl(1.4, 1, 2.6, 8), new THREE.MeshStandardMaterial({ color: 0xe8e0d0, roughness: 0.3 }), hx + 34 + (i % 2) * 6, 2.4, hz - 17 + (i >> 1) * 6); // finjan cups
+        // dates, covered, on a flat stone (the text mentions them)
+        put(g, gBox(20, 5, 16), M.rockDark, -L * 0.1, 2.5, D / 2 + 26, 0.3);
+        const dish = put(g, gCyl(8, 5, 4, 12), M.terracotta, -L * 0.1, 7, D / 2 + 26);
+        put(g, new THREE.SphereGeometry(8.4, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0xc8b89a, roughness: 1 }), -L * 0.1, 8.5, D / 2 + 26).scale.y = 0.4;
+        // a stack of acacia firewood
+        for (let i = 0; i < 7; i++) put(g, gCyl(1.4, 1.8, 30 + rng() * 14, 5), M.woodDark, L * 0.5 + 16 + (i % 3) * 3, 2 + (i >> 1) * 2.6, D * 0.3 + (rng() - 0.5) * 6, rng() * 0.3, 0, Math.PI / 2);
+
+        // the camel, couched beside the tent, chewing
+        const camel = new THREE.Group();
+        const hide = new THREE.MeshStandardMaterial({ color: 0x9a6a3c, roughness: 1 });
+        const hideDark = new THREE.MeshStandardMaterial({ color: 0x5e4228, roughness: 1 });
+        // body: long and low, belly on the sand; one hump, set a little back
+        const body = put(camel, new THREE.SphereGeometry(18, 18, 12), hide, 0, 17, 0);
+        body.scale.set(0.74, 0.74, 1.42);
+        put(camel, new THREE.SphereGeometry(12, 14, 10), hide, 0, 24, -3).scale.set(0.72, 0.9, 1.05);
+        put(camel, new THREE.SphereGeometry(7, 10, 8), hideDark, 0, 32, -3).scale.set(0.8, 0.55, 1.2);   // shaggy crown of the hump
+        // chest pad, and the folded legs: knees out in front, hind legs as haunches
+        put(camel, new THREE.SphereGeometry(8, 10, 8), hideDark, 0, 5, 20).scale.set(1.1, 0.6, 1);
+        for (const s of [-1, 1]) {
+            put(camel, new THREE.SphereGeometry(4.2, 8, 6), hideDark, s * 8, 4, 25);                     // callused knee, folded under the chest
+            put(camel, new THREE.SphereGeometry(3.4, 8, 6), hideDark, s * 12, 2.5, 17);                  // hoof tucked back
+            const haunch = put(camel, new THREE.SphereGeometry(9, 10, 8), hide, s * 11, 9, -20);
+            haunch.scale.set(0.55, 0.8, 1.25);
+            put(camel, new THREE.SphereGeometry(3.6, 8, 6), hideDark, s * 12, 3, -8);                   // hind knee
+        }
+        // the neck: forward and low from the chest, then up — a camel's U
+        const neck = new THREE.Group();
+        neck.position.set(0, 16, 22);
+        camel.add(neck);
+        const pts = [[0, 0, 0], [0, -1, 10], [0, 3, 19], [0, 13, 25], [0, 25, 27]];
+        const rads = [6.4, 5.4, 4.6, 4, 3.6];
+        for (let i = 0; i < pts.length - 1; i++) subBeam(neck, hide, new THREE.Vector3(...pts[i]), new THREE.Vector3(...pts[i + 1]), rads[i], 9);
+        for (const p of pts.slice(1)) put(neck, new THREE.SphereGeometry(rads[pts.indexOf(p)], 9, 7), hide, ...p);   // smooth joints
+        const head = new THREE.Group();
+        head.position.set(0, 25, 27);
+        neck.add(head);
+        put(head, new THREE.SphereGeometry(5, 10, 8), hide, 0, 1, 1).scale.set(0.85, 0.85, 1.1);
+        const muzzle = put(head, new THREE.CapsuleGeometry(3.2, 9, 4, 8), hide, 0, -0.5, 9);
+        muzzle.rotation.x = Math.PI / 2 - 0.12;
+        const jaw = put(head, gBox(4, 1.8, 9), hideDark, 0, -3.6, 9.5);
+        put(head, new THREE.SphereGeometry(1.2, 6, 5), hideDark, 0, 0.6, 14.4).scale.set(1.6, 0.8, 0.6);  // split lip
+        for (const s of [-1, 1]) {
+            put(head, new THREE.ConeGeometry(1.3, 3.6, 6), hideDark, s * 3.2, 5.2, -0.5, 0, s * 0.6, 0);
+            put(head, new THREE.SphereGeometry(0.85, 6, 5), M.black, s * 3.5, 2.6, 4.2);                // heavy-lidded eyes
+        }
+        // tail
+        const tail = new THREE.Group(); tail.position.set(0, 18, -28); camel.add(tail);
+        put(tail, gCyl(1.1, 0.6, 16, 5), hideDark, 0, -7, -3).rotation.x = -0.35;
+        put(tail, new THREE.SphereGeometry(1.6, 6, 5), hideDark, 0, -14, -5.5).scale.set(1, 2, 1);
+        // a hobble rope on the forelegs, and a lead rope to a stake
+        put(camel, new THREE.TorusGeometry(3.8, 0.5, 4, 10), M.rope, 0, 4, 26, Math.PI / 2);
+        subBeam(camel, M.rope, new THREE.Vector3(0, 40, 30), new THREE.Vector3(-18, 0, 58), 0.35, 4);
+        put(camel, gCyl(0.9, 1.2, 9, 5), M.woodPale, -18, 3, 58);
+        camel.position.set(L / 2 + 70, 0, D * 0.75);
+        camel.rotation.y = -0.5;
+        camel.scale.setScalar(1.0);
+        g.add(camel);
+        // chewing cud (side to side), looking about, the tail flick, breathing
+        ch1FX.sway.push({ obj: jaw, axis: 'y', base: 0, amp: 0.22, speed: 4.2, phase: 0 });
+        ch1FX.sway.push({ obj: head, axis: 'y', base: 0, amp: 0.3, speed: 0.3, phase: 1 });
+        ch1FX.sway.push({ obj: neck, axis: 'y', base: 0, amp: 0.12, speed: 0.22, phase: 2 });
+        ch1FX.sway.push({ obj: tail, axis: 'z', base: 0, amp: 0.35, speed: 1.3, phase: 2 });
+        ch1FX.sway.push({ obj: body, scale: true, axis: 'y', base: 0.74, amp: 0.015, speed: 1.1, phase: 0 });
+        window.ch1Camel = { jaw, head };
         g.userData.h = 76;
         return g;
     },

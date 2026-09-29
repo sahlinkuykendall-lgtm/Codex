@@ -54,8 +54,9 @@ function subDrum(g, mat, M, x, z, r, tipped) {
 
 function subDrums(g, M, mat, w, d, rng, count) {
     const n = count || 3;
-    const r = Math.min(w, d) * 0.22;
-    const spots = [[-0.45, -0.3], [0.45, -0.25], [0, 0.4], [-0.5, 0.45]];
+    const r = Math.min(w, d) * 0.21;
+    // spread so neighbours never overlap (they stood inside each other)
+    const spots = [[-1, -0.7], [1, -0.6], [0.05, 0.85], [-0.9, 0.95]];
     for (let i = 0; i < n; i++) {
         const [sx, sz] = n === 1 ? [0, 0] : spots[i % spots.length];
         subDrum(g, mat, M, sx * (w / 2 - r), sz * (d / 2 - r), r, (n > 2 && i === n - 1 && rng() < 0.5) ? rng() * 3 : 0);
@@ -337,17 +338,20 @@ const CH1_BUILDERS = {
         // windows with shutters; the one by the desk burning late
         const win = (x, lit) => {
             put(g, gBox(34, 30, 2), lit ? M.window : M.windowDim, x, 54, d / 2 + 1).userData.noCast = true;
-            for (const s of [-1, 1]) put(g, gBox(17, 32, 2), M.paintBlue, x + s * 27, 54, d / 2 + 4, s * 0.35);
+            for (const s of [-1, 1]) {   // shutters hinged at the window edge, swung open
+                const A = 0.7;
+                put(g, gBox(17, 32, 2), M.paintBlue, x + s * (18 + Math.cos(A) * 8.5), 54, d / 2 + 2.5 + Math.sin(A) * 8.5, -s * A);
+            }
             put(g, gBox(40, 4, 6), M.limestone, x, 37, d / 2 + 3);
             for (let k = -1; k <= 1; k++) put(g, gCyl(0.6, 0.6, 30, 4), M.metalDark, x + k * 9, 54, d / 2 + 2.5);
             if (lit) g.add(ch1GlowSprite(x, 54, d / 2 + 12, 80, 0xffa84a, 0.4));
         };
         win(-w / 4 - 10, true);
-        win(w / 2 - 40, false);
+        win(w / 2 - 72, false);
         // site board over the door
-        put(g, gBox(120, 22, 3), signMat('office', [['SITE OFFICE  ·  مكتب الموقع', 30]], '#e8dcc0', '#3a2a1a', 512, 96), doorX - 70, wallH - 16, d / 2 + 2);
+        put(g, gBox(120, 22, 3), signMat('office', [['SITE OFFICE  ·  مكتب الموقع', 30]], '#e8dcc0', '#3a2a1a', 512, 96), -w / 4 - 10, wallH - 14, d / 2 + 2);
         // AC unit, satellite dish, a bench by the wall
-        put(g, gBox(34, 22, 18), M.paintWhite, w / 2 - 30, wallH - 26, d / 2 + 9);
+        put(g, gBox(34, 22, 18), M.paintWhite, w / 4, wallH - 30, -d / 2 - 9);   // AC on the back wall, out of the way
         const dish = put(g, new THREE.SphereGeometry(14, 12, 6, 0, Math.PI * 2, 0, 0.9), M.paintWhite, w / 2 - 40, wallH + 34, -d / 2 + 30, 0, 0, 0);
         dish.rotation.set(-1.0, 0.4, 0);
         put(g, gCyl(1.4, 1.4, 22, 5), M.metalDark, w / 2 - 40, wallH + 20, -d / 2 + 30);
@@ -916,9 +920,15 @@ const CH1_LABEL_BUILDERS = {
     },
     'water barrels': (o, M, rng) => {
         const g = new THREE.Group();
-        subDrums(g, M, M.paintBlue, o.w, o.h, rng, 3);
-        put(g, gCyl(3, 3, 8, 8), M.steel, o.w * 0.2, 6, o.h * 0.42, 0, 0, Math.PI / 2); // tap
-        put(g, gCyl(9, 7, 9, 12), M.metal, o.w * 0.2, 4.5, o.h * 0.55);                 // tin cup
+        // three drums standing in a row against the wall, and one lying on a
+        // wooden cradle in front with a tap, a tin cup on a string below it
+        const r = 13;
+        for (const x of [-30, 0, 30]) subDrum(g, M.paintBlue, M, x, -o.h * 0.22, r);
+        for (const s of [-1, 1]) put(g, gBox(6, 10, 30), M.woodDark, s * 16, 5, o.h * 0.2);   // cradle
+        const lying = subDrum(g, M.paintBlue, M, 0, o.h * 0.2, r, 0.001);   // on its side, along the wall
+        lying.position.y = r + 8;
+        put(g, gCyl(2, 2, 8, 8), M.steel, r * 1.35 + 3, r + 4, o.h * 0.2, 0, 0, Math.PI / 2);   // tap
+        put(g, gCyl(4.5, 3.5, 5, 12), M.metal, r * 1.35 + 7, 2.5, o.h * 0.2 + 4);            // tin cup
         g.userData.h = 60;
         return g;
     },

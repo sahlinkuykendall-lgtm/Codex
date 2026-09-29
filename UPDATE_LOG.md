@@ -12,6 +12,43 @@ Other docs:
 
 ---
 
+## V4.0.4 — 2026-09-29 — Bosta the camp dog, the turning loop, the Bedouin camp, office fixes
+- **Bosta, the camp dog.** She's a sandy baladi dog: one ear up, one flopped, a curled
+  tail. She arrived in the back of the post van, hence the name, and she's now fully
+  rigged and alive.
+  - **Her own routine:** she sleeps by the fire (paws paddling in dreams), wakes, and
+    wanders the camp. She begs at the cooking table, lies at the Rais's feet, sniffs
+    about, and goes home to sleep again.
+  - **Around you:** she watches you as you pass. Her tail wags more the more she likes
+    you, and once she likes you she comes over to say hello.
+  - **Talk to her:**
+    - Scratch her ears and she flops over for a belly rub.
+    - Give her dates. Win her over and she **follows you**: she trots along your trail,
+      sits when you stop, and lies down if you wait.
+    - "Stay" sends her home.
+    - Ask her to sit three times and she learns to give a paw.
+  - **At midnight** she barks at the black car and growls at the woman in black. Lena
+    notices her if she's with you.
+  - **Sounds:** synthesized barks, growl and whimper. She also appears in the J notes.
+- **The supply train turns round properly.** A balloon (turning) loop has been added at
+  the camp end. The train comes in loco-first, runs round the loop past a switch lever,
+  and stops at the bay already facing out. It loads, then leaves loco-first. It no longer
+  reverses back in. Uncle Hamid has moved beside the bay.
+- **The Bedouin camp:** a real goat-hair tent (*bayt al-sha'r*). The woven strips sag
+  between the poles, with a back wall, guy ropes and stakes, a patterned partition
+  curtain, kilims and a row of cushions, and a camel saddle. Out front, water skins
+  hang on the poles, and the hearth has glowing coals, three brass *dallah* coffee pots
+  and cups. The dates are covered on a stone. There's firewood, and a camel couched
+  beside the tent, hobbled, chewing its cud side to side and flicking its tail.
+- **Site office front fixed:**
+  - The sign now sits over the lit window (it used to butt into the door lintel).
+  - The second window moved in from the corner.
+  - The shutters hinge open from the window edge (they used to poke into the wall).
+  - The air-conditioning unit moved to the back wall (it hung over a window).
+- **Water barrels fixed:** three drums stand in a row, with a tap drum lying on a wooden
+  cradle and a tin cup below. The shared drum helper spaced drums closer than their own
+  width, so the fuel drums were overlapping too. That's fixed everywhere.
+
 ## V4.0.3 — 2026-09-29 — A proper fire at the workers' brazier
 - **The flames live now.** Eighteen flame tongues, in three hand-shaped variants, are born
   at the coals, lick upward, narrow and redden, and die. That replaces five sprites that

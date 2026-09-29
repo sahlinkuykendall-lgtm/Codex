@@ -72,7 +72,7 @@ window.CH1_CAR_LABEL = 'Black Land Cruiser';
     person('c1a_hana', 'Hana', 'c1a_hana', 5860, 5070);
     person('c1a_farouk', 'Uncle Farouk', 'c1a_farouk', 9150, 5345);
     person('c1a_saber', 'Saber', 'c1a_saber', 1930, 4925);
-    person('c1a_hamid', 'Uncle Hamid', 'c1a_hamid', 4400, 7080);
+    person('c1a_hamid', 'Uncle Hamid', 'c1a_hamid', 3780, 7335);
     // place names for the new story
     const names = { hub: "THE DIRECTOR'S CAMP", ministry: 'THE OLD MINISTRY POST', trench: 'TRENCH A', wreck: 'THE 1926 TRUCK', dig: 'THE DIG ZONE' };
     for (const pl of OW.places) if (names[pl.id]) pl.name = names[pl.id];
