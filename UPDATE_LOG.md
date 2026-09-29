@@ -13,6 +13,13 @@ Other docs:
 
 ---
 
+## V3.8.2 — 2026-09-29 — Rougher chalk formations
+- The White Desert chalk is now weathered rock instead of smooth. A ridged "crag" noise
+  breaks up the silhouettes, and wind-eaten pockets gouge into the sides. Fine chips
+  roughen the surface and the wind-cut ledges are deeper and sharper. The stone is
+  flat-shaded, so every facet catches the light. Shapes (mushroom and whaleback) and
+  collision are unchanged.
+
 ## V3.8.1 — 2026-09-29 — Chalk formations reshaped
 - The White Desert rock formations looked like dark "post and slab" blocks. They're now
   smooth, wind-sculpted chalk: bright pale stone with faint wind-cut banding, pits

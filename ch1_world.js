@@ -1901,16 +1901,24 @@ function ch1ChalkMat() {
         for (let i = 0; i < 90; i++) { cc.fillStyle = `rgba(120,110,96,${0.2 + Math.random() * 0.4})`; cc.beginPath(); cc.arc(Math.random() * w, Math.random() * h, 0.8 + Math.random() * 2, 0, 7); cc.fill(); }
         for (let i = 0; i < 8; i++) { cc.fillStyle = 'rgba(60,54,48,0.7)'; cc.beginPath(); cc.ellipse(Math.random() * w, Math.random() * h, 2 + Math.random() * 3, 1.5 + Math.random() * 2, 0, 0, 7); cc.fill(); }
     });
-    return new THREE.MeshStandardMaterial({ map: tex, color: 0xfaf6ee, roughness: 0.92, emissive: 0x0e0d0a, emissiveIntensity: 1 });
+    return new THREE.MeshStandardMaterial({ map: tex, color: 0xf2ede2, roughness: 1, flatShading: true, emissive: 0x0c0b09, emissiveIntensity: 1 });
 }
 
 // displace a sphere by a shaping function (position-based, so seams hold)
 function ch1ShapedSphere(seed, shape) {
-    const geo = new THREE.SphereGeometry(1, 36, 26);
+    const geo = new THREE.SphereGeometry(1, 30, 22);
     const p = geo.attributes.position, v = new THREE.Vector3();
     for (let i = 0; i < p.count; i++) {
         v.set(p.getX(i), p.getY(i), p.getZ(i));
-        shape(v, fbm3(v.x * 1.6 + seed, v.y * 1.6, v.z * 1.6 - seed, 3) - 0.5, vnoise3(v.x * 5 + seed, v.y * 5, v.z * 5));
+        const ox = v.x, oy = v.y, oz = v.z;
+        shape(v, fbm3(ox * 1.6 + seed, oy * 1.6, oz * 1.6 - seed, 3) - 0.5, vnoise3(ox * 5 + seed, oy * 5, oz * 5));
+        // crags: sharp ridged noise, and pockets the wind has eaten out
+        const crag = 1 - Math.abs(fbm3(ox * 4.2 - seed, oy * 4.2, oz * 4.2 + seed, 3) * 2 - 1);
+        const pocket = Math.max(0, vnoise3(ox * 3 + seed * 2, oy * 3.5, oz * 3) - 0.62) * 2.2;
+        const chip = vnoise3(ox * 11 - seed, oy * 11, oz * 11 + seed) - 0.5;
+        const k = 1 + (crag - 0.5) * 0.5 - pocket * 0.55 + chip * 0.12;
+        v.x *= k; v.z *= k;
+        v.y += (crag - 0.5) * 7 + chip * 4;
         p.setXYZ(i, v.x, v.y, v.z);
     }
     geo.computeVertexNormals();
@@ -1925,8 +1933,8 @@ function ch1ChalkMushroom(r, h, seed) {
         if (u < 0.35) rad = 1 - u * 0.9;                           // flared foot
         else if (u < 0.62) rad = 0.62 - Math.sin((u - 0.35) / 0.27 * Math.PI) * 0.22; // pinched neck
         else rad = 0.95 + Math.sin((u - 0.62) / 0.38 * Math.PI) * 0.45;              // overhanging cap
-        rad *= 1 + n * 0.5 + (fine - 0.5) * 0.1;
-        const bands = 1 + Math.sin(u * 40 + n * 6) * 0.025;        // wind-cut ledges
+        rad *= 1 + n * 0.75 + (fine - 0.5) * 0.18;
+        const bands = 1 + Math.max(-0.4, Math.sin(u * 34 + n * 9)) * 0.06; // wind-cut ledges
         v.x *= r * rad * bands;
         v.z *= r * rad * bands * (0.85 + n * 0.2);
         v.y = Math.max(0, u) * h + n * h * 0.06;
@@ -1940,7 +1948,7 @@ function ch1ChalkWhaleback(r, h, len, seed) {
         const along = (v.z + 1) / 2;                               // 0 nose … 1 tail
         const taper = along < 0.25 ? 0.75 + along : 1 - Math.pow((along - 0.25) / 0.75, 1.6) * 0.8;
         const bands = 1 + Math.sin(v.y * 22 + n * 5) * 0.03;
-        v.x *= r * taper * (1 + n * 0.3) * bands;
+        v.x *= r * taper * (1 + n * 0.55) * bands;
         v.z *= len;
         v.y = Math.max(-0.05, v.y) * h * taper * (1 + n * 0.25) + (fine - 0.5) * 2;
     });
