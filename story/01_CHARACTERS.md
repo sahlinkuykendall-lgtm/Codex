@@ -175,11 +175,16 @@ off is a side-quest chain (§ `regions/ch01_opening_fixer.md`).
 - **Agenda:** he's paying off his son **Omar's** gambling debts, which Vasse bought.
   He hates himself for it.
 - **Arc:** the player decides him. His flag `radwan_path` is `corrupt` or `honest`, and it
-  locks at Ch10. Radwan turns **honest** if two of these three are done:
-  1. SQ-02-09: Omar's debt resolved.
-  2. The player shows him proof of Vasse's crimes (Journalist photos, Ch4 Tanis
-     evidence, or Ch8 the medical file).
-  3. The player spares him in the Ch4 standoff.
+  locks at Ch10. Radwan turns **honest** with **two or more conscience points**. Each of
+  these is worth one:
+  1. SQ-02-09: Omar's debt paid, or exposed to his father.
+  2. Telling him the truth in the Ch2 interview (`ch2_radwan_truth`).
+  3. Showing him proof of Vasse's crimes before Ch10. The proof can be Lindqvist's papers
+     (SQ-01A-03), Magdy's photos (`ch1d_magdy_paid`), the Theodora records (SQ-03-04), or
+     the medical file (`ch8_medical_file`).
+  4. Sparing him in the Ch4 standoff.
+
+  Exposing him on camera in Ch4 locks him `corrupt` immediately, whatever his points.
 
   **Honest Radwan** clears your record, gives police backup in Ch14, and arrests Vasse in
   *The Discovery*. **Corrupt Radwan** hunts you, raids your home base in Ch10, and escorts
@@ -288,7 +293,7 @@ off is a side-quest chain (§ `regions/ch01_opening_fixer.md`).
 - **Sabri:** a fish-market fence.
 
 ### Ch4 — The Delta
-- **Abu Ali:** a Lake Burullus fisherman. Teaches fishing and hides you in the reeds.
+- **Abu Ali:** a Lake Manzala fisherman. Teaches fishing and hides you in the reeds.
 - **Site guard Mahrous:** the Tanis guard. Bribable, or loyal to Amira.
 
 ### Ch5 — The Faiyum

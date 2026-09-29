@@ -63,7 +63,7 @@ have the Codex. Each one makes an offer, and you can only take one, or none.
 
 **It never locks an ending.** You can switch sides once in Ch9 (see `02_FACTIONS.md` §7).
 **Tanis becomes one-way** after this scene in every branch (the sacred lake chamber
-floods). The Lake Burullus half of the region stays open.
+floods). The Lake Manzala half of the region stays open.
 
 ---
 
@@ -217,7 +217,7 @@ Format: **choice** → flag → **where it pays off**. ★ = shows a choice noti
 | Choice | Flag | Pays off |
 |---|---|---|
 | Lena's choice (automatic from `rel_lena`) | `lena_choice` = `defect`/`neutral`/`betray` ★ | Betray: she takes the Book (opened track) or the Codex's final key (sealed track). You can chase her: SQ-13-M "The Monastery Road" |
-| Miriam's rescue (if Vasse took her in Ch12's aftermath) | `miriam_state` | Fail and low trust: `dead`. Success: `saved` or `keeper` (her pick, based on your earlier talks) |
+| Miriam's rescue (if Vasse took her at the end of Ch11) | `miriam_state` | Fail and low trust: `dead`. Success: `saved` or `keeper` (her pick, based on your earlier talks) |
 | The Serabit key or the Gebali squeeze | `ch13_key_source` | Both work. The squeeze route means Vasse also has the key (he ambushes you in Ch14) |
 
 ### Ch14 Beneath Giza

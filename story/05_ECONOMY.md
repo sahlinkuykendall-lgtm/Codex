@@ -180,7 +180,7 @@ darts, seal) plus new ones. Every job has a "perfect run" bonus.
 | Scooter deliveries | Cairo, Alexandria | 200–600 | Scooter or bike | Route race | City knowledge |
 | Guiding tourists | Cairo, Giza, Luxor, Aswan | 600–2,500 | History knowledge (quiz) | Tour patter | Social, languages |
 | Photography commissions | Everywhere | 1,000–6,000 | Camera | Framing | Photography |
-| Fishing (sell your catch) | Burullus, the Nile, the Red Sea, Lake Nasser | 100–3,000 | Rod or net | Fishing | Fishing |
+| Fishing (sell your catch) | Manzala, the Nile, the Red Sea, Lake Nasser | 100–3,000 | Rod or net | Fishing | Fishing |
 | Diving salvage | Alexandria, Red Sea | 2,000–8,000 | Dive kit | Diving | Diving |
 | Carpentry and boat repair | Delta, Aswan, the Nile | 800 | — | Timing | Crafting-lite |
 | Date harvest | Siwa, Bahariya | 500 | — | Climbing rhythm | Climbing |

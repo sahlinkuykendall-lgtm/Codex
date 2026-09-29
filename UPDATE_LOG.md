@@ -7,11 +7,26 @@ What changed in each update, newest first. The version number matches
 here *in the same commit*.
 
 Other docs:
-- `MASTER_LORE_BIBLE.md` — the story / world lore (source of truth).
-- `NEW_CHARACTERS.md` — voice + agenda for the expansion NPCs.
+- `story/` — **the story bible** (source of truth). Start at `story/00_MASTER_BIBLE.md`.
 - `3D_CONVERSION_NOTES.md` — what the 3D branch is, how it's built, quirks.
 
 ---
+
+## Story bible rewrite — 2026-09-29 — docs only (no version bump)
+- **The whole story has been replaced.** The old bible (`MASTER_LORE_BIBLE.md`,
+  `NEW_CHARACTERS.md`) and its story are retired: Ellis, Sam, the Uarha, the Heart, and
+  the Order of the Unshut Eye are gone. The new bible lives in `story/`:
+  - `00_MASTER_BIBLE.md` covers the premise: the Codex, the lost Library of Alexandria,
+    and the Book of Thoth. It also has the real history underneath, the three acts,
+    tone and writing rules.
+  - `01_CHARACTERS` · `02_FACTIONS` · `03_CHOICES_AND_FLAGS` (the master choice map) ·
+    `04_ENDINGS` (7 endings with variations) · `05_ECONOMY` · `06_SYSTEMS` (skills,
+    language gates, 18 failure states, day/night, the phone).
+  - `regions/`: 4 background openings and chapters 2–14, each with beats, places, NPCs,
+    side quests, jobs and secrets.
+  - `SIDE_QUESTS_INDEX.md`: 137 side quests, generated from the region files.
+- The game code is unchanged. The next step is rebuilding the game chapter by chapter
+  against the new bible, starting with the Archaeologist opening (the built Giza camp).
 
 ## V3.8.2 — 2026-09-29 — Rougher chalk formations
 - The White Desert chalk is now weathered rock instead of smooth. A ridged "crag" noise
