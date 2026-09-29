@@ -22,6 +22,12 @@ const WALL_HEIGHT_DEFAULT = 95; // generic wall height
 const WALL_HEIGHT_LOW = 48;     // thin walls (fences, kerbs)
 const WALL_HEIGHT_BORDER = 130; // world border walls
 
+// Graphics options (settings.js owns the stored values; defaults here so
+// the engine still runs if it is missing)
+function gfxSettings() {
+    return (typeof getSettings === 'function') ? getSettings() : { shadows: true, quality: 'high' };
+}
+
 // ---- RENDERER / CAMERA / SCENE ----
 let glCanvas = document.getElementById('glCanvas');
 // Antialiased contexts fail outright on some weak/blocklisted GPUs where a
@@ -88,23 +94,50 @@ let flameMeshes = [];   // open flames (brazier etc.) animated each frame
 
 // Floating text label rendered to a canvas texture, shown above interactables
 function makeLabelSprite(text, colorHex) {
+    // Drawn at 2x for crisp edges: a dark glass pill with a gold hairline
+    // and a small diamond marker, small-caps lettering
     const lc = document.createElement('canvas');
     const lctx = lc.getContext('2d');
-    lctx.font = 'bold 22px Courier New';
-    const tw = Math.ceil(lctx.measureText(text).width);
-    lc.width = tw + 16;
-    lc.height = 34;
-    lctx.font = 'bold 22px Courier New';
+    const font = '600 26px "Segoe UI", "Helvetica Neue", Arial, sans-serif';
+    const label = String(text).toUpperCase();
+    lctx.font = font;
+    const spacing = 2.2;
+    const tw = Math.ceil(lctx.measureText(label).width + spacing * label.length);
+    const padL = 40, padR = 20, H = 48;
+    lc.width = tw + padL + padR;
+    lc.height = H;
+    const r = H / 2 - 3;
+    const rr = (x, y, w, h, rad) => {
+        lctx.beginPath();
+        lctx.moveTo(x + rad, y); lctx.lineTo(x + w - rad, y); lctx.arc(x + w - rad, y + rad, rad, -Math.PI / 2, Math.PI / 2);
+        lctx.lineTo(x + rad, y + h); lctx.arc(x + rad, y + rad, rad, Math.PI / 2, Math.PI * 1.5); lctx.closePath();
+    };
+    rr(2, 3, lc.width - 4, H - 6, r);
+    const bg = lctx.createLinearGradient(0, 0, 0, H);
+    bg.addColorStop(0, 'rgba(22,18,10,0.82)');
+    bg.addColorStop(1, 'rgba(8,6,3,0.82)');
+    lctx.fillStyle = bg;
+    lctx.fill();
+    lctx.strokeStyle = 'rgba(212,175,55,0.55)';
+    lctx.lineWidth = 2;
+    lctx.stroke();
+    // diamond marker
+    lctx.fillStyle = '#d4af37';
+    lctx.beginPath();
+    lctx.moveTo(22, H / 2 - 7); lctx.lineTo(29, H / 2); lctx.lineTo(22, H / 2 + 7); lctx.lineTo(15, H / 2); lctx.closePath();
+    lctx.fill();
+    lctx.font = font;
     lctx.textBaseline = 'middle';
-    lctx.fillStyle = 'rgba(0,0,0,0.55)';
-    lctx.fillRect(0, 0, lc.width, lc.height);
     lctx.fillStyle = colorHex || '#f4e4b0';
-    lctx.fillText(text, 8, lc.height / 2 + 1);
+    let x = padL;
+    for (const ch of label) { lctx.fillText(ch, x, H / 2 + 1); x += lctx.measureText(ch).width + spacing; }
     const tex = new THREE.CanvasTexture(lc);
     tex.minFilter = THREE.LinearFilter;
-    const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true }));
+    tex.encoding = THREE.sRGBEncoding;
+    const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false, toneMapped: false }));
+    sprite.userData.noShadow = true;
     // World scale: keep labels readable but not billboard-huge
-    const scale = 0.3;
+    const scale = 0.16;
     sprite.scale.set(lc.width * scale, lc.height * scale, 1);
     return sprite;
 }
@@ -116,7 +149,7 @@ function makeLabelSprite(text, colorHex) {
 // chase flush. A standard figure is ~62 units tall before scale
 // (player eye height is 52).
 function clothMat(color) {
-    return new THREE.MeshLambertMaterial({ color: new THREE.Color(color) });
+    return new THREE.MeshStandardMaterial({ color: new THREE.Color(color), roughness: 0.92 });
 }
 
 function angleDiff(target, current) {
@@ -130,107 +163,117 @@ function makeHumanoid(style) {
     const arms = [], legs = [];
 
     const skinMat = s.stone
-        ? new THREE.MeshPhongMaterial({ color: 0x6a6155, shininess: 4, specular: 0x111111 })
-        : new THREE.MeshLambertMaterial({ color: new THREE.Color(s.skin || '#b08a5f') });
+        ? new THREE.MeshStandardMaterial({ color: 0x7a7064, roughness: 0.95, flatShading: true })
+        : new THREE.MeshStandardMaterial({ color: new THREE.Color(s.skin || '#b08a5f'), roughness: 0.7 });
     if (s.skinGlow) { // Kostas's faint amber-light cast after six years below
         skinMat.emissive = new THREE.Color('#a8b89a');
         skinMat.emissiveIntensity = s.skinGlow;
     }
     const shirtMat = s.stone ? skinMat : clothMat(s.shirt || '#555');
     const pantsMat = s.stone ? skinMat : clothMat(s.pants || '#333');
+    const darkMat = s.stone ? skinMat : new THREE.MeshStandardMaterial({ color: 0x1c1712, roughness: 0.8 });
     if (!s.stone) {
         tint.push({ mat: shirtMat, base: shirtMat.color.clone() },
                   { mat: pantsMat, base: pantsMat.color.clone() });
     }
+    const add = (parent, geo, mat, x, y, z) => {
+        const m = new THREE.Mesh(geo, mat);
+        m.position.set(x, y, z);
+        m.castShadow = true;
+        parent.add(m);
+        return m;
+    };
+    const capsule = (r, len) => new THREE.CapsuleGeometry(r, len, 4, 10);
 
     const elong = s.elongated ? 1.3 : 1; // Uarha proportions: long torso, domed head
-    const legH = 26, torsoH = 22 * elong;
-    const torsoW = s.gaunt ? 14 : 17, torsoD = s.gaunt ? 8 : 10;
+    const legH = 27, torsoH = 21 * elong;
+    const torsoW = s.gaunt ? 14 : 16.5, torsoD = s.gaunt ? 8.5 : 10;
     const shoulderY = legH + torsoH;
 
     if (s.robe) {
-        const robe = new THREE.Mesh(
-            new THREE.CylinderGeometry(torsoW * 0.42, torsoW * 0.7, legH + 2, 8), pantsMat);
-        robe.position.y = (legH + 2) / 2;
-        g.add(robe);
+        // a galabeya falling from the shoulders to the ankles
+        const pts = [[torsoW * 0.62, 0], [torsoW * 0.56, 6], [torsoW * 0.47, legH], [torsoW * 0.5, legH + torsoH * 0.6], [torsoW * 0.36, shoulderY - 1], [0, shoulderY]];
+        const robe = add(g, new THREE.LatheGeometry(pts.map(p => new THREE.Vector2(p[0], p[1])), 16), pantsMat, 0, 0, 0);
+        robe.scale.z = torsoD / torsoW * 1.25;
+        for (const side of [-1, 1]) add(g, new THREE.BoxGeometry(5.5, 3, 9), darkMat, side * 3.6, 1.5, 2.5); // sandals peeking out
     } else {
         for (const side of [-1, 1]) {
             const hip = new THREE.Group();
-            hip.position.set(side * 4.4, legH, 0);
-            const leg = new THREE.Mesh(new THREE.BoxGeometry(6.5, legH, 7), pantsMat);
-            leg.position.y = -legH / 2;
-            hip.add(leg);
+            hip.position.set(side * 4.2, legH, 0);
+            add(hip, capsule(3.3, legH - 9), pantsMat, 0, -legH / 2 + 1, 0);
+            add(hip, new THREE.BoxGeometry(6, 4, 10.5), darkMat, 0, -legH + 2, 2); // boot
             g.add(hip);
             legs.push(hip);
         }
+        add(g, new THREE.CylinderGeometry(torsoW * 0.47, torsoW * 0.44, 7, 12), pantsMat, 0, legH + 1.5, 0).scale.z = torsoD / torsoW * 1.3;
+        add(g, new THREE.CylinderGeometry(torsoW * 0.49, torsoW * 0.49, 2.2, 12), darkMat, 0, legH + 4.5, 0).scale.z = torsoD / torsoW * 1.3; // belt
     }
 
-    const torso = new THREE.Mesh(new THREE.BoxGeometry(torsoW, torsoH, torsoD), shirtMat);
-    torso.position.y = legH + torsoH / 2;
-    g.add(torso);
-    if (s.suit) { // shirt-front panel so the suit reads as a suit
-        const panel = new THREE.Mesh(new THREE.BoxGeometry(torsoW * 0.4, torsoH * 0.8, 1.4), clothMat('#cfc6b4'));
-        panel.position.set(0, legH + torsoH * 0.55, torsoD / 2 + 0.4);
-        g.add(panel);
+    if (!s.robe) {
+        const torso = add(g, capsule(torsoW * 0.45, torsoH - torsoW * 0.6), shirtMat, 0, legH + torsoH / 2 + 1.5, 0);
+        torso.scale.z = torsoD / torsoW * 1.2;
+    } else {
+        add(g, capsule(torsoW * 0.4, torsoH * 0.5), shirtMat, 0, legH + torsoH * 0.62, 0).scale.z = torsoD / torsoW * 1.2;
+    }
+    if (s.suit) { // shirt-front and tie so the suit reads as a suit
+        add(g, new THREE.BoxGeometry(torsoW * 0.32, torsoH * 0.7, 1.2), clothMat('#cfc6b4'), 0, legH + torsoH * 0.6, torsoD / 2 + 0.8);
+        add(g, new THREE.BoxGeometry(1.8, torsoH * 0.55, 1.2), clothMat('#5a1a1a'), 0, legH + torsoH * 0.58, torsoD / 2 + 1.4);
     }
 
-    const armLen = (torsoH + 2) * (s.elongated ? 1.15 : 1);
+    const armLen = (torsoH + 3) * (s.elongated ? 1.15 : 1);
     for (const side of [-1, 1]) {
         const shoulder = new THREE.Group();
-        shoulder.position.set(side * (torsoW / 2 + 2.6), shoulderY - 2, 0);
-        const arm = new THREE.Mesh(new THREE.BoxGeometry(5, armLen, 5.5), shirtMat);
-        arm.position.y = -armLen / 2;
-        shoulder.add(arm);
-        const hand = new THREE.Mesh(
-            new THREE.BoxGeometry(4.4, s.elongated ? 9 : 5, 4.6), skinMat);
-        hand.position.y = -armLen - (s.elongated ? 4 : 2);
-        shoulder.add(hand);
+        shoulder.position.set(side * (torsoW * 0.45 + 2.6), shoulderY - 3, 0);
+        add(shoulder, new THREE.SphereGeometry(3.2, 10, 8), shirtMat, 0, 0, 0);
+        add(shoulder, capsule(2.5, armLen - 7), shirtMat, 0, -armLen / 2 + 1, 0);
+        const hand = add(shoulder, new THREE.SphereGeometry(s.elongated ? 2.4 : 2.3, 8, 6), skinMat, 0, -armLen - 0.5, 0.4);
+        hand.scale.set(1, s.elongated ? 2.4 : 1.3, 0.9);
         g.add(shoulder);
         arms.push(shoulder);
     }
 
-    const headR = 6.2 * (s.elongated ? 1.1 : 1);
-    const head = new THREE.Mesh(new THREE.SphereGeometry(headR, 10, 8), skinMat);
-    if (s.elongated) head.scale.y = 1.35; // the cranial dome
-    head.position.y = shoulderY + headR + 1.5;
-    g.add(head);
+    const headR = 6 * (s.elongated ? 1.1 : 1);
+    add(g, new THREE.CylinderGeometry(2.3, 2.6, 4, 8), skinMat, 0, shoulderY + 1, 0); // neck
+    const head = add(g, new THREE.SphereGeometry(headR, 16, 12), skinMat, 0, shoulderY + headR + 2, 0);
+    head.scale.set(0.92, s.elongated ? 1.35 : 1.06, 1);
+    const hy = head.position.y;
 
     if (s.eyes) { // faint watching pinpricks (the dark figure)
         const eyeMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(s.eyes) });
+        for (const side of [-1, 1]) add(g, new THREE.SphereGeometry(0.9, 6, 5), eyeMat, side * 2.3, hy + 1, headR * 0.92);
+    } else if (!s.stone) {
+        const eyeMat = new THREE.MeshBasicMaterial({ color: 0x15100c });
         for (const side of [-1, 1]) {
-            const eye = new THREE.Mesh(new THREE.SphereGeometry(0.9, 6, 5), eyeMat);
-            eye.position.set(side * 2.4, head.position.y + 1, headR * 0.95);
-            g.add(eye);
+            add(g, new THREE.SphereGeometry(0.75, 6, 5), eyeMat, side * 2.1, hy + 0.9, headR * 0.9);
+            add(g, new THREE.BoxGeometry(2.6, 0.7, 0.8), darkMat, side * 2.1, hy + 2.5, headR * 0.86).rotation.z = side * -0.12; // brows
         }
+        const nose = add(g, new THREE.ConeGeometry(0.9, 2.6, 6), skinMat, 0, hy - 0.3, headR * 0.98);
+        nose.rotation.x = Math.PI / 2;
+        for (const side of [-1, 1]) add(g, new THREE.SphereGeometry(1.3, 6, 5), skinMat, side * headR * 0.9, hy, 0).scale.set(0.5, 1, 0.8); // ears
     }
+    if (s.beard) add(g, new THREE.SphereGeometry(headR * 0.8, 10, 8, 0, Math.PI * 2, Math.PI * 0.5, Math.PI * 0.5), clothMat(s.beard), 0, hy - 0.6, 1.2);
 
     if (s.headwear === 'cap') {
         const capCol = s.capColor || '#333';
-        const cap = new THREE.Mesh(new THREE.CylinderGeometry(headR * 0.95, headR * 1.02, 3.4, 10), clothMat(capCol));
-        cap.position.y = head.position.y + headR * 0.78;
-        g.add(cap);
-        const brim = new THREE.Mesh(new THREE.BoxGeometry(7, 1, 4.5), clothMat(capCol));
-        brim.position.set(0, head.position.y + headR * 0.62, headR * 0.9);
-        g.add(brim);
+        add(g, new THREE.SphereGeometry(headR * 1.02, 14, 8, 0, Math.PI * 2, 0, Math.PI * 0.42), clothMat(capCol), 0, hy + 0.6, 0);
+        const brim = add(g, new THREE.CylinderGeometry(headR * 0.75, headR * 0.75, 0.9, 12, 1, false, -Math.PI / 2, Math.PI), clothMat(capCol), 0, hy + 2.6, headR * 0.55);
+        brim.scale.z = 1.1;
     } else if (s.headwear === 'wrap') {
-        const wrap = new THREE.Mesh(new THREE.CylinderGeometry(headR * 1.1, headR * 1.12, 5, 10), clothMat(s.wrapColor || '#b8a888'));
-        wrap.position.y = head.position.y + headR * 0.55;
-        g.add(wrap);
+        const wrapMat = clothMat(s.wrapColor || '#b8a888');
+        add(g, new THREE.SphereGeometry(headR * 1.08, 14, 8, 0, Math.PI * 2, 0, Math.PI * 0.45), wrapMat, 0, hy + 0.8, 0).scale.y = 1.15;
+        const band = add(g, new THREE.TorusGeometry(headR * 0.98, 1.5, 6, 16), wrapMat, 0, hy + 2.8, 0);
+        band.rotation.x = Math.PI / 2 - 0.12;
+        add(g, new THREE.BoxGeometry(3.5, 7, 1.4), wrapMat, headR * 0.6, hy - 2, -headR * 0.75).rotation.z = 0.3; // tail of the wrap
     } else if (s.headwear === 'hood') {
-        const hood = new THREE.Mesh(new THREE.ConeGeometry(headR * 1.45, headR * 2.6, 8), clothMat(s.hoodColor || s.pants || '#333'));
-        hood.position.y = head.position.y + headR * 0.35;
-        g.add(hood);
+        const hood = add(g, new THREE.SphereGeometry(headR * 1.28, 14, 10, 0, Math.PI * 2, 0, Math.PI * 0.62), clothMat(s.hoodColor || s.pants || '#333'), 0, hy + 0.5, -0.8);
+        hood.scale.set(1, 1.2, 1.05);
+        hood.material.side = THREE.DoubleSide;
     } else if (s.hair) {
-        const hair = new THREE.Mesh(
-            new THREE.SphereGeometry(headR * 1.02, 10, 6, 0, Math.PI * 2, 0, Math.PI * 0.45), clothMat(s.hair));
-        hair.position.y = head.position.y;
-        g.add(hair);
+        add(g, new THREE.SphereGeometry(headR * 1.03, 14, 8, 0, Math.PI * 2, 0, Math.PI * 0.46), clothMat(s.hair), 0, hy + 0.2, -0.3);
     }
 
     if (s.accessory === 'book') {
-        const book = new THREE.Mesh(new THREE.BoxGeometry(7, 2.2, 9), clothMat('#7a6a4a'));
-        book.position.set(torsoW / 2 + 5, legH + torsoH * 0.45, 4);
-        g.add(book);
+        add(g, new THREE.BoxGeometry(7, 2.2, 9), clothMat('#7a6a4a'), torsoW / 2 + 5, legH + torsoH * 0.45, 4);
     }
 
     if (s.stone) { // the Custodian's set-down posture: head bowed, hands met
@@ -249,6 +292,7 @@ function makeHumanoid(style) {
     };
     return g;
 }
+
 
 // Character looks, grounded in MASTER_LORE_BIBLE / NEW_CHARACTERS:
 // Tariq the foreman in a head wrap, Samir and Yusra robed, Lei a
@@ -312,1018 +356,8 @@ function makeStandoffGroup() {
     return group;
 }
 
-// ============================================================
-// CHAPTER 1 ART PASS — procedural Egyptian dig-camp props.
-// Everything is generated in code: canvas textures + primitive
-// geometry. No external assets, no build step.
-// ============================================================
+// Chapter 1 terrain, materials, props and FX live in ch1_world.js / ch1_props.js
 
-// ---- CH1 TERRAIN ----
-// The desert is not flat: layered sine dunes give rolling character,
-// the ground climbs toward the northern escarpment (where the tunnel
-// mouth waits), and everything near a wall/building/prop is flattened —
-// a working dig camp levels the ground it lives on. Collision is still
-// 2D; the camera and every placed mesh sample this same function.
-let ch1Rects = null; // walls + objects, cached for the flatten mask
-
-function ch1StructDist(x, z) {
-    if (!ch1Rects) ch1Rects = [...(mapWalls[1] || []), ...(mapObjects[1] || [])];
-    let d = 1e9;
-    for (const r of ch1Rects) {
-        const dx = Math.max(r.x - x, 0, x - (r.x + r.w));
-        const dz = Math.max(r.y - z, 0, z - (r.y + r.h));
-        const dd = dx > dz ? dx : dz;
-        if (dd < d) d = dd;
-        if (d <= 0) return 0;
-    }
-    return d;
-}
-
-function ch1Height(x, z) {
-    const dunes =
-        18  * Math.sin(x * 0.0011 + 1.7) * Math.sin(z * 0.0009 + 0.6) +
-        12  * Math.sin(x * 0.0021 + z * 0.0016 + 4.2) +
-        5.5 * Math.sin(x * 0.0052 - z * 0.0037 + 2.2) +
-        2.5 * Math.sin(x * 0.011 + z * 0.009);
-    // Flatten toward structures (full dunes only in open desert)
-    const d = ch1StructDist(x, z);
-    const mask = Math.max(0.12, Math.min(1, (d - 35) / 165));
-    // The north climb toward the rock escarpment
-    const t = Math.max(0, Math.min(1, (1000 - z) / 800));
-    const rise = 30 * t * t * (3 - 2 * t);
-    return dunes * mask + rise;
-}
-
-// Ground height under a world point for the current map (0 off-Ch1)
-function currentGroundHeight(x, z) {
-    return (currentMapKey === 1) ? ch1Height(x, z) : 0;
-}
-
-// Deterministic per-object randomness (so a crate stack doesn't
-// reshuffle every time the world rebuilds)
-function seededRng(str) {
-    let h = 2166136261;
-    for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
-    return () => {
-        h = Math.imul(h ^ (h >>> 15), 2246822507);
-        h = Math.imul(h ^ (h >>> 13), 3266489909);
-        return ((h ^= h >>> 16) >>> 0) / 4294967296;
-    };
-}
-
-const texCache = {};
-function makeTex(name, w, h, rx, ry, draw) {
-    if (texCache[name]) return texCache[name];
-    const c = document.createElement('canvas');
-    c.width = w; c.height = h;
-    draw(c.getContext('2d'), w, h);
-    const tex = new THREE.CanvasTexture(c);
-    tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-    tex.repeat.set(rx, ry);
-    tex.encoding = THREE.sRGBEncoding;
-    texCache[name] = tex;
-    return tex;
-}
-
-function speckle(cc, w, h, base, colors, n, sMin, sMax) {
-    cc.fillStyle = base;
-    cc.fillRect(0, 0, w, h);
-    for (let i = 0; i < n; i++) {
-        cc.fillStyle = colors[(Math.random() * colors.length) | 0];
-        cc.globalAlpha = 0.15 + Math.random() * 0.45;
-        const s = sMin + Math.random() * (sMax - sMin);
-        cc.fillRect(Math.random() * w, Math.random() * h, s, s);
-    }
-    cc.globalAlpha = 1;
-}
-
-// Lazy material set for the Ch1 camp (textures generated on first use)
-let CH1M = null;
-function ch1Mats() {
-    if (CH1M) return CH1M;
-    const phong = (map, opts) => new THREE.MeshPhongMaterial(Object.assign({ map, shininess: 4, specular: 0x0c0c0c }, opts || {}));
-    const lambert = (color) => new THREE.MeshLambertMaterial({ color: new THREE.Color(color) });
-
-    const sand = makeTex('sand', 256, 256, 16, 15, (cc, w, h) => {
-        speckle(cc, w, h, '#8a744d', ['#94805a', '#7c683f', '#9f8a5f', '#6f5e3a'], 1100, 1, 3);
-        cc.strokeStyle = 'rgba(58,46,26,0.20)';
-        cc.lineWidth = 2;
-        for (let i = 0; i < 12; i++) { // wind ripples
-            const y0 = Math.random() * h;
-            cc.beginPath();
-            cc.moveTo(0, y0);
-            for (let x = 0; x <= w; x += 14) cc.lineTo(x, y0 + Math.sin(x * 0.05 + i * 2) * 3);
-            cc.stroke();
-        }
-    });
-    const tentCloth = makeTex('tentCloth', 128, 128, 3, 2, (cc, w, h) => {
-        speckle(cc, w, h, '#9a8a62', ['#a4946c', '#8d7c54', '#958455'], 350, 1, 2);
-        cc.strokeStyle = 'rgba(70,58,36,0.35)';
-        for (let x = 0; x < w; x += 16) { cc.beginPath(); cc.moveTo(x, 0); cc.lineTo(x, h); cc.stroke(); } // seams
-    });
-    const wood = makeTex('wood', 128, 128, 2, 2, (cc, w, h) => {
-        speckle(cc, w, h, '#6a4f30', ['#75573a', '#5c4226', '#7d6040'], 240, 1, 3);
-        cc.strokeStyle = 'rgba(40,28,14,0.5)';
-        for (let y = 0; y < h; y += 21) { cc.beginPath(); cc.moveTo(0, y); cc.lineTo(w, y); cc.stroke(); } // planks
-        cc.fillStyle = 'rgba(35,24,12,0.6)';
-        for (let i = 0; i < 9; i++) { cc.beginPath(); cc.arc(Math.random() * w, Math.random() * h, 1.6, 0, 7); cc.fill(); } // knots
-    });
-    const crate = makeTex('crate', 128, 128, 1, 1, (cc, w, h) => {
-        speckle(cc, w, h, '#7a5c38', ['#86663f', '#6b4e2c'], 200, 1, 3);
-        cc.strokeStyle = 'rgba(45,32,16,0.8)';
-        cc.lineWidth = 6;
-        cc.strokeRect(3, 3, w - 6, h - 6); // frame
-        cc.beginPath(); cc.moveTo(0, 0); cc.lineTo(w, h); cc.moveTo(w, 0); cc.lineTo(0, h); cc.stroke(); // cross braces
-    });
-    const metal = makeTex('metal', 128, 128, 2, 1, (cc, w, h) => {
-        speckle(cc, w, h, '#76705f', ['#807a68', '#6a6455', '#8a8472'], 160, 1, 4);
-        cc.strokeStyle = 'rgba(40,38,30,0.45)';
-        cc.lineWidth = 3;
-        for (let x = 4; x < w; x += 10) { cc.beginPath(); cc.moveTo(x, 0); cc.lineTo(x, h); cc.stroke(); } // corrugation
-    });
-    const rock = makeTex('rock', 256, 256, 3, 2, (cc, w, h) => {
-        speckle(cc, w, h, '#6e6250', ['#7a6e5a', '#5f5443', '#857a64', '#544a3a'], 700, 2, 6);
-        cc.strokeStyle = 'rgba(30,26,18,0.35)';
-        for (let i = 0; i < 18; i++) { // cracks
-            cc.beginPath();
-            let x = Math.random() * w, y = Math.random() * h;
-            cc.moveTo(x, y);
-            for (let s = 0; s < 5; s++) { x += (Math.random() - 0.5) * 40; y += Math.random() * 22; cc.lineTo(x, y); }
-            cc.stroke();
-        }
-    });
-    const limestone = makeTex('limestone', 256, 256, 1, 1, (cc, w, h) => {
-        speckle(cc, w, h, '#a39376', ['#ad9d80', '#94855f', '#b8a98c'], 420, 1, 4);
-        // weathered hieroglyph rows — carved, not painted
-        cc.strokeStyle = 'rgba(52,42,26,0.75)';
-        cc.fillStyle = 'rgba(52,42,26,0.75)';
-        cc.lineWidth = 2.5;
-        for (let row = 0; row < 4; row++) {
-            const y = 26 + row * 60;
-            for (let col = 0; col < 7; col++) {
-                const x = 16 + col * 34, g = (Math.random() * 5) | 0;
-                cc.beginPath();
-                if (g === 0) { cc.arc(x + 8, y + 8, 7, 0, 7); cc.stroke(); cc.beginPath(); cc.arc(x + 8, y + 8, 2.5, 0, 7); cc.fill(); }           // eye
-                else if (g === 1) { cc.moveTo(x, y + 18); cc.lineTo(x + 8, y); cc.lineTo(x + 16, y + 18); cc.stroke(); }                            // pylon
-                else if (g === 2) { cc.moveTo(x, y + 4); cc.quadraticCurveTo(x + 8, y - 6, x + 16, y + 4); cc.moveTo(x + 8, y); cc.lineTo(x + 8, y + 18); cc.stroke(); } // ankh-ish
-                else if (g === 3) { cc.moveTo(x, y + 6); cc.lineTo(x + 5, y + 12); cc.lineTo(x + 10, y + 6); cc.lineTo(x + 15, y + 12); cc.stroke(); } // water
-                else { cc.fillRect(x + 2, y + 2, 12, 4); cc.fillRect(x + 5, y + 9, 6, 9); }                                                          // seated figure-ish
-            }
-        }
-    });
-    const drum = makeTex('drum', 64, 64, 1, 1, (cc, w, h) => {
-        speckle(cc, w, h, '#7a4426', ['#8a5430', '#65381f', '#5f351e'], 130, 1, 3);
-        cc.fillStyle = 'rgba(40,22,12,0.6)';
-        cc.fillRect(0, 14, w, 5); cc.fillRect(0, 32, w, 5); cc.fillRect(0, 50, w, 5); // ribs
-    });
-    const tarp = makeTex('tarp', 128, 128, 2, 2, (cc, w, h) => {
-        speckle(cc, w, h, '#5d6243', ['#676c4c', '#52573a', '#6f7452'], 260, 1, 3);
-        cc.strokeStyle = 'rgba(35,38,24,0.4)';
-        for (let i = 0; i < 6; i++) { cc.beginPath(); cc.moveTo(0, i * 24); cc.lineTo(w, i * 24 + 12); cc.stroke(); } // folds
-    });
-    const frond = makeTex('frond', 128, 32, 1, 1, (cc, w, h) => {
-        cc.clearRect(0, 0, w, h);
-        cc.strokeStyle = '#3f6b2a';
-        cc.lineWidth = 3;
-        cc.beginPath(); cc.moveTo(0, h / 2); cc.lineTo(w, h / 2); cc.stroke(); // stem
-        cc.lineWidth = 2.4;
-        for (let x = 8; x < w; x += 6) {
-            const droop = (x / w) * 5;
-            cc.strokeStyle = (x % 12 < 6) ? '#477a30' : '#3a6126';
-            cc.beginPath(); cc.moveTo(x, h / 2); cc.lineTo(x - 5, 2 + droop); cc.stroke();
-            cc.beginPath(); cc.moveTo(x, h / 2); cc.lineTo(x - 5, h - 2 - droop); cc.stroke();
-        }
-    });
-
-    CH1M = {
-        sand: phong(sand),
-        tent: phong(tentCloth),
-        tentDark: lambert('#4f4632'),
-        wood: phong(wood),
-        woodDark: lambert('#4a3622'),
-        crate: phong(crate),
-        metal: phong(metal, { shininess: 18, specular: 0x222222 }),
-        metalBlue: new THREE.MeshPhongMaterial({ color: 0x2c3e50, shininess: 24, specular: 0x222233 }),
-        rock: phong(rock),
-        limestone: phong(limestone),
-        drum: phong(drum),
-        drumBlue: new THREE.MeshPhongMaterial({ color: 0x1e4f80, shininess: 14, specular: 0x111122 }),
-        tarp: phong(tarp),
-        frond: new THREE.MeshLambertMaterial({ map: frond, transparent: true, alphaTest: 0.35, side: THREE.DoubleSide }),
-        trunk: lambert('#6b4f2f'),
-        green: lambert('#2f5c22'),
-        dark: lambert('#14110c'),
-        terracotta: lambert('#9a5a33'),
-        sandbag: lambert('#695a39'),
-        rope: lambert('#8a7448'),
-        grass: new THREE.MeshLambertMaterial({ color: 0x6a6136, side: THREE.DoubleSide }),
-        glow: new THREE.MeshPhongMaterial({ color: 0x3a2a10, emissive: 0xe8b545, emissiveIntensity: 0.85 }),
-        window: new THREE.MeshPhongMaterial({ color: 0x1a1408, emissive: 0xd49a3a, emissiveIntensity: 0.5 }),
-        flame: new THREE.MeshBasicMaterial({ color: 0xe89030, transparent: true, opacity: 0.85 }),
-    };
-    return CH1M;
-}
-
-// Tiny placement helper
-function put(g, geo, mat, x, y, z, ry, rz, rx) {
-    const m = new THREE.Mesh(geo, mat);
-    m.position.set(x, y, z);
-    if (ry) m.rotation.y = ry;
-    if (rz) m.rotation.z = rz;
-    if (rx) m.rotation.x = rx;
-    g.add(m);
-    return m;
-}
-const gBox = (w, h, d) => new THREE.BoxGeometry(w, h, d);
-const gCyl = (rt, rb, h, n) => new THREE.CylinderGeometry(rt, rb, h, n || 8);
-
-// Gable triangle (for tent/shed ends)
-function gableGeo(w, h) {
-    const s = new THREE.Shape();
-    s.moveTo(-w / 2, 0); s.lineTo(w / 2, 0); s.lineTo(0, h); s.closePath();
-    return new THREE.ShapeGeometry(s);
-}
-
-// ---- SUB-BUILDERS (shared shapes) ----
-function subPalm(g, M, x, z, scale, rng) {
-    // Trunk follows a continuous curve: each segment is placed at the
-    // midpoint of its own tilted step, overlapping the previous one
-    const lean = (rng() - 0.5) * 0.45;
-    const segs = 5, segH = 20 * scale;
-    let px = x, py = 0;
-    for (let i = 0; i < segs; i++) {
-        const tilt = lean * ((i + 0.5) / segs);
-        put(g, gCyl(3.2 * scale * (1 - i * 0.08), 4.0 * scale * (1 - i * 0.08), segH + 7, 6), M.trunk,
-            px + Math.sin(tilt) * segH / 2, py + Math.cos(tilt) * segH / 2, z, 0, 0, -tilt);
-        px += Math.sin(tilt) * segH;
-        py += Math.cos(tilt) * segH;
-    }
-    const top = py + 2;
-    for (let i = 0; i < 8; i++) {
-        const a = (i / 8) * Math.PI * 2 + rng() * 0.4;
-        const f = put(g, new THREE.PlaneGeometry(58 * scale, 13 * scale), M.frond,
-            px + Math.cos(a) * 24 * scale, top, z + Math.sin(a) * 24 * scale, -a, 0, 0);
-        f.rotation.z = -0.45 - rng() * 0.3;
-    }
-    for (let i = 0; i < 3; i++) { // dates
-        put(g, new THREE.SphereGeometry(2.6 * scale, 6, 5), M.terracotta,
-            px + (rng() - 0.5) * 8, top - 6 * scale, z + (rng() - 0.5) * 8);
-    }
-    return top + 8;
-}
-
-function subCrateStack(g, M, w, d, rng) {
-    const n = 2 + (rng() * 3 | 0);
-    let h = 0;
-    for (let i = 0; i < n; i++) {
-        const s = Math.min(w, d) * (0.5 + rng() * 0.3);
-        const ch = s * 0.8;
-        put(g, gBox(s, ch, s), M.crate,
-            (rng() - 0.5) * (w - s) * 0.5, (i < 2 ? ch / 2 : h + ch / 2), (rng() - 0.5) * (d - s) * 0.5,
-            (rng() - 0.5) * 0.5);
-        if (i >= 1) h += ch;
-        else h = Math.max(h, ch);
-    }
-    return h + 20;
-}
-
-function subDrums(g, M, mat, w, d, rng, count) {
-    const n = count || 3;
-    for (let i = 0; i < n; i++) {
-        const r = Math.min(w, d) * 0.22;
-        put(g, gCyl(r, r, r * 2.6, 10), mat,
-            (rng() - 0.5) * (w - r * 2) * 0.8, r * 1.3, (rng() - 0.5) * (d - r * 2) * 0.8);
-    }
-    return Math.min(w, d) * 0.6 + 16;
-}
-
-function subTable(g, M, w, d, h) {
-    put(g, gBox(w, 5, d), M.wood, 0, h, 0);
-    for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
-        put(g, gBox(5, h, 5), M.woodDark, sx * (w / 2 - 5), h / 2, sz * (d / 2 - 5));
-    }
-    return h;
-}
-
-function subSandbags(g, M, w, d, rng, rows) {
-    let top = 0;
-    for (let r = 0; r < (rows || 2); r++) {
-        const n = Math.max(2, Math.round(w / 24));
-        for (let i = 0; i < n; i++) {
-            const b = put(g, new THREE.SphereGeometry(10.5, 7, 5), M.sandbag,
-                -w / 2 + 12 + i * (w - 24) / Math.max(1, n - 1) + (r % 2) * 6, 5.5 + r * 9, (rng() - 0.5) * (d * 0.3));
-            b.scale.set(1.2, 0.5, 0.8);
-        }
-        top = 11 + r * 9;
-    }
-    return top + 12;
-}
-
-function subShed(g, M, w, d, hWall, rng) {
-    put(g, gBox(w, hWall, d), M.wood, 0, hWall / 2, 0);
-    put(g, gBox(w + 14, 5, d + 16), M.metal, 0, hWall + 2.5, 0); // flat roof, seated
-    put(g, gBox(w * 0.3, hWall * 0.62, 2), M.dark, 0, hWall * 0.31, d / 2 + 1.2); // door
-    return hWall + 12;
-}
-
-function subWheel(g, M, x, z, r) {
-    // wheel axis along Z (vehicles in Ch1 data are laid out along X)
-    const w = put(g, gCyl(r, r, r * 0.6, 10), M.dark, x, r, z);
-    w.rotation.x = Math.PI / 2;
-}
-
-// ---- PROP BUILDERS ----
-// Each receives the (scaled) map object and returns a THREE.Group
-// centered at the footprint center with userData.h = visual height.
-const CH1_BUILDERS = {
-
-    // — the three enterable buildings —
-    tent_bldg(o, M, rng) {
-        const g = new THREE.Group();
-        const w = o.w, d = o.h, wallH = 46, ridgeH = 108;
-        // canvas walls
-        put(g, gBox(w, wallH, d), M.tent, 0, wallH / 2, 0);
-        // roof: ridge along X, slabs sloping down past the eaves
-        const rise = ridgeH - wallH;
-        const halfD = d / 2 + 14;
-        const slope = Math.hypot(halfD, rise) + 6;
-        const ang = Math.atan2(rise, halfD);
-        for (const s of [-1, 1]) {
-            // Tilt each slab so its inner edge meets the ridge and its outer
-            // edge drops past the eaves (sign flipped: -s*ang made a valley)
-            const r = put(g, gBox(w + 16, 4, slope), M.tent, 0, (wallH + ridgeH) / 2, s * halfD / 2);
-            r.rotation.x = s * ang;
-        }
-        put(g, gBox(w + 18, 5, 10), M.tentDark, 0, ridgeH + 1, 0); // ridge cap
-        // gable ends close the roof (at x = ±w/2, facing outward)
-        for (const s of [-1, 1]) {
-            put(g, gableGeo(d + 6, rise + 4), M.tent, s * (w / 2 - 0.5), wallH - 1, 0, s * Math.PI / 2);
-        }
-        // ridge poles at the gable centers + corner guy ropes
-        for (const s of [-1, 1]) put(g, gCyl(2, 2, ridgeH, 6), M.woodDark, s * (w / 2 - 8), ridgeH / 2, 0);
-        for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
-            const rope = put(g, gCyl(0.8, 0.8, 56, 4), M.rope, sx * (w / 2 + 14), 22, sz * (d / 2 + 14));
-            rope.rotation.z = sx * 0.5;
-            rope.rotation.x = -sz * 0.5;
-        }
-        put(g, gBox(w * 0.2, wallH * 0.9, 3), M.tentDark, 0, wallH * 0.45, d / 2 + 1.2); // door flap
-        g.userData.h = ridgeH + 8;
-        return g;
-    },
-
-    dorm_bldg(o, M, rng) {
-        const g = new THREE.Group();
-        const w = o.w, d = o.h, wallH = 62;
-        put(g, gBox(w, wallH, d), M.wood, 0, wallH / 2, 0);
-        put(g, gBox(w + 16, 5, d + 18), M.tent, 0, wallH + 2.5, 0); // flat roof, seated
-        for (let i = 0; i < 3; i++) { // lit windows — someone can't sleep
-            put(g, gBox(16, 12, 1.6), i === 1 ? M.window : M.dark, -w / 4 + i * w / 4, wallH * 0.62, d / 2 + 1);
-        }
-        put(g, gBox(22, wallH * 0.72, 2), M.dark, w * 0.32, wallH * 0.36, d / 2 + 1.2);
-        g.userData.h = wallH + 22;
-        return g;
-    },
-
-    foreman_bldg(o, M, rng) {
-        const g = new THREE.Group();
-        const w = o.w, d = o.h, wallH = 70;
-        put(g, gBox(w, wallH, d), M.wood, 0, wallH / 2, 0);
-        put(g, gBox(w + 18, 5, d + 20), M.metal, 0, wallH + 2.5, 0); // flat roof, seated
-        put(g, gBox(20, 15, 1.6), M.window, -w / 4, wallH * 0.6, d / 2 + 1); // lamp burning late
-        put(g, gBox(24, wallH * 0.74, 2), M.woodDark, w / 4, wallH * 0.37, d / 2 + 1.2);
-        put(g, gBox(34, 10, 2), M.limestone, 0, wallH - 6, d / 2 + 1.4); // site board
-        g.userData.h = wallH + 20;
-        return g;
-    },
-
-    // door mats stay flat but read as worn thresholds
-    tent_door(o, M) { const g = new THREE.Group(); put(g, gBox(o.w, 2, o.h), ch1Mats().tentDark, 0, 1, 0); g.userData.h = 4; return g; },
-    dorm_door(o, M) { const g = new THREE.Group(); put(g, gBox(o.w, 2, o.h), ch1Mats().woodDark, 0, 1, 0); g.userData.h = 4; return g; },
-    foreman_door(o, M) { const g = new THREE.Group(); put(g, gBox(o.w, 2, o.h), ch1Mats().woodDark, 0, 1, 0); g.userData.h = 4; return g; },
-
-    // — the tunnel mouth: the reason everyone is here —
-    tunnel_mouth(o, M, rng) {
-        const g = new THREE.Group();
-        const w = o.w, d = o.h;
-        // cliff mass with a black opening
-        put(g, gBox(w, 190, d), M.rock, 0, 95, 0);
-        for (let i = 0; i < 6; i++) { // jagged crown
-            const bw = 60 + rng() * 110;
-            put(g, gBox(bw, 34 + rng() * 46, d * 0.7), M.rock, -w / 2 + bw / 2 + rng() * (w - bw), 190 + 16, (rng() - 0.5) * d * 0.2, (rng() - 0.5) * 0.2);
-        }
-        // the opening (south face), timber-framed
-        put(g, gBox(150, 116, 4), M.dark, 0, 58, d / 2 + 1.5);
-        for (const s of [-1, 1]) put(g, gBox(14, 124, 14), M.woodDark, s * 80, 62, d / 2 + 6);
-        put(g, gBox(190, 14, 16), M.woodDark, 0, 128, d / 2 + 6); // lintel
-        put(g, gBox(160, 8, 12), M.woodDark, 0, 112, d / 2 + 4);  // second beam
-        // rubble at the feet
-        for (let i = 0; i < 7; i++) {
-            const r = 8 + rng() * 14;
-            put(g, new THREE.IcosahedronGeometry(r, 0), M.rock, (rng() - 0.5) * w * 0.7, r * 0.6, d / 2 + 12 + rng() * 18);
-        }
-        g.userData.h = 200;
-        return g;
-    },
-
-    // — glyph stela (the lock puzzle) —
-    puzzle_glyph(o, M, rng) {
-        const g = new THREE.Group();
-        const w = o.w;
-        put(g, gBox(w, 14, o.h), M.limestone, 0, 7, 0); // plinth
-        put(g, gBox(w * 0.72, 120, 16), M.limestone, 0, 74, 0);
-        const cap = put(g, gCyl(w * 0.36, w * 0.36, 16, 12), M.limestone, 0, 134, 0);
-        cap.rotation.x = Math.PI / 2;
-        put(g, gBox(w * 0.5, 60, 2), M.glow, 0, 78, 9); // the lock face, faintly alive
-        g.userData.h = 150;
-        return g;
-    },
-
-    // — generator, satphone, Sam's gear —
-    generator(o, M, rng) {
-        const g = new THREE.Group();
-        put(g, gBox(o.w * 0.86, 42, o.h * 0.66), M.metal, 0, 23, 0);
-        put(g, gBox(o.w * 0.86, 4, o.h * 0.66), M.dark, 0, 46, 0);
-        put(g, gCyl(4, 4, 26, 6), M.dark, o.w * 0.26, 58, 0);          // exhaust
-        put(g, gCyl(9, 9, 12, 8), M.drum, -o.w * 0.24, 50, 0);         // fuel cap
-        put(g, gBox(o.w * 0.5, 8, 4), M.dark, 0, 14, o.h * 0.33 + 2);  // vents
-        g.userData.h = 70;
-        return g;
-    },
-
-    satphone(o, M) {
-        const g = new THREE.Group();
-        subTable(g, M, o.w * 1.6, o.h * 1.4, 30);
-        put(g, gBox(14, 8, 20), M.dark, 0, 34, 0);
-        put(g, gCyl(1.2, 1.2, 26, 4), M.dark, 8, 48, -4); // antenna
-        g.userData.h = 62;
-        return g;
-    },
-
-    sams_gear(o, M, rng) {
-        const g = new THREE.Group();
-        for (let i = 0; i < 3; i++) { // half-buried tripod, listing
-            const a = (i / 3) * Math.PI * 2;
-            const leg = put(g, gCyl(1.6, 1.6, 46, 5), M.woodDark, Math.cos(a) * 12, 14, Math.sin(a) * 12);
-            leg.rotation.z = Math.cos(a) * 0.5;
-            leg.rotation.x = Math.sin(a) * 0.5 + 0.22;
-        }
-        put(g, gBox(16, 10, 10), M.drum, 2, 34, 0, 0.5, 0.18); // brass transit, askew
-        g.userData.h = 46;
-        return g;
-    },
-
-    // — supply line carts —
-    carts(o, M, rng) {
-        const g = new THREE.Group();
-        const w = o.w, d = o.h;
-        for (const s of [-1, 1]) put(g, gBox(w, 3, 4), M.dark, 0, 2, s * d * 0.16); // rails
-        for (let i = 0; i < 4; i++) put(g, gBox(8, 2.4, d * 0.42), M.woodDark, -w / 2 + 18 + i * (w - 36) / 3, 1.2, 0); // ties
-        for (const cx of [-w * 0.22, w * 0.18]) {
-            put(g, gBox(w * 0.3, 26, d * 0.42), M.metal, cx, 22, 0);
-            put(g, gBox(w * 0.26, 8, d * 0.34), M.sand, cx, 38, 0); // spoil heaped in the cart
-            for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
-                put(g, gCyl(5, 5, 3, 8), M.dark, cx + sx * w * 0.1, 5, sz * d * 0.17, 0, 0, Math.PI / 2);
-            }
-        }
-        g.userData.h = 48;
-        return g;
-    },
-
-    // — rest brazier (fire) —
-    rest_brazier(o, M, rng) {
-        const g = new THREE.Group();
-        for (let i = 0; i < 3; i++) {
-            const a = (i / 3) * Math.PI * 2;
-            const leg = put(g, gCyl(1.8, 1.8, 40, 5), M.dark, Math.cos(a) * 12, 20, Math.sin(a) * 12);
-            leg.rotation.z = Math.cos(a) * 0.3;
-            leg.rotation.x = -Math.sin(a) * 0.3;
-        }
-        put(g, gCyl(o.w * 0.42, o.w * 0.28, 14, 10), M.metal, 0, 40, 0);
-        put(g, new THREE.SphereGeometry(o.w * 0.3, 8, 6), M.glow, 0, 46, 0).scale.set(1, 0.45, 1);
-        const fl = put(g, gCyl(2, o.w * 0.22, 22, 7), M.flame, 0, 58, 0);
-        fl.userData.flame = true;
-        g.userData.h = 72;
-        return g;
-    },
-
-    // — perimeter watch post —
-    perimeter(o, M, rng) {
-        const g = new THREE.Group();
-        subSandbags(g, M, o.w * 1.4, o.h, rng, 2);
-        put(g, gBox(18, 14, 18), M.crate, o.w * 0.5, 7, -4); // a crate to sit on
-        g.userData.h = 40;
-        return g;
-    },
-
-    // — the fun corner: Dust the dog, darts, the shortwave —
-    camp_dog(o, M, rng) {
-        const g = new THREE.Group();
-        const fur = new THREE.MeshLambertMaterial({ color: 0x8a6a42 });
-        put(g, gBox(26, 12, 12), fur, 0, 13, 0);
-        put(g, gBox(9, 9, 9), fur, 16, 20, 0);
-        put(g, gBox(3, 4, 2), fur, 19, 26, 3.2);
-        put(g, gBox(3, 4, 2), fur, 19, 26, -3.2);
-        put(g, gBox(4, 2.6, 4), M.dark, 21.5, 18, 0); // nose
-        for (const lx of [-9, 7]) for (const lz of [-4, 4]) put(g, gBox(3, 8, 3), fur, lx, 4, lz);
-        put(g, gCyl(1.2, 0.5, 13, 4), fur, -15, 19, 0, 0, 0.9); // tail up — he's dreaming well
-        g.userData.h = 36;
-        return g;
-    },
-
-    camp_darts(o, M, rng) {
-        const g = new THREE.Group();
-        put(g, gBox(6, 62, 6), M.woodDark, 0, 31, 0);
-        const face = (geo, mat, y, zOff) => {
-            const m = put(g, geo, mat, 0, y, 4 + zOff);
-            m.rotation.x = Math.PI / 2;
-            return m;
-        };
-        face(gCyl(15, 15, 3, 14), M.crate, 50, 0);
-        face(gCyl(10, 10, 1.4, 12), new THREE.MeshLambertMaterial({ color: 0x27331f }), 50, 1.6);
-        face(gCyl(5, 5, 1.4, 10), new THREE.MeshLambertMaterial({ color: 0x7a1f1f }), 50, 2.6);
-        face(gCyl(1.6, 1.6, 1.4, 8), ch1Mats().glow, 50, 3.6);
-        for (let i = 0; i < 3; i++) { // the surviving darts, holstered in the post
-            put(g, gCyl(0.7, 0.7, 10, 4), M.dark, 4, 18 + i * 6, 2, 0, 1.2);
-        }
-        g.userData.h = 66;
-        return g;
-    },
-
-    camp_radio(o, M, rng) {
-        const g = new THREE.Group();
-        put(g, gBox(26, 22, 22), M.crate, 0, 11, 0); // its crate
-        put(g, gBox(22, 12, 10), M.metal, 0, 28, 0);
-        put(g, gCyl(2.2, 2.2, 2.4, 8), M.glow, -5, 28, 5.4, 0, 0, Math.PI / 2); // glowing dial
-        put(g, gBox(8, 1.6, 1.6), M.dark, 5, 30, 5.2); // speaker slits
-        put(g, gCyl(0.6, 0.6, 30, 4), M.dark, 9, 46, -3, 0, 0.4); // taped antenna
-        g.userData.h = 60;
-        return g;
-    },
-
-    // The parked ministry car is the dynamic carGroup — this static
-    // interact zone needs no mesh of its own, only its floating label
-    inspector(o, M) {
-        const g = new THREE.Group();
-        g.userData.h = 60;
-        return g;
-    },
-
-    // — dig zone gate (wooden barrier) —
-    dig_gate(o, M) {
-        const g = new THREE.Group();
-        for (const s of [-1, 1]) put(g, gBox(10, 64, 10), M.woodDark, s * (o.w / 2 - 6), 32, 0);
-        put(g, gBox(o.w - 16, 9, 5), M.wood, 0, 48, 0, 0, 0.02);
-        put(g, gBox(o.w - 16, 9, 5), M.wood, 0, 26, 0, 0, -0.02);
-        g.userData.h = 70;
-        return g;
-    },
-};
-
-// Label-keyed builders for the repeated set dressing
-const CH1_LABEL_BUILDERS = {
-    'cactus': (o, M, rng) => {
-        const g = new THREE.Group();
-        const h = o.h * 1.3;
-        put(g, gCyl(o.w * 0.34, o.w * 0.4, h, 7), M.green, 0, h / 2, 0);
-        if (rng() > 0.4) { // an arm
-            const s = rng() > 0.5 ? 1 : -1;
-            put(g, gCyl(o.w * 0.22, o.w * 0.24, h * 0.4, 6), M.green, s * o.w * 0.5, h * 0.42, 0, 0, s * 1.2);
-            put(g, gCyl(o.w * 0.22, o.w * 0.24, h * 0.36, 6), M.green, s * o.w * 0.72, h * 0.62, 0);
-        }
-        g.userData.h = h + 8;
-        return g;
-    },
-    'boulder': (o, M, rng) => {
-        const g = new THREE.Group();
-        const r = Math.min(o.w, o.h) * 0.55;
-        put(g, new THREE.IcosahedronGeometry(r, 0), M.rock, 0, r * 0.72, 0, rng() * 3).scale.set(1.15, 0.85, 1);
-        if (rng() > 0.5) put(g, new THREE.IcosahedronGeometry(r * 0.45, 0), M.rock, r * 0.9, r * 0.32, r * 0.4, rng() * 3);
-        g.userData.h = r * 1.6;
-        return g;
-    },
-    'rock pile': (o, M, rng) => {
-        const g = new THREE.Group();
-        for (let i = 0; i < 6; i++) {
-            const r = 7 + rng() * Math.min(o.w, o.h) * 0.22;
-            put(g, new THREE.IcosahedronGeometry(r, 0), M.rock, (rng() - 0.5) * o.w * 0.7, r * 0.7, (rng() - 0.5) * o.h * 0.7, rng() * 3);
-        }
-        g.userData.h = Math.min(o.w, o.h) * 0.5 + 10;
-        return g;
-    },
-    'spoil mound': (o, M, rng) => {
-        const g = new THREE.Group();
-        const r = Math.min(o.w, o.h) * 0.6, h = 26 + rng() * 18;
-        put(g, gCyl(r * 0.1, r, h, 9), M.sand, 0, h / 2, 0);
-        for (let i = 0; i < 4; i++) put(g, new THREE.IcosahedronGeometry(4 + rng() * 5, 0), M.rock, (rng() - 0.5) * r * 1.4, 4, (rng() - 0.5) * r * 1.4);
-        g.userData.h = h + 8;
-        return g;
-    },
-    'howling dune': (o, M, rng) => {
-        const g = new THREE.Group();
-        const dome = put(g, new THREE.SphereGeometry(Math.min(o.w, o.h) * 0.9, 10, 7), M.sand, 0, 0, 0);
-        dome.scale.set(1.4, 0.32, 1);
-        g.userData.h = Math.min(o.w, o.h) * 0.32 + 10;
-        return g;
-    },
-    'survey stake': (o, M, rng) => {
-        const g = new THREE.Group();
-        const h = o.h * 1.1;
-        put(g, gBox(4, h, 4), M.woodDark, 0, h / 2, 0, 0, 0, (rng() - 0.5) * 0.12);
-        put(g, gBox(14, 8, 0.8), new THREE.MeshLambertMaterial({ color: 0xb8412a }), 8, h - 6, 0); // flag
-        g.userData.h = h + 6;
-        return g;
-    },
-    "sam's survey stake": (o, M, rng) => CH1_LABEL_BUILDERS['survey stake'](o, M, rng),
-    'stone wall': (o, M, rng) => {
-        const g = new THREE.Group();
-        const horizontal = o.w >= o.h;
-        const len = Math.max(o.w, o.h), th = Math.min(o.w, o.h) * 1.6;
-        const blocks = Math.max(2, Math.round(len / 42));
-        for (let row = 0; row < 3; row++) {
-            const n = row === 2 ? Math.max(1, blocks - 2) : blocks; // broken top course
-            for (let i = 0; i < n; i++) {
-                const bw = len / blocks - 3;
-                const off = -len / 2 + (i + 0.5) * (len / blocks) + (row % 2) * 8;
-                const b = put(g, gBox(horizontal ? bw : th, 19, horizontal ? th : bw), M.limestone,
-                    horizontal ? off : (rng() - 0.5) * 4, 10 + row * 19, horizontal ? (rng() - 0.5) * 4 : off,
-                    (rng() - 0.5) * 0.06);
-                b.position.y -= row === 2 && rng() > 0.6 ? 6 : 0;
-            }
-        }
-        g.userData.h = 64;
-        return g;
-    },
-    'old limestone wall': (o, M, rng) => CH1_LABEL_BUILDERS['stone wall'](o, M, rng),
-    'crates': (o, M, rng) => { const g = new THREE.Group(); g.userData.h = subCrateStack(g, M, o.w, o.h, rng); return g; },
-    'sorted crates': (o, M, rng) => { const g = new THREE.Group(); g.userData.h = subCrateStack(g, M, o.w, o.h, rng); return g; },
-    'fuel drums': (o, M, rng) => { const g = new THREE.Group(); g.userData.h = subDrums(g, M, M.drum, o.w, o.h, rng, 3); return g; },
-    'oil drum': (o, M, rng) => { const g = new THREE.Group(); g.userData.h = subDrums(g, M, M.drum, o.w, o.h, rng, 1); return g; },
-    'water barrels': (o, M, rng) => { const g = new THREE.Group(); g.userData.h = subDrums(g, M, M.drumBlue, o.w, o.h, rng, 3); return g; },
-    'cooking table': (o, M, rng) => {
-        const g = new THREE.Group();
-        subTable(g, M, o.w, o.h * 1.6, 30);
-        put(g, gCyl(9, 7, 10, 8), M.metal, -o.w * 0.25, 38, 0);
-        put(g, gCyl(7, 6, 7, 8), M.terracotta, o.w * 0.05, 36, 6);
-        put(g, gBox(16, 3, 10), M.woodDark, o.w * 0.3, 33, -4); // cutting board
-        g.userData.h = 52;
-        return g;
-    },
-    'equipment table': (o, M, rng) => {
-        const g = new THREE.Group();
-        subTable(g, M, o.w, o.h * 1.5, 30);
-        put(g, gBox(14, 6, 9), M.drum, -o.w * 0.3, 36, 0, 0.3);
-        put(g, gBox(18, 4, 12), M.dark, o.w * 0.2, 35, 2, -0.2);
-        g.userData.h = 46;
-        return g;
-    },
-    'supply truck': (o, M, rng) => {
-        const g = new THREE.Group();
-        const w = o.w, d = o.h;
-        put(g, gBox(w * 0.3, 34, d * 0.8), M.metalBlue, -w * 0.32, 30, 0);                 // cab
-        put(g, gBox(w * 0.28, 12, d * 0.7), M.dark, -w * 0.33, 47, 0);                     // windows band
-        put(g, gBox(w * 0.62, 30, d * 0.86), M.tarp, w * 0.16, 36, 0);                     // covered bed
-        for (const wx of [-w * 0.32, w * 0.02, w * 0.34]) {
-            subWheel(g, M, wx, d * 0.42, 11);
-            subWheel(g, M, wx, -d * 0.42, 11);
-        }
-        g.userData.h = 58;
-        return g;
-    },
-    'ministry vehicle': (o, M, rng) => {
-        const g = new THREE.Group();
-        const w = o.w, d = o.h;
-        put(g, gBox(w * 0.86, 22, d * 0.74), M.metalBlue, 0, 22, 0);
-        put(g, gBox(w * 0.5, 15, d * 0.62), M.dark, -w * 0.04, 41, 0);
-        for (const wx of [-w * 0.28, w * 0.28]) {
-            subWheel(g, M, wx, d * 0.4, 9);
-            subWheel(g, M, wx, -d * 0.4, 9);
-        }
-        g.userData.h = 52;
-        return g;
-    },
-    'sandbags': (o, M, rng) => { const g = new THREE.Group(); g.userData.h = subSandbags(g, M, o.w, o.h, rng, 2); return g; },
-    'rope coil': (o, M, rng) => {
-        const g = new THREE.Group();
-        put(g, new THREE.TorusGeometry(o.w * 0.4, 5, 6, 12), M.rope, 0, 5, 0, 0, 0, Math.PI / 2);
-        put(g, new THREE.TorusGeometry(o.w * 0.34, 4.4, 6, 12), M.rope, 2, 11, 1, 0, 0, Math.PI / 2);
-        g.userData.h = 18;
-        return g;
-    },
-    'tin bucket': (o, M) => {
-        const g = new THREE.Group();
-        put(g, gCyl(o.w * 0.42, o.w * 0.3, o.w * 0.8, 9), ch1Mats().metal, 0, o.w * 0.4, 0);
-        g.userData.h = o.w * 0.8 + 8;
-        return g;
-    },
-    'tarped supplies': (o, M, rng) => {
-        const g = new THREE.Group();
-        const b = put(g, gBox(o.w, 30, o.h), M.tarp, 0, 16, 0);
-        b.rotation.z = 0.04;
-        put(g, gBox(o.w * 0.5, 14, o.h * 0.7), M.tarp, -o.w * 0.18, 38, 0, 0.2);
-        for (const sx of [-0.3, 0.15]) put(g, gBox(3, 34, o.h + 6), M.rope, o.w * sx, 17, 0); // straps
-        g.userData.h = 50;
-        return g;
-    },
-    'radio antenna': (o, M) => {
-        const g = new THREE.Group();
-        put(g, gCyl(1.4, 2, 130, 5), ch1Mats().dark, 0, 65, 0);
-        put(g, gBox(26, 1.6, 1.6), ch1Mats().dark, 0, 112, 0);
-        put(g, gBox(16, 1.6, 1.6), ch1Mats().dark, 0, 96, 0, 0.6);
-        g.userData.h = 134;
-        return g;
-    },
-    'tool box': (o, M, rng) => {
-        const g = new THREE.Group();
-        put(g, gBox(o.w, 16, o.h * 0.8), M.drum, 0, 8, 0, (rng() - 0.5) * 0.4);
-        put(g, gBox(o.w * 0.7, 2.4, 3), M.dark, 0, 19, 0); // handle
-        g.userData.h = 24;
-        return g;
-    },
-    'driftwood': (o, M, rng) => {
-        const g = new THREE.Group();
-        put(g, gCyl(3.4, 5, o.w, 6), M.woodDark, 0, 6, 0, 0, Math.PI / 2 - 0.1, 0.06);
-        put(g, gCyl(2, 3, o.w * 0.5, 5), M.woodDark, o.w * 0.2, 8, 6, 0, Math.PI / 2 + 0.5);
-        g.userData.h = 16;
-        return g;
-    },
-    'broken clay pot': (o, M, rng) => {
-        const g = new THREE.Group();
-        const pot = put(g, new THREE.SphereGeometry(o.w * 0.6, 8, 6, 0, Math.PI * 2, 0, 2.2), M.terracotta, 0, o.w * 0.5, 0, 0, 0.5);
-        pot.material = M.terracotta;
-        for (let i = 0; i < 3; i++) { // shards
-            put(g, gBox(8, 1.6, 6), M.terracotta, (rng() - 0.5) * o.w * 1.6, 1, (rng() - 0.5) * o.h * 1.6, rng() * 3);
-        }
-        g.userData.h = o.w + 8;
-        return g;
-    },
-    'work lamp': (o, M) => {
-        const g = new THREE.Group();
-        const mats = ch1Mats();
-        for (let i = 0; i < 3; i++) {
-            const a = (i / 3) * Math.PI * 2;
-            const leg = put(g, gCyl(1.4, 1.4, 60, 5), mats.dark, Math.cos(a) * 13, 30, Math.sin(a) * 13);
-            leg.rotation.z = Math.cos(a) * 0.24;
-            leg.rotation.x = -Math.sin(a) * 0.24;
-        }
-        put(g, gCyl(1.6, 1.6, 34, 5), mats.dark, 0, 74, 0);
-        put(g, gBox(18, 12, 8), mats.metal, 0, 94, 0, 0, 0, 0.3);
-        put(g, gBox(14, 8, 1.6), mats.glow, 0, 92, 5, 0, 0, 0.3); // the lit face
-        g.userData.h = 100;
-        return g;
-    },
-    'lantern': (o, M) => {
-        const g = new THREE.Group();
-        const mats = ch1Mats();
-        put(g, gCyl(1.4, 1.8, 40, 5), mats.woodDark, 0, 20, 0);
-        put(g, gBox(9, 11, 9), mats.glow, 0, 44, 0);
-        put(g, gBox(11, 1.6, 11), mats.dark, 0, 50.5, 0);
-        g.userData.h = 54;
-        return g;
-    },
-    'palm tree': (o, M, rng) => {
-        const g = new THREE.Group();
-        g.userData.h = subPalm(g, M, 0, 0, 1.0 + rng() * 0.3, rng);
-        return g;
-    },
-    "sam's date palm": (o, M, rng) => {
-        const g = new THREE.Group();
-        g.userData.h = subPalm(g, M, 0, 0, 1.15, rng);
-        put(g, gCyl(10, 12, 6, 8), M.terracotta, 16, 3, 14); // someone keeps it watered
-        return g;
-    },
-    'camp gate post': (o, M, rng) => {
-        const g = new THREE.Group();
-        put(g, gBox(o.w * 0.7, o.h * 1.5, o.w * 0.7), M.woodDark, 0, o.h * 0.75, 0);
-        put(g, gBox(9, 11, 9), M.glow, 0, o.h * 1.5 + 7, 0);
-        g.userData.h = o.h * 1.5 + 14;
-        return g;
-    },
-    "sam's tool shed": (o, M, rng) => {
-        const g = new THREE.Group();
-        g.userData.h = subShed(g, M, o.w, o.h, 62, rng);
-        return g;
-    },
-    'dig shed clipboard': (o, M, rng) => {
-        const g = new THREE.Group();
-        // the clipboard hangs on the shed wall (the shed itself is built
-        // from its collision wall); just a small board + pencil string
-        put(g, gBox(2, 26, 18), M.wood, 0, 44, 0);
-        put(g, gBox(1, 18, 12), new THREE.MeshLambertMaterial({ color: 0xcfc4a6 }), 1.6, 44, 0);
-        g.userData.h = 60;
-        return g;
-    },
-    'ministry post': (o, M, rng) => {
-        const g = new THREE.Group();
-        put(g, gCyl(1.8, 2.4, 96, 6), M.metal, -o.w * 0.2, 48, 0);
-        put(g, gBox(26, 16, 1.4), new THREE.MeshLambertMaterial({ color: 0x274060 }), -o.w * 0.2 + 14, 84, 0); // flag
-        put(g, gBox(30, 22, 3), M.wood, o.w * 0.2, 30, 0, 0.15); // notice board
-        g.userData.h = 100;
-        return g;
-    },
-    'guard booth': (o, M, rng) => {
-        const g = new THREE.Group();
-        put(g, gBox(o.w * 0.9, 70, o.h * 0.9), M.metal, 0, 35, 0);
-        put(g, gBox(o.w * 0.62, 18, 1.6), M.dark, 0, 48, o.h * 0.45 + 1);
-        put(g, gBox(o.w + 14, 4, o.h + 14), M.metalBlue, 0, 73, 0);
-        g.userData.h = 78;
-        return g;
-    },
-    'scaffolding': (o, M, rng) => {
-        const g = new THREE.Group();
-        const w = o.w, d = o.h, H = 96;
-        for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
-            put(g, gCyl(1.6, 1.6, H, 5), M.metal, sx * w * 0.4, H / 2, sz * d * 0.4);
-        }
-        for (const y of [30, 64]) {
-            for (const sz of [-1, 1]) put(g, gCyl(1.2, 1.2, w * 0.8, 4), M.metal, 0, y, sz * d * 0.4, 0, 0, Math.PI / 2);
-        }
-        put(g, gBox(w * 0.9, 4, d * 0.9), M.wood, 0, 78, 0);
-        g.userData.h = H + 6;
-        return g;
-    },
-    'site trailer': (o, M, rng) => {
-        const g = new THREE.Group();
-        const w = o.w, d = o.h;
-        put(g, gBox(w, 52, d * 0.92), M.metal, 0, 40, 0);
-        put(g, gBox(w + 8, 3, d * 0.92 + 8), M.dark, 0, 67, 0);
-        for (let i = 0; i < 3; i++) put(g, gBox(18, 13, 1.6), i === 0 ? M.window : M.dark, -w / 4 + i * w / 4, 48, d * 0.46 + 1);
-        put(g, gBox(20, 36, 1.8), M.dark, w * 0.34, 32, d * 0.46 + 1.2);          // door
-        put(g, gBox(16, 10, 12), M.metal, -w * 0.3, 72, 0);                       // AC unit
-        subWheel(g, M, -w * 0.26, d * 0.46, 9); subWheel(g, M, w * 0.26, d * 0.46, 9);
-        subWheel(g, M, -w * 0.26, -d * 0.46, 9); subWheel(g, M, w * 0.26, -d * 0.46, 9);
-        put(g, gBox(8, 10, 8), M.crate, -w / 2 - 10, 5, d * 0.3); // step crate
-        g.userData.h = 84;
-        return g;
-    },
-    'gear storage': (o, M, rng) => {
-        const g = new THREE.Group();
-        const b = put(g, gBox(o.w * 0.94, 40, o.h * 0.9), M.tarp, 0, 21, 0);
-        b.rotation.z = 0.03;
-        put(g, gBox(o.w * 0.5, 18, o.h * 0.6), M.tarp, o.w * 0.1, 48, 0, 0.25);
-        for (const sx of [-0.32, 0, 0.32]) put(g, gBox(3, 44, o.h * 0.96), M.rope, o.w * sx, 22, 0);
-        g.userData.h = 60;
-        return g;
-    },
-    'open sky': (o, M, rng) => {
-        const g = new THREE.Group();
-        // a bedroll where someone lies back and watches the stars
-        const roll = put(g, gBox(o.w * 1.2, 8, o.h * 0.6), M.tarp, 0, 4, 0, 0.3);
-        put(g, gBox(o.w * 0.34, 8, o.h * 0.3), M.tent, -o.w * 0.45, 6, o.h * 0.12, 0.3); // pillow
-        put(g, gBox(9, 11, 9), M.glow, o.w * 0.5, 6, -o.h * 0.3); // lantern beside it
-        g.userData.h = 20;
-        return g;
-    },
-};
-
-// Resolve a label-keyed builder: exact key, then containment
-function ch1LabelBuilder(o) {
-    const l = (o.label || '').toLowerCase();
-    if (CH1_LABEL_BUILDERS[l]) return CH1_LABEL_BUILDERS[l];
-    for (const key in CH1_LABEL_BUILDERS) {
-        if (l.includes(key)) return CH1_LABEL_BUILDERS[key];
-    }
-    return null;
-}
-
-// Walls mostly covered by a prop's footprint are part of that prop
-// (building shells, the cooking table, gear storage, the generator…).
-// Thin door-flank segments hugging an enterable building also vanish —
-// the cabin model is the visual; the collision stays.
-function ch1WallInsideObject(wall) {
-    const thin = Math.min(wall.w, wall.h) <= 40;
-    for (const o of (activeMapObjects || [])) {
-        const ox = Math.max(0, Math.min(wall.x + wall.w, o.x + o.w) - Math.max(wall.x, o.x));
-        const oz = Math.max(0, Math.min(wall.y + wall.h, o.y + o.h) - Math.max(wall.y, o.y));
-        if (ox * oz >= wall.w * wall.h * 0.4) return true;
-        if (thin && /_bldg$/.test(o.id || '') &&
-            wall.x < o.x + o.w + 30 && wall.x + wall.w > o.x - 30 &&
-            wall.y < o.y + o.h + 30 && wall.y + wall.h > o.y - 30) return true;
-    }
-    return false;
-}
-
-// Ambient clutter — pebbles, sand humps, dry grass, pottery shards —
-// scattered deterministically across open ground so the desert doesn't
-// feel empty. Visual only; nothing collides.
-function addCh1Scatter(group) {
-    const M = ch1Mats();
-    const rng = seededRng('ch1-scatter');
-    const walls = mapWalls[1] || [];
-    const blocked = (x, z) =>
-        walls.some(w => x > w.x - 16 && x < w.x + w.w + 16 && z > w.y - 16 && z < w.y + w.h + 16) ||
-        (activeMapObjects || []).some(o => x > o.x - 16 && x < o.x + o.w + 16 && z > o.y - 16 && z < o.y + o.h + 16);
-    let placed = 0, tries = 0;
-    while (placed < 80 && tries++ < 500) {
-        const x = 90 + rng() * (WORLD.width - 180);
-        const z = 90 + rng() * (WORLD.height - 180);
-        if (blocked(x, z)) continue;
-        const gh = ch1Height(x, z);
-        const kind = rng();
-        if (kind < 0.42) { // pebbles
-            const r = 2.5 + rng() * 5.5;
-            put(group, new THREE.IcosahedronGeometry(r, 0), M.rock, x, gh + r * 0.55, z, rng() * 3);
-        } else if (kind < 0.68) { // low sand drifts (flat cones shade better)
-            const r = 16 + rng() * 22;
-            put(group, gCyl(r * 0.15, r, r * 0.2, 9), M.sand, x, gh + r * 0.1, z);
-        } else if (kind < 0.88) { // dry grass tufts
-            for (let i = 0; i < 3; i++) {
-                put(group, gableGeo(6, 13 + rng() * 9), M.grass,
-                    x + (rng() - 0.5) * 7, gh, z + (rng() - 0.5) * 7, rng() * Math.PI);
-            }
-        } else { // pottery shards — the ground remembers older camps
-            put(group, gBox(6 + rng() * 6, 1.4, 5), M.terracotta, x, gh + 1, z, rng() * 3);
-        }
-        placed++;
-    }
-}
-
-// Walls that ARE structures get bespoke treatment (keyed by scaled rect)
-const near = (a, b) => Math.abs(a - b) < 2;
-function ch1WallStyle(wall) {
-    if (near(wall.x, 1440) && near(wall.y, 1408)) return 'shed';      // the dig shed
-    if (near(wall.x, 2840) && near(wall.w, 280)) return 'plank';      // trench cross-braces
-    if ((near(wall.x, 2800) || near(wall.x, 3120)) && near(wall.h, 720)) return 'berm'; // trench lips
-    if (near(wall.x, 1312) && near(wall.y, 3184)) return 'gatepost';  // the unmarked twin of the camp gate post
-    return null;
-}
-
-// Custom wall rendering for the Ch1 camp. Returns true when handled.
-function buildCh1Wall(group, wall, palette) {
-    const M = ch1Mats();
-    const minDim = Math.min(wall.w, wall.h);
-    const maxDim = Math.max(wall.w, wall.h);
-    const cx = wall.x + wall.w / 2, cz = wall.y + wall.h / 2;
-    const touchesEdge = wall.x <= 0 || wall.y <= 0 ||
-        wall.x + wall.w >= WORLD.width || wall.y + wall.h >= WORLD.height;
-
-    if (wall.isGate) return false; // gate keeps its (wood-textured) box
-
-    const gh = ch1Height(cx, cz);
-
-    const style = ch1WallStyle(wall);
-    if (style === 'shed') {
-        const g = new THREE.Group();
-        g.position.set(cx, gh, cz);
-        subShed(g, M, wall.w, wall.h, 64, seededRng('digshed'));
-        group.add(g);
-        return true;
-    }
-    if (style === 'plank') { // walk boards across the trench
-        put(group, gBox(wall.w, 10, wall.h), M.wood, cx, gh + 5, cz);
-        return true;
-    }
-    if (style === 'gatepost') { // matches the built fl_gate_post across the gap
-        put(group, gBox(34, 144, 34), M.woodDark, cx, gh + 72, cz);
-        put(group, gBox(9, 11, 9), M.glow, cx, gh + 151, cz);
-        return true;
-    }
-    if (style === 'berm') { // low spoil lips flanking the trench
-        put(group, gBox(wall.w + 10, 26, wall.h), M.sand, cx, gh + 13, cz);
-        for (let i = 0; i < 6; i++) {
-            const rr = 6 + (i * 7) % 9;
-            const bz = wall.y + (i + 0.5) * wall.h / 6;
-            put(group, new THREE.IcosahedronGeometry(rr, 0), M.rock, cx, ch1Height(cx, bz) + rr * 0.7, bz, i * 1.7);
-        }
-        return true;
-    }
-
-    // Rope fence around the tent compound (very thin strips) — each
-    // post seats on its own patch of ground so the line follows terrain
-    if (minDim <= 22 && maxDim >= 140) {
-        const horizontal = wall.w >= wall.h;
-        const len = maxDim;
-        const posts = Math.max(2, Math.round(len / 150));
-        for (let i = 0; i < posts; i++) {
-            const t = posts === 1 ? 0.5 : i / (posts - 1);
-            const px = horizontal ? wall.x + t * wall.w : cx;
-            const pz = horizontal ? cz : wall.y + t * wall.h;
-            put(group, gCyl(2.2, 2.6, 44, 5), M.woodDark, px, ch1Height(px, pz) + 20, pz);
-        }
-        const rope = put(group, gCyl(1.1, 1.1, len, 4), M.rope, cx, gh + 34, cz);
-        rope.rotation.z = horizontal ? Math.PI / 2 : 0;
-        if (!horizontal) rope.rotation.x = Math.PI / 2, rope.rotation.z = 0;
-        return true;
-    }
-
-    // Camp fences: post-and-rail (thin, long)
-    if (minDim <= 36 && maxDim >= 480 && !touchesEdge) {
-        const horizontal = wall.w >= wall.h;
-        const len = maxDim;
-        const posts = Math.max(3, Math.round(len / 120));
-        for (let i = 0; i < posts; i++) {
-            const t = i / (posts - 1);
-            const px = horizontal ? wall.x + t * wall.w : cx;
-            const pz = horizontal ? cz : wall.y + t * wall.h;
-            put(group, gBox(7, 56, 7), M.woodDark, px, ch1Height(px, pz) + 26, pz);
-        }
-        for (const y of [20, 44]) {
-            put(group, gBox(horizontal ? len : 5, 6, horizontal ? 5 : len), M.wood, cx, gh + y, cz);
-        }
-        return true;
-    }
-
-    return false; // default extruded box (rock-textured via wall material)
-}
 // type 'ext' = open night sky (moon, stars); 'und' = underground
 // (ceiling, dense fog, amber point lights); 'int' = building interior.
 // fog: [near, far] at CALM sanity — fog closes in as sanity drops.
@@ -1532,6 +566,18 @@ function buildWorld() {
     const atmos = atmosForCurrentMap();
     const palette = getChapterPalette();
     const groundCol = new THREE.Color(groundColorForCurrentMap());
+    // Chapter 1's camp is a fully art-directed scene (ch1_world.js):
+    // tone-mapped, shadowed, its own sky, terrain, walls and props
+    const isCh1 = currentMapKey === 1;
+    renderer3.toneMapping = isCh1 ? THREE.ACESFilmicToneMapping : THREE.NoToneMapping;
+    renderer3.toneMappingExposure = isCh1 ? 0.95 : 1;
+    renderer3.shadowMap.enabled = isCh1 && gfxSettings().shadows;
+    renderer3.shadowMap.type = THREE.PCFSoftShadowMap;
+    if (!isCh1) ch1Deactivate();
+
+    if (isCh1) {
+        buildCh1Environment(worldGroup, scene3);
+    } else {
 
     // Sky + fog. Underground is near-black (tinted per place) with the
     // fog closing in; exteriors get a dome, moon and horizon silhouettes.
@@ -1547,28 +593,11 @@ function buildWorld() {
     fogBase = atmos.fog.slice();
     scene3.fog = new THREE.Fog(fogCol, fogBase[0], fogBase[1]);
 
-    // Ground plane (Phong: point lights evaluated per pixel).
-    // Ch1 gets sand-textured terrain displaced by the heightfield;
-    // other maps keep their flat palette-colored plane.
-    let groundGeo;
-    if (currentMapKey === 1) {
-        groundGeo = new THREE.PlaneGeometry(WORLD.width, WORLD.height, 96, 88);
-        groundGeo.rotateX(-Math.PI / 2);
-        const pos = groundGeo.attributes.position;
-        for (let i = 0; i < pos.count; i++) {
-            pos.setY(i, ch1Height(pos.getX(i) + WORLD.width / 2, pos.getZ(i) + WORLD.height / 2));
-        }
-        groundGeo.computeVertexNormals();
-    } else {
-        groundGeo = new THREE.PlaneGeometry(WORLD.width, WORLD.height);
-        groundGeo.rotateX(-Math.PI / 2);
-    }
-    const ground = new THREE.Mesh(
-        groundGeo,
-        currentMapKey === 1
-            ? ch1Mats().sand
-            : new THREE.MeshPhongMaterial({ color: groundCol, shininess: 4, specular: 0x0a0a0a })
-    );
+    // Ground plane (Phong: point lights evaluated per pixel)
+    const groundGeo = new THREE.PlaneGeometry(WORLD.width, WORLD.height);
+    groundGeo.rotateX(-Math.PI / 2);
+    const ground = new THREE.Mesh(groundGeo,
+        new THREE.MeshPhongMaterial({ color: groundCol, shininess: 4, specular: 0x0a0a0a }));
     ground.position.set(WORLD.width / 2, 0, WORLD.height / 2);
     worldGroup.add(ground);
 
@@ -1645,37 +674,19 @@ function buildWorld() {
         color: new THREE.Color(palette.wallFill).lerp(new THREE.Color('#998c70'), atmos.type === 'und' ? 0.4 : 0.25),
         shininess: 6, specular: 0x111111
     });
-    const gateMat = currentMapKey === 1
-        ? ch1Mats().wood
-        : new THREE.MeshPhongMaterial({ color: 0x8b6914, shininess: 10, specular: 0x222211 });
+    const gateMat = new THREE.MeshPhongMaterial({ color: 0x8b6914, shininess: 10, specular: 0x222211 });
     for (const wall of (mapWalls[currentMapKey] || [])) {
         if (!wall.isGate && objectRects.has(`${wall.x},${wall.y},${wall.w},${wall.h}`)) continue;
-        if (currentMapKey === 1 && !wall.isGate) {
-            if (ch1WallInsideObject(wall)) continue;       // shell of a built prop
-            if (buildCh1Wall(worldGroup, wall, palette)) continue; // fence/rope/shed/trench
-        }
         const h = wallHeightFor(wall, atmos);
-        const mesh = addBoxAt(worldGroup, wall.x, wall.y, wall.w, wall.h, h,
-            wall.isGate ? gateMat : (currentMapKey === 1 ? ch1Mats().rock : wallMat));
+        const mesh = addBoxAt(worldGroup, wall.x, wall.y, wall.w, wall.h, h, wall.isGate ? gateMat : wallMat);
         if (wall.isGate) gateMeshes.push({ mesh, gateFlag: wall.gateFlag });
-        // Seat Ch1 walls on the terrain (sunk a little so slopes can't
-        // open gaps beneath them; the flatten mask keeps deltas small)
-        let wallGH = 0;
-        if (currentMapKey === 1) {
-            wallGH = ch1Height(wall.x + wall.w / 2, wall.y + wall.h / 2);
-            mesh.position.y += wallGH - 12;
-        }
-        // Rocky outcrops get a jagged crown so they read as rock, not box
-        if (currentMapKey === 1 && !wall.isGate && Math.min(wall.w, wall.h) >= 150) {
-            const rng = seededRng(wall.x + ',' + wall.y);
-            for (let i = 0; i < 4; i++) {
-                const bw = wall.w * (0.18 + rng() * 0.2);
-                const bh = 22 + rng() * 36;
-                put(worldGroup, gBox(bw, bh, wall.h * (0.4 + rng() * 0.35)), ch1Mats().rock,
-                    wall.x + bw / 2 + rng() * (wall.w - bw), wallGH + h + bh / 2 - 18,
-                    wall.y + wall.h / 2 + (rng() - 0.5) * wall.h * 0.3, (rng() - 0.5) * 0.3);
-            }
-        }
+    }
+    } // end non-Ch1 environment
+
+    if (isCh1) {
+        gateMeshes = [];
+        buildCh1Walls(worldGroup);
+        addCh1Dressing(worldGroup);
     }
 
     // --- Map objects (interactables get labels, decoratives are plain) ---
@@ -1705,6 +716,23 @@ function buildWorld() {
             objectEntries.push({ o, mesh: fig, label });
             personEntries.push({ o, fig });
             continue;
+        }
+        // Chapter 1: bespoke props, lights and FX (ch1_props.js)
+        if (isCh1) {
+            const g = buildCh1Object(o);
+            if (g) {
+                worldGroup.add(g);
+                let label = null;
+                if (!o.decorative && o.interactScene) {
+                    label = makeLabelSprite(o.label || o.id, '#f4e4b0');
+                    label.position.set(o.x + o.w / 2, g.position.y + (g.userData.h || 60) + 20,
+                        g.userData.labelZ != null ? g.position.z + g.userData.labelZ : o.y + o.h / 2);
+                    worldGroup.add(label);
+                }
+                // physical things stay put once their story beat is done
+                objectEntries.push({ o, mesh: g, label, keep: !!g.userData.keep });
+                continue;
+            }
         }
         // Ground features (trench, chasm) read as openings in the earth,
         // not raised boxes: black floor cut + broken rim + amber underglow
@@ -1753,28 +781,6 @@ function buildWorld() {
             }
             objectEntries.push({ o, mesh: feature, label });
             continue;
-        }
-        // Chapter 1 art pass: bespoke props instead of extruded boxes
-        if (currentMapKey === 1) {
-            const builder = CH1_BUILDERS[o.id] || ch1LabelBuilder(o);
-            if (builder) {
-                const M = ch1Mats();
-                const rng = seededRng(o.id || o.label || 'x');
-                const g = builder(o, M, rng);
-                const gh = ch1Height(o.x + o.w / 2, o.y + o.h / 2);
-                g.position.set(o.x + o.w / 2, gh, o.y + o.h / 2);
-                worldGroup.add(g);
-                g.traverse(m => { if (m.userData && m.userData.flame) flameMeshes.push(m); });
-                let label = null;
-                if (!o.decorative && o.interactScene) {
-                    label = makeLabelSprite(o.label || o.id, '#f4e4b0');
-                    label.position.set(o.x + o.w / 2, gh + (g.userData.h || 60) + 22, o.y + o.h / 2);
-                    worldGroup.add(label);
-                }
-                objectEntries.push({ o, mesh: g, label });
-                if (isLightSource(o)) lightBudget.push({ o, h: Math.min(g.userData.h || 40, 100) });
-                continue;
-            }
         }
         const h = objectHeightFor(o, atmos);
         const matOpts = { color: new THREE.Color(o.color || '#777'), shininess: 6, specular: 0x0d0d0d };
@@ -1870,6 +876,7 @@ function buildWorld() {
         scene3.add(playerLamp);
     }
 
+    if (isCh1) ch1ApplyShadows(worldGroup);
     scene3.add(worldGroup);
     buildMinistryCar(); // scene was recreated; re-add dynamic meshes
     hostileMeshes = new Map(); // hostile meshes were dropped with the old scene
@@ -1893,9 +900,11 @@ function syncWorldVisibility() {
     }
     const px = player.x + player.size / 2;
     const py = player.y + player.size / 2;
+    // Ch1 is dense with props — only nearby things are labelled there
+    const labelFar = currentMapKey === 1 ? [620, 900] : [1250, 1700];
     for (const e of objectEntries) {
         const hidden = isObjectResolved(e.o);
-        e.mesh.visible = !hidden;
+        e.mesh.visible = !hidden || !!e.keep;
         // The dig gate's sign is baked into a sprite texture — repaint it
         // once the gate actually opens (labels are otherwise static)
         if (e.o.id === 'dig_gate' && e.label && !e.labelOpened && gameState.flags.scene3Triggered) {
@@ -1916,8 +925,8 @@ function syncWorldVisibility() {
             let alpha = 1;
             if (dist < 60) alpha = 0;
             else if (dist < 140) alpha = (dist - 60) / 80;
-            else if (dist > 1700) alpha = 0;
-            else if (dist > 1250) alpha = 1 - (dist - 1250) / 450;
+            else if (dist > labelFar[1]) alpha = 0;
+            else if (dist > labelFar[0]) alpha = 1 - (dist - labelFar[0]) / (labelFar[1] - labelFar[0]);
             e.label.material.opacity = alpha;
             e.label.visible = !hidden && alpha > 0.02;
         }
@@ -2397,6 +1406,10 @@ function updateHallucinations3d() {
 // (same rhythm as the Codex pulse), and fog that closes in as sanity slips.
 function updateAtmosphere3d() {
     const t = performance.now() / 1000;
+    if (currentMapKey === 1 && typeof updateCh1FX === 'function') {
+        const inMenu = gameState.currentScreen === 'START_MENU';
+        updateCh1FX(inMenu ? 1703 : player.x + player.size / 2, inMenu ? 2400 : player.y + player.size / 2);
+    }
 
     for (const f of flickerLights) {
         if (f.steady) continue;
@@ -2442,7 +1455,8 @@ function drawOverlays() {
 
     // Drifting dust motes (canvas-space, engine-agnostic). The 2D dot
     // phantoms are not drawn in 3D — hallucinations are world-space here.
-    drawAmbientDust(palette.ambientDust);
+    // (Ch1 has real drifting sand in the world instead)
+    if (currentMapKey !== 1) drawAmbientDust(palette.ambientDust);
 
     const vigCX = canvas.width / 2, vigCY = canvas.height / 2;
     const vig = ctx.createRadialGradient(vigCX, vigCY, Math.min(canvas.width, canvas.height) * 0.25,

@@ -13,6 +13,36 @@ Other docs:
 
 ---
 
+## V3.2.0 — 2026-09-29 — Chapter 1 camp visual overhaul
+The first open area (the Giza dig camp, up to the Tunnel Gate Seal) was
+rebuilt visually from scratch. No story, dialogue, flags or collision changed.
+- New files: `ch1_world.js` (terrain, sky, lighting, FX) and `ch1_props.js`
+  (buildings, props, fences, vehicles). The old Ch1 art code was removed
+  from `engine3d.js`.
+- Lighting: moonlight with soft shadows, tone mapping, warm lamp pools with
+  glow halos. It reads as night but you can still see where you're going.
+- Sky: a shader sky with twinkling stars, the Milky Way, thin moonlit cloud
+  and Cairo's glow on the horizon. The moon has craters. The Giza pyramids
+  and distant city lights sit on the horizon.
+- Terrain: rolling dunes out to the horizon, trodden paths and tyre-rutted
+  roads, a bulldozed berm around the site edge (so the invisible border
+  walls have a visible reason), and a rock escarpment across the north.
+  The east trench is now actually dug, with ramps, shoring, planks and spoil.
+- Buildings: a canvas wall tent with a porch and a lit interior, a timber
+  bunkhouse with a water tank and a washing line, a plastered mud-brick site
+  office, and ministry portakabins. The Tunnel is now a timbered portal cut
+  into the rock, with a rock-cut approach.
+- Props: every prop was remade (trucks, SUVs, generator, mine carts, braziers,
+  scaffolding, palms, cacti, ruins, etc.). Added festoon lights, pennant rope
+  fences, chain-link fences with signs, and a wheelbarrow, bowser and survey grid.
+- FX: a real brazier fire with embers and smoke, drifting sand, moths
+  around the work lamps, swaying palms and flags, and a sleeping, breathing Dust.
+- Characters (all chapters): rounded limbs, faces, boots and better headwear.
+  Same rig and animations as before.
+- Labels: restyled as small gold-trimmed tags. In Ch1 they only show up close.
+- Physical things (trench, generator, carts, stela…) no longer vanish once
+  their story beat is done. Only the label and the interaction go away.
+
 ## V3.1.1 — 2026-08-03
 - WebGL startup now retries with lighter settings (no antialias, etc.)
   before giving up, so weaker GPUs/browsers can still run the 3D build.
