@@ -44,6 +44,8 @@ function mgWantsMode() {
     const type = activePuzzle.def.type;
     if (type === 'glyphseal' && window.ch1Seal) return 'seal';
     if (type === 'darts' && window.ch1Darts) return 'darts';
+    if (type === 'tea' && window.ch1Tea) return 'tea';
+    if (type === 'sieve' && window.ch1Sieve) return 'sieve';
     return null;
 }
 
@@ -75,12 +77,17 @@ function mgEnter(mode) {
         MG.dart = { state: 'ready', hold: 0, t: 0 };
         for (const d of window.ch1Darts.holstered) d.visible = false;
         mgClearStuckDarts();
+        mgEl('mg-again').firstChild.textContent = 'THROW AGAIN ';
         MG.hand = ch1MakeDart(ch1Mats());
         scene3.add(MG.hand);
         mgEl('mg-title').textContent = 'CAMP DARTS';
         mgEl('mg-hint').textContent = 'Three darts. Sam\'s chalk says 132.';
         mgEl('mg-keys').innerHTML = '<span class="key">MOUSE</span> AIM &nbsp; <span class="key">HOLD LMB</span> STEADY &nbsp; <span class="key">RELEASE</span> THROW &nbsp; <span class="key">ESC</span> WALK AWAY';
         if (document.pointerLockElement !== glCanvas) { try { glCanvas.requestPointerLock(); } catch (e) { /* needs a click */ } }
+    } else if (mode === 'tea') {
+        mgTeaEnter();
+    } else if (mode === 'sieve') {
+        mgSieveEnter();
     } else {
         mgEl('mg-title').textContent = MG.puzzle.def.title;
         mgEl('mg-hint').textContent = MG.puzzle.def.hint;
@@ -98,6 +105,16 @@ function mgExit() {
         if (window.ch1Darts) for (const d of window.ch1Darts.holstered) d.visible = true;
     } else {
         camYaw = MG.savedYaw; camPitch = MG.savedPitch;
+    }
+    if (MG.mode === 'tea' && window.ch1Tea) {
+        const T = window.ch1Tea;
+        T.fill.scale.y = 0.01; T.foam.visible = false; T.stream.visible = false;
+        T.kettle.position.set(-16, 40, 2); T.kettle.rotation.z = 0;
+    }
+    if (MG.mode === 'sieve' && window.ch1Sieve) {
+        for (const f of window.ch1Sieve.finds) f.mesh.parent && f.mesh.parent.remove(f.mesh);
+        window.ch1Sieve.finds = [];
+        window.ch1Sieve.frame.position.x = 0;
     }
     for (const p of MG.popups) p.sprite.parent && p.sprite.parent.remove(p.sprite);
     MG.popups = [];
@@ -120,7 +137,8 @@ function mgClearStuckDarts() {
 // Returns true when the minigame placed the camera this frame
 function mgDrivesCamera() {
     if (!MG.mode) return false;
-    const target = MG.mode === 'seal' ? mgSealCamera() : mgDartsCamera();
+    const target = MG.mode === 'seal' ? mgSealCamera() : MG.mode === 'tea' ? mgTeaCamera()
+        : MG.mode === 'sieve' ? mgSieveCamera() : mgDartsCamera();
     MG.blend = Math.min(1, MG.blend + 1 / 40);
     const k = easeInOut(MG.blend);
     cam3.position.lerpVectors(MG.from.pos, target.pos, k);
@@ -205,6 +223,8 @@ function mgUpdate() {
     if (!MG.mode) return;
     const dt = 1 / 60;
     if (MG.mode === 'seal') mgSealUpdate(dt);
+    else if (MG.mode === 'tea') mgTeaUpdate(dt);
+    else if (MG.mode === 'sieve') mgSieveUpdate(dt);
     else mgDartsUpdate(dt);
     // floating score/text popups
     for (let i = MG.popups.length - 1; i >= 0; i--) {
@@ -523,6 +543,10 @@ function puzzle3dPointerDown(e) {
     if (MG.mode === 'seal') {
         if (e.button === 2) { closePuzzle(); return true; }
         if (MG.hover >= 0) mgSealPress(MG.hover);
+    } else if (MG.mode === 'tea') {
+        if (e.button === 0 && MG.tea && !MG.tea.done) MG.tea.pouring = true;
+    } else if (MG.mode === 'sieve') {
+        if (e.button === 0) mgSieveClick();
     } else if (e.button === 0) {
         mgDartsPress();
     }
@@ -531,6 +555,7 @@ function puzzle3dPointerDown(e) {
 
 window.addEventListener('pointerup', e => {
     if (MG.mode === 'darts' && e.button === 0) mgDartsRelease();
+    if (MG.mode === 'tea' && e.button === 0) mgTeaStop();
 });
 
 window.addEventListener('mousemove', e => {
@@ -550,11 +575,226 @@ window.addEventListener('keydown', e => {
         mgSealPress(order[Number(e.key) - 1]);
     } else if (MG.mode === 'darts') {
         if ((e.key === 'r' || e.key === 'R' || e.key === 'Enter') && MG.puzzle.stage === 'done') mgDartsAgain();
+    } else if ((MG.mode === 'tea' || MG.mode === 'sieve') && (e.key === 'r' || e.key === 'R' || e.key === 'Enter')) {
+        if (!mgEl('mg-result').classList.contains('hidden')) mgAgain();
     }
 });
 
 document.addEventListener('DOMContentLoaded', () => {
     const again = mgEl('mg-again'), leave = mgEl('mg-leave');
-    if (again) again.addEventListener('click', mgDartsAgain);
+    if (again) again.addEventListener('click', mgAgain);
     if (leave) leave.addEventListener('click', () => closePuzzle());
 });
+
+// "Again" on the result panel, whichever game is up
+function mgAgain() {
+    if (MG.mode === 'darts') return mgDartsAgain();
+    mgEl('mg-result').classList.add('hidden');
+    if (MG.mode === 'tea') mgTeaEnter();
+    else if (MG.mode === 'sieve') {
+        if ((gameState.flags.ow_sieve_runs || 0) >= 3) closePuzzle();
+        else mgSieveEnter();
+    }
+}
+
+// ============================================================
+// MINT TEA (open-world side game, ch1_openworld.js)
+// Hold the left button to pour; the mouse's height is the kettle's
+// height. Pour from high for foam — too high and it splashes. Fill the
+// glass to the line with a proper head of foam.
+// ============================================================
+function mgTeaEnter() {
+    MG.tea = { level: 0, foam: 0, height: 0.4, pouring: false, splash: 0, done: false, result: null };
+    const T = window.ch1Tea;
+    T.fill.scale.y = 0.01; T.foam.visible = false; T.stream.visible = false;
+    mgEl('mg-title').textContent = 'MINT TEA';
+    mgEl('mg-hint').textContent = 'Pour from a height for the foam. Fill to the gold line. Don\'t drown the tray.';
+    mgEl('mg-keys').innerHTML = '<span class="key">MOUSE ↑↓</span> KETTLE HEIGHT &nbsp; <span class="key">HOLD LMB</span> POUR &nbsp; <span class="key">ESC</span> LEAVE';
+}
+
+function mgTeaCamera() {
+    const T = window.ch1Tea;
+    T.group.updateWorldMatrix(true, false);
+    const c = T.glass.getWorldPosition(new THREE.Vector3());
+    const pos = new THREE.Vector3(c.x + 30, c.y + 22, c.z + 58);
+    const m = new THREE.Matrix4().lookAt(pos, new THREE.Vector3(c.x - 2, c.y + 8, c.z), new THREE.Vector3(0, 1, 0));
+    return { pos, quat: new THREE.Quaternion().setFromRotationMatrix(m) };
+}
+
+function mgTeaUpdate(dt) {
+    const S = MG.tea, T = window.ch1Tea;
+    if (!S.done) S.height += ((MG.mouse.y + 1) / 2 - S.height) * 0.2; // cursor height → kettle height
+    const h = Math.max(0, Math.min(1, S.height));
+    // kettle sits above the glass, tipped while pouring
+    const gy = T.glass.position.y;
+    T.kettle.position.set(T.glass.position.x - 9, gy + 12 + h * 30, T.glass.position.z);
+    T.kettle.rotation.z = S.pouring ? -0.9 : -0.2;
+    if (S.pouring && !S.done) {
+        S.level += dt * 0.28;
+        S.foam = Math.min(1, S.foam + dt * (h > 0.45 ? (h - 0.35) * 1.4 : -0.05));
+        if (h > 0.85 && Math.random() < dt * 6) { S.splash++; MG.shake = 0.3; }
+        if (Math.random() < dt * 18 && typeof _tone === 'function') _tone(1600 + Math.random() * 900, 0.015, 'sine', 0.012);
+    } else if (!S.done) S.foam = Math.max(0, S.foam - dt * 0.12); // foam settles if you dawdle
+    // the glass
+    const lvl = Math.min(1.05, S.level);
+    T.fill.scale.y = Math.max(0.01, lvl * 6.4);
+    T.fill.position.y = gy - 3.3 + lvl * 3.2;
+    T.foam.visible = S.foam > 0.05 && lvl > 0.1;
+    T.foam.scale.y = S.foam * 1.6;
+    T.foam.position.y = gy - 3.3 + lvl * 6.4 + S.foam * 0.8;
+    T.stream.visible = S.pouring && !S.done;
+    const spout = T.kettle.position.clone().add(new THREE.Vector3(8, -2, 0));
+    const top = gy - 3.3 + lvl * 6.4;
+    T.stream.position.set(T.glass.position.x, (spout.y + top) / 2, T.glass.position.z);
+    T.stream.scale.y = Math.max(0.1, spout.y - top);
+    if (S.level >= 1.02 && !S.done) mgTeaFinish('over');
+    // HUD
+    const pct = v => (Math.max(0, Math.min(1, v)) * 100).toFixed(0) + '%';
+    mgEl('mg-stats').innerHTML =
+        `<div><span>GLASS</span><b class="bar"><i style="width:${pct(S.level)}"></i><em style="left:78%;width:16%"></em></b></div>` +
+        `<div><span>FOAM</span><b class="bar"><i style="width:${pct(S.foam)}"></i><em style="left:50%;width:50%"></em></b></div>` +
+        `<div><span>HEIGHT</span><b class="bar"><i style="width:${pct(h)}" class="${h > 0.85 ? 'hot' : ''}"></i></b></div>`;
+    mgSetStatus(S.done ? '' : S.pouring ? (h > 0.85 ? 'TOO HIGH — IT\'S SPLASHING' : h > 0.45 ? 'THE FOAM IS RISING' : 'POUR FROM HIGHER FOR FOAM') : 'HOLD THE LEFT BUTTON TO POUR',
+        !S.done && S.pouring && h > 0.85 ? 'bad' : S.pouring ? 'live' : '');
+}
+
+function mgTeaStop() {
+    const S = MG.tea;
+    if (!S || S.done || !S.pouring) return;
+    S.pouring = false;
+    if (S.level >= 0.55) mgTeaFinish(S.level < 0.78 ? 'short' : S.foam < 0.5 ? 'flat' : S.splash > 3 ? 'messy' : 'perfect');
+}
+
+function mgTeaFinish(kind) {
+    const S = MG.tea;
+    S.done = true; S.pouring = false;
+    const lines = {
+        perfect: "A proper glass — amber, sweet, a fat head of foam that holds. Somewhere behind you a worker clicks his tongue in approval.",
+        short: 'Half a glass. The workers would call that an insult to the mint.',
+        flat: 'Full, but flat as a puddle. Pour from higher — the foam is the whole point.',
+        messy: 'Foam, yes. Also tea across the tray, the crate and your left boot.',
+        over: 'It overflows, runs off the tray and hisses on the coals.',
+    };
+    let reward = '';
+    if (kind === 'perfect') {
+        increaseSanity(0.3);
+        if (!gameState.inventory.includes('Mint Tea')) { gameState.inventory.push('Mint Tea'); reward = '  —  MINT TEA ADDED (stamina recovers faster)'; }
+        gameState.stamina = gameState.maxStamina;
+        updateHUD();
+        sndSuccess();
+    } else sndFail();
+    mgEl('mg-result-score').textContent = (kind === 'perfect' ? 'A PERFECT GLASS' : kind === 'over' ? 'SPILLED' : 'NOT QUITE') + reward;
+    mgEl('mg-result-line').textContent = lines[kind];
+    mgEl('mg-again').firstChild.textContent = 'POUR AGAIN ';
+    mgEl('mg-result').classList.remove('hidden');
+}
+
+// ============================================================
+// THE SIEVE (open-world side game)
+// Shake the sieve by moving the mouse side to side; the earth drains
+// through and whatever it hid comes up. Click the finds to bag them
+// (stones are just stones). 25 seconds a heap.
+// ============================================================
+const SIEVE_FINDS = [
+    { kind: 'sherd', value: 10, name: 'Pot sherd' }, { kind: 'bead', value: 25, name: 'Faience bead' },
+    { kind: 'coin', value: 35, name: 'Copper coin' }, { kind: 'bone', value: 5, name: 'Animal bone' },
+    { kind: 'flint', value: 15, name: 'Worked flint' },
+];
+function mgSieveEnter() {
+    const V = window.ch1Sieve, M = ch1Mats();
+    for (const f of V.finds) f.mesh.parent && f.mesh.parent.remove(f.mesh);
+    V.finds = [];
+    const n = 6 + (Math.random() * 3 | 0);
+    for (let i = 0; i < n; i++) {
+        const isFind = Math.random() < 0.5;
+        const def = isFind ? SIEVE_FINDS[(Math.random() * SIEVE_FINDS.length) | 0] : null;
+        let mesh;
+        if (!def) mesh = new THREE.Mesh(ch1RockGeo(i), M.rock), mesh.scale.setScalar(2.2 + Math.random() * 1.5);
+        else if (def.kind === 'bead') mesh = new THREE.Mesh(new THREE.TorusGeometry(1.3, 0.7, 6, 10), new THREE.MeshStandardMaterial({ color: 0x2a8a9a, roughness: 0.3, emissive: 0x0a2a30 }));
+        else if (def.kind === 'coin') mesh = new THREE.Mesh(gCyl(1.6, 1.6, 0.4, 12), new THREE.MeshStandardMaterial({ color: 0x5a7a50, roughness: 0.5, metalness: 0.6 }));
+        else if (def.kind === 'bone') mesh = new THREE.Mesh(new THREE.CapsuleGeometry(0.7, 3.5, 3, 6), new THREE.MeshStandardMaterial({ color: 0xe0d6bc }));
+        else if (def.kind === 'flint') mesh = new THREE.Mesh(new THREE.TetrahedronGeometry(2), new THREE.MeshStandardMaterial({ color: 0x5a4a3a, roughness: 0.3, flatShading: true }));
+        else mesh = new THREE.Mesh(gBox(3.4, 0.6, 2.4), M.terracotta);
+        mesh.position.set((Math.random() - 0.5) * 56, 1.5, (Math.random() - 0.5) * 30);
+        mesh.rotation.set(Math.random() * 0.4, Math.random() * 6, Math.random() * 0.4);
+        mesh.visible = false;
+        V.frame.add(mesh);
+        V.finds.push({ mesh, def, depth: 0.25 + Math.random() * 0.6, taken: false });
+    }
+    V.soil.scale.y = 1; V.soil.position.y = 1;
+    MG.sieve = { progress: 0, time: 25, lastX: MG.mouse.x, earned: 0, bagged: [], done: false };
+    mgEl('mg-title').textContent = 'THE SIEVE';
+    mgEl('mg-hint').textContent = 'Shake it through. Anything the register wants, bag it. Stones are just stones.';
+    mgEl('mg-keys').innerHTML = '<span class="key">MOUSE ←→</span> SHAKE &nbsp; <span class="key">CLICK</span> BAG A FIND &nbsp; <span class="key">ESC</span> LEAVE';
+}
+
+function mgSieveCamera() {
+    const V = window.ch1Sieve;
+    V.group.updateWorldMatrix(true, false);
+    const c = V.frame.getWorldPosition(new THREE.Vector3());
+    const pos = new THREE.Vector3(c.x, c.y + 62, c.z + 46);
+    const m = new THREE.Matrix4().lookAt(pos, c, new THREE.Vector3(0, 1, 0));
+    return { pos, quat: new THREE.Quaternion().setFromRotationMatrix(m) };
+}
+
+function mgSieveUpdate(dt) {
+    const S = MG.sieve, V = window.ch1Sieve;
+    if (!S.done) {
+        S.time -= dt;
+        const shake = Math.min(0.4, Math.abs(MG.mouse.x - S.lastX) * 2.2);
+        S.progress = Math.min(1, S.progress + shake * 0.09);
+        V.frame.position.x = Math.sin(performance.now() / 40) * shake * 8;
+        if (shake > 0.05 && Math.random() < 0.4 && typeof sndFootstep === 'function') sndFootstep('sand', false);
+    }
+    S.lastX = MG.mouse.x;
+    V.soil.scale.y = Math.max(0.05, 1 - S.progress);
+    V.soil.position.y = 1 - S.progress * 2.5;
+    // hover + reveal
+    MG.hover = -1;
+    const ray = new THREE.Raycaster();
+    ray.setFromCamera(new THREE.Vector2(MG.mouse.x, MG.mouse.y), cam3);
+    const live = V.finds.filter(f => !f.taken && f.mesh.visible);
+    const hit = ray.intersectObjects(live.map(f => f.mesh), false)[0];
+    V.finds.forEach((f, i) => {
+        if (!f.taken && S.progress > f.depth) f.mesh.visible = true;
+        f.mesh.scale.setScalar((f.def ? 1 : f.mesh.scale.x) * 1);
+        if (hit && hit.object === f.mesh) MG.hover = i;
+    });
+    glCanvas.style.cursor = MG.hover >= 0 ? 'pointer' : 'default';
+    if (!S.done && (S.time <= 0 || (S.progress >= 1 && V.finds.every(f => f.taken || !f.def)))) mgSieveFinish();
+    const hov = MG.hover >= 0 ? V.finds[MG.hover] : null;
+    mgEl('mg-stats').innerHTML =
+        `<div><span>TIME</span><b>${Math.max(0, S.time).toFixed(0)}s</b></div>` +
+        `<div><span>SIFTED</span><b class="bar"><i style="width:${(S.progress * 100).toFixed(0)}%"></i></b></div>` +
+        `<div><span>BAGGED</span><b>${S.bagged.length} · ${S.earned} EGP</b></div>`;
+    mgSetStatus(S.done ? '' : hov ? (hov.def ? hov.def.name.toUpperCase() + ' — CLICK TO BAG' : 'A STONE') : S.progress < 0.3 ? 'SHAKE — MOUSE SIDE TO SIDE' : 'LOOK FOR ANYTHING THAT ISN\'T A STONE', hov && hov.def ? 'live' : '');
+}
+
+function mgSieveClick() {
+    const S = MG.sieve, V = window.ch1Sieve;
+    if (!S || S.done || MG.hover < 0) return;
+    const f = V.finds[MG.hover];
+    f.taken = true;
+    f.mesh.visible = false;
+    if (f.def) {
+        S.bagged.push(f.def.name); S.earned += f.def.value;
+        mgPopup('+' + f.def.value, f.mesh.getWorldPosition(new THREE.Vector3()), f.def.value >= 25);
+        if (typeof sndPickup === 'function') sndPickup();
+    } else if (typeof _tone === 'function') _tone(220, 0.05, 'triangle', 0.04);
+}
+
+function mgSieveFinish() {
+    const S = MG.sieve;
+    S.done = true;
+    gameState.flags.ow_sieve_runs = (gameState.flags.ow_sieve_runs || 0) + 1;
+    gameState.funds += S.earned;
+    updateHUD();
+    saveGame();
+    mgEl('mg-result-score').textContent = S.bagged.length ? `${S.bagged.length} FINDS  ·  +${S.earned} EGP` : 'NOTHING BUT STONES';
+    mgEl('mg-result-line').textContent = S.bagged.length
+        ? 'Bagged and labelled: ' + S.bagged.join(', ').toLowerCase() + '. The register pays on the spot.'
+        : 'Sand, stones, a beetle. The spoil keeps its secrets this time.';
+    const left = 3 - gameState.flags.ow_sieve_runs;
+    mgEl('mg-again').firstChild.textContent = left > 0 ? 'ANOTHER HEAP (' + left + ') ' : 'DONE ';
+    mgEl('mg-result').classList.remove('hidden');
+}

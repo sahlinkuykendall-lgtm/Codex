@@ -13,6 +13,57 @@ Other docs:
 
 ---
 
+## V3.5.0 — 2026-09-29 — Chapter 1 goes open world; cinematic conversations
+**The map (3D build only; the 2D build keeps the old map)** — `ch1_layout.js`
+- Chapter 1 is now an open desert of about 330 × 275 m (it was about 120 m square). Each
+  area keeps its layout, objects, scenes and flags, but the areas are pulled apart and
+  linked by trodden tracks: Ellis' camp in the middle, the workers' camp to the west,
+  the ministry post east (the car drives up its own road), the east trench to the
+  north-east, the camp gate south, and the dig zone up on a plateau to the north with
+  a switchback climb to its gate. Travel is about 15–30 s between areas on foot.
+- Level-design principles from open-world games:
+  - **Hidden boundaries:** a ring of dunes rears up at the edge, too steep to climb.
+    The collision sits on that slope and the desert rolls on to the horizon beyond.
+    Rock outcrops and old sand fences mark the dune foot. Cliffs close the dig
+    plateau's sides and the escarpment backs it.
+  - **Roads never just stop:** both leave through a cut in the dunes to a closed
+    Antiquities Police barrier.
+  - **Guidance:** landmarks you can see from afar (the tunnel cliff, the radio mast,
+    the lookout ridge). Leading lines: telegraph poles and wires along the roads,
+    lamp posts along the footpaths. Fingerposts at the junctions.
+  - **Tracks:** worn flat and sunk into the sand, following the terrain.
+- A light pool gives the nearest lamps real light, so there can be many more lamps
+  without costing frame rate. The whole map is filled with pebbles, stones, grass
+  and camel-thorn.
+- Old saves from the boxed map load fine: you resume at the tents.
+
+**Open-world content** (`ch1_openworld.js`; own ow_* flags, no story changes)
+- New places, each with its own interaction: the Oasis and its well (drink: stamina
+  refill), the Old Village ruins, the Lookout ridge and its cairn (sanity), a
+  Wrecked Land Rover (a little cash), a Bedouin Shelter, the Spoil Field, and camel
+  bones in the dry wadi. Each place's name appears the first time you walk in.
+- **Mint Tea** minigame at the kettle by the workers' brazier: hold the mouse to
+  pour, and move the mouse up and down for pour height (high for foam, too high splashes).
+  A perfect glass gives Mint Tea (faster stamina recovery), which had no source
+  until now.
+- **The Sieve** minigame at the spoil field: shake the sieve with the mouse,
+  and click the finds to bag them (stones are just stones). It pays a little EGP, 3 heaps.
+- **Sam's metal detector** (in the camp): once you carry it, it ticks faster near
+  8 buried caches (EGP, Karkadeh, Mint Tea, a sanity keepsake).
+- **8 painted sherds** hidden round the map (15 EGP each, with a 250 EGP bounty for the set).
+- **Compass** at the top of the screen showing your open missions with distances,
+  and faint "?" marks for places you haven't found.
+
+**Cinematic conversations** (`cine3d.js`)
+- Talking to someone eases the camera into an over-the-shoulder shot, and they gesture
+  as they talk. Examining a thing moves in close on it; for big things you turn to
+  face them. Letterbox bars slide in and the HUD steps aside. Story-triggered scenes
+  keep your view and only get the bars.
+- Dialogue restyled as film subtitles. Lines type out (SPACE or a click finishes them),
+  choices are numbered and 1–9 picks them. New setting: Text speed (Normal / Fast / Instant).
+
+---
+
 ## V3.4.0 — 2026-09-29 — Title screen, prologue, settings, ambience, feel
 - **New title screen** (`title3d.js`, `ui3d.css`): it opens on a letterboxed
   "PRESS ANY KEY" splash over slow cinematic shots of the night camp that cut

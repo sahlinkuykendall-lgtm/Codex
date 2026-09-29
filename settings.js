@@ -25,6 +25,7 @@ const SETTINGS_DEFAULTS = {
     headBob: true,
     reduceMotion: false,  // calms camera sway & tremor from low sanity
     labels: 'near',       // near | always | off
+    textSpeed: 'fast',    // normal | fast | instant
     hints: true,          // the controls strip in the corner
 };
 
@@ -108,6 +109,8 @@ const SETTINGS_TABS = [
     { id: 'gameplay', label: 'GAMEPLAY', rows: [
         { key: 'labels', label: 'Object labels', type: 'choice', options: [['near', 'Nearby'], ['always', 'Always'], ['off', 'Off']],
           help: 'The small name tags above things you can interact with.' },
+        { key: 'textSpeed', label: 'Text speed', type: 'choice', options: [['normal', 'Normal'], ['fast', 'Fast'], ['instant', 'Instant']],
+          help: 'How quickly lines type out. SPACE or a click always finishes a line.' },
         { key: 'hints', label: 'Controls reminder', type: 'toggle' },
         { key: 'headBob', label: 'Head bob', type: 'toggle' },
         { key: 'reduceMotion', label: 'Reduce motion', type: 'toggle',

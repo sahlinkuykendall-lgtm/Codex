@@ -369,9 +369,9 @@ const CH1_BUILDERS = {
     tunnel_mouth(o, M, rng) {
         const g = new THREE.Group();
         // footprint of the collision mass relative to this object's centre
-        const cx = 1920, cz = 520;
-        const massX0 = 1440 - cx, massX1 = 2400 - cx;
-        const zBack = CH1_CLIFF_Z - 180 - cz, zFront = 560 - cz + 8;
+        const cx = o.x + o.w / 2, cz = o.y + o.h / 2;
+        const massX0 = -480, massX1 = 480;   // the rock mass round the portal (its collision rect)
+        const zBack = CH1_CLIFF_Z - 180 - cz, zFront = 48;
         const H = 250, openW = 176, openH = 138;
         const depth = zFront - zBack;
         const zc = (zFront + zBack) / 2;
@@ -1204,6 +1204,40 @@ const CH1_LABEL_BUILDERS = {
         g.userData.h = 86;
         return g;
     },
+    'path lamp': (o, M, rng) => {
+        const g = new THREE.Group();
+        put(g, gCyl(2, 2.6, 92, 6), M.woodDark, 0, 46, 0);
+        put(g, gBox(22, 2.6, 2.6), M.woodDark, 9, 88, 0);
+        put(g, gCyl(0.3, 0.3, 7, 3), M.metalDark, 18, 83, 0);
+        put(g, gCyl(4, 5, 3, 10), M.metalDark, 18, 72, 0);
+        put(g, gCyl(3.4, 3.4, 8, 10), new THREE.MeshBasicMaterial({ color: 0xffc070, toneMapped: false }), 18, 77, 0).userData.noShadow = true;
+        put(g, gCyl(2, 4, 3, 10), M.metalDark, 18, 82, 0);
+        ch1Lamp(g, 18, 77, 0, { intensity: 1.2, dist: 420, glow: 40 });
+        g.rotation.y = rng() * 6.28;
+        g.userData.h = 0;
+        return g;
+    },
+    'road closed': (o, M, rng) => {
+        // the road leaves the site here — and doesn't, tonight
+        const g = new THREE.Group();
+        for (const s of [-1, 1]) {
+            put(g, gBox(10, 40, 10), M.paintWhite, s * 100, 20, 0);
+            put(g, gBox(16, 16, 16), M.limestone, s * 100, 6, 0);
+        }
+        put(g, gBox(180, 6, 5), M.paintRed, 0, 36, 0);
+        for (let i = 0; i < 5; i++) put(g, gBox(18, 6.4, 5.4), M.paintWhite, -72 + i * 36, 36, 0);
+        put(g, gBox(90, 40, 3), signMat('roadclosed', [['طريق مغلق', 30], ['ROAD CLOSED', 26], ['ANTIQUITIES POLICE', 16]], '#c8a030', '#1a1408', 256, 128), 0, 62, -2);
+        for (const s of [-1, 1]) put(g, gBox(4, 50, 4), M.metalDark, s * 40, 25, -3);
+        for (let i = 0; i < 5; i++) {
+            const x = -120 + i * 60 + (rng() - 0.5) * 20;
+            put(g, new THREE.ConeGeometry(7, 22, 10), M.paintRed, x, 11, 34 + (rng() - 0.5) * 20);
+            put(g, gCyl(6, 6, 3, 10), M.paintWhite, x, 13, 34);
+        }
+        ch1Lamp(g, 0, 90, 0, { color: 0xff5030, intensity: 0.8, dist: 300, glow: 30 });
+        put(g, new THREE.SphereGeometry(3, 8, 6), new THREE.MeshBasicMaterial({ color: 0xff5030, toneMapped: false }), 0, 90, 0).userData.noShadow = true;
+        g.userData.h = 0;
+        return g;
+    },
     'open sky': (o, M, rng) => {
         const g = new THREE.Group();
         // a bedroll where someone lies back and watches the stars
@@ -1329,8 +1363,8 @@ function buildCh1Object(o) {
 function ch1BuildGate(wall) {
     const M = ch1Mats();
     const g = new THREE.Group();
-    const x0 = wall.x, x1 = 1856; // the passable opening once the gate swings
-    const z = 1696, gh = ch1HeightBase((x0 + x1) / 2, z);
+    const x0 = CH1_LAYOUT.gateOpen[0], x1 = CH1_LAYOUT.gateOpen[1]; // the passable opening once the gate swings
+    const z = CH1_LAYOUT.fenceZ, gh = ch1HeightBase((x0 + x1) / 2, z);
     g.position.set((x0 + x1) / 2, gh, z);
     const w = x1 - x0, H = 92;
     for (const s of [-1, 1]) {
@@ -1459,41 +1493,56 @@ function ch1RockOutcrop(group, wall) {
 function ch1BuildWall(group, wall) {
     const M = ch1Mats();
     const cx = wall.x + wall.w / 2, cz = wall.y + wall.h / 2;
-    const touchesEdge = wall.x <= 0 || wall.y <= 0 || wall.x + wall.w >= CH1_W || wall.y + wall.h >= CH1_H;
-    const near = (a, b) => Math.abs(a - b) < 2;
+    const kind = wall.kind || '';
 
-    if (touchesEdge) return;                                             // berm / escarpment
-    if (near(wall.y, 352) && wall.w > 3000) return;                      // talus at the cliff foot
-    if (wall.y > 1660 && wall.y < 1700 && wall.h <= 48) {                // north dig fence (built once)
+    // the world edge is the dune wall itself (terrain), the escarpment is
+    // built by the environment
+    if (kind === 'boundary' || kind === 'cliffBase') return;
+
+    if (kind === 'northFence') {                                         // dig fence (built once)
         if (!group.userData.northFence) {
             group.userData.northFence = true;
-            ch1ChainFence(group, 64, 1696, 1600, 1696, { barbed: true, signs: true });
-            ch1ChainFence(group, 1856, 1696, 3776, 1696, { barbed: true, signs: true });
+            const [x0, , x1] = CH1_LAYOUT.digRect, [g0, g1] = CH1_LAYOUT.gateOpen, z = CH1_LAYOUT.fenceZ;
+            ch1ChainFence(group, x0, z, g0, z, { barbed: true, signs: true });
+            ch1ChainFence(group, g1, z, x1, z, { barbed: true, signs: true });
         }
         return;
     }
-    if (near(wall.x, 1440) && near(wall.y, 1408)) {                      // the dig shed
+    if (kind === 'ridge') {                                              // cliffs closing the plateau's sides
+        const H = 250;
+        const geo = ch1CliffGeo(wall.w + 60, H, wall.h, wall.x * 0.013, { amp: 30,
+            taper: (u) => 1 - 0.55 * Math.pow(u, 2) });
+        const m = new THREE.Mesh(geo, M.cliff);
+        m.position.set(cx + wall.side * 20, ch1HeightBase(cx - wall.side * 150, cz) + H / 2 - 60, cz);
+        group.add(m);
+        const rng = seededRng('ridge' + wall.x);
+        for (let i = 0; i < 14; i++) {
+            const z = wall.y + rng() * wall.h, x = cx - wall.side * (wall.w / 2 + 10 + rng() * 60);
+            ch1AddRock(group, x, ch1Height(x, z), z, 14 + rng() * 30, rng, rng() < 0.4 ? M.rockDark : M.rock);
+        }
+        return;
+    }
+    if (kind === 'digshed') {
         const g = new THREE.Group();
         g.position.set(cx, ch1HeightBase(cx, cz), cz);
         subShed(g, M, wall.w, wall.h, 74, seededRng('digshed'));
         group.add(g);
         return;
     }
-    if (near(wall.w, 280) && wall.x > 2800 && wall.x < 2900) {           // trench walk boards (at grade)
+    if (kind === 'trenchPlank') {                                        // walk boards across the trench (at grade)
         const gh = ch1HeightBase(cx, cz);
         for (let i = 0; i < 4; i++) put(group, gBox(wall.w + 30, 4, wall.h / 4 - 1), M.planks, cx, gh + 2, wall.y + (i + 0.5) * wall.h / 4);
         for (const s of [-1, 1]) put(group, gBox(wall.w + 40, 6, 6), M.woodDark, cx, gh - 2, cz + s * wall.h / 2);
         return;
     }
-    if ((near(wall.x, 2800) || near(wall.x, 3120)) && near(wall.h, 720)) { // trench lips: spoil berm, shoring
-        const side = near(wall.x, 2800) ? -1 : 1;
+    if (kind === 'trenchLip') {                                          // sandbags along the lips, shoring down the walls
+        const side = wall.side;
         const rng = seededRng('lip' + wall.x);
         const sb = new THREE.Group();
         sb.position.set(wall.x + (side < 0 ? wall.w : 0) - side * 4, ch1HeightBase(cx, cz), cz);
         sb.rotation.y = Math.PI / 2;
         subSandbags(sb, M, wall.h * 0.35, 20, rng, 2);
         group.add(sb);
-        // shoring boards down the trench wall
         const faceX = side < 0 ? CH1_TRENCH.x0 + 6 : CH1_TRENCH.x1 - 6;
         for (let z = CH1_TRENCH.z0 + 170; z < CH1_TRENCH.z1 - 160; z += 58) {
             const top = ch1HeightBase(faceX, z);
@@ -1501,20 +1550,20 @@ function ch1BuildWall(group, wall) {
         }
         return;
     }
-    if (near(wall.x, 1312) && near(wall.y, 3184)) {                       // gate pillar twin
+    if (kind === 'gatepost') {                                           // gate pillar twin
         const g = new THREE.Group();
         g.position.set(cx, ch1HeightBase(cx, cz), cz);
         subGatePillar(g, M);
         group.add(g);
         return;
     }
-    if ((near(wall.x, 1440) || near(wall.x, 2288)) && near(wall.y, 560)) { // tunnel cutting walls
-        const side = near(wall.x, 1440) ? -1 : 1;
+    if (kind === 'cutting') {                                            // the rock cutting up to the tunnel
+        const side = wall.side;
         const H = 200;
         const geo = ch1CliffGeo(wall.w + 30, H, wall.h + 10, wall.x * 0.01, { amp: 20,
             taper: (u) => 1 - 0.72 * Math.pow(u, 1.3) });
         const m = new THREE.Mesh(geo, M.cliff);
-        m.position.set(cx + side * 12, ch1HeightBase(cx, 600) + H / 2 - 24, cz);
+        m.position.set(cx + side * 12, ch1HeightBase(cx, wall.y + 40) + H / 2 - 24, cz);
         group.add(m);
         const rng = seededRng('cut' + wall.x);
         for (let i = 0; i < 5; i++) {
@@ -1523,8 +1572,8 @@ function ch1BuildWall(group, wall) {
         }
         return;
     }
-    if (Math.min(wall.w, wall.h) >= 150) { ch1RockOutcrop(group, wall); return; }
-    if (near(wall.x, 3360) && near(wall.y, 2272)) {                       // ministry site office
+    if (kind === 'outcrop') { ch1RockOutcrop(group, wall); return; }
+    if (kind === 'ministryHut') {                                        // ministry site office
         const g = new THREE.Group();
         g.position.set(cx, ch1HeightBase(cx, cz), cz);
         const w = wall.w, d = wall.h;
@@ -1541,12 +1590,11 @@ function ch1BuildWall(group, wall) {
         return;
     }
 
-    const minDim = Math.min(wall.w, wall.h), maxDim = Math.max(wall.w, wall.h);
     const horizontal = wall.w >= wall.h;
     const [x0, z0, x1, z1] = horizontal ? [wall.x, cz, wall.x + wall.w, cz] : [cx, wall.y, cx, wall.y + wall.h];
-    if (minDim <= 22) { ch1RopeFence(group, x0, z0, x1, z1); return; }  // tent compound
-    if (wall.y > 3200 && wall.y < 3270) { ch1ChainFence(group, x0, z0, x1, z1, { h: 80 }); return; } // south perimeter
-    if (minDim <= 36) { ch1RailFence(group, x0, z0, x1, z1); return; }  // worker camp
+    if (kind === 'rope') { ch1RopeFence(group, x0, z0, x1, z1); return; }         // tent compound
+    if (kind === 'chain') { ch1ChainFence(group, x0, z0, x1, z1, { h: 80 }); return; } // camp gate fence
+    if (kind === 'rail') { ch1RailFence(group, x0, z0, x1, z1); return; }         // worker camp
 
     // anything left: a rough rock block (shouldn't happen in the current layout)
     const rng = seededRng('w' + wall.x + ',' + wall.y);
@@ -1557,34 +1605,40 @@ function ch1BuildWall(group, wall) {
     if (window.console) console.warn('[ch1] unstyled wall', JSON.stringify(wall));
 }
 
-// Extra set dressing that has no map object: festoon lights over the
-// worker camp, a water tank, tyre tracks' parked wheelbarrow, etc.
+// Extra set dressing that has no map object: festoons, the wheelbarrow,
+// the survey grid, the water bowser — plus the open world's wayfinding:
+// telegraph poles along the roads (leading lines), fingerposts at the
+// junctions, sand fences along the dune foot.
 function addCh1Dressing(group) {
     const M = ch1Mats();
-    const at = (x, z, y) => new THREE.Vector3(x, ch1HeightBase(x, z) + y, z);
+    const atW = (x, z, y) => new THREE.Vector3(x, ch1HeightBase(x, z) + y, z);
+    // old-map coordinates inside an area, moved with that area
+    const at = (zone, x, z, y) => { const [nx, nz] = ch1Old(zone, x, z); return atW(nx, nz, y); };
+
     // festoon over the worker camp yard: dorm corner → foreman corner → poles by the brazier
-    const poleA = at(700, 2470, 0), poleB = at(260, 2470, 0);
+    const poleA = at('worker', 700, 2470, 0), poleB = at('worker', 260, 2470, 0);
     for (const p of [poleA, poleB]) put(group, gCyl(2.4, 3, 120, 6), M.woodDark, p.x, p.y + 60, p.z);
-    subFestoon(group, M, [at(450, 2190, 96), at(700, 2470, 118), at(260, 2470, 118), at(140, 2190, 94)], 14, 30);
-    subFestoon(group, M, [at(1260, 2010, 42), at(1560, 2010, 60), at(1860, 2010, 60), at(2120, 2010, 42)], 10, 36);
-    // a wheelbarrow and sieve by the spoil heaps north of the gate
+    subFestoon(group, M, [at('worker', 450, 2190, 96), at('worker', 700, 2470, 118), at('worker', 260, 2470, 118), at('worker', 140, 2190, 94)], 14, 30);
+    subFestoon(group, M, [at('hub', 1260, 2010, 42), at('hub', 1560, 2010, 60), at('hub', 1860, 2010, 60), at('hub', 2120, 2010, 42)], 10, 36);
+    // a wheelbarrow by the spoil heaps inside the dig zone
     const wb = new THREE.Group();
-    wb.position.copy(at(1980, 1320, 0));
+    wb.position.copy(at('dig', 1980, 1320, 0));
     wb.rotation.y = 0.7;
     put(wb, gBox(40, 14, 28), M.paintGreen, 0, 20, 0, 0, 0.12);
     subWheel(wb, M, 26, 8, 0, 8, 4);
     for (const s of [-1, 1]) subBeam(wb, M.woodPale, new THREE.Vector3(10, 16, s * 10), new THREE.Vector3(-40, 28, s * 13), 1.3);
     for (const s of [-1, 1]) put(wb, gBox(3, 16, 3), M.metalDark, -10, 8, s * 10);
     group.add(wb);
-    // survey grid: string lines on pegs over the dig area in front of the tunnel cutting
-    const pegs = [];
-    for (let i = 0; i < 4; i++) for (let k = 0; k < 3; k++) pegs.push([2000 + i * 120, 1000 + k * 120]);
-    for (const [x, z] of pegs) put(group, gBox(3, 16, 3), M.woodPale, x, ch1Height(x, z) + 6, z);
-    for (let i = 0; i < 4; i++) subRope(group, M.paper, at(2000 + i * 120, 1000, 12), at(2000 + i * 120, 1240, 12), 1, 0.3);
-    for (let k = 0; k < 3; k++) subRope(group, M.paper, at(2000, 1000 + k * 120, 12), at(2360, 1000 + k * 120, 12), 1, 0.3);
-    // parked water bowser by the worker camp gate
+    // survey grid: string lines on pegs over the dig area
+    for (let i = 0; i < 4; i++) for (let k = 0; k < 3; k++) {
+        const p = at('dig', 2000 + i * 120, 1000 + k * 120, 6);
+        put(group, gBox(3, 16, 3), M.woodPale, p.x, ch1Height(p.x, p.z) + 6, p.z);
+    }
+    for (let i = 0; i < 4; i++) subRope(group, M.paper, at('dig', 2000 + i * 120, 1000, 12), at('dig', 2000 + i * 120, 1240, 12), 1, 0.3);
+    for (let k = 0; k < 3; k++) subRope(group, M.paper, at('dig', 2000, 1000 + k * 120, 12), at('dig', 2360, 1000 + k * 120, 12), 1, 0.3);
+    // parked water bowser by the tent compound
     const bowser = new THREE.Group();
-    bowser.position.copy(at(1180, 2560, 0));
+    bowser.position.copy(at('hub', 1180, 2560, 0));
     bowser.rotation.y = 1.2;
     put(bowser, gCyl(22, 22, 90, 16), M.paintBlue, 0, 38, 0, 0, Math.PI / 2);
     put(bowser, gBox(96, 6, 36), M.metalDark, 0, 14, 0);
@@ -1592,4 +1646,78 @@ function addCh1Dressing(group) {
     put(bowser, gBox(50, 5, 5), M.metalDark, -70, 14, 0);
     put(bowser, gBox(40, 12, 1), signMat('water', [['مياه · WATER', 28]], '#e8e0c8', '#1a3a6a', 256, 80), 0, 40, 23);
     group.add(bowser);
+
+    // telegraph poles with sagging wires along the roads: you can follow
+    // them home from anywhere
+    const poleLine = (pts, spacing, off) => {
+        let prev = null;
+        for (let i = 0; i < pts.length - 1; i++) {
+            const [ax, az] = pts[i], [bx, bz] = pts[i + 1];
+            const len = Math.hypot(bx - ax, bz - az), n = Math.max(1, Math.round(len / spacing));
+            const nx = -(bz - az) / len, nz = (bx - ax) / len;
+            for (let k = 0; k < n + (i === pts.length - 2 ? 1 : 0); k++) {
+                const t = k / n, x = ax + (bx - ax) * t + nx * off, z = az + (bz - az) * t + nz * off;
+                const gh = ch1HeightBase(x, z);
+                const pole = put(group, gCyl(2.4, 3.2, 170, 6), M.woodDark, x, gh + 85, z, 0, (Math.sin(x) * 0.03));
+                const arm = put(group, gBox(34, 3, 3), M.woodDark, x, gh + 160, z, Math.atan2(bz - az, bx - ax) + Math.PI / 2);
+                const top = new THREE.Vector3(x, gh + 162, z);
+                if (prev) {
+                    for (const s of [-12, 12]) {
+                        const a = prev.clone(), b = top.clone();
+                        const perp = new THREE.Vector3(nx, 0, nz).multiplyScalar(s);
+                        a.add(perp); b.add(perp);
+                        subRope(group, M.dark, a, b, 14, 0.35);
+                    }
+                }
+                prev = top;
+            }
+        }
+    };
+    poleLine([[4940, 8600], [4990, 7600], [5150, 6700], [5420, 5900]], 460, 110);
+    poleLine([[6100, 5300], [6900, 5500], [7800, 5360], [8600, 5200], [9000, 5100]], 460, -90);
+    poleLine([[9080, 8600], [9100, 7000], [9110, 5600]], 460, 120);
+
+    // fingerposts at the junctions
+    const post = (x, z, arms) => {
+        const gh = ch1HeightBase(x, z);
+        put(group, gBox(6, 110, 6), M.woodDark, x, gh + 55, z);
+        arms.forEach(([text, ang], i) => {
+            const g = new THREE.Group();
+            g.position.set(x, gh + 96 - i * 17, z);
+            g.rotation.y = ang;
+            put(g, gBox(74, 13, 2), signMat('fp_' + text, [[text, 30]], '#e8dcc0', '#3a2a14', 256, 48), 40, 0, 0);
+            put(g, new THREE.ConeGeometry(8, 12, 3), M.woodPale, 80, 0, 0, 0, -Math.PI / 2);
+            group.add(g);
+        });
+    };
+    // bearings: yaw so the sign's +x points toward the place
+    const toward = (x, z, tx, tz) => -Math.atan2(tz - z, tx - x);
+    const hubX = 5520, hubZ = 5620;
+    post(hubX, hubZ, [
+        ['DIG ZONE', toward(hubX, hubZ, 5600, 4600)], ["WORKERS' CAMP", toward(hubX, hubZ, 3000, 5500)],
+        ['MINISTRY POST', toward(hubX, hubZ, 8000, 5400)], ['SITE GATE', toward(hubX, hubZ, 5000, 7300)],
+    ]);
+    post(6040, 4700, [['EAST TRENCH', toward(6040, 4700, 7200, 4150)], ['DIG ZONE', toward(6040, 4700, 5980, 3980)]]);
+    post(2060, 5320, [['OASIS', toward(2060, 5320, 1100, 4300)], ['CAMP', toward(2060, 5320, 3500, 5620)]]);
+
+    // old sand fences along the dune foot — the site's edge, marked the
+    // way desert camps mark it
+    const B = CH1_LAYOUT.boundary, rng = seededRng('sandfence');
+    for (let i = 0; i < B.length; i++) {
+        if (rng() < 0.45) continue;
+        const [ax, az] = B[i], [bx, bz] = B[(i + 1) % B.length];
+        const len = Math.hypot(bx - ax, bz - az);
+        const inX = (bz - az) / len, inZ = -(bx - ax) / len; // into the site
+        const t0 = 0.2 + rng() * 0.3, n = 6 + (rng() * 6 | 0);
+        for (let k = 0; k < n; k++) {
+            const t = t0 + k * (60 / len);
+            if (t > 0.95) break;
+            let x = ax + (bx - ax) * t, z = az + (bz - az) * t;
+            x -= inX * 150; z -= inZ * 150;
+            if (ch1BoundaryOut(x, z) > 0) { x += inX * 300; z += inZ * 300; }
+            if (CH1_LAYOUT.roadExits.some(([rx, rz]) => Math.hypot(x - rx, z - rz) < 400)) continue;
+            put(group, gBox(4, 34 + rng() * 14, 4), M.woodPale, x, ch1HeightBase(x, z) + 12, z, 0, (rng() - 0.5) * 0.3);
+            put(group, gBox(Math.min(58, len * 0.06), 20, 1.2), M.planksDark, x + (bx - ax) / len * 30, ch1HeightBase(x, z) + 16, z + (bz - az) / len * 30, -Math.atan2(bz - az, bx - ax), (rng() - 0.5) * 0.1);
+        }
+    }
 }

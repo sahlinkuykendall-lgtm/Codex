@@ -17,9 +17,10 @@ const AMB = {
     level: 0,
 };
 
+// where the sounds come from (object positions; the layout moves them)
 const AMB_SOURCES = {
-    brazier: [382, 2598],
-    generator: [3244, 2444],
+    get brazier() { return typeof ch1At === 'function' ? ch1At('rest_brazier') : [382, 2598]; },
+    get generator() { return typeof ch1At === 'function' ? ch1At('generator') : [3244, 2444]; },
 };
 
 function _ambOut() {

@@ -35,13 +35,28 @@ const titleEl = id => document.getElementById(id);
 // ---- CINEMATIC SHOTS (behind the menu) ----
 // Each: duration (s), from/to camera positions, from/to look targets.
 // y values are heights above the ground at that point.
-const TITLE_SHOTS = [
-    { dur: 16, from: [1180, 3060, 70],  to: [1440, 2860, 64],  look0: [1570, 2330, 60],  look1: [1570, 2330, 50] },  // along the festoons to the lit tent
-    { dur: 15, from: [1905, 1180, 70],  to: [1880, 930, 58],   look0: [1880, 560, 110],  look1: [1850, 620, 96] },   // the approach to the tunnel and its seal
-    { dur: 15, from: [720, 2960, 190],  to: [560, 2820, 120],  look0: [380, 2590, 40],   look1: [380, 2600, 46] },   // down over the brazier and the dorm
-    { dur: 16, from: [900, 1560, 110],  to: [760, 1480, 120],  look0: [-3000, -3600, 900], look1: [-3400, -3000, 800] }, // Giza on the horizon
-    { dur: 15, from: [3200, 2980, 90],  to: [2960, 2780, 80],  look0: [2980, 2280, 0],   look1: [2980, 2200, 0] },   // the trench, planks across it
+// Positions are offsets from an anchor object (so the shots follow the
+// layout); 'abs' looks at a fixed far point instead.
+const TITLE_SHOT_DEFS = [
+    { dur: 16, at: 'tent_bldg',    from: [-390, 730, 70],  to: [-130, 530, 64],  look0: [0, 0, 60],  look1: [0, 0, 50] },    // along the festoons to the lit tent
+    { dur: 15, at: 'puzzle_glyph', from: [85, 530, 70],    to: [60, 280, 58],    look0: [60, -90, 110], look1: [30, -30, 96] }, // the approach to the tunnel and its seal
+    { dur: 15, at: 'rest_brazier', from: [340, 360, 190],  to: [180, 220, 120],  look0: [0, 0, 40],  look1: [0, 10, 46] },     // down over the brazier and the dorm
+    { dur: 16, at: 'hub_view',     from: [0, 0, 150],      to: [-160, -80, 170], abs: true, look0: [-7000, -5200, 1300], look1: [-3800, -8600, 1200] }, // Giza on the horizon, over the camp
+    { dur: 15, at: 'trench',       from: [220, 800, 90],   to: [-20, 600, 80],   look0: [0, 100, 0], look1: [0, 20, 0] },      // the trench, planks across it
 ];
+let TITLE_SHOTS = null;
+function titleShots() {
+    if (TITLE_SHOTS) return TITLE_SHOTS;
+    TITLE_SHOTS = TITLE_SHOT_DEFS.map(d => {
+        const [ax, az] = d.at === 'hub_view' ? [5000, 4400] : (typeof ch1At === 'function' ? ch1At(d.at) : [0, 0]);
+        const sh = { dur: d.dur,
+            from: [ax + d.from[0], az + d.from[1], d.from[2]], to: [ax + d.to[0], az + d.to[1], d.to[2]] };
+        sh.look0 = d.abs ? d.look0 : [ax + d.look0[0], az + d.look0[1], d.look0[2]];
+        sh.look1 = d.abs ? d.look1 : [ax + d.look1[0], az + d.look1[1], d.look1[2]];
+        return sh;
+    });
+    return TITLE_SHOTS;
+}
 
 function _gy(x, z) { return (typeof ch1Height === 'function' && currentMapKey === 1) ? ch1Height(x, z) : 0; }
 const _smooth = t => t * t * (3 - 2 * t);
@@ -50,12 +65,13 @@ const _smooth = t => t * t * (3 - 2 * t);
 function titleCamera() {
     const now = performance.now();
     if (TITLE.phase === 'intro' && TITLE.intro && TITLE.intro.stage === 'shot') return introCamera(now);
-    let s = TITLE_SHOTS[TITLE.shot];
+    const SHOTS = titleShots();
+    let s = SHOTS[TITLE.shot];
     let t = (now - TITLE.shotStart) / 1000;
     if (t > s.dur) {
-        TITLE.shot = (TITLE.shot + 1) % TITLE_SHOTS.length;
+        TITLE.shot = (TITLE.shot + 1) % SHOTS.length;
         TITLE.shotStart = now;
-        s = TITLE_SHOTS[TITLE.shot];
+        s = SHOTS[TITLE.shot];
         t = 0;
     }
     const k = _smooth(Math.min(1, t / s.dur));
@@ -180,11 +196,12 @@ function titleBeginIntro() {
 function introCamera(now) {
     const t = Math.min(1, (now - TITLE.intro.shotStart) / 7600);
     const k = _smooth(t);
-    const from = [2300, 3500, 620], to = [1600, 2640, 70];
+    const [tx, tz] = typeof ch1At === 'function' ? ch1At('tent_bldg') : [1568, 2186];
+    const from = [tx + 730, tz + 1300, 620], to = [tx + 30, tz + 440, 70];
     const px = from[0] + (to[0] - from[0]) * k, pz = from[1] + (to[1] - from[1]) * k;
     const py = _gy(px, pz) + from[2] + (to[2] - from[2]) * k;
     cam3.position.set(px, py, pz);
-    cam3.lookAt(1568, _gy(1568, 2330) + 60 - 30 * k, 2330);
+    cam3.lookAt(tx, _gy(tx, tz + 140) + 60 - 30 * k, tz + 140);
     // fade in, then out to black at the very end
     const f = t < 0.12 ? 1 - t / 0.12 : t > 0.88 ? (t - 0.88) / 0.12 : 0;
     titleEl('menu-fade').style.opacity = f.toFixed(3);

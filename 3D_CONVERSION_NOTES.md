@@ -10,9 +10,9 @@
 ## Script layout (V3.4)
 
 `index.html` loads, in order: `three.min.js`, `data.js`, `dialogue.js`,
-`engine.js` (shared with 2D), `settings.js`, `ambience.js`, `ch1_world.js`,
-`ch1_props.js`, `ch1_minigames.js`, `engine3d.js`, `title3d.js`, plus
-`ui3d.css`. See `UPDATE_LOG.md` for what changed in each version.
+`engine.js` (shared with 2D), `settings.js`, `ambience.js`, `ch1_layout.js`,
+`ch1_world.js`, `ch1_props.js`, `ch1_minigames.js`, `ch1_openworld.js`,
+`cine3d.js`, `engine3d.js`, `title3d.js`, plus `ui3d.css`. See `UPDATE_LOG.md` for what changed in each version.
 
 - `ch1_world.js`: Chapter 1 terrain (`ch1Height`, trench cut, site berm,
   escarpment), materials/textures, the rock and cliff generators, the shader
@@ -29,6 +29,13 @@
 - `settings.js`: stored options and the settings screen. `ambience.js`:
   the synthesized Ch1 soundscape. `title3d.js`: the splash, menu, prologue
   and the cinematic menu camera.
+- `ch1_layout.js`: the open-world Ch1 map (3D only). It rewrites mapWalls[1] /
+  mapObjects[1] in place (moves each area by an offset, tags walls with `kind`,
+  adds the dune boundary blocks), defines the tracks, spawn, car route and
+  patrols, and wraps startGame/loadGame/saveGame for the new size.
+- `ch1_openworld.js`: side places, sherds, detector caches, compass,
+  place-name toasts; tea and sieve minigames live in ch1_minigames.js.
+- `cine3d.js`: conversation camera shots, letterbox, typewriter text.
 - Ch1 is tone-mapped (ACES) and shadowed; other maps still use the old
   untone-mapped graybox path. `buildWorld()` branches on `isCh1`.
 

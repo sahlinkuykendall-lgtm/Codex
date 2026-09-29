@@ -109,3 +109,57 @@
 #interaction-prompt .pr-label { color: #ffe9a8; margin-left: 4px; letter-spacing: 0.2em; text-transform: uppercase; font-size: 12px; }
 #crosshair { position: absolute; left: 50%; top: 50%; z-index: 4; width: 4px; height: 4px; margin: -2px 0 0 -2px; border-radius: 50%; background: rgba(255,240,200,0.55); box-shadow: 0 0 3px rgba(0,0,0,0.9); pointer-events: none; transition: width 0.15s, height 0.15s, margin 0.15s, background 0.15s; }
 #crosshair.live { width: 12px; height: 12px; margin: -6px 0 0 -6px; background: rgba(255,217,122,0.15); border: 1.5px solid #ffd97a; box-sizing: border-box; }
+
+/* ---- Open world HUD ---- */
+#ow-compass { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); width: min(560px, 60%); height: 42px; z-index: 5; pointer-events: none; overflow: hidden; background: linear-gradient(90deg, rgba(8,7,4,0), rgba(8,7,4,0.6) 20%, rgba(8,7,4,0.6) 80%, rgba(8,7,4,0)); border-top: 1px solid rgba(212,175,55,0.25); border-bottom: 1px solid rgba(212,175,55,0.25); font-family: 'Segoe UI', Arial, sans-serif; -webkit-mask-image: linear-gradient(90deg, transparent, #000 15%, #000 85%, transparent); mask-image: linear-gradient(90deg, transparent, #000 15%, #000 85%, transparent); }
+#ow-ticks i { position: absolute; top: 5px; transform: translateX(-50%); font-style: normal; font-size: 10px; color: rgba(205,191,152,0.55); letter-spacing: 0.1em; }
+#ow-ticks i:empty { top: 8px; width: 1px; height: 6px; background: rgba(205,191,152,0.35); }
+#ow-ticks i.card { color: #ffe9a8; font-size: 12px; font-weight: 600; top: 3px; }
+#ow-marks .mk { position: absolute; top: 18px; transform: translateX(-50%); text-align: center; white-space: nowrap; }
+#ow-marks .mk b { display: block; font-size: 11px; line-height: 1; color: #ffd97a; text-shadow: 0 0 8px rgba(212,175,55,0.8); }
+#ow-marks .mk span { font-size: 9.5px; letter-spacing: 0.12em; color: rgba(255,233,168,0.85); text-transform: uppercase; }
+#ow-marks .mk.place b { color: rgba(205,191,152,0.55); font-size: 10px; text-shadow: none; }
+.ow-needle { position: absolute; left: 50%; top: 0; width: 1px; height: 7px; background: #ffe9a8; }
+#ow-toast { position: absolute; left: 50%; top: 22%; transform: translateX(-50%); z-index: 6; text-align: center; pointer-events: none; opacity: 0; font-family: Georgia, 'Palatino Linotype', serif; }
+#ow-toast b { display: block; color: #ffe9a8; font-weight: 400; font-size: 26px; letter-spacing: 0.45em; padding-left: 0.45em; text-shadow: 0 2px 10px #000, 0 0 30px rgba(212,175,55,0.35); }
+#ow-toast span { display: block; margin-top: 8px; color: rgba(205,191,152,0.8); font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; letter-spacing: 0.4em; text-transform: uppercase; }
+#ow-toast b::after { content: ''; display: block; width: 60%; height: 1px; margin: 10px auto 0; background: linear-gradient(90deg, transparent, rgba(212,175,55,0.7), transparent); }
+#ow-toast.show { animation: owToast 4.2s ease both; }
+@keyframes owToast { 0% { opacity: 0; transform: translate(-50%, 8px); } 12% { opacity: 1; transform: translate(-50%, 0); } 78% { opacity: 1; } 100% { opacity: 0; } }
+#ow-detector { position: absolute; right: 22px; bottom: 22px; z-index: 5; display: flex; align-items: center; gap: 10px; font-family: 'Segoe UI', Arial, sans-serif; font-size: 9.5px; letter-spacing: 0.3em; color: rgba(160,220,140,0.8); pointer-events: none; }
+#ow-detector div { width: 90px; height: 5px; background: rgba(0,0,0,0.6); border: 1px solid rgba(120,200,110,0.4); }
+#ow-det-fill { display: block; height: 100%; width: 0; background: #7fdf6f; box-shadow: 0 0 8px rgba(127,223,111,0.6); transition: width 0.15s; }
+#game-container.in-minigame #ow-compass, #game-container.in-minigame #ow-detector, #game-container.in-minigame #ow-toast { display: none !important; }
+#game-container.is-paused #ow-compass, #game-container.is-paused #ow-detector { display: none !important; }
+/* side games share the darts panel styling */
+#mg-hud[data-mode="tea"] #mg-stats, #mg-hud[data-mode="sieve"] #mg-stats { top: 24px; left: 24px; padding: 14px 18px; background: linear-gradient(168deg, rgba(20,16,9,0.82), rgba(9,8,5,0.9)); border: 1px solid rgba(212,175,55,0.4); border-left: 3px solid #d4af37; min-width: 230px; }
+#mg-stats b.bar { position: relative; display: block; width: 120px; height: 6px; margin-top: 7px; background: rgba(0,0,0,0.6); border: 1px solid rgba(212,175,55,0.3); }
+#mg-stats b.bar i { position: absolute; left: 0; top: 0; bottom: 0; background: #d4af37; }
+#mg-stats b.bar i.hot { background: #ff7a5a; }
+#mg-stats b.bar em { position: absolute; top: -3px; bottom: -3px; border-left: 1px solid #ffe9a8; border-right: 1px solid #ffe9a8; background: rgba(255,233,168,0.12); }
+
+/* minigame result panel keeps its centring while it animates in */
+@keyframes resultIn { from { opacity: 0; transform: translate(-50%, 14px); } to { opacity: 1; transform: translate(-50%, 0); } }
+#mg-result { animation: resultIn 0.3s ease both; }
+
+/* ---- Cinematic conversations (cine3d.js) ---- */
+#cine-bars i { position: absolute; left: 0; right: 0; height: 0; background: #000; z-index: 6; pointer-events: none; transition: height 0.7s cubic-bezier(.6,0,.2,1); }
+#cine-bars i:first-child { top: 0; } #cine-bars i:last-child { bottom: 0; }
+#cine-bars.on i { height: 10%; }
+#game-container.in-cine #hud, #game-container.in-cine #hud-bottomleft, #game-container.in-cine #hud-hint,
+#game-container.in-cine #ow-compass, #game-container.in-cine #ow-detector, #game-container.in-cine #crosshair { opacity: 0 !important; transition: opacity 0.4s; }
+/* the dialogue as film subtitles: a soft band over the lower frame */
+#ui-overlay { bottom: 10%; width: min(940px, 82%); z-index: 10; }
+#game-container.in-cine #ow-toast { visibility: hidden; }
+#dialogue-box { background: linear-gradient(180deg, rgba(6,5,3,0), rgba(6,5,3,0.55) 26%, rgba(6,5,3,0.7)); border: none; border-radius: 0; box-shadow: none; backdrop-filter: none; padding: 34px 44px 18px; }
+#dialogue-box::before, #dialogue-box::after { display: none; }
+#speaker-name { position: static; display: inline-block; background: none; border: none; box-shadow: none; padding: 0 0 6px; margin: 0 0 4px; color: #e8c874; font-family: Georgia, 'Palatino Linotype', serif; font-size: 14px; letter-spacing: 0.34em; border-bottom: 1px solid rgba(212,175,55,0.45); }
+#speaker-name::before { content: none; }
+#speaker-name[data-kind="system"] { color: #a89a72; font-style: italic; letter-spacing: 0.2em; border-bottom-color: rgba(212,175,55,0.2); }
+#dialogue-text { font-family: Georgia, 'Palatino Linotype', serif; font-size: 16.5px; line-height: 1.7; color: #f0e8d4; text-shadow: 0 1px 3px #000, 0 0 12px rgba(0,0,0,0.8); margin: 10px 0 14px; min-height: 2em; }
+#choices-container { counter-reset: choice; transition: opacity 0.25s; }
+#choices-container.waiting { opacity: 0; pointer-events: none; }
+.choice-button { counter-increment: choice; background: rgba(0,0,0,0.35); border: 1px solid rgba(212,175,55,0.18); border-left: 2px solid rgba(212,175,55,0.5); font-family: Georgia, 'Palatino Linotype', serif; font-size: 14.5px; padding: 9px 16px 9px 46px; color: #d8ccaa; }
+.choice-button::before { content: counter(choice); position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; line-height: 18px; text-align: center; font-family: 'Segoe UI', Arial, sans-serif; font-size: 10.5px; color: #ffd97a; border: 1px solid rgba(212,175,55,0.55); border-radius: 3px; }
+.choice-button:hover::before { left: 14px; color: #fff0c0; border-color: #ffd97a; }
+.choice-button:hover { background: rgba(212,175,55,0.14); transform: translateX(4px); }

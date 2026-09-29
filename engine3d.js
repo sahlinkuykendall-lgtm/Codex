@@ -934,7 +934,7 @@ function syncWorldVisibility() {
             else if (dist > labelFar[1]) alpha = 0;
             else if (dist > labelFar[0]) alpha = 1 - (dist - labelFar[0]) / (labelFar[1] - labelFar[0]);
             e.label.material.opacity = alpha;
-            e.label.visible = !hidden && alpha > 0.02 && labelMode !== 'off';
+            e.label.visible = !hidden && alpha > 0.02 && labelMode !== 'off' && !mgHandlesPuzzle() && !(typeof cineActive === 'function' && cineActive());
         }
     }
 }
@@ -1426,7 +1426,7 @@ function updateSanityFX3d() {
     // a small FOV kick while sprinting sells the speed
     const sprintKick = (gameState.isSprinting && moveVel.moving && !gfxSettings().reduceMotion) ? 6 : 0;
     const fovTarget = (gfxSettings().fov || 70) + sprintKick + beat * 1.6 * low * (gfxSettings().reduceMotion ? 0.2 : 1);
-    if (!mgHandlesPuzzle() && Math.abs(cam3.fov - fovTarget) > 0.01) {
+    if (!mgHandlesPuzzle() && !cineActive() && Math.abs(cam3.fov - fovTarget) > 0.01) {
         cam3.fov += (fovTarget - cam3.fov) * (Math.abs(fovTarget - cam3.fov) > 3 ? 0.12 : 0.35);
         cam3.updateProjectionMatrix();
     }
@@ -1521,7 +1521,7 @@ function updateAtmosphere3d() {
     const t = performance.now() / 1000;
     if (currentMapKey === 1 && typeof updateCh1FX === 'function') {
         const inMenu = gameState.currentScreen === 'START_MENU';
-        updateCh1FX(inMenu ? 1703 : player.x + player.size / 2, inMenu ? 2400 : player.y + player.size / 2);
+        updateCh1FX(inMenu ? cam3.position.x : player.x + player.size / 2, inMenu ? cam3.position.z : player.y + player.size / 2);
     }
     if (typeof updateAmbience === 'function') updateAmbience();
 
@@ -1759,6 +1759,7 @@ function gameLoop3d() {
     requestAnimationFrame(gameLoop3d);
     resizeRendererIfNeeded();
     syncPauseHud();
+    if (typeof ch1EnforceWorld === 'function') ch1EnforceWorld(); // open-world Ch1 size (ch1_layout.js)
 
     // Clear the 2D overlay every frame
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -1810,7 +1811,13 @@ function gameLoop3d() {
     updateHallucinations3d();
     updateCamera();      // keeps the 2D camera roughly centered for overlay draw math
     mgUpdate();          // Ch1 minigames played in the world (ch1_minigames.js)
-    if (!mgDrivesCamera()) { positionCamera(); mgAfterCamera(); }
+    if (typeof owUpdateHud === 'function') owUpdateHud(); // compass, place names, detector
+    if (!mgDrivesCamera()) {
+        if (!cineDrivesCamera()) positionCamera(); // conversations frame their own shots (cine3d.js)
+        mgAfterCamera();
+        cineAfterCamera();
+    }
+    cineTypeTick();
     renderer3.render(scene3, cam3);
 
     drawOverlays();

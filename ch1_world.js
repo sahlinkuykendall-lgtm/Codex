@@ -19,7 +19,7 @@
 // Prop/building builders live in ch1_props.js.
 // ============================================================
 
-const CH1_W = 3840, CH1_H = 3520; // Ch1 world size after MAP_SCALE
+const CH1_W = CH1_LAYOUT.W, CH1_H = CH1_LAYOUT.H; // open-world Ch1 (ch1_layout.js)
 
 // ---- SMALL HELPERS (shared with ch1_props.js / engine3d.js) ----
 
@@ -129,75 +129,156 @@ function radialTex(name, stops) {
 }
 
 // ============================================================
-// TERRAIN
+// TERRAIN (open world — see ch1_layout.js for the map)
 // ============================================================
-// The desert rolls in layered dunes; the camp has levelled the ground
-// it lives on (dunes flatten near every wall/building/prop); the ground
-// climbs toward the north escarpment where the tunnel waits. A
-// bulldozed spoil berm rings the site on the west, east and south
-// (the invisible border walls now have a visible reason), cut where
-// the ministry road comes in. The east trench is really dug.
-// Collision stays 2D — the camera and every mesh sample this function.
+// Rolling dunes, levelled wherever the camp has built; a plateau the dig
+// zone sits on (the switchback track climbs its face); a ridge in the
+// north-east to climb for the view; the tracks worn flat and a little
+// sunk into the sand; and all round the edge the dunes rear up into a
+// wall too steep to climb, which is where the (invisible) boundary sits.
+// Behind the dig zone the escarpment. Collision stays 2D — the camera and
+// every mesh sample this function.
 
-const CH1_TRENCH = { x0: 2840, x1: 3120, z0: 1920, z1: 2640, depth: 46 };
-const CH1_ROAD_X = [3450, 3690];         // ministry road corridor (enters from the south-east)
-const CH1_CLIFF_Z = 372;                 // foot of the north escarpment
+const CH1_TRENCH = CH1_LAYOUT.trench;
+const CH1_CLIFF_Z = CH1_LAYOUT.cliffZ;
 
-let ch1Rects = null; // walls + objects, cached for the flatten mask
-function ch1StructDist(x, z) {
-    if (!ch1Rects) ch1Rects = [...(mapWalls[1] || []), ...(mapObjects[1] || [])];
-    let d = 1e9;
+// Flatten mask: distance to the nearest built thing. A coarse grid keeps
+// it fast (the mask only cares about the nearest ~200 units).
+let ch1Rects = null, ch1RectGrid = null;
+const CH1_GRID = 400;
+function ch1BuildRectGrid() {
+    ch1Rects = [...(mapWalls[1] || []).filter(w => !/^(boundary|ridge|cliffBase)$/.test(w.kind || '')),
+                ...(mapObjects[1] || [])];
+    ch1RectGrid = new Map();
     for (const r of ch1Rects) {
+        const gx0 = Math.floor((r.x - 220) / CH1_GRID), gx1 = Math.floor((r.x + r.w + 220) / CH1_GRID);
+        const gz0 = Math.floor((r.y - 220) / CH1_GRID), gz1 = Math.floor((r.y + r.h + 220) / CH1_GRID);
+        for (let gx = gx0; gx <= gx1; gx++) for (let gz = gz0; gz <= gz1; gz++) {
+            const k = gx * 10007 + gz;
+            if (!ch1RectGrid.has(k)) ch1RectGrid.set(k, []);
+            ch1RectGrid.get(k).push(r);
+        }
+    }
+}
+function ch1StructDist(x, z) {
+    if (!ch1RectGrid) ch1BuildRectGrid();
+    const list = ch1RectGrid.get(Math.floor(x / CH1_GRID) * 10007 + Math.floor(z / CH1_GRID));
+    if (!list) return 400;
+    let d = 400;
+    for (const r of list) {
         const dx = Math.max(r.x - x, 0, x - (r.x + r.w));
         const dz = Math.max(r.y - z, 0, z - (r.y + r.h));
         const dd = dx > dz ? dx : dz;
-        if (dd < d) d = dd;
-        if (d <= 0) return 0;
+        if (dd < d) { d = dd; if (d <= 0) return 0; }
     }
     return d;
 }
 
+// Signed distance to the world boundary loop: + outside, - inside
+function ch1BoundaryOut(x, z) {
+    const B = CH1_LAYOUT.boundary;
+    let best = 1e9, inside = false;
+    for (let i = 0, j = B.length - 1; i < B.length; j = i++) {
+        const [ax, az] = B[i], [bx, bz] = B[j];
+        if (((az > z) !== (bz > z)) && (x < (bx - ax) * (z - az) / (bz - az) + ax)) inside = !inside;
+        const dx = bx - ax, dz = bz - az;
+        const t = clamp01(((x - ax) * dx + (z - az) * dz) / (dx * dx + dz * dz));
+        const d = Math.hypot(x - (ax + dx * t), z - (az + dz * t));
+        if (d < best) best = d;
+    }
+    return inside ? -best : best;
+}
+
+// The dig zone plateau (1 on top, falling away on the south and sides)
+function ch1PlateauMask(x, z) {
+    const [x0, z0, x1, z1] = CH1_LAYOUT.digRect;
+    const sx = x < x0 ? smooth(320, 0, x0 - x) : x > x1 ? smooth(320, 0, x - x1) : 1;
+    const sz = z > z1 ? smooth(460, 0, z - z1) : 1;
+    return sx * sz;
+}
+
+// Tracks as flat segment list (with bounds for a fast reject)
+const CH1_SEGS = [];
+for (const p of CH1_TRACKS) {
+    for (let i = 0; i < p.pts.length - 1; i++) {
+        const [x1, z1] = p.pts[i], [x2, z2] = p.pts[i + 1];
+        const pad = p.w + 40;
+        CH1_SEGS.push({ x1, z1, x2, z2, hw: p.w, kind: p.kind,
+            minx: Math.min(x1, x2) - pad, maxx: Math.max(x1, x2) + pad, minz: Math.min(z1, z2) - pad, maxz: Math.max(z1, z2) + pad });
+    }
+}
+
+// [mask 0..1 (1.25 in tyre ruts), kind]
+function ch1PathMask(x, z) {
+    let best = 0, kindAt = 0;
+    for (const s of CH1_SEGS) {
+        if (x < s.minx || x > s.maxx || z < s.minz || z > s.maxz) continue;
+        const dx = s.x2 - s.x1, dz = s.z2 - s.z1;
+        const t = clamp01(((x - s.x1) * dx + (z - s.z1) * dz) / (dx * dx + dz * dz));
+        const d = Math.hypot(x - (s.x1 + dx * t), z - (s.z1 + dz * t));
+        const edgeJitter = (vnoise3(x * 0.02, z * 0.02, 3.3) - 0.5) * s.hw * 0.5;
+        const m = 1 - smooth(s.hw * 0.45, s.hw + edgeJitter, d);
+        if (m > best) { best = m; kindAt = s.kind; }
+        if (s.kind === 1 && m > 0.5 && Math.abs(d - s.hw * 0.42) < 7) { best = Math.max(best, 1.25); kindAt = 2; }
+    }
+    return [best, kindAt];
+}
+
 // Height without the trench cut (planks, spoil lips sit at grade)
 function ch1HeightBase(x, z) {
+    // open-desert dunes, levelled near anything built
     const dunes =
-        18  * Math.sin(x * 0.0011 + 1.7) * Math.sin(z * 0.0009 + 0.6) +
-        12  * Math.sin(x * 0.0021 + z * 0.0016 + 4.2) +
-        5.5 * Math.sin(x * 0.0052 - z * 0.0037 + 2.2) +
-        2.5 * Math.sin(x * 0.011 + z * 0.009);
+        26  * Math.sin(x * 0.0009 + 1.7) * Math.sin(z * 0.0008 + 0.6) +
+        16  * Math.sin(x * 0.0017 + z * 0.0013 + 4.2) +
+        7   * Math.sin(x * 0.0043 - z * 0.0031 + 2.2) +
+        3   * Math.sin(x * 0.011 + z * 0.009);
     const d = ch1StructDist(x, z);
-    const mask = Math.max(0.12, Math.min(1, (d - 35) / 165));
-    // The climb toward the escarpment
-    const t = clamp01((1000 - z) / 800);
-    let h = dunes * mask + 38 * t * t * (3 - 2 * t);
+    let h = dunes * Math.max(0.12, Math.min(1, (d - 35) / 165));
 
-    // Site berm along the W / E / S edges (cut for the ministry road)
-    const dEdge = Math.min(x, CH1_W - x, CH1_H - z);
-    const inRoad = smooth(CH1_ROAD_X[0] - 60, CH1_ROAD_X[0] + 40, x) * (1 - smooth(CH1_ROAD_X[1] - 40, CH1_ROAD_X[1] + 60, x));
-    const southCut = (CH1_H - z) === dEdge ? inRoad : 0;
-    if (z > CH1_CLIFF_Z + 200) {
-        h += 30 * Math.exp(-Math.pow((dEdge + 6) / 62, 2)) * (1 - southCut);
+    // the dig zone plateau and the lookout ridge; a low rise under the worker camp
+    h += 135 * ch1PlateauMask(x, z);
+    h += 270 * Math.exp(-(Math.pow(x - 9380, 2) + Math.pow(z - 2120, 2)) / (2 * 430 * 430));
+    h += 36 * Math.exp(-(Math.pow(x - 2300, 2) + Math.pow(z - 4600, 2)) / (2 * 900 * 900));
+
+    // worn tracks: flattened and sunk a little into the sand
+    const [pm] = ch1PathMask(x, z);
+    if (pm > 0) {
+        const m = Math.min(1, pm);
+        h -= (dunes * Math.max(0.12, Math.min(1, (d - 35) / 165))) * 0.6 * m + 3 * m;
     }
 
-    // Spoil thrown up along both lips of the east trench
-    if (z > CH1_TRENCH.z0 - 40 && z < CH1_TRENCH.z1 + 40 && x > CH1_TRENCH.x0 - 90 && x < CH1_TRENCH.x1 + 90) {
-        const along = smooth(CH1_TRENCH.z0 - 40, CH1_TRENCH.z0 + 60, z) * (1 - smooth(CH1_TRENCH.z1 - 60, CH1_TRENCH.z1 + 40, z));
-        const lip = Math.exp(-Math.pow((x - (CH1_TRENCH.x0 - 26)) / 24, 2)) + Math.exp(-Math.pow((x - (CH1_TRENCH.x1 + 26)) / 24, 2));
+    // spoil thrown up along both lips of the east trench
+    const T = CH1_TRENCH;
+    if (z > T.z0 - 40 && z < T.z1 + 40 && x > T.x0 - 90 && x < T.x1 + 90) {
+        const along = smooth(T.z0 - 40, T.z0 + 60, z) * (1 - smooth(T.z1 - 60, T.z1 + 40, z));
+        const lip = Math.exp(-Math.pow((x - (T.x0 - 26)) / 24, 2)) + Math.exp(-Math.pow((x - (T.x1 + 26)) / 24, 2));
         h += 20 * lip * along;
     }
 
-    // Beyond the site: open desert, dunes growing with distance
-    const ox = Math.max(0, -x, x - CH1_W), oz = Math.max(0, z - CH1_H);
-    const out = Math.hypot(ox, oz);
-    if (out > 0) {
-        const big = 60 * Math.sin(x * 0.0007 + 0.4) * Math.sin(z * 0.0006 + 1.1) +
-                    40 * Math.sin(x * 0.0013 - z * 0.0009 + 2.0);
-        const road = (z > CH1_H - 20) ? inRoad : 0;
-        h += (smooth(0, 900, out) * (70 + big)) * (1 - road * 0.95);
+    // the boundary: dunes rear up into a wall you can't climb, and keep
+    // rolling out to the horizon beyond it
+    const out = ch1BoundaryOut(x, z);
+    if (out > -260) {
+        const big = 70 * Math.sin(x * 0.0007 + 0.4) * Math.sin(z * 0.0006 + 1.1) +
+                    45 * Math.sin(x * 0.0013 - z * 0.0009 + 2.0) +
+                    18 * Math.sin(x * 0.004 + z * 0.003);
+        // roads leave through a cut between the dunes
+        let cut = 0;
+        for (const [rx, rz] of CH1_LAYOUT.roadExits) {
+            const dd = Math.hypot(x - rx, (z - rz) * 0.35);
+            cut = Math.max(cut, 1 - smooth(90, 260, dd));
+        }
+        const rise = 420 * smooth(-240, 650, out) + smooth(0, 1400, out) * (140 + big);
+        h += rise * (1 - cut * 0.9);
     }
 
-    // The escarpment: the ground rears up behind the cliff face
-    const edgeWobble = (vnoise3(x * 0.004, 0.5, 1.5) - 0.5) * 70;
-    h += 250 * smooth(CH1_CLIFF_Z + 20 + edgeWobble * 0.3, CH1_CLIFF_Z - 190 + edgeWobble, z);
+    // the escarpment: the ground rears up behind the cliff face (dig zone)
+    const [x0, , x1] = CH1_LAYOUT.digRect;
+    const inX = smooth(x0 - 700, x0 - 100, x) * (1 - smooth(x1 + 100, x1 + 700, x));
+    if (inX > 0) {
+        const edgeWobble = (vnoise3(x * 0.004, 0.5, 1.5) - 0.5) * 70;
+        h += 260 * inX * smooth(CH1_CLIFF_Z + 20 + edgeWobble * 0.3, CH1_CLIFF_Z - 190 + edgeWobble, z);
+    }
     return h;
 }
 
@@ -218,40 +299,6 @@ function currentGroundHeight(x, z) {
     return (currentMapKey === 1) ? ch1Height(x, z) : 0;
 }
 
-// ---- TRODDEN PATHS & ROADS (painted into the terrain vertex colours) ----
-// [x1, z1, x2, z2, halfWidth, kind]  kind: 0 footpath, 1 vehicle track
-const CH1_PATHS = [
-    // main entry road: from the south, through the camp gate, to the compound
-    [1160, 5200, 1160, 3300, 70, 1], [1160, 3300, 1190, 3000, 60, 1], [1190, 3000, 1690, 2830, 55, 1],
-    // ministry road up the east side to where the car parks
-    [3570, 6200, 3570, 3300, 80, 1], [3570, 3300, 3560, 2120, 70, 1],
-    // compound out to the worker camp, the trench, the dig gate
-    [1690, 2830, 900, 2700, 42, 0], [900, 2700, 560, 2640, 40, 0],
-    [1690, 2830, 2400, 2760, 40, 0], [2400, 2760, 2980, 2700, 38, 0],
-    [2980, 2700, 3380, 2560, 36, 0], [2150, 2400, 3380, 2560, 30, 0],
-    [1680, 1960, 1760, 1740, 44, 0], [1250, 2400, 1680, 1960, 34, 0], [2140, 2380, 1680, 1960, 34, 0],
-    // beyond the dig gate to the tunnel cutting
-    [1760, 1700, 1780, 1250, 48, 1], [1780, 1250, 1880, 860, 48, 1], [1880, 860, 1900, 640, 44, 0],
-    [1780, 1300, 1520, 1480, 30, 0], [1800, 1250, 2560, 1380, 28, 0],
-];
-
-function ch1PathMask(x, z) {
-    let best = 0, kindAt = 0;
-    for (const [x1, z1, x2, z2, hw, kind] of CH1_PATHS) {
-        const dx = x2 - x1, dz = z2 - z1;
-        const t = clamp01(((x - x1) * dx + (z - z1) * dz) / (dx * dx + dz * dz));
-        const d = Math.hypot(x - (x1 + dx * t), z - (z1 + dz * t));
-        const edgeJitter = (vnoise3(x * 0.02, z * 0.02, 3.3) - 0.5) * hw * 0.5;
-        const m = 1 - smooth(hw * 0.45, hw + edgeJitter, d);
-        if (m > best) { best = m; kindAt = kind; }
-        // tyre ruts inside vehicle tracks
-        if (kind === 1 && m > 0.5) {
-            const across = Math.abs(d - hw * 0.42);
-            if (across < 7) { best = Math.max(best, 1.25); kindAt = 2; }
-        }
-    }
-    return [best, kindAt];
-}
 
 // ---- TEXTURES & MATERIALS ----
 let CH1M = null;
@@ -810,21 +857,21 @@ function addCh1Horizon(group) {
         }
         geo.setAttribute('color', new THREE.Float32BufferAttribute(cols, 3));
         const m = new THREE.Mesh(geo, mat);
-        m.position.set(x, h / 2 - 20, z);
+        m.position.set(x, h / 2 - 40 + ch1HeightBase(x, z) * 0.6, z);
         m.rotation.y = rot;
         m.userData.noShadow = true;
         group.add(m);
     };
     // Khufu, Khafre (with its cap), Menkaure and the queens — north-west
-    pyramid(-6200, -3400, 2700, 1800, Math.PI / 4 + 0.1, 0.42);
-    pyramid(-3600, -6800, 2600, 1760, Math.PI / 4 + 0.1, 0.48);
-    pyramid(-500, -9000, 1400, 900, Math.PI / 4 + 0.1, 0.55);
-    for (let i = 0; i < 3; i++) pyramid(1200 + i * 700, -9600 - i * 80, 320, 220, Math.PI / 4, 0.6);
+    pyramid(-7000, -5200, 3000, 2000, Math.PI / 4 + 0.1, 0.42);
+    pyramid(-3800, -8600, 2900, 1960, Math.PI / 4 + 0.1, 0.48);
+    pyramid(-200, -10600, 1600, 1040, Math.PI / 4 + 0.1, 0.55);
+    for (let i = 0; i < 3; i++) pyramid(1800 + i * 760, -11300 - i * 80, 360, 250, Math.PI / 4, 0.6);
 
     // Distant plateau line under the pyramids
     const ridge = new THREE.Mesh(new THREE.BoxGeometry(14000, 160, 900),
         new THREE.MeshBasicMaterial({ color: hazeC.clone().multiplyScalar(0.8), fog: false, toneMapped: false }));
-    ridge.position.set(-3000, 40, -6200);
+    ridge.position.set(-3500, 60 + ch1HeightBase(-3500, -7600) * 0.6, -7600);
     ridge.rotation.y = 0.55;
     ridge.userData.noShadow = true;
     group.add(ridge);
@@ -835,8 +882,9 @@ function addCh1Horizon(group) {
     const cx = CH1_W / 2, cz = CH1_H / 2;
     for (let i = 0; i < 900; i++) {
         const a = Math.atan2(CH1_GLOW_DIR.z, CH1_GLOW_DIR.x) + (rng() - 0.5) * 1.5 * (0.4 + rng() * 0.6);
-        const r = 11000 + rng() * 3500;
-        pos.push(cx + Math.cos(a) * r, rng() * rng() * 160 + 10, cz + Math.sin(a) * r);
+        const r = 13000 + rng() * 4500;
+        const px = cx + Math.cos(a) * r, pz = cz + Math.sin(a) * r;
+        pos.push(px, ch1HeightBase(px, pz) + 30 + rng() * rng() * 160, pz);
         const warm = rng();
         const c = new THREE.Color().setHSL(0.08 + warm * 0.05, 0.7 - warm * 0.4, 0.55 + rng() * 0.3);
         col.push(c.r, c.g, c.b);
@@ -854,7 +902,7 @@ function addCh1Horizon(group) {
         map: radialTex('c1glowR', [[0, 'rgba(255,90,70,1)'], [0.3, 'rgba(255,60,40,0.4)'], [1, 'rgba(255,40,20,0)']]),
         blending: THREE.AdditiveBlending, transparent: true, fog: false, depthWrite: false, toneMapped: false
     }));
-    beacon.position.set(cx + CH1_GLOW_DIR.x * 12500, 700, cz + CH1_GLOW_DIR.z * 12500 + 900);
+    { const bx = cx + CH1_GLOW_DIR.x * 15000, bz = cz + CH1_GLOW_DIR.z * 15000 + 900; beacon.position.set(bx, ch1HeightBase(bx, bz) + 700, bz); }
     beacon.scale.set(160, 160, 1);
     group.add(beacon);
     ch1FX.beacon = beacon;
@@ -865,10 +913,11 @@ function addCh1Horizon(group) {
 // ============================================================
 function buildCh1Ground(group) {
     const M = ch1Mats();
-    const PAD = 700;
+    const PAD = 900;
     const W = CH1_W + PAD * 2, H = CH1_H + PAD * 2;
-    const SEG = 24;
-    const geo = new THREE.PlaneGeometry(W, H, Math.round(W / SEG), Math.round(H / SEG));
+    const SEG = 36;
+    const nx = Math.round(W / SEG), nz = Math.round(H / SEG);
+    const geo = new THREE.PlaneGeometry(W, H, nx, nz);
     geo.rotateX(-Math.PI / 2);
     const pos = geo.attributes.position, uv = geo.attributes.uv;
     const cols = new Float32Array(pos.count * 3);
@@ -876,54 +925,58 @@ function buildCh1Ground(group) {
     const c = new THREE.Color();
     const sandA = new THREE.Color(0xf2e6d0), sandB = new THREE.Color(0xc9b392), sandC = new THREE.Color(0xe8d2ae);
     const trod = new THREE.Color(0xb09a80), rut = new THREE.Color(0x8a7a66), road = new THREE.Color(0xa89478);
+    // pass 1: heights
     for (let i = 0; i < pos.count; i++) {
         const x = pos.getX(i) + CH1_W / 2, z = pos.getZ(i) + CH1_H / 2;
-        const y = ch1Height(x, z);
-        pos.setY(i, y);
+        pos.setY(i, ch1Height(x, z));
         uv.setXY(i, x / 260, z / 260);
-        // colour: large-scale mottling, lighter crests, darker hollows
-        const n = fbm3(x * 0.0022, z * 0.0022, 0.7, 4);
+    }
+    geo.computeVertexNormals();
+    const nrm = geo.attributes.normal;
+    const row = nx + 1;
+    // pass 2: colour and the sand/rock/dirt blend
+    for (let i = 0; i < pos.count; i++) {
+        const x = pos.getX(i) + CH1_W / 2, z = pos.getZ(i) + CH1_H / 2;
+        const n = fbm3(x * 0.0018, z * 0.0018, 0.7, 4);
         c.copy(sandB).lerp(sandA, n);
-        const crest = ch1HeightBase(x, z) - ch1HeightBase(x + 60, z + 40);
+        // lighter crests, darker hollows (compare with the neighbour down-slope)
+        const j = Math.min(pos.count - 1, i + row + 1);
+        const crest = pos.getY(i) - pos.getY(j);
         c.lerp(sandC, clamp01(crest * 0.05 + 0.3) * 0.5);
-        // trodden paths and tyre ruts
         const [pm, kind] = ch1PathMask(x, z);
         if (pm > 0) c.lerp(kind === 2 ? rut : kind === 1 ? road : trod, Math.min(1, pm) * (kind === 2 ? 0.55 : 0.5));
-        // near the lamps and the camp the sand is churned darker
         cols[i * 3] = c.r; cols[i * 3 + 1] = c.g; cols[i * 3 + 2] = c.b;
-        // rock where the escarpment rises; dirt inside the trench
-        const rockAmt = smooth(CH1_CLIFF_Z + 40, CH1_CLIFF_Z - 90, z + (vnoise3(x * 0.01, 2, 2) - 0.5) * 80);
-        mix[i * 2] = rockAmt;
+        // rock wherever the ground gets too steep to hold sand (cliffs,
+        // the ridge's crown); dirt inside the trench
+        const slope = 1 - nrm.getY(i);
+        mix[i * 2] = smooth(0.3, 0.5, slope + (vnoise3(x * 0.01, z * 0.01, 2) - 0.5) * 0.08);
         mix[i * 2 + 1] = clamp01(ch1TrenchDip(x, z) / 14);
     }
     geo.setAttribute('color', new THREE.BufferAttribute(cols, 3));
     geo.setAttribute('aMix', new THREE.BufferAttribute(mix, 2));
-    geo.computeVertexNormals();
     const ground = new THREE.Mesh(geo, M.ground);
     ground.position.set(CH1_W / 2, 0, CH1_H / 2);
     ground.receiveShadow = true;
     ground.userData.noCast = true;
     group.add(ground);
 
-    // Far desert: coarse ring out to the horizon, tucked under the near mesh
-    const FAR = 32000;
-    const fgeo = new THREE.PlaneGeometry(FAR, FAR, 128, 128);
+    // Far desert: a coarse sheet out to the horizon, tucked under the near mesh
+    const FAR = 40000;
+    const fgeo = new THREE.PlaneGeometry(FAR, FAR, 140, 140);
     fgeo.rotateX(-Math.PI / 2);
     const fp = fgeo.attributes.position, fuv = fgeo.attributes.uv;
     const fcols = new Float32Array(fp.count * 3), fmix = new Float32Array(fp.count * 2);
     for (let i = 0; i < fp.count; i++) {
         const x = fp.getX(i) + CH1_W / 2, z = fp.getZ(i) + CH1_H / 2;
-        const inside = x > -PAD + 40 && x < CH1_W + PAD - 40 && z > -PAD + 40 && z < CH1_H + PAD - 40;
+        const inside = x > -PAD + 60 && x < CH1_W + PAD - 60 && z > -PAD + 60 && z < CH1_H + PAD - 60;
         let y = ch1HeightBase(x, z);
-        if (inside) y -= 60;
-        // the far dunes swell into proper ridges
-        const far = Math.max(0, Math.hypot(x - CH1_W / 2, z - CH1_H / 2) - 3200);
-        y += smooth(0, 5000, far) * (120 + 160 * fbm3(x * 0.0004, z * 0.0004, 5, 3));
+        if (inside) y -= 80;
+        const far = Math.max(0, Math.hypot(x - CH1_W / 2, z - CH1_H / 2) - 7500);
+        y += smooth(0, 6000, far) * (140 + 200 * fbm3(x * 0.0004, z * 0.0004, 5, 3));
         fp.setY(i, y);
         fuv.setXY(i, x / 260, z / 260);
         c.copy(sandB).lerp(sandA, fbm3(x * 0.0015, z * 0.0015, 0.7, 3));
         fcols[i * 3] = c.r; fcols[i * 3 + 1] = c.g; fcols[i * 3 + 2] = c.b;
-        fmix[i * 2] = smooth(CH1_CLIFF_Z + 40, CH1_CLIFF_Z - 90, z);
     }
     fgeo.setAttribute('color', new THREE.BufferAttribute(fcols, 3));
     fgeo.setAttribute('aMix', new THREE.BufferAttribute(fmix, 2));
@@ -934,14 +987,15 @@ function buildCh1Ground(group) {
     group.add(farMesh);
 }
 
-// The north escarpment — a continuous rock face the whole width of the
-// site and beyond, with a rubble apron at its foot
+// The north escarpment behind the dig zone, with a talus of fallen
+// boulders at its foot; rock outcrops break up the dune wall elsewhere
 function buildCh1Escarpment(group) {
     const M = ch1Mats();
     const rng = seededRng('escarpment');
     const segW = 620;
-    for (let x = -1600; x < CH1_W + 1600; x += segW - 60) {
-        const h = 220 + rng() * 90;
+    const [x0, , x1] = CH1_LAYOUT.digRect;
+    for (let x = x0 - 700; x < x1 + 700; x += segW - 60) {
+        const h = 230 + rng() * 90;
         const d = 260 + rng() * 120;
         const geo = ch1CliffGeo(segW, h, d, rng() * 50, { amp: 34 });
         const m = new THREE.Mesh(geo, M.cliff);
@@ -950,12 +1004,30 @@ function buildCh1Escarpment(group) {
         m.rotation.y = (rng() - 0.5) * 0.12;
         group.add(m);
     }
-    // talus of fallen boulders along the foot (over the rubble wall)
-    for (let x = 60; x < CH1_W - 60; x += 38 + rng() * 60) {
+    for (let x = x0 + 20; x < x1 - 20; x += 38 + rng() * 60) {
         const z = CH1_CLIFF_Z + 5 + rng() * 34;
         ch1AddRock(group, x, ch1Height(x, z), z, 14 + rng() * 26, rng, rng() < 0.3 ? M.rockDark : M.rock);
     }
+    // outcrops half-swallowed by the boundary dunes (hard edges read as
+    // "can't go that way" far better than an empty slope)
+    const B = CH1_LAYOUT.boundary;
+    for (let i = 0; i < B.length; i++) {
+        const [ax, az] = B[i], [bx, bz] = B[(i + 1) % B.length];
+        const len = Math.hypot(bx - ax, bz - az);
+        const nx = (bz - az) / len, nz = -(bx - ax) / len; // outward-ish
+        for (let t = rng() * 0.3; t < 1; t += 0.25 + rng() * 0.35) {
+            let x = ax + (bx - ax) * t, z = az + (bz - az) * t;
+            if (CH1_LAYOUT.roadExits.some(([rx, rz]) => Math.hypot(x - rx, z - rz) < 420)) continue;
+            const o = 80 + rng() * 260;
+            x += nx * o; z += nz * o;
+            if (ch1BoundaryOut(x, z) < 0) { x -= nx * 2 * o; z -= nz * 2 * o; }
+            const s = 40 + rng() * 90;
+            ch1AddRock(group, x, ch1HeightBase(x, z), z, s, rng, rng() < 0.4 ? M.rockDark : M.cliff, 0.35);
+            if (rng() < 0.6) ch1AddRock(group, x + (rng() - 0.5) * s * 1.6, ch1HeightBase(x, z), z + (rng() - 0.5) * s * 1.6, s * 0.5, rng, M.rock, 0.3);
+        }
+    }
 }
+
 
 // ============================================================
 // LIGHTS, GLOWS & FX
@@ -969,6 +1041,9 @@ const ch1FX = {
     dust: null,     // { points, box }
     moths: [],      // { points, cx, cy, cz, n }
     sway: [],       // { obj, amp, speed, phase, axis }
+    lamps: [],      // { anchor, color, intensity, dist, steady, phase, wp } — lit from the pool
+    pool: [],       // the few real PointLights, handed to the nearest lamps
+    poolTick: 0,
     active: false,
 };
 
@@ -987,14 +1062,13 @@ function ch1GlowSprite(x, y, z, size, color, strength) {
 function ch1Lamp(group, x, y, z, opts) {
     opts = opts || {};
     const color = opts.color || 0xffa850;
-    if (opts.light !== false) {
-        const light = new THREE.PointLight(color, opts.intensity || 1.5, opts.dist || 560, 2);
-        light.position.set(x, y, z);
-        group.add(light);
-        flickerLights.push({ light, base: light.intensity, phase: Math.random() * 10, steady: !!opts.steady });
-    }
     const glow = ch1GlowSprite(x, y, z, opts.glow || 60, color, opts.glowStrength);
     group.add(glow);
+    // the open world has far more lamps than a shader can light at once:
+    // each lamp registers here and the nearest ones borrow a real light
+    if (opts.light !== false) {
+        ch1FX.lamps.push({ anchor: glow, color, intensity: opts.intensity || 1.5, dist: opts.dist || 560, steady: !!opts.steady, phase: Math.random() * 10, wp: null });
+    }
     ch1FX.glows.push({ sprite: glow, base: glow.material.opacity, phase: Math.random() * 10, steady: !!opts.steady });
     return glow;
 }
@@ -1009,10 +1083,10 @@ function ch1AddFire(group, x, y, z, scale) {
         group.add(s);
         fire.flames.push(s);
     }
-    const light = new THREE.PointLight(0xff8a3a, 2.2, 620, 2);
-    light.position.set(x, y + 22 * scale, z);
-    group.add(light);
-    flickerLights.push({ light, base: 2.2, phase: Math.random() * 10, steady: false });
+    const anchor = new THREE.Object3D();
+    anchor.position.set(x, y + 22 * scale, z);
+    group.add(anchor);
+    ch1FX.lamps.push({ anchor, color: 0xff8a3a, intensity: 2.3, dist: 680, steady: false, phase: Math.random() * 10, wp: null, fire: true });
     const glow = ch1GlowSprite(x, y + 12 * scale, z, 150 * scale, 0xff9a40, 0.55);
     group.add(glow);
     ch1FX.glows.push({ sprite: glow, base: 0.55, phase: Math.random() * 10, steady: false });
@@ -1077,15 +1151,15 @@ function ch1AddDust(group) {
 function addCh1Scatter(group) {
     const M = ch1Mats();
     const rng = seededRng('ch1-scatter-v2');
-    const walls = mapWalls[1] || [];
+    const walls = (mapWalls[1] || []).filter(w => w.kind !== 'boundary');
     const blocked = (x, z, pad) =>
         walls.some(w => x > w.x - pad && x < w.x + w.w + pad && z > w.y - pad && z < w.y + w.h + pad) ||
         (activeMapObjects || []).some(o => x > o.x - pad && x < o.x + o.w + pad && z > o.y - pad && z < o.y + o.h + pad);
 
     const pick = (pad, allowPath) => {
         for (let t = 0; t < 30; t++) {
-            const x = -500 + rng() * (CH1_W + 1000), z = CH1_CLIFF_Z + 10 + rng() * (CH1_H + 500 - CH1_CLIFF_Z);
-            if (x > -10 && x < CH1_W + 10 && z < CH1_H + 10 && blocked(x, z, pad)) continue;
+            const x = rng() * CH1_W, z = rng() * CH1_H;
+            if (ch1BoundaryOut(x, z) > 700 || blocked(x, z, pad)) continue;
             if (ch1TrenchDip(x, z) > 1) continue;
             if (!allowPath && ch1PathMask(x, z)[0] > 0.3) continue;
             return [x, z];
@@ -1105,7 +1179,7 @@ function addCh1Scatter(group) {
 
     // pebbles and stones
     for (let v = 0; v < 3; v++) {
-        instanced(ch1RockGeo(v * 3 + 1), v === 2 ? M.rockDark : M.rock, 170, (d) => {
+        instanced(ch1RockGeo(v * 3 + 1), v === 2 ? M.rockDark : M.rock, 520, (d) => {
             const at = pick(10, true); if (!at) return false;
             const s = 2.5 + rng() * rng() * 11;
             d.position.set(at[0], ch1Height(at[0], at[1]) - s * 0.2, at[1]);
@@ -1115,7 +1189,7 @@ function addCh1Scatter(group) {
         }).userData.noCast = true;
     }
     // bigger stones out in the open (cast shadows)
-    instanced(ch1RockGeo(4), M.rock, 60, (d) => {
+    instanced(ch1RockGeo(4), M.rock, 240, (d) => {
         const at = pick(40, false); if (!at) return false;
         const s = 12 + rng() * 22;
         d.position.set(at[0], ch1Height(at[0], at[1]) - s * 0.25, at[1]);
@@ -1129,9 +1203,9 @@ function addCh1Scatter(group) {
     const tuftX = tuft.clone().rotateY(Math.PI / 2);
     for (const g of [tuft, tuftX]) {
         const r2 = seededRng('tufts');
-        instanced(g, M.grass, 320, (d) => {
-            const x = -300 + r2() * (CH1_W + 600), z = CH1_CLIFF_Z + 40 + r2() * (CH1_H + 300 - CH1_CLIFF_Z);
-            if (x > -10 && x < CH1_W + 10 && z < CH1_H + 10 && blocked(x, z, 14)) return false;
+        instanced(g, M.grass, 1100, (d) => {
+            const x = r2() * CH1_W, z = r2() * CH1_H;
+            if (ch1BoundaryOut(x, z) > 600 || blocked(x, z, 14)) return false;
             if (ch1PathMask(x, z)[0] > 0.2 || ch1TrenchDip(x, z) > 1) return false;
             const s = 0.6 + r2() * 0.9;
             d.position.set(x, ch1Height(x, z) - 1, z);
@@ -1145,9 +1219,9 @@ function addCh1Scatter(group) {
     bush.translate(0, 18, 0);
     for (const g of [bush, bush.clone().rotateY(Math.PI / 2)]) {
         const r2 = seededRng('shrubs');
-        instanced(g, M.shrub, 90, (d) => {
-            const x = -300 + r2() * (CH1_W + 600), z = CH1_CLIFF_Z + 60 + r2() * (CH1_H + 300 - CH1_CLIFF_Z);
-            if (x > -10 && x < CH1_W + 10 && z < CH1_H + 10 && blocked(x, z, 30)) return false;
+        instanced(g, M.shrub, 380, (d) => {
+            const x = r2() * CH1_W, z = r2() * CH1_H;
+            if (ch1BoundaryOut(x, z) > 500 || blocked(x, z, 30)) return false;
             if (ch1PathMask(x, z)[0] > 0.1 || ch1TrenchDip(x, z) > 1) return false;
             const s = 0.6 + r2() * 0.8;
             d.position.set(x, ch1Height(x, z) - 2, z);
@@ -1157,7 +1231,7 @@ function addCh1Scatter(group) {
         });
     }
     // pottery shards — the ground remembers older camps
-    instanced(gBox(7, 1.4, 5), M.terracotta, 70, (d) => {
+    instanced(gBox(7, 1.4, 5), M.terracotta, 200, (d) => {
         const at = pick(12, true); if (!at) return false;
         d.position.set(at[0], ch1Height(at[0], at[1]) + 0.5, at[1]);
         d.rotation.set((rng() - 0.5) * 0.4, rng() * 7, (rng() - 0.5) * 0.4);
@@ -1172,6 +1246,7 @@ function addCh1Scatter(group) {
 function buildCh1Environment(group, scene) {
     ch1FX.glows = []; ch1FX.fires = []; ch1FX.smoke = []; ch1FX.moths = []; ch1FX.sway = [];
     ch1FX.embers = null; ch1FX.dust = null; ch1FX.beacon = null;
+    ch1FX.lamps = []; ch1FX.pool = []; ch1FX.poolTick = 0;
     ch1FX.active = true;
     ch1Rects = null;
 
@@ -1205,6 +1280,13 @@ function buildCh1Environment(group, scene) {
     group.add(sun);
     group.add(sun.target);
     ch1FX.sun = sun;
+    // the light pool (fixed count so shaders never recompile)
+    for (let i = 0; i < 10; i++) {
+        const l = new THREE.PointLight(0xffa850, 0, 500, 2);
+        l.userData = { lamp: null, fade: 0 };
+        group.add(l);
+        ch1FX.pool.push(l);
+    }
 
     if (!q || q.dust) ch1AddDust(group);
     addCh1Scatter(group);
@@ -1285,6 +1367,34 @@ function updateCh1FX(focusX, focusZ) {
         ch1FX.sun.target.position.set(fx, fy, fz);
         ch1FX.sun.position.set(fx + CH1_MOON_DIR.x * 2600, fy + CH1_MOON_DIR.y * 2600, fz + CH1_MOON_DIR.z * 2600);
         ch1FX.sun.target.updateMatrixWorld();
+    }
+
+    // hand the pool's lights to the lamps nearest the focus
+    if (ch1FX.pool.length && (ch1FX.poolTick++ % 12 === 0)) {
+        for (const L of ch1FX.lamps) {
+            if (!L.wp) { L.anchor.updateWorldMatrix(true, false); L.wp = L.anchor.getWorldPosition(new THREE.Vector3()); }
+            L.d = Math.hypot(L.wp.x - focusX, L.wp.z - focusZ);
+        }
+        const near = ch1FX.lamps.filter(L => L.d < 2600 && L.anchor.parent && L.anchor.parent.visible !== false)
+            .sort((a, b) => a.d - b.d).slice(0, ch1FX.pool.length);
+        const taken = new Set();
+        // keep lights that still belong to a near lamp (no popping)
+        for (const l of ch1FX.pool) if (l.userData.lamp && near.includes(l.userData.lamp)) taken.add(l.userData.lamp); else l.userData.lamp = null;
+        for (const L of near) {
+            if (taken.has(L)) continue;
+            const l = ch1FX.pool.find(q => !q.userData.lamp);
+            if (!l) break;
+            l.userData.lamp = L; l.userData.fade = 0;
+            l.position.copy(L.wp); l.color.setHex(L.color); l.distance = L.dist;
+            taken.add(L);
+        }
+    }
+    for (const l of ch1FX.pool) {
+        const L = l.userData.lamp;
+        if (!L) { l.intensity = 0; continue; }
+        l.userData.fade = Math.min(1, l.userData.fade + 0.05);
+        const flick = L.steady ? 1 : (0.86 + 0.10 * Math.sin(t * 9 + L.phase) + 0.06 * Math.sin(t * 23 + L.phase * 1.7)) * (L.fire ? 0.9 + 0.12 * Math.sin(t * 17 + L.phase) : 1);
+        l.intensity = L.intensity * flick * l.userData.fade;
     }
 
     // lamp halos breathe with their lights
