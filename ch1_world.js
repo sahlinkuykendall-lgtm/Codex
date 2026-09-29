@@ -1193,7 +1193,9 @@ function buildCh1Environment(group, scene) {
     group.add(new THREE.HemisphereLight(0x4a5c8a, 0x2a2218, 0.42));
     const sun = new THREE.DirectionalLight(0x9fb6e6, 0.62);
     sun.castShadow = true;
-    sun.shadow.mapSize.set(2048, 2048);
+    const q = (typeof getSettings === 'function') ? getSettings().preset : null;
+    const smap = q ? q.shadowMap : 2048;
+    sun.shadow.mapSize.set(smap, smap);
     const sc = sun.shadow.camera;
     sc.left = -1100; sc.right = 1100; sc.top = 1100; sc.bottom = -1100;
     sc.near = 100; sc.far = 5200;
@@ -1204,7 +1206,7 @@ function buildCh1Environment(group, scene) {
     group.add(sun.target);
     ch1FX.sun = sun;
 
-    ch1AddDust(group);
+    if (!q || q.dust) ch1AddDust(group);
     addCh1Scatter(group);
 }
 
@@ -1277,7 +1279,7 @@ function updateCh1FX(focusX, focusZ) {
 
     // shadow camera follows the focus, snapped to texels (no shimmer)
     if (ch1FX.sun) {
-        const texel = 2200 / 2048;
+        const texel = 2200 / ch1FX.sun.shadow.mapSize.x;
         const fx = Math.round(focusX / texel) * texel, fz = Math.round(focusZ / texel) * texel;
         const fy = ch1Height(focusX, focusZ);
         ch1FX.sun.target.position.set(fx, fy, fz);

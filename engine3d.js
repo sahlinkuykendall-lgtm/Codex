@@ -55,7 +55,7 @@ const renderer3 = (() => {
     throw lastErr;
 })();
 renderer3.outputEncoding = THREE.sRGBEncoding;
-renderer3.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer3.setPixelRatio(Math.min(window.devicePixelRatio, gfxSettings().preset ? gfxSettings().preset.pixelRatio : 2));
 
 // Far plane must clear the largest sky dome (map dim * 1.7 + camera offset)
 const cam3 = new THREE.PerspectiveCamera(70, 16 / 9, 1, 24000);
@@ -551,9 +551,10 @@ function buildWorld() {
         scene3.remove(worldGroup);
         worldGroup.traverse(o => {
             if (o.geometry) o.geometry.dispose();
-            if (o.material) {
-                if (o.material.map) o.material.map.dispose();
-                o.material.dispose();
+            // (some meshes carry an array of materials, one per face group)
+            for (const m of [].concat(o.material || [])) {
+                if (m.map) m.map.dispose();
+                m.dispose();
             }
         });
     }
@@ -570,7 +571,7 @@ function buildWorld() {
     // tone-mapped, shadowed, its own sky, terrain, walls and props
     const isCh1 = currentMapKey === 1;
     renderer3.toneMapping = isCh1 ? THREE.ACESFilmicToneMapping : THREE.NoToneMapping;
-    renderer3.toneMappingExposure = isCh1 ? 0.95 : 1;
+    renderer3.toneMappingExposure = isCh1 ? 0.95 * (gfxSettings().brightness || 1) : 1;
     renderer3.shadowMap.enabled = isCh1 && gfxSettings().shadows;
     renderer3.shadowMap.type = THREE.PCFSoftShadowMap;
     if (!isCh1) ch1Deactivate();
@@ -885,8 +886,12 @@ function buildWorld() {
     builtSignature = currentWorldSignature();
     // Face into the map: Ch1+ spawns enter from the south looking north,
     // the Ch2 descent routes enter from the north looking south
-    camYaw = (player.y + player.size / 2) < WORLD.height / 2 ? Math.PI : 0;
-    camPitch = 0;
+    // (a settings-driven rebuild of the same place keeps your view)
+    if (!window._keepViewOnRebuild) {
+        camYaw = (player.y + player.size / 2) < WORLD.height / 2 ? Math.PI : 0;
+        camPitch = 0;
+    }
+    window._keepViewOnRebuild = false;
 }
 
 function ensureWorldBuilt() {
@@ -901,7 +906,8 @@ function syncWorldVisibility() {
     const px = player.x + player.size / 2;
     const py = player.y + player.size / 2;
     // Ch1 is dense with props — only nearby things are labelled there
-    const labelFar = currentMapKey === 1 ? [620, 900] : [1250, 1700];
+    const labelMode = gfxSettings().labels || 'near';
+    const labelFar = labelMode === 'always' ? [2600, 3200] : currentMapKey === 1 ? [620, 900] : [1250, 1700];
     for (const e of objectEntries) {
         const hidden = isObjectResolved(e.o);
         e.mesh.visible = !hidden || !!e.keep;
@@ -928,7 +934,7 @@ function syncWorldVisibility() {
             else if (dist > labelFar[1]) alpha = 0;
             else if (dist > labelFar[0]) alpha = 1 - (dist - labelFar[0]) / (labelFar[1] - labelFar[0]);
             e.label.material.opacity = alpha;
-            e.label.visible = !hidden && alpha > 0.02;
+            e.label.visible = !hidden && alpha > 0.02 && labelMode !== 'off';
         }
     }
 }
@@ -971,8 +977,9 @@ glCanvas.addEventListener('click', () => {
 
 document.addEventListener('mousemove', e => {
     if (document.pointerLockElement !== glCanvas) return;
-    camYaw   -= e.movementX * 0.0022;
-    camPitch -= e.movementY * 0.0022;
+    const st = gfxSettings(), sens = 0.0022 * (st.mouseSens || 1);
+    camYaw   -= e.movementX * sens;
+    camPitch -= e.movementY * sens * (st.invertY ? -1 : 1);
     camPitch = Math.max(-1.45, Math.min(1.45, camPitch));
 });
 
@@ -982,6 +989,8 @@ document.addEventListener('mousemove', e => {
 // two never collide). The jump is vertical only — ground collision
 // rules stay identical to the 2D build.
 let jumpY = 0, jumpVel = 0, isAirborne = false;
+let landDip = 0;                          // camera dips a little on landing
+const moveVel = { x: 0, z: 0, moving: false }; // smoothed walking velocity
 const JUMP_VELOCITY = 6.6, JUMP_GRAVITY = 0.44; // peak ~50 units (~1.5m), ~0.5s airtime
 
 window.addEventListener('keydown', e => {
@@ -1020,6 +1029,12 @@ function updatePlayer3d() {
         const bar = document.getElementById('stamina-bar-fill');
         const txt = document.getElementById('stat-stamina');
         if (bar) bar.style.width = pct + '%';
+        // the stamina bar steps back when it's full (modern HUD manners)
+        const box = document.getElementById('hud-bottomleft');
+        if (box) {
+            box.classList.toggle('full', pct >= 99.9);
+            box.classList.toggle('low', gameState.staminaExhausted || pct < 25);
+        }
         if (txt) txt.innerText = gameState.stamina.toFixed(1);
     }
 
@@ -1039,11 +1054,15 @@ function updatePlayer3d() {
         jumpVel -= JUMP_GRAVITY;
         if (jumpY <= 0) {
             jumpY = 0; jumpVel = 0; isAirborne = false;
+            landDip = 4.5;
             sndFootstep(currentSurfaceType(), true); // landing thump
         }
     }
 
-    if (gameState.isDialogueActive || gameState.isResting || gameState.isPaused || activePuzzle) return;
+    if (gameState.isDialogueActive || gameState.isResting || gameState.isPaused || activePuzzle) {
+        moveVel.x = moveVel.z = 0; moveVel.moving = false;
+        return;
+    }
 
     // Keyboard turning (mouse-free fallback)
     if (isHeld('arrowleft'))  camYaw += 0.045;
@@ -1054,19 +1073,29 @@ function updatePlayer3d() {
     if (isHeld('s') || isHeld('arrowdown')) moveF -= 1;
     if (isHeld('a')) moveR -= 1;
     if (isHeld('d')) moveR += 1;
-    if (moveF === 0 && moveR === 0) return;
 
+    // Velocity eases toward the input (a quick start, a short slide to a
+    // stop) instead of snapping — top speeds are unchanged
     const speed = player.speed * (gameState.isSprinting ? 2 : 1);
-    // Camera-relative directions on the ground plane (yaw 0 faces -z / "2D north")
-    const fx = -Math.sin(camYaw), fz = -Math.cos(camYaw);
-    const rx =  Math.cos(camYaw), rz = -Math.sin(camYaw);
-    let dx = fx * moveF + rx * moveR;
-    let dz = fz * moveF + rz * moveR;
-    const len = Math.hypot(dx, dz);
-    dx = dx / len * speed;
-    dz = dz / len * speed;
+    let tx = 0, tz = 0;
+    if (moveF !== 0 || moveR !== 0) {
+        // Camera-relative directions on the ground plane (yaw 0 faces -z / "2D north")
+        const fx = -Math.sin(camYaw), fz = -Math.cos(camYaw);
+        const rx =  Math.cos(camYaw), rz = -Math.sin(camYaw);
+        tx = fx * moveF + rx * moveR;
+        tz = fz * moveF + rz * moveR;
+        const len = Math.hypot(tx, tz);
+        tx = tx / len * speed;
+        tz = tz / len * speed;
+    }
+    const accel = (tx || tz) ? 0.22 : 0.3;
+    moveVel.x += (tx - moveVel.x) * accel;
+    moveVel.z += (tz - moveVel.z) * accel;
+    if (!tx && !tz && Math.hypot(moveVel.x, moveVel.z) < 0.05) { moveVel.x = moveVel.z = 0; return; }
+    const dx = moveVel.x, dz = moveVel.z;
+    moveVel.moving = !!(tx || tz);
 
-    gameState.walkBobPhase += 0.15 * (gameState.isSprinting ? 1.4 : 1);
+    gameState.walkBobPhase += 0.15 * (gameState.isSprinting ? 1.4 : 1) * Math.min(1, Math.hypot(dx, dz) / player.speed);
 
     // Axis-separated AABB collision — identical rules to the 2D build
     const currentWalls = (mapWalls[currentMapKey] || []).filter(w => !w.isGate || !gameState.flags[w.gateFlag]);
@@ -1079,8 +1108,8 @@ function updatePlayer3d() {
         if (player.x < wall.x + wall.w && player.x + player.size > wall.x &&
             testY < wall.y + wall.h && testY + player.size > wall.y) { blockedY = true; }
     }
-    if (!blockedX) player.x = testX;
-    if (!blockedY) player.y = testY;
+    if (!blockedX) player.x = testX; else moveVel.x = 0;
+    if (!blockedY) player.y = testY; else moveVel.z = 0;
 
     player.x = Math.max(0, Math.min(player.x, WORLD.width  - player.size));
     player.y = Math.max(0, Math.min(player.y, WORLD.height - player.size));
@@ -1090,38 +1119,66 @@ function updatePlayer3d() {
 // Same proximity rule as the 2D build (player center within 60px of the
 // object rect). Sets gameState.activeInteractableId, which the existing
 // SPACE keydown handler in engine.js feeds into startDialogue().
+// Same reach as the 2D build (player centre within 60 of the object rect),
+// but when several things are in reach you get the one you're LOOKING at
+// (smallest angle off the crosshair), not whichever the list saw last.
+let promptLabel = '';
 function updateInteractions3d() {
-    let interacting = null;
+    let interacting = null, label = '', bestScore = Infinity;
     const px = player.x + player.size / 2;
     const py = player.y + player.size / 2;
+    const fx = -Math.sin(camYaw), fz = -Math.cos(camYaw);
+    const consider = (scene, lbl, x0, y0, w, h) => {
+        if (!(px > x0 - 60 && px < x0 + w + 60 && py > y0 - 60 && py < y0 + h + 60)) return;
+        // aim at the nearest point of the object's footprint
+        const nx = Math.max(x0, Math.min(px, x0 + w)), nz = Math.max(y0, Math.min(py, y0 + h));
+        const dx = nx - px, dz = nz - py, d = Math.hypot(dx, dz);
+        const ang = d < 8 ? 0 : Math.acos(Math.max(-1, Math.min(1, (dx * fx + dz * fz) / d)));
+        const score = ang + d / 900; // mostly where you look, a little how close
+        if (score < bestScore) { bestScore = score; interacting = scene; label = lbl; }
+    };
 
-    activeMapObjects.forEach(o => {
-        if (o.decorative || !o.interactScene) return;
-        if (isObjectResolved(o)) return;
-        if (px > o.x - 60 && px < o.x + o.w + 60 && py > o.y - 60 && py < o.y + o.h + 60) {
-            interacting = o.interactScene;
-        }
-    });
-
-    // Parked ministry car becomes interactable (mirrors 2D gameLoop)
-    if (ministeryCar.parked && !gameState.flags.inspector_dealt && gameState.chapter === 1 && !interiorState.active) {
-        if (px > ministeryCar.x - 60 && px < ministeryCar.x + ministeryCar.w + 60 &&
-            py > ministeryCar.y - 60 && py < ministeryCar.y + ministeryCar.h + 60) {
-            interacting = 'ch1_inspector';
+    if (!activePuzzle) {
+        activeMapObjects.forEach(o => {
+            if (o.decorative || !o.interactScene) return;
+            if (isObjectResolved(o)) return;
+            consider(o.interactScene, o.label || '', o.x, o.y, o.w, o.h);
+        });
+        // Parked ministry car becomes interactable (mirrors 2D gameLoop)
+        if (ministeryCar.parked && !gameState.flags.inspector_dealt && gameState.chapter === 1 && !interiorState.active) {
+            consider('ch1_inspector', 'Ministry Car', ministeryCar.x, ministeryCar.y, ministeryCar.w, ministeryCar.h);
         }
     }
 
     gameState.activeInteractableId = interacting;
-    document.getElementById('interaction-prompt').classList.toggle(
-        'hidden',
-        !interacting || gameState.isDialogueActive || !!activePuzzle
-    );
+    const prompt = document.getElementById('interaction-prompt');
+    const show = interacting && !gameState.isDialogueActive && !activePuzzle;
+    prompt.classList.toggle('hidden', !show);
+    if (show && label !== promptLabel) {
+        promptLabel = label;
+        const clean = label.replace(/\s*\(.*\)\s*$/, '').replace(/\s+—\s+LOCKED$/i, '');
+        prompt.innerHTML = `<span class="key">SPACE</span> ${clean ? '<span class="pr-label">' + clean + '</span>' : 'Interact'}`;
+    }
+    const cross = document.getElementById('crosshair');
+    if (cross) {
+        cross.classList.toggle('hidden', !gameplayInputActive() || document.pointerLockElement !== glCanvas);
+        cross.classList.toggle('live', !!show);
+    }
 }
+
+// F is a second interact key (SPACE still works; SPACE alone also jumps)
+window.addEventListener('keydown', e => {
+    if (e.code !== 'KeyF' || e.repeat) return;
+    if (!gameplayInputActive() || !gameState.activeInteractableId) return;
+    sndInteract();
+    startDialogue(gameState.activeInteractableId);
+});
 
 // ---- MINISTRY CAR (Chapter 1 drive-in) ----
 let carGroup = null;
 
 function buildMinistryCar() {
+    if (currentMapKey === 1 && typeof ch1Mats === 'function') return buildMinistryCarCh1();
     carGroup = new THREE.Group();
     const w = ministeryCar.w, d = ministeryCar.h;
     const bodyMat = new THREE.MeshPhongMaterial({ color: 0x1e2a3a, shininess: 30, specular: 0x223344 });
@@ -1160,6 +1217,56 @@ function buildMinistryCar() {
     scene3.add(carGroup);
 }
 
+// Chapter 1: a black ministry saloon, nose north (the way it drives in),
+// headlights burning
+function buildMinistryCarCh1() {
+    const M = ch1Mats();
+    carGroup = new THREE.Group();
+    const L = 118, W = 58;
+    const paint = new THREE.MeshStandardMaterial({ color: 0x14181e, roughness: 0.35, metalness: 0.55 });
+    const body = new THREE.Group();
+    put(body, gBox(W, 18, L), paint, 0, 20, 0);                         // lower body
+    put(body, gBox(W - 2, 6, L * 0.3), paint, 0, 30, -L * 0.3);         // bonnet
+    put(body, gBox(W - 2, 6, L * 0.22), paint, 0, 30, L * 0.36);        // boot
+    put(body, gBox(W - 6, 16, L * 0.44), paint, 0, 39, L * 0.04);        // cabin
+    put(body, gBox(W - 5, 12, L * 0.42), M.glass, 0, 40, L * 0.04);      // glasshouse band
+    put(body, gBox(W - 8, 13, 2), M.glass, 0, 38, -L * 0.18, 0, 0, 0).rotation.x = 0.5;  // windscreen
+    put(body, gBox(W + 1, 3, L * 0.98), M.steel, 0, 16, 0);              // chrome line
+    put(body, gBox(W - 10, 6, 2), M.steel, 0, 22, -L / 2 - 0.5);          // grille
+    put(body, gBox(16, 5, 1.5), M.paper, 0, 16, L / 2 + 0.5);             // plate
+    for (const sx of [-1, 1]) {
+        put(body, gBox(10, 5, 2), M.bulbCool, sx * W * 0.34, 23, -L / 2 - 0.6).userData.noShadow = true;
+        put(body, gBox(10, 4, 2), new THREE.MeshBasicMaterial({ color: 0xa01010, toneMapped: false }), sx * W * 0.36, 24, L / 2 + 0.6);
+        const glow = ch1GlowSprite(sx * W * 0.34, 23, -L / 2 - 4, 70, 0xe8f0ff, 0.8);
+        body.add(glow);
+        put(body, gBox(3, 5, 7), paint, sx * (W / 2 + 2), 38, -L * 0.14);  // mirrors
+    }
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
+        const wh = new THREE.Group();
+        put(wh, gCyl(11, 11, 8, 18), M.rubber, 0, 0, 0);
+        put(wh, gCyl(6.5, 6.5, 8.6, 12), M.steel, 0, 0, 0);
+        wh.rotation.z = Math.PI / 2;
+        wh.position.set(sx * (W / 2 - 3), 11, sz * L * 0.32);
+        body.add(wh);
+    }
+    // a pool of headlight on the sand ahead
+    const beam = new THREE.Mesh(new THREE.CircleGeometry(60, 20), new THREE.MeshBasicMaterial({
+        map: radialTex('c1beam', [[0, 'rgba(230,238,255,0.5)'], [1, 'rgba(230,238,255,0)']]),
+        transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false }));
+    beam.rotation.x = -Math.PI / 2;
+    beam.scale.set(1, 1.8, 1);
+    beam.position.set(0, 1.5, -L / 2 - 90);
+    body.add(beam);
+    body.traverse(m => { if (m.isMesh && !m.userData.noShadow) m.castShadow = true; });
+    carGroup.add(body);
+    const label = makeLabelSprite('Ministry Car', '#f4e4b0');
+    label.position.y = 76;
+    carGroup.add(label);
+    carGroup.userData.label = label;
+    carGroup.visible = false;
+    scene3.add(carGroup);
+}
+
 function updateMinistryCar3d() {
     if (!carGroup) return;
     if (gameState.chapter !== 1 || interiorState.active) {
@@ -1186,6 +1293,8 @@ function updateMinistryCar3d() {
         }
     }
     carGroup.visible = ministeryCar.active || ministeryCar.parked;
+    // once parked, the interact zone's own label takes over
+    if (carGroup.userData.label) carGroup.userData.label.visible = !ministeryCar.parked;
     const carX = ministeryCar.x + ministeryCar.w / 2;
     const carZ = ministeryCar.y + ministeryCar.h / 2;
     carGroup.position.set(carX, currentGroundHeight(carX, carZ), carZ);
@@ -1246,12 +1355,13 @@ function positionCamera() {
     const cx = player.x + player.size / 2;
     const cz = player.y + player.size / 2;
     const groundY = currentGroundHeight(cx, cz);
-    const bob = isAirborne ? 0 : Math.sin(gameState.walkBobPhase) * 1.6;
+    const bob = (isAirborne || gfxSettings().headBob === false) ? 0 : Math.sin(gameState.walkBobPhase) * 1.6;
     // Slow drunken sway grows with dread; a fine random tremor only
     // appears deep in FRACTURED (replaces the old constant jitter)
     const t = performance.now() / 1000;
-    const low = sanityLowFactor();
-    const sway = (Math.sin(t * 0.9) * 0.011 + Math.sin(t * 1.7) * 0.006) * dreadSmooth;
+    const calm = gfxSettings().reduceMotion;
+    const low = sanityLowFactor() * (calm ? 0.15 : 1);
+    const sway = (Math.sin(t * 0.9) * 0.011 + Math.sin(t * 1.7) * 0.006) * dreadSmooth * (calm ? 0.2 : 1);
     let shakeX = 0, shakeY = 0, shakeZ = 0;
     if (low > 0) {
         const tremor = low * 1.8;
@@ -1259,7 +1369,8 @@ function positionCamera() {
         shakeY = (Math.random() - 0.5) * tremor * 0.6;
         shakeZ = (Math.random() - 0.5) * tremor;
     }
-    cam3.position.set(cx + shakeX, groundY + EYE_HEIGHT + jumpY + bob + shakeY, cz + shakeZ);
+    landDip *= 0.84;
+    cam3.position.set(cx + shakeX, groundY + EYE_HEIGHT + jumpY + bob + shakeY - landDip, cz + shakeZ);
     cam3.rotation.y = camYaw;
     cam3.rotation.x = camPitch + Math.sin(t * 1.3) * 0.004 * dreadSmooth;
     cam3.rotation.z = sway;
@@ -1312,9 +1423,11 @@ function updateSanityFX3d() {
 
     // Heartbeat FOV pump, only when genuinely low
     const beat = Math.pow(Math.max(0, Math.sin(heartbeatPhase * Math.PI * 2)), 6);
-    const fovTarget = 70 + beat * 1.6 * low;
+    // a small FOV kick while sprinting sells the speed
+    const sprintKick = (gameState.isSprinting && moveVel.moving && !gfxSettings().reduceMotion) ? 6 : 0;
+    const fovTarget = (gfxSettings().fov || 70) + sprintKick + beat * 1.6 * low * (gfxSettings().reduceMotion ? 0.2 : 1);
     if (!mgHandlesPuzzle() && Math.abs(cam3.fov - fovTarget) > 0.01) {
-        cam3.fov = fovTarget;
+        cam3.fov += (fovTarget - cam3.fov) * (Math.abs(fovTarget - cam3.fov) > 3 ? 0.12 : 0.35);
         cam3.updateProjectionMatrix();
     }
 }
@@ -1410,6 +1523,7 @@ function updateAtmosphere3d() {
         const inMenu = gameState.currentScreen === 'START_MENU';
         updateCh1FX(inMenu ? 1703 : player.x + player.size / 2, inMenu ? 2400 : player.y + player.size / 2);
     }
+    if (typeof updateAmbience === 'function') updateAmbience();
 
     for (const f of flickerLights) {
         if (f.steady) continue;
@@ -1527,36 +1641,15 @@ function drawOverlays() {
 const menuOverlayEl = document.getElementById('menu-overlay');
 const menuContinueEl = document.getElementById('menu-continue');
 
-function begin3dGame() {
-    if (gameState.currentScreen !== 'START_MENU') return;
-    menuOverlayEl.classList.add('hidden');
-    startGame(); // sets GAMEFADEIN + overlayAlpha for the fade-in
-}
+// The menu itself (splash, buttons, prologue, cinematic camera) lives in
+// title3d.js; this loop only hands it the frame.
 
 // Continue button appears only when a save exists; checked whenever the
 // menu is (re)shown rather than every frame.
 function syncContinueButton() {
-    menuContinueEl.classList.toggle('hidden', !hasSave());
+    if (typeof titleRefreshContinue === 'function') titleRefreshContinue();
+    else menuContinueEl.classList.toggle('hidden', !hasSave());
 }
-syncContinueButton();
-document.getElementById('menu-version').textContent =
-    `V${GAME_VERSION} — 3D BUILD · ACT I`;
-
-menuContinueEl.addEventListener('click', () => {
-    if (gameState.currentScreen !== 'START_MENU') return;
-    if (loadGame()) menuOverlayEl.classList.add('hidden');
-});
-
-document.getElementById('menu-start').addEventListener('click', begin3dGame);
-document.getElementById('menu-controls').addEventListener('click', () => {
-    document.getElementById('menu-controls-panel').classList.toggle('hidden');
-});
-window.addEventListener('keydown', e => {
-    if ((e.key === ' ' || e.key === 'Enter') && gameState.currentScreen === 'START_MENU' && !mapView.active) {
-        e.preventDefault();
-        begin3dGame();
-    }
-});
 
 // ---- SITE OVERVIEW (drone shots of the current map, from the menu) ----
 // A few fixed perspectives over the whole map so layout issues can be
@@ -1640,7 +1733,8 @@ window.addEventListener('keydown', e => {
 // The smiley (with hair) from the 2D title screen lives on here
 function drawMenuSmiley() {
     ctx.save();
-    const sx = canvas.width - 30, sy = canvas.height - 30, sr = 16;
+    // sits just above the title screen's bottom letterbox bar
+    const sx = canvas.width - 34, sy = canvas.height * 0.95 - 34, sr = 16;
     ctx.strokeStyle = '#6B3A2A'; ctx.lineWidth = 2.5;
     [-0.55, -0.28, 0, 0.28, 0.55].forEach(a => {
         const angle = 3 * Math.PI / 2 + a;
@@ -1684,17 +1778,15 @@ function gameLoop3d() {
             return;
         }
 
-        // Live vista: slow orbit over the night camp behind the DOM menu
-        if (menuOverlayEl.classList.contains('hidden')) {
+        // Live vista: cinematic shots of the night camp behind the DOM menu
+        if (menuOverlayEl.classList.contains('hidden') && !(typeof TITLE !== 'undefined' && TITLE.phase === 'intro')) {
             menuOverlayEl.classList.remove('hidden');
             syncContinueButton(); // returning to menu — a save may now exist
+            if (typeof titleOnMenuShown === 'function') titleOnMenuShown();
         }
         for (const e of objectEntries) if (e.label) e.label.visible = false;
-        const t = performance.now() / 1000;
-        const ang = t * 0.055;
-        const cx = 1703, cz = 2400; // tent compound center
-        cam3.position.set(cx + Math.cos(ang) * 850, 310, cz + Math.sin(ang) * 850);
-        cam3.lookAt(cx, 30, cz);
+        if (cam3.fov !== 58) { cam3.fov = 58; cam3.updateProjectionMatrix(); }
+        if (typeof titleCamera === 'function') { titleCamera(); titlePulse(); }
         renderer3.render(scene3, cam3);
         drawMenuSmiley();
         if (glCanvas.style.filter) glCanvas.style.filter = ''; // menu is always clear-eyed

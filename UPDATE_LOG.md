@@ -13,6 +13,40 @@ Other docs:
 
 ---
 
+## V3.4.0 — 2026-09-29 — Title screen, prologue, settings, ambience, feel
+- **New title screen** (`title3d.js`, `ui3d.css`): it opens on a letterboxed
+  "PRESS ANY KEY" splash over slow cinematic shots of the night camp that cut
+  through black (the festooned tent, the tunnel seal, the brazier, the pyramids,
+  the trench). There's a seal emblem (the Tunnel Gate Seal's four stones round a
+  core) whose core pings every 8 seconds with a low tone, like the Codex in
+  Ellis's tent. The menu is a left-aligned PC-style list you can use with the
+  mouse or ↑/↓ + Enter: Continue (shows chapter and when you saved), New
+  Excavation (asks before overwriting a save), Settings, Site Overview.
+- **Prologue on a new game:** place/time cards over black ("Giza Plateau,
+  Egypt / Autumn, 2023 / The twenty-second night of the excavation."), then one
+  establishing shot descending onto the lamplit tent, then the game's own
+  opening fades in as before. ESC or Enter skips it. No story text changed.
+- **Settings screen** (`settings.js`), from the title and from the pause menu,
+  saved in the browser. Graphics: quality preset (Low/Medium/High/Ultra —
+  resolution, shadows, dust), brightness, field of view. Controls: mouse
+  sensitivity, invert Y, key list. Audio: master, ambience, footsteps.
+  Gameplay: object labels (nearby/always/off), controls reminder, head bob,
+  reduce motion (calms the low-sanity camera sway/tremor).
+- **Ambient sound** (`ambience.js`, Ch1): synthesized gusting desert wind, the
+  brazier crackling as you get close, the generator's diesel hum, crickets.
+- **Mechanics / feel:**
+  - Interaction now picks what you're looking at when several things are in
+    reach. The prompt names it ("SPACE  TARIQ"), and there's a small crosshair
+    that lights up on a target. **F** also interacts.
+  - Fixed: pressing SPACE during a minigame could re-open its dialogue.
+  - Walking eases in and out (same top speed), with a small sprint FOV kick
+    and a camera dip when you land a jump.
+  - HUD restyled: a compact sanity/funds panel, and a thin stamina bar at the
+    bottom centre that fades out when it's full and turns red when you're low.
+  - The ministry car is now a proper black saloon facing the way it drives,
+    with its headlights on.
+- Pause menu: new Settings button, and the footer shows the real version.
+
 ## V3.3.0 — 2026-09-29 — Ch1 minigames played in the world
 Both Chapter 1 minigames now play in 3D in the actual place, like a PC game
 instead of a flat pop-up card. Rules, flags, records and story scenes are unchanged.

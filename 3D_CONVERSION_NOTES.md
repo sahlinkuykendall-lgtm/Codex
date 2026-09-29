@@ -1,11 +1,36 @@
 # 3D CONVERSION — BRANCH NOTES
 
-**Branch:** `3d-conversion` · **Status:** walkable full-game graybox with lighting/atmosphere pass + character figures + jump + save/load
+**Branch:** `3d-conversion` · **Status:** walkable full-game graybox + a fully art-directed Chapter 1 camp (V3.2–3.4: visuals, in-world minigames, title screen, settings, ambience)
 
 ## Entry points (renamed)
 
 - `index.html` is now the **3D build** (the default way to play).
 - `index2d.html` is the original 2D build, unchanged.
+
+## Script layout (V3.4)
+
+`index.html` loads, in order: `three.min.js`, `data.js`, `dialogue.js`,
+`engine.js` (shared with 2D), `settings.js`, `ambience.js`, `ch1_world.js`,
+`ch1_props.js`, `ch1_minigames.js`, `engine3d.js`, `title3d.js`, plus
+`ui3d.css`. See `UPDATE_LOG.md` for what changed in each version.
+
+- `ch1_world.js`: Chapter 1 terrain (`ch1Height`, trench cut, site berm,
+  escarpment), materials/textures, the rock and cliff generators, the shader
+  sky, moon, pyramids and city lights, the moonlight shadow rig, instanced
+  scatter, and FX (fire/embers/smoke, dust, moths, sway), updated by
+  `updateCh1FX()`.
+- `ch1_props.js`: every Ch1 building/prop builder (`CH1_BUILDERS` by id,
+  `CH1_LABEL_BUILDERS` by label), wall styling (`ch1BuildWall`, fences,
+  gate, outcrops) and extra dressing. Builders may set `userData.keep` so
+  a physical thing stays visible after its story beat resolves.
+- `ch1_minigames.js`: the Tunnel Gate Seal and Camp Darts played in 3D.
+  It reuses engine.js's PUZZLES rules (`handlePuzzleClick`, `dartsScoreAt`).
+  The 2D build keeps the 2D cards.
+- `settings.js`: stored options and the settings screen. `ambience.js`:
+  the synthesized Ch1 soundscape. `title3d.js`: the splash, menu, prologue
+  and the cinematic menu camera.
+- Ch1 is tone-mapped (ACES) and shadowed; other maps still use the old
+  untone-mapped graybox path. `buildWorld()` branches on `isCh1`.
 
 ## Character figures (step 7)
 

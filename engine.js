@@ -9,12 +9,31 @@ function _getAudio() {
     if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     return _audioCtx;
 }
+// Master + footstep buses so the settings volumes apply to everything
+let _masterGain = null, _stepGain = null;
+function _audioOut(kind) {
+    const ctx = _getAudio();
+    if (!_masterGain) {
+        _masterGain = ctx.createGain();
+        _masterGain.connect(ctx.destination);
+        _stepGain = ctx.createGain();
+        _stepGain.connect(_masterGain);
+        applyAudioSettings();
+    }
+    return kind === 'step' ? _stepGain : _masterGain;
+}
+function applyAudioSettings() {
+    if (!_masterGain) return;
+    const s = (typeof getSettings === 'function') ? getSettings() : {};
+    _masterGain.gain.value = s.masterVol != null ? s.masterVol : 1;
+    _stepGain.gain.value = s.stepVol != null ? s.stepVol : 1;
+}
 function _tone(freq, dur, type = 'sine', vol = 0.12) {
     try {
         const ctx = _getAudio();
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
-        osc.connect(gain); gain.connect(ctx.destination);
+        osc.connect(gain); gain.connect(_audioOut());
         osc.frequency.value = freq; osc.type = type;
         gain.gain.setValueAtTime(vol, ctx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
@@ -48,7 +67,7 @@ function sndFootstep(surface, sprinting) {
         src.buffer = _getNoiseBuf();
         const filt = actx.createBiquadFilter();
         const gain = actx.createGain();
-        src.connect(filt); filt.connect(gain); gain.connect(actx.destination);
+        src.connect(filt); filt.connect(gain); gain.connect(_audioOut('step'));
         const t = actx.currentTime;
         let vol, dur;
         if (surface === 'sand') {        // soft grain shoosh
@@ -80,7 +99,7 @@ function sndWhoosh() { // a dart leaving the hand
         src.buffer = _getNoiseBuf();
         const filt = actx.createBiquadFilter();
         const gain = actx.createGain();
-        src.connect(filt); filt.connect(gain); gain.connect(actx.destination);
+        src.connect(filt); filt.connect(gain); gain.connect(_audioOut());
         filt.type = 'bandpass';
         const t = actx.currentTime;
         filt.frequency.setValueAtTime(900, t);
@@ -98,7 +117,7 @@ function sndThunk(wall) { // dart landing: cork thock, or wood if it missed
         src.buffer = _getNoiseBuf();
         const filt = actx.createBiquadFilter();
         const gain = actx.createGain();
-        src.connect(filt); filt.connect(gain); gain.connect(actx.destination);
+        src.connect(filt); filt.connect(gain); gain.connect(_audioOut());
         filt.type = 'lowpass';
         filt.frequency.value = wall ? 500 : 900;
         const t = actx.currentTime;
@@ -1323,6 +1342,7 @@ window.addEventListener('blur', () => { heldKeys.clear(); shiftHeld = false; });
 document.addEventListener('visibilitychange', () => { if (document.hidden) { heldKeys.clear(); shiftHeld = false; } });
 
 window.addEventListener('pointerdown', (e) => {
+    if (e.target.closest && e.target.closest('#settings-panel')) return;
     if (e.target.className === 'choice-button') return;
 
     // Puzzle click handling — highest priority (the 3D build plays some
@@ -2583,7 +2603,10 @@ function drawPauseMenu() {
             if (!document.fullscreenElement) gc.requestFullscreen().catch(err => console.log(err));
             else document.exitFullscreen();
         });
-        addBtn('Return to Menu', 'Saves first', CP_Y + 280, () => {
+        const hasSettings = typeof openSettings === 'function';
+        const sy = hasSettings ? 56 : 0;
+        if (hasSettings) addBtn('Settings', 'Graphics, controls, audio', CP_Y + 280, () => openSettings());
+        addBtn('Return to Menu', 'Saves first', CP_Y + 280 + sy, () => {
             saveGame();
             resetGameState();
             menuPhase = 'FADEIN';
@@ -2591,10 +2614,10 @@ function drawPauseMenu() {
             gameState.isPaused = false;
             gameState.currentScreen = 'START_MENU';
         });
-        addBtn('Quit', 'Saves first — reloads the page', CP_Y + 336, () => {
+        addBtn('Quit', 'Saves first — reloads the page', CP_Y + 336 + sy, () => {
             if (confirm('Quit to desktop?')) { saveGame(); window.location.reload(); }
         });
-        addBtn('— DEV: Chapter Select —', null, CP_Y + 406, () => {
+        addBtn('— DEV: Chapter Select —', null, CP_Y + 406 + sy * 0.7, () => {
             gameState.devChapterMenuOpen = true;
             pauseSelection = 0;
         }, { w: 300, h: 28, dim: true });
@@ -2606,7 +2629,7 @@ function drawPauseMenu() {
     ctx.font = '11px Courier New';
     ctx.textAlign = 'center';
     const savedTxt = lastSaveAt ? 'LAST SAVED ' + formatAgo(Date.now() - lastSaveAt).toUpperCase() + ' AGO' : 'NOT SAVED YET';
-    ctx.fillText(savedTxt + '  ·  THE CODEX OF GIZA — V2.2', CP_X + CP_W / 2, CP_Y + CP_H - 18);
+    ctx.fillText(savedTxt + '  ·  THE CODEX OF GIZA — V' + GAME_VERSION, CP_X + CP_W / 2, CP_Y + CP_H - 18);
 
     // ============================================================
     // RIGHT PANEL — QUESTS & INVENTORY (x: 970 to 1270)

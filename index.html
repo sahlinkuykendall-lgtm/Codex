@@ -47,36 +47,6 @@
         #hud-hint { position: absolute; top: 10px; left: 10px; font-size: 11px; color: #888; z-index: 4; background: rgba(0,0,0,0.5); padding: 5px 10px; border-radius: 4px; }
         .strained-filter  { filter: contrast(120%) saturate(70%) hue-rotate(15deg); }
         .fractured-filter { filter: contrast(150%) saturate(50%) hue-rotate(60deg); }
-        /* ---- Main menu (3D vista renders behind this overlay) ---- */
-        #menu-overlay { position: absolute; inset: 0; z-index: 8; display: flex; flex-direction: column; justify-content: center; align-items: center; background: linear-gradient(180deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.30) 16%, rgba(0,0,0,0.10) 42%, rgba(0,0,0,0.42) 72%, rgba(2,2,1,0.92) 100%), radial-gradient(ellipse at center 40%, rgba(0,0,0,0) 20%, rgba(0,0,0,0.5) 100%); animation: menuFade 1.8s ease both; }
-        @keyframes menuFade { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes titleIn { from { opacity: 0; transform: translateY(20px); letter-spacing: 0.4em; } to { opacity: 1; transform: none; letter-spacing: 0.2em; } }
-        @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
-        @keyframes ruleGrow { from { opacity: 0; transform: scaleX(0.1); } to { opacity: 1; transform: scaleX(1); } }
-        .menu-rule { display: flex; align-items: center; width: min(560px, 72vw); gap: 14px; animation: ruleGrow 1.6s cubic-bezier(.2,.7,.3,1) 0.5s both; }
-        .menu-rule .rule-line { flex: 1; height: 1px; }
-        .menu-rule .rule-line:first-child { background: linear-gradient(90deg, transparent, rgba(212,175,55,0.65)); }
-        .menu-rule .rule-line:last-child { background: linear-gradient(270deg, transparent, rgba(212,175,55,0.65)); }
-        .menu-rule .rule-gem { color: rgba(212,175,55,0.85); font-size: 11px; text-shadow: 0 0 10px rgba(212,175,55,0.6); }
-        .menu-rule-under { width: min(400px, 56vw); animation-delay: 0.9s; }
-        #menu-title { font-family: Georgia, 'Palatino Linotype', 'Book Antiqua', 'Times New Roman', serif; font-size: clamp(42px, 6.2vw, 66px); font-weight: 700; letter-spacing: 0.2em; margin: 22px 0 16px; padding-left: 0.2em; /* recenter: tracking pads the right edge */ text-align: center; color: transparent; background: linear-gradient(180deg, #fdf3cd 0%, #eed685 36%, #d4af37 62%, #96741f 100%); -webkit-background-clip: text; background-clip: text; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.95)) drop-shadow(0 0 30px rgba(212,175,55,0.3)); animation: titleIn 2s cubic-bezier(.16,.8,.3,1) both; }
-        #menu-sub { color: #a4915f; font-size: 13px; letter-spacing: 0.62em; padding-left: 0.62em; margin-bottom: 22px; text-shadow: 0 1px 3px #000; animation: fadeUp 1.4s ease 0.8s both; }
-        #menu-buttons { margin-top: 54px; display: flex; flex-direction: column; align-items: center; }
-        .menu-btn { display: block; position: relative; width: 336px; margin: 5px 0; padding: 13px 0; background: rgba(8,6,3,0.55); border: 1px solid rgba(212,175,55,0.26); color: #cdbf98; font-family: 'Courier New', Courier, monospace; font-size: 14px; letter-spacing: 6px; text-transform: uppercase; cursor: pointer; backdrop-filter: blur(3px); transition: background 0.22s ease, border-color 0.22s ease, color 0.22s ease, box-shadow 0.22s ease; opacity: 0; animation: fadeUp 0.7s ease both; }
-        #menu-buttons .menu-btn:nth-child(1) { animation-delay: 1.05s; }
-        #menu-buttons .menu-btn:nth-child(2) { animation-delay: 1.2s; }
-        #menu-buttons .menu-btn:nth-child(3) { animation-delay: 1.35s; }
-        #menu-buttons .menu-btn:nth-child(4) { animation-delay: 1.5s; }
-        #menu-buttons .menu-btn:nth-child(5) { animation-delay: 1.65s; }
-        .menu-btn::before, .menu-btn::after { content: ''; position: absolute; width: 15px; height: 15px; opacity: 0; transition: opacity 0.22s ease; pointer-events: none; }
-        .menu-btn::before { top: -1px; left: -1px; border-top: 1px solid #d4af37; border-left: 1px solid #d4af37; }
-        .menu-btn::after { bottom: -1px; right: -1px; border-bottom: 1px solid #d4af37; border-right: 1px solid #d4af37; }
-        .menu-btn:hover { background: rgba(212,175,55,0.12); border-color: rgba(212,175,55,0.8); color: #ffe9a8; box-shadow: 0 0 26px rgba(212,175,55,0.16), inset 0 0 20px rgba(212,175,55,0.05); }
-        .menu-btn:hover::before, .menu-btn:hover::after { opacity: 1; }
-        #menu-continue { border-color: rgba(212,175,55,0.6); color: #ffd97a; }
-        #menu-controls-panel { margin-top: 24px; padding: 18px 30px; background: rgba(5,4,2,0.88); border: 1px solid rgba(212,175,55,0.3); backdrop-filter: blur(4px); color: #b9a877; font-size: 12.5px; line-height: 2.4; letter-spacing: 1px; text-align: center; box-shadow: 0 14px 44px rgba(0,0,0,0.65); animation: fadeUp 0.35s ease both; }
-        #menu-controls-panel .key { display: inline-block; border: 1px solid rgba(212,175,55,0.65); border-radius: 4px; padding: 0 8px; margin: 0 3px; color: #ffd97a; font-weight: bold; font-size: 11px; letter-spacing: 2px; line-height: 1.8; background: rgba(212,175,55,0.08); box-shadow: 0 2px 0 rgba(212,175,55,0.3); }
-        #menu-version { position: absolute; bottom: 14px; left: 18px; color: rgba(140,120,70,0.55); font-size: 11px; letter-spacing: 3px; text-shadow: 0 1px 2px #000; }
         /* ---- In-world minigames (ch1_minigames.js) ---- */
         #game-container.in-minigame #hud-hint, #game-container.in-minigame #hud-bottomleft { display: none !important; }
         #mg-hud { position: absolute; inset: 0; z-index: 7; pointer-events: none; font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; }
@@ -122,12 +92,14 @@
         #mapview-caption { color: #d4af37; font-size: 13px; letter-spacing: 3px; min-width: 320px; text-align: center; }
         #mapview-hint { position: absolute; top: 14px; left: 0; right: 0; text-align: center; z-index: 9; color: rgba(212,175,55,0.65); font-size: 11.5px; letter-spacing: 3px; text-shadow: 0 1px 2px #000; pointer-events: none; }
     </style>
+    <link rel="stylesheet" href="ui3d.css?v=2">
 </head>
 <body>
     <div id="game-container">
         <canvas id="glCanvas"></canvas>
         <canvas id="gameCanvas"></canvas>
         <div id="interaction-prompt" class="hidden">Press <span class="key">SPACE</span> to interact</div>
+        <div id="crosshair" class="hidden"></div>
         <div id="hud-hint" class="hidden">TAB: Stats &nbsp;|&nbsp; E: Focus &nbsp;|&nbsp; ESC: Pause &nbsp;|&nbsp; SHIFT: Sprint &nbsp;|&nbsp; SPACE: Interact / Jump &nbsp;|&nbsp; Click: Mouse Look</div>
         <div id="ui-overlay" class="hidden">
             <div id="dialogue-box">
@@ -163,28 +135,56 @@
                 <div class="mg-buttons"><button id="mg-again">THROW AGAIN <span class="key">R</span></button><button id="mg-leave">WALK AWAY <span class="key">ESC</span></button></div>
             </div>
         </div>
-        <!-- Main menu over a live 3D vista of the dig site -->
-        <div id="menu-overlay">
-            <div class="menu-rule">
-                <span class="rule-line"></span><span class="rule-gem">&#9670;</span><span class="rule-line"></span>
+        <!-- Title screen over cinematic shots of the dig site (title3d.js) -->
+        <div id="menu-overlay" data-phase="splash">
+            <div id="menu-fade"></div>
+            <div id="menu-shade"></div>
+            <div id="menu-amber"></div>
+            <div class="letterbox top"></div><div class="letterbox bottom"></div>
+            <div id="menu-brand">
+                <svg id="menu-seal" viewBox="0 0 120 120" aria-hidden="true">
+                    <g class="ring">
+                        <circle cx="60" cy="60" r="44" fill="none" stroke="#d8c898" stroke-width="7" opacity="0.9"/>
+                        <circle cx="60" cy="60" r="52" fill="none" stroke="#d4af37" stroke-width="0.8" stroke-dasharray="2 5" opacity="0.7"/>
+                        <g fill="#e6d8b4" stroke="#6a5530" stroke-width="1.2">
+                            <circle cx="60" cy="16" r="10"/><circle cx="104" cy="60" r="10"/><circle cx="60" cy="104" r="10"/><circle cx="16" cy="60" r="10"/>
+                        </g>
+                        <g fill="none" stroke="#4a3a1c" stroke-width="1.6" stroke-linecap="round">
+                            <path d="M54 16 q6 -6 12 0 q-6 6 -12 0 M60 13 v6"/>
+                            <path d="M99 62 q3 -8 9 -4 M100 58 l7 5"/>
+                            <path d="M56 101 q4 -5 8 0 v7"/>
+                            <path d="M11 58 q5 4 10 0 q-5 -4 -10 0 M12 63 q4 2 8 0"/>
+                        </g>
+                    </g>
+                    <circle class="core" cx="60" cy="60" r="21"/>
+                    <circle cx="60" cy="60" r="23" fill="none" stroke="#3a2c14" stroke-width="3"/>
+                </svg>
+                <div>
+                    <h1 id="menu-title"><span class="t1">THE CODEX</span><span class="t2"><span class="t3">of</span>GIZA</span></h1>
+                    <div id="menu-sub">GIZA PLATEAU · AUTUMN 2023</div>
+                </div>
             </div>
-            <h1 id="menu-title">THE CODEX OF GIZA</h1>
-            <div id="menu-sub">AN EXCAVATION IN SEVEN CHAPTERS</div>
-            <div class="menu-rule menu-rule-under">
-                <span class="rule-line"></span><span class="rule-gem">&#9670;</span><span class="rule-line"></span>
-            </div>
-            <div id="menu-buttons">
-                <button class="menu-btn hidden" id="menu-continue">CONTINUE</button>
-                <button class="menu-btn" id="menu-start">BEGIN THE EXCAVATION</button>
-                <button class="menu-btn" id="menu-controls">CONTROLS</button>
+            <div id="menu-press">PRESS ANY KEY</div>
+            <nav id="menu-buttons">
+                <button class="menu-btn hidden" id="menu-continue">CONTINUE<small id="menu-continue-info"></small></button>
+                <button class="menu-btn" id="menu-start">NEW EXCAVATION</button>
+                <button class="menu-btn" id="menu-settings">SETTINGS</button>
                 <button class="menu-btn" id="menu-mapview">SITE OVERVIEW</button>
+            </nav>
+            <div id="menu-confirm" class="hidden">
+                <h3>BEGIN AGAIN?</h3>
+                <p>A new excavation will overwrite the progress saved in this browser.</p>
+                <div class="mg-buttons"><button id="confirm-yes">BEGIN <span class="key">ENTER</span></button><button id="confirm-no">CANCEL <span class="key">ESC</span></button></div>
             </div>
-            <div id="menu-controls-panel" class="hidden">
-                <span class="key">W</span><span class="key">A</span><span class="key">S</span><span class="key">D</span> MOVE &nbsp;&middot;&nbsp; <span class="key">MOUSE</span> LOOK (CLICK TO CAPTURE)<br>
-                <span class="key">SPACE</span> INTERACT / JUMP &nbsp;&middot;&nbsp; <span class="key">SHIFT</span> SPRINT &nbsp;&middot;&nbsp; <span class="key">E</span> FOCUS<br>
-                <span class="key">TAB</span> STATS &nbsp;&middot;&nbsp; <span class="key">ESC</span> PAUSE
-            </div>
-            <div id="menu-version">V3 — 3D BUILD &nbsp;&middot;&nbsp; ACT I</div>
+            <div id="menu-footer"><span class="keys"><span class="key">&#8593;</span><span class="key">&#8595;</span> SELECT &nbsp; <span class="key">ENTER</span> CONFIRM</span><span id="menu-version"></span></div>
+        </div>
+        <div id="intro" class="hidden"></div>
+        <!-- Settings (title menu + pause menu) -->
+        <div id="settings-panel" class="hidden">
+            <div id="settings-head"><h2>SETTINGS</h2><span>SAVED AUTOMATICALLY</span></div>
+            <div id="settings-tabs"></div>
+            <div id="settings-body"></div>
+            <div id="settings-foot"><button id="settings-reset">RESET TO DEFAULTS</button><button id="settings-close">DONE &nbsp;ESC</button></div>
         </div>
         <!-- Shown instead of a silent black screen when startup fails -->
         <div id="boot-error" class="hidden">
@@ -247,12 +247,15 @@
         })();
     </script>
     <script src="lib/three.min.js"></script>
-    <script src="data.js?v=14"></script>
+    <script src="data.js?v=15"></script>
     <script src="dialogue.js?v=12"></script>
-    <script src="engine.js?v=13"></script>
-    <script src="ch1_world.js?v=1"></script>
+    <script src="engine.js?v=14"></script>
+    <script src="settings.js?v=1"></script>
+    <script src="ambience.js?v=1"></script>
+    <script src="ch1_world.js?v=2"></script>
     <script src="ch1_props.js?v=2"></script>
-    <script src="ch1_minigames.js?v=1"></script>
-    <script src="engine3d.js?v=3"></script>
+    <script src="ch1_minigames.js?v=2"></script>
+    <script src="engine3d.js?v=5"></script>
+    <script src="title3d.js?v=1"></script>
 </body>
 </html>
