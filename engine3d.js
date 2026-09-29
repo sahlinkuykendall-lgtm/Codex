@@ -570,14 +570,19 @@ function buildWorld() {
     // Chapter 1's camp is a fully art-directed scene (ch1_world.js):
     // tone-mapped, shadowed, its own sky, terrain, walls and props
     const isCh1 = currentMapKey === 1;
-    renderer3.toneMapping = isCh1 ? THREE.ACESFilmicToneMapping : THREE.NoToneMapping;
-    renderer3.toneMappingExposure = isCh1 ? 0.95 * (gfxSettings().brightness || 1) : 1;
+    // ...and so are its three building interiors (ch1_interiors.js)
+    const isCh1Int = typeof ch1IsArtInterior === 'function' && ch1IsArtInterior(currentMapKey);
+    renderer3.toneMapping = (isCh1 || isCh1Int) ? THREE.ACESFilmicToneMapping : THREE.NoToneMapping;
+    renderer3.toneMappingExposure = (isCh1 || isCh1Int) ? 0.95 * (gfxSettings().brightness || 1) : 1;
     renderer3.shadowMap.enabled = isCh1 && gfxSettings().shadows;
     renderer3.shadowMap.type = THREE.PCFSoftShadowMap;
     if (!isCh1) ch1Deactivate();
 
     if (isCh1) {
         buildCh1Environment(worldGroup, scene3);
+    } else if (isCh1Int) {
+        gateMeshes = [];
+        buildCh1Interior(worldGroup, scene3);
     } else {
 
     // Sky + fog. Underground is near-black (tinted per place) with the
@@ -719,8 +724,8 @@ function buildWorld() {
             continue;
         }
         // Chapter 1: bespoke props, lights and FX (ch1_props.js)
-        if (isCh1) {
-            const g = buildCh1Object(o);
+        if (isCh1 || isCh1Int) {
+            const g = isCh1 ? buildCh1Object(o) : buildCh1InteriorObject(o);
             if (g) {
                 worldGroup.add(g);
                 let label = null;
@@ -872,7 +877,7 @@ function buildWorld() {
     // Ellis's lantern — a carried light underground and indoors (the
     // surface camp is lit well enough that it would wash out the night)
     playerLamp = null;
-    if (atmos.type !== 'ext') {
+    if (atmos.type !== 'ext' && !isCh1Int) { // (the Ch1 rooms have their own lamps)
         playerLamp = new THREE.PointLight(0xe8b545, 1.15, 580, 2);
         scene3.add(playerLamp);
     }
@@ -1821,6 +1826,7 @@ function gameLoop3d() {
     cineTypeTick();
     if (typeof bpUpdateView === 'function') bpUpdateView(); // the held tool, first person
     if (typeof tipsUpdate === 'function') tipsUpdate();    // first-steps tips
+    if (typeof updateCh1Interiors === 'function') updateCh1Interiors();
     renderer3.render(scene3, cam3);
 
     drawOverlays();

@@ -13,6 +13,34 @@ Other docs:
 
 ---
 
+## V3.8.0 — 2026-09-29 — Chapter 1 interiors; vegetation where the water is
+- **Interiors** (`ch1_interiors.js`): the three Chapter 1 buildings are fully built
+  rooms now instead of grey boxes, lit by warm lamps (tone mapped, and the Brightness
+  setting applies). All collision and interactables are exactly where they were.
+  - **Ellis' tent:** a canvas roof on a ridge pole, groundsheet and kilims, the Codex
+    glowing faintly on the work table under a hanging hurricane lamp (loupe, notes),
+    the cot with a camp chest and lamp, trunks and crates, a bookshelf, the journal
+    desk and chair, the photographs pinned to an easel, boots, a jerrycan, a coat on
+    a peg, and the doorway open onto the night.
+  - **Workers' dormitory:** plank floor and walls, a corrugated roof on rafters, ten
+    bunks with mismatched blankets, boots, washing on a line, moonlight through three
+    windows, one lantern still burning low by the sleepless worker, the blue-eye
+    talisman over its cot, and tally scratches on the wall.
+  - **Foreman's office:** plaster walls, a tiled floor, a slowly turning ceiling fan,
+    shelves of files, the corkboard with notes and red string, the desk with ledgers,
+    telephone and lamp, the counter, the manifest on its hook, Sam's box of notes,
+    a site map, a heater, a water cooler, shuttered windows, and a bare bulb over the door.
+- **Vegetation placed by water:** a dry wadi channel (gravel bed, soft banks) now
+  runs down the valley between two ridges, with acacias along both banks. Plants
+  grow in clumps where water would be:
+  - dense tamarisk and greener grass round the oasis
+  - tamarisk and camel-thorn along the wadi
+  - scattered camel-thorn tussocks with grass in their lee at the dune feet
+  - nothing on dune crests or bare flats
+
+  This replaces the even random scatter. Two chalk clusters that sat in the wadi
+  moved aside.
+
 ## V3.7.0 — 2026-09-29 — Paths, living supply line, backpack, tips
 - **Paths are clearly defined now:** every track is its own surface laid over the sand.
   Roads are compacted dirt with gravel and two dark tyre ruts, and footpaths are packed

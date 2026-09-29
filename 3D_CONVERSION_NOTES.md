@@ -36,6 +36,11 @@
 - `ch1_openworld.js`: side places, sherds, detector caches, compass,
   place-name toasts; tea and sieve minigames live in ch1_minigames.js.
 - `cine3d.js`: conversation camera shots, letterbox, typewriter text.
+- `backpack.js`: size-based backpack, inventory UI, held tools (detector, field
+  glasses), canteen/dates; the Ch3 tea vendor sells a 16-unit rucksack.
+- `tips3d.js`: timed first-steps tips on a new game (hold X to disable).
+- `ch1_supply.js`: the animated supply-line train and worker (visual only).
+- `ch1_interiors.js`: art-directed tent / dorm / foreman office interiors.
 - Ch1 is tone-mapped (ACES) and shadowed; other maps still use the old
   untone-mapped graybox path. `buildWorld()` branches on `isCh1`.
 

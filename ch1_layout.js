@@ -235,15 +235,32 @@ const CH1_KEEPOUT = [
 ];
 // chalk formation clusters: [x, z, count, scale]
 const CH1_YARDANGS = [
-    [4380, 4250, 4, 1.0], [7650, 6150, 4, 1.1], [1650, 6000, 3, 0.9], [6620, 2620, 3, 0.9],
-    [4250, 7950, 4, 1.0], [10020, 3450, 3, 1.2], [2550, 1720, 3, 1.0], [7200, 3650, 3, 0.8],
+    [4380, 4250, 4, 1.0], [7650, 6150, 4, 1.1], [1650, 6000, 3, 0.9], [6950, 2420, 3, 0.9],
+    [4250, 7950, 4, 1.0], [10020, 3450, 3, 1.2], [2550, 1720, 3, 1.0], [5900, 3350, 3, 0.8],
     [4700, 3250, 3, 0.8], [1250, 2450, 3, 1.1],
 ];
 // palm plantation between the workers' camp and the oasis, acacias in the wadi
 const CH1_GROVES = [];
 for (let r = 0; r < 5; r++) for (let c = 0; c < 5; c++) CH1_GROVES.push([600 + c * 100 + (r % 2) * 45, 3950 + r * 130]);
 for (let i = 0; i < 12; i++) { const a = i / 12 * Math.PI * 2; CH1_GROVES.push([1250 + Math.cos(a) * 330, 3470 + Math.sin(a) * 260]); }
-const CH1_ACACIAS = [[6780, 2880], [7020, 3160], [6650, 3250], [7180, 2800], [6900, 3380], [5900, 6200], [8700, 4600], [2600, 5700]];
+// the dry wadi: a shallow gravel channel in the valley between two ridges
+const CH1_WADI = [[6200, 2380], [6560, 2800], [6900, 3260], [7120, 3820], [7040, 4420], [6860, 5020]];
+// acacias stand along its banks (and one alone in the open, a landmark)
+const CH1_ACACIAS = [];
+(function () {
+    let side = 1, acc = 0;
+    for (let i = 0; i < CH1_WADI.length - 1; i++) {
+        const [ax, az] = CH1_WADI[i], [bx, bz] = CH1_WADI[i + 1];
+        const len = Math.hypot(bx - ax, bz - az), nx = -(bz - az) / len, nz = (bx - ax) / len;
+        for (let d = (260 - acc) % 260; d < len; d += 240 + ((i * 37 + d) % 60)) {
+            const t = d / len;
+            CH1_ACACIAS.push([ax + (bx - ax) * t + nx * side * (70 + (d % 40)), az + (bz - az) * t + nz * side * (70 + (d % 40))]);
+            side = -side;
+        }
+        acc = (acc + len) % 260;
+    }
+    CH1_ACACIAS.push([4700, 4800], [1500, 3200], [1040, 3700]);
+})();
 
 // deterministic randomness (ch1_world.js's seededRng loads later)
 function ch1LayoutRng(str) {

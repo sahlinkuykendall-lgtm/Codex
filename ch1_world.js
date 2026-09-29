@@ -251,6 +251,12 @@ function ch1HeightBase(x, z) {
         h -= (dunes * Math.max(0.12, Math.min(1, (d - 35) / 165))) * 0.85 * m + 4 * m;
     }
 
+    // the dry wadi: a shallow channel with soft banks
+    {
+        const wd = ch1WadiDist(x, z);
+        if (wd < 160) h -= 18 * (1 - smooth(30, 150, wd));
+    }
+
     // spoil thrown up along both lips of the east trench
     const T = CH1_TRENCH;
     if (z > T.z0 - 40 && z < T.z1 + 40 && x > T.x0 - 90 && x < T.x1 + 90) {
@@ -980,6 +986,7 @@ function buildCh1Ground(group) {
     const c = new THREE.Color();
     const sandA = new THREE.Color(0xf2e6d0), sandB = new THREE.Color(0xc9b392), sandC = new THREE.Color(0xe8d2ae);
     const trod = new THREE.Color(0xb09a80), rut = new THREE.Color(0x8a7a66), road = new THREE.Color(0xa89478);
+    const wadiGravel = new THREE.Color(0x8e8272);
     // pass 1: heights
     for (let i = 0; i < pos.count; i++) {
         const x = pos.getX(i) + CH1_W / 2, z = pos.getZ(i) + CH1_H / 2;
@@ -1000,6 +1007,7 @@ function buildCh1Ground(group) {
         c.lerp(sandC, clamp01(crest * 0.05 + 0.3) * 0.5);
         const [pm, kind] = ch1PathMask(x, z);
         if (pm > 0) c.lerp(kind === 2 ? rut : kind === 1 ? road : trod, Math.min(1, pm) * (kind === 2 ? 0.55 : 0.5));
+        { const wd = ch1WadiDist(x, z); if (wd < 120) c.lerp(wadiGravel, 0.55 * (1 - smooth(40, 120, wd))); }
         cols[i * 3] = c.r; cols[i * 3 + 1] = c.g; cols[i * 3 + 2] = c.b;
         // rock wherever the ground gets too steep to hold sand (cliffs,
         // the ridge's crown); dirt inside the trench
@@ -1252,39 +1260,6 @@ function addCh1Scatter(group) {
         d.rotation.set(0, rng() * 7, (rng() - 0.5) * 0.2);
         return true;
     });
-    // dry grass tufts (crossed quads)
-    const tuft = new THREE.PlaneGeometry(26, 22);
-    tuft.translate(0, 11, 0);
-    const tuftX = tuft.clone().rotateY(Math.PI / 2);
-    for (const g of [tuft, tuftX]) {
-        const r2 = seededRng('tufts');
-        instanced(g, M.grass, 1100, (d) => {
-            const x = r2() * CH1_W, z = r2() * CH1_H;
-            if (ch1BoundaryOut(x, z) > 600 || blocked(x, z, 14)) return false;
-            if (ch1PathMask(x, z)[0] > 0.2 || ch1TrenchDip(x, z) > 1) return false;
-            const s = 0.6 + r2() * 0.9;
-            d.position.set(x, ch1Height(x, z) - 1, z);
-            d.scale.set(s, s * (0.7 + r2() * 0.6), s);
-            d.rotation.set(0, r2() * 7, 0);
-            return true;
-        }).userData.noCast = true;
-    }
-    // camel-thorn shrubs
-    const bush = new THREE.PlaneGeometry(48, 40);
-    bush.translate(0, 18, 0);
-    for (const g of [bush, bush.clone().rotateY(Math.PI / 2)]) {
-        const r2 = seededRng('shrubs');
-        instanced(g, M.shrub, 380, (d) => {
-            const x = r2() * CH1_W, z = r2() * CH1_H;
-            if (ch1BoundaryOut(x, z) > 500 || blocked(x, z, 30)) return false;
-            if (ch1PathMask(x, z)[0] > 0.1 || ch1TrenchDip(x, z) > 1) return false;
-            const s = 0.6 + r2() * 0.8;
-            d.position.set(x, ch1Height(x, z) - 2, z);
-            d.scale.set(s, s, s);
-            d.rotation.set(0, r2() * 7, 0);
-            return true;
-        });
-    }
     // pottery shards — the ground remembers older camps
     instanced(gBox(7, 1.4, 5), M.terracotta, 200, (d) => {
         const at = pick(12, true); if (!at) return false;
@@ -1688,48 +1663,8 @@ function buildCh1Occluders(group) {
         group.add(g);
     }
 
-    // tamarisk thickets: feathery grey-green, head-high — along the wadi,
-    // round the oasis and at the feet of the ridges
-    const tamTex = makeTex('c1tamarisk2', 128, 128, 1, 1, (cc, w, h) => {
-        // a soft, rounded mass of feathery sprays on a few woody stems
-        cc.clearRect(0, 0, w, h);
-        cc.strokeStyle = '#4a3c2c'; cc.lineWidth = 3;
-        for (let i = 0; i < 4; i++) { cc.beginPath(); cc.moveTo(64 + (i - 1.5) * 6, h); cc.lineTo(64 + (i - 1.5) * 14, h * 0.55); cc.stroke(); }
-        for (let i = 0; i < 520; i++) {
-            const a = Math.random() * Math.PI, r = Math.sqrt(Math.random());
-            const x = 64 + Math.cos(a) * r * 58, y = 78 - Math.sin(a) * r * 70;
-            cc.fillStyle = ['#6f7a56', '#7d8762', '#5e6848', '#8b8a74', '#a09080'][(Math.random() * 5) | 0];
-            cc.globalAlpha = 0.55 + Math.random() * 0.45;
-            cc.beginPath(); cc.ellipse(x, y, 1.6 + Math.random() * 2.4, 3 + Math.random() * 4, (Math.random() - 0.5) * 0.8, 0, 7); cc.fill();
-        }
-        cc.globalAlpha = 1;
-    });
-    const tamMat = new THREE.MeshStandardMaterial({ map: tamTex, transparent: true, alphaTest: 0.35, side: THREE.DoubleSide, roughness: 1 });
-    const quad = new THREE.PlaneGeometry(110, 100); quad.translate(0, 48, 0);
-    const spots = [];
-    const addThicket = (cx, cz, n, spread) => { for (let i = 0; i < n; i++) spots.push([cx + (rng() - 0.5) * spread, cz + (rng() - 0.5) * spread]); };
-    for (const [x, z] of CH1_ACACIAS.slice(0, 5)) addThicket(x, z, 8, 360);
-    addThicket(1250, 3470, 16, 820);
-    for (const r of CH1_RIDGES) for (let k = 0; k < 3; k++) { const p = r.pts[(rng() * r.pts.length) | 0]; addThicket(p[0] + (rng() - 0.5) * r.w * 2.4, p[1], 5, 260); }
-    const walls = (mapWalls[1] || []).filter(w => w.kind !== 'boundary');
-    const ok = ([x, z]) => ch1PathMask(x, z)[0] < 0.1 && !walls.some(w => x > w.x - 20 && x < w.x + w.w + 20 && z > w.y - 20 && z < w.y + w.h + 20) &&
-        !(mapObjects[1] || []).some(o => !/^ow_(oasis|spoil|ruins)$/.test(o.id) && x > o.x - 30 && x < o.x + o.w + 30 && z > o.y - 30 && z < o.y + o.h + 30);
-    const good = spots.filter(ok);
-    for (const rot of [0, Math.PI / 3, -Math.PI / 3]) {
-        const im = new THREE.InstancedMesh(quad, tamMat, good.length);
-        const r2 = seededRng('tam' + rot);
-        good.forEach(([x, z], i) => {
-            dummy.position.set(x, ch1Height(x, z) - 3, z);
-            dummy.rotation.set(0, rot + r2() * 0.4, 0);
-            const s = 0.7 + r2() * 0.8;
-            dummy.scale.set(s, s * (0.8 + r2() * 0.5), s);
-            dummy.updateMatrix();
-            im.setMatrixAt(i, dummy.matrix);
-        });
-        im.castShadow = true;
-        im.userData.noShadow = true;
-        group.add(im);
-    }
+    // tamarisk, camel-thorn and grass, placed by where the water is
+    ch1PlaceVegetation(group, dummy);
 }
 
 // ============================================================
@@ -1849,4 +1784,103 @@ function buildCh1Paths(group) {
     });
     im.userData.noCast = true;
     group.add(im);
+}
+
+// ============================================================
+// VEGETATION — where the water is
+// ============================================================
+// Desert plants grow where water collects, and in clumps: dense and
+// green round the oasis, acacia/tamarisk/camel-thorn along the dry wadi,
+// scattered camel-thorn tussocks at the feet of the dunes with grass in
+// their lee — and nothing on the crests or the open gravel.
+function ch1WadiDist(x, z) {
+    let best = 1e9;
+    for (let i = 0; i < CH1_WADI.length - 1; i++) {
+        const [ax, az] = CH1_WADI[i], [bx, bz] = CH1_WADI[i + 1];
+        const dx = bx - ax, dz = bz - az, t = clamp01(((x - ax) * dx + (z - az) * dz) / (dx * dx + dz * dz));
+        best = Math.min(best, Math.hypot(x - (ax + dx * t), z - (az + dz * t)));
+    }
+    return best;
+}
+function ch1Moisture(x, z) {
+    const oasis = Math.exp(-Math.hypot(x - 1250, z - 3470) / 620);
+    const wadi = Math.exp(-ch1WadiDist(x, z) / 230) * 0.85;
+    const plant = Math.exp(-Math.hypot(x - 800, z - 4200) / 420) * 0.5;
+    const rh = ch1RidgeHeight(x, z);
+    const foot = rh > 4 && rh < 55 ? 0.32 * (1 - Math.abs(rh - 24) / 30) : 0;
+    let m = Math.max(oasis, wadi, plant, foot) + 0.035;
+    if (rh > 70) m *= 0.1;                              // dune crests stay bare
+    return clamp01(m);
+}
+
+function ch1PlaceVegetation(group, dummy) {
+    const M = ch1Mats();
+    const rng = seededRng('ecology');
+    const walls = (mapWalls[1] || []).filter(w => w.kind !== 'boundary');
+    const clear = (x, z, pad) => ch1PathMask(x, z)[0] < 0.1 && ch1TrenchDip(x, z) < 1 &&
+        !walls.some(w => x > w.x - pad && x < w.x + w.w + pad && z > w.y - pad && z < w.y + w.h + pad) &&
+        !(mapObjects[1] || []).some(o => !/^ow_(oasis|spoil|ruins|pathlamp)/.test(o.id) && x > o.x - pad && x < o.x + o.w + pad && z > o.y - pad && z < o.y + o.h + pad);
+    const lists = { tam: [], thorn: [], grassDry: [], grassGreen: [] };
+    const cap = { tam: 300, thorn: 520, grassDry: 1600, grassGreen: 900 };
+    const add = (k, x, z, s) => { if (lists[k].length < cap[k] && clear(x, z, k.startsWith('grass') ? 10 : 24)) lists[k].push([x, z, s]); };
+    for (let t = 0; t < 5200; t++) {
+        const cx = 200 + rng() * (CH1_W - 400), cz = 900 + rng() * (CH1_H - 1000);
+        if (ch1BoundaryOut(cx, cz) > -60) continue;
+        const m = ch1Moisture(cx, cz);
+        if (rng() > m * 0.9) continue;
+        const spread = 40 + 130 * m;
+        const around = (n, k, sMin, sMax, sp) => {
+            for (let i = 0; i < n; i++) {
+                const a = rng() * 6.28, r = Math.sqrt(rng()) * (sp || spread);
+                add(k, cx + Math.cos(a) * r, cz + Math.sin(a) * r, sMin + rng() * (sMax - sMin));
+            }
+        };
+        if (m > 0.55) { around(3 + (rng() * 6 | 0), 'tam', 0.8, 1.5); around(8 + (rng() * 8 | 0), 'grassGreen', 0.7, 1.5); }
+        else if (m > 0.28) { around(1 + (rng() * 3 | 0), 'tam', 0.6, 1.2); around(2 + (rng() * 4 | 0), 'thorn', 0.6, 1.3); around(5 + (rng() * 6 | 0), 'grassDry', 0.6, 1.3); }
+        else { around(1 + (rng() * 2 | 0), 'thorn', 0.5, 1.1, 50); around(3 + (rng() * 4 | 0), 'grassDry', 0.5, 1.1, 60); }
+    }
+    const instanced = (geo, mat, spots, yOff, rotBase) => {
+        if (!spots.length) return;
+        const im = new THREE.InstancedMesh(geo, mat, spots.length);
+        const r2 = seededRng('veg' + spots.length + (rotBase || 0));
+        spots.forEach(([x, z, s], i) => {
+            dummy.position.set(x, ch1Height(x, z) + yOff, z);
+            dummy.rotation.set(0, (rotBase || 0) + r2() * 6.28, 0);
+            dummy.scale.set(s, s * (0.8 + r2() * 0.4), s);
+            dummy.updateMatrix();
+            im.setMatrixAt(i, dummy.matrix);
+        });
+        im.userData.noShadow = true;
+        group.add(im);
+        return im;
+    };
+    // tamarisk: three crossed feathery cards
+    const tamQuad = new THREE.PlaneGeometry(110, 100); tamQuad.translate(0, 48, 0);
+    for (const rot of [0, Math.PI / 3, -Math.PI / 3]) { const im = instanced(tamQuad, M.tamarisk || ch1TamariskMat(M), lists.tam, -3, rot); if (im) im.castShadow = true; }
+    // camel-thorn tussocks
+    const bush = new THREE.PlaneGeometry(52, 42); bush.translate(0, 19, 0);
+    for (const rot of [0, Math.PI / 2]) { const im = instanced(bush, M.shrub, lists.thorn, -2, rot); if (im) im.castShadow = true; }
+    // grass: dry tufts, and greener halfa by the water
+    const tuft = new THREE.PlaneGeometry(26, 22); tuft.translate(0, 11, 0);
+    if (!M.grassGreen) { M.grassGreen = M.grass.clone(); M.grassGreen.color = new THREE.Color(0xa8c078); }
+    const green = M.grassGreen;
+    for (const rot of [0, Math.PI / 2]) { instanced(tuft, M.grass, lists.grassDry, -1, rot); instanced(tuft, green, lists.grassGreen, -1, rot); }
+}
+
+function ch1TamariskMat(M) {
+    const tamTex = makeTex('c1tamarisk2', 128, 128, 1, 1, (cc, w, h) => {
+        cc.clearRect(0, 0, w, h);
+        cc.strokeStyle = '#4a3c2c'; cc.lineWidth = 3;
+        for (let i = 0; i < 4; i++) { cc.beginPath(); cc.moveTo(64 + (i - 1.5) * 6, h); cc.lineTo(64 + (i - 1.5) * 14, h * 0.55); cc.stroke(); }
+        for (let i = 0; i < 520; i++) {
+            const a = Math.random() * Math.PI, r = Math.sqrt(Math.random());
+            const x = 64 + Math.cos(a) * r * 58, y = 78 - Math.sin(a) * r * 70;
+            cc.fillStyle = ['#6f7a56', '#7d8762', '#5e6848', '#8b8a74', '#a09080'][(Math.random() * 5) | 0];
+            cc.globalAlpha = 0.55 + Math.random() * 0.45;
+            cc.beginPath(); cc.ellipse(x, y, 1.6 + Math.random() * 2.4, 3 + Math.random() * 4, (Math.random() - 0.5) * 0.8, 0, 7); cc.fill();
+        }
+        cc.globalAlpha = 1;
+    });
+    M.tamarisk = new THREE.MeshStandardMaterial({ map: tamTex, transparent: true, alphaTest: 0.35, side: THREE.DoubleSide, roughness: 1 });
+    return M.tamarisk;
 }
