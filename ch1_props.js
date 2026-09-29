@@ -623,17 +623,33 @@ const CH1_BUILDERS = {
             const a = (i / 10) * Math.PI * 2;
             subBeam(g, M.rust, new THREE.Vector3(Math.cos(a) * 13, 28, Math.sin(a) * 13), new THREE.Vector3(Math.cos(a) * 23, 45, Math.sin(a) * 23), 1);
         }
-        const coals = put(g, new THREE.SphereGeometry(17, 10, 6), M.ember, 0, 40, 0);
-        coals.scale.set(1, 0.35, 1);
-        coals.userData.noShadow = true;
-        for (let i = 0; i < 5; i++) {
-            const a = rng() * 7;
-            put(g, gCyl(2.2, 2.6, 26, 6), M.dark, Math.cos(a) * 5, 44, Math.sin(a) * 5, a, 1.0 + rng() * 0.3);
+        // charred logs leaning into the fire, their ends glowing
+        const char = new THREE.MeshStandardMaterial({ color: 0x1c1612, roughness: 1, flatShading: true });
+        for (let i = 0; i < 4; i++) {
+            const a = (i / 4) * Math.PI * 2 + rng() * 0.5;
+            const len = 16 + rng() * 6;
+            const log = new THREE.Group();
+            put(log, new THREE.CylinderGeometry(2.1, 2.6, len, 7), char, 0, len / 2, 0);
+            put(log, new THREE.SphereGeometry(2.3, 7, 5), M.ember, 0, len - 0.5, 0).userData.noShadow = true;
+            log.position.set(Math.cos(a) * 15, 37, Math.sin(a) * 15);
+            log.lookAt(0, 37 + len * 0.45, 0);
+            log.rotateX(Math.PI / 2);
+            g.add(log);
         }
-        // grill + blackened kettle
+        // grill, and the blackened teapot that is always on it
         for (const s of [-1, 1]) put(g, gBox(46, 1.2, 1.2), M.metalDark, 0, 47, s * 7);
-        put(g, gCyl(6, 8, 11, 12), M.dark, 10, 53, 4);
-        put(g, gCyl(1.4, 2.4, 8, 6), M.dark, 17, 55, 4, 0, -0.9);
+        const pot = new THREE.MeshStandardMaterial({ color: 0x2c2824, roughness: 0.45, metalness: 0.6 });
+        const tp = new THREE.Group();
+        put(tp, new THREE.SphereGeometry(6.2, 14, 10), pot, 0, 5, 0).scale.y = 0.78;
+        put(tp, gCyl(3.2, 4.6, 2.2, 12), pot, 0, 9.4, 0);
+        put(tp, new THREE.SphereGeometry(3.2, 12, 6, 0, Math.PI * 2, 0, Math.PI / 2), pot, 0, 10.4, 0);
+        put(tp, new THREE.SphereGeometry(0.9, 8, 6), M.brass || pot, 0, 13.6, 0);
+        const spout = put(tp, new THREE.CylinderGeometry(0.7, 1.5, 8, 8), pot, 7.2, 7, 0);
+        spout.rotation.z = -0.95;
+        put(tp, new THREE.TorusGeometry(4.2, 0.55, 5, 12, Math.PI), pot, -1.5, 10, 0, Math.PI / 2, 0, 0).rotation.set(0, Math.PI / 2, 0);
+        tp.position.set(10, 48, 4);
+        tp.rotation.y = 0.4;
+        g.add(tp);
         ch1AddFire(g, 0, 42, 0, 1);
         // stools and a rug
         const rug = put(g, new THREE.PlaneGeometry(90, 56), M.rug, -86, 0.8, -20, 0, 0, 0);

@@ -12,6 +12,25 @@ Other docs:
 
 ---
 
+## V4.0.3 — 2026-09-29 — A proper fire at the workers' brazier
+- **The flames live now.** Eighteen flame tongues, in three hand-shaped variants, are born
+  at the coals, lick upward, narrow and redden, and die. That replaces five sprites that
+  only stretched in place. There's a warm white-hot heart over the coals.
+- **The coal bed:** a pile of cracked lumps glowing from inside, pulsing with the flames.
+  Charred logs with glowing ends lie in the basket.
+- **Sparks** are small and quick. Most wink out within a hand's breadth, and now and then
+  a log settles and throws a burst up past the kettle. They replace the big orange blobs.
+- **The kettle is a real Egyptian teapot:** blackened, with a round body, domed lid, knob,
+  curved spout and handle. It used to look like a black top hat.
+- **The firelight** on the camp now flickers in step with the flames.
+- **The sound of the fire:**
+  - A low rolling roar that swells and opens up as the flames rise.
+  - A soft hiss.
+  - Three kinds of crackle: dry ticks, resonant woody snaps, and a low knock when a log
+    settles, which sets off a quick run of crackles.
+
+  Before, it was only faint high clicks. The sound grows as you walk closer.
+
 ## V4.0.2 — 2026-09-29 — Gender: male or female
 - The character-creation screen now offers only **Male** or **Female** (the Non-binary
   option is removed), and the row is labelled GENDER. Pronouns and forms of address follow

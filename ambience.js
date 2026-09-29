@@ -59,21 +59,60 @@ function ambInit() {
     AMB.hum.start(); hum2.start();
 
     AMB.cricketGain = ctx.createGain(); AMB.cricketGain.gain.value = 1; AMB.cricketGain.connect(AMB.bus);
+
+    // the fire's body: a low, rolling roar (brown noise under a lowpass that
+    // opens and closes with the flames) and a soft hiss of gas and sap
+    const flen = ctx.sampleRate * 3;
+    const fbuf = ctx.createBuffer(1, flen, ctx.sampleRate);
+    const fd = fbuf.getChannelData(0);
+    let fl = 0;
+    for (let i = 0; i < flen; i++) { fl = (fl + 0.04 * (Math.random() * 2 - 1)) / 1.04; fd[i] = fl * 4.2; }
+    AMB.fireRoar = ctx.createBufferSource(); AMB.fireRoar.buffer = fbuf; AMB.fireRoar.loop = true;
+    AMB.fireRoarFilt = ctx.createBiquadFilter(); AMB.fireRoarFilt.type = 'lowpass'; AMB.fireRoarFilt.frequency.value = 380; AMB.fireRoarFilt.Q.value = 0.9;
+    AMB.fireRoarGain = ctx.createGain(); AMB.fireRoarGain.gain.value = 0;
+    AMB.fireRoar.connect(AMB.fireRoarFilt); AMB.fireRoarFilt.connect(AMB.fireRoarGain); AMB.fireRoarGain.connect(AMB.bus);
+    AMB.fireRoar.start();
+    const hbuf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+    const hd = hbuf.getChannelData(0);
+    for (let i = 0; i < hd.length; i++) hd[i] = Math.random() * 2 - 1;
+    AMB.fireHiss = ctx.createBufferSource(); AMB.fireHiss.buffer = hbuf; AMB.fireHiss.loop = true;
+    AMB.fireHissFilt = ctx.createBiquadFilter(); AMB.fireHissFilt.type = 'bandpass'; AMB.fireHissFilt.frequency.value = 3800; AMB.fireHissFilt.Q.value = 0.8;
+    AMB.fireHissGain = ctx.createGain(); AMB.fireHissGain.gain.value = 0;
+    AMB.fireHiss.connect(AMB.fireHissFilt); AMB.fireHissFilt.connect(AMB.fireHissGain); AMB.fireHissGain.connect(AMB.bus);
+    AMB.fireHiss.start();
+    AMB.crackleBurst = 0;
     AMB.ready = true;
 }
 
-// A single crackle / pop from the fire
-function ambCrackle(vol) {
+// Crackles from the fire, three kinds:
+//   tick — a tiny dry click of wood fibre (most of them)
+//   snap — a bigger pop with some body and a woody ring to it
+//   knock — a low thud as a log settles
+function ambCrackle(vol, kind) {
     const ctx = _getAudio();
+    kind = kind || 'tick';
+    const t = ctx.currentTime;
     const src = ctx.createBufferSource();
     src.buffer = _getNoiseBuf();
-    const f = ctx.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 1400 + Math.random() * 2400;
+    const f = ctx.createBiquadFilter();
     const g = ctx.createGain();
-    const t = ctx.currentTime, dur = 0.012 + Math.random() * 0.03;
-    g.gain.setValueAtTime(vol * (0.4 + Math.random()), t);
+    let dur;
+    if (kind === 'tick') {
+        f.type = 'bandpass'; f.frequency.value = 2200 + Math.random() * 3800; f.Q.value = 1.2 + Math.random() * 2;
+        dur = 0.006 + Math.random() * 0.018;
+        g.gain.setValueAtTime(vol * (0.5 + Math.random() * 0.8), t);
+    } else if (kind === 'snap') {
+        f.type = 'bandpass'; f.frequency.value = 700 + Math.random() * 1500; f.Q.value = 4 + Math.random() * 6;   // resonant: the wood rings
+        dur = 0.04 + Math.random() * 0.07;
+        g.gain.setValueAtTime(vol * (1.6 + Math.random() * 1.2), t);
+    } else {
+        f.type = 'lowpass'; f.frequency.value = 180 + Math.random() * 160; f.Q.value = 1;
+        dur = 0.12 + Math.random() * 0.1;
+        g.gain.setValueAtTime(vol * 3.2, t);
+    }
     g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
     src.connect(f); f.connect(g); g.connect(AMB.bus);
-    src.start(t); src.stop(t + dur + 0.01);
+    src.start(t, Math.random() * 0.05); src.stop(t + dur + 0.02);
 }
 
 // A cricket: a few fast pulses of a high sine
@@ -123,11 +162,25 @@ function updateAmbience() {
     // generator hum, loudest at its side, faint across camp
     AMB.humGain.gain.value = 0.004 + 0.05 * near('generator', 1400);
 
-    // brazier crackles
-    const fire = near('brazier', 900);
+    // the brazier: a roar and hiss that breathe with the flames, and crackles
+    const fire = near('brazier', 1000);
+    const flick = (typeof ch1FX !== 'undefined' && ch1FX.fireFlick) || 0.9;
+    AMB.fireRoarGain.gain.value = fire * (0.16 + 0.12 * (flick - 0.8) * 4);
+    AMB.fireRoarFilt.frequency.value = 260 + 360 * Math.max(0, flick - 0.7) * 3;
+    AMB.fireHissGain.gain.value = fire * (0.012 + 0.01 * Math.sin(t * 0.7) ** 2);
     if (fire > 0.01 && t > AMB.nextCrackle) {
-        ambCrackle(0.09 * fire);
-        AMB.nextCrackle = t + 0.03 + Math.random() * (Math.random() < 0.3 ? 0.5 : 0.14);
+        if (AMB.crackleBurst > 0) {
+            // a burst: a quick run of ticks and snaps
+            AMB.crackleBurst--;
+            ambCrackle(0.12 * fire, Math.random() < 0.3 ? 'snap' : 'tick');
+            AMB.nextCrackle = t + 0.015 + Math.random() * 0.05;
+        } else {
+            const r = Math.random();
+            if (r < 0.05) { ambCrackle(0.1 * fire, 'knock'); AMB.crackleBurst = 4 + (Math.random() * 8 | 0); }
+            else if (r < 0.2) ambCrackle(0.1 * fire, 'snap');
+            else ambCrackle(0.1 * fire, 'tick');
+            AMB.nextCrackle = t + 0.04 + Math.random() * (Math.random() < 0.25 ? 0.6 : 0.18);
+        }
     }
     // crickets, everywhere but quiet; never right over the fire
     if (t > AMB.nextChirp) {

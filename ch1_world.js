@@ -1138,46 +1138,110 @@ function ch1Lamp(group, x, y, z, opts) {
 
 function ch1AddFire(group, x, y, z, scale) {
     const M = ch1Mats();
-    const fire = { flames: [], x, y, z, scale };
-    for (let i = 0; i < 5; i++) {
-        const s = new THREE.Sprite(M.flame);
-        s.userData = { ox: (Math.random() - 0.5) * 8 * scale, oz: (Math.random() - 0.5) * 8 * scale, ph: Math.random() * 10, w: (10 + Math.random() * 8) * scale, h: (22 + Math.random() * 14) * scale, noShadow: true };
-        s.position.set(x + s.userData.ox, y, z + s.userData.oz);
+    const fire = { tongues: [], x, y, z, scale, core: null, coalMat: null, flick: 1 };
+    // flame tongues: three hand-shaped variants, soft-edged, white-hot at
+    // the root, orange in the body, red at the tip
+    const tongueTex = [0, 1, 2].map(v => makeTex('c1tongue' + v, 64, 128, 1, 1, (cc, w, h) => {
+        cc.clearRect(0, 0, w, h);
+        cc.filter = 'blur(2.5px)';
+        const lean = (v - 1) * 6, split = v === 2;
+        const g = cc.createLinearGradient(0, h, 0, 0);
+        g.addColorStop(0, 'rgba(255,232,170,1)');
+        g.addColorStop(0.22, 'rgba(255,196,96,1)');
+        g.addColorStop(0.55, 'rgba(255,130,40,0.85)');
+        g.addColorStop(0.85, 'rgba(210,60,20,0.45)');
+        g.addColorStop(1, 'rgba(150,30,10,0)');
+        cc.fillStyle = g;
+        const tongue = (cx, top, wid) => {
+            cc.beginPath();
+            cc.moveTo(cx + lean, top);
+            cc.bezierCurveTo(cx + wid * 0.6 + lean * 0.5, h * 0.35, cx + wid, h * 0.62, cx + wid * 0.8, h * 0.86);
+            cc.quadraticCurveTo(cx, h * 1.02, cx - wid * 0.8, h * 0.86);
+            cc.bezierCurveTo(cx - wid, h * 0.62, cx - wid * 0.6 + lean * 0.5, h * 0.35, cx + lean, top);
+            cc.fill();
+        };
+        if (split) { tongue(24, 18, 13); tongue(40, 8, 14); } else tongue(32, 6 + v * 8, 20);
+        cc.filter = 'none';
+    }));
+    const tint = new THREE.Color();
+    for (let i = 0; i < 18; i++) {
+        const mat = new THREE.SpriteMaterial({ map: tongueTex[i % 3], blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, toneMapped: false, opacity: 0 });
+        const s = new THREE.Sprite(mat);
+        s.userData = { noShadow: true, age: Math.random(), life: 1 };
         group.add(s);
-        fire.flames.push(s);
+        fire.tongues.push(s);
     }
+    fire.respawn = (s) => {
+        const u = s.userData, r = Math.sqrt(Math.random()) * 9 * scale, a = Math.random() * 6.28;
+        u.age = 0; u.life = 0.45 + Math.random() * 0.5;
+        u.ox = Math.cos(a) * r; u.oz = Math.sin(a) * r;
+        u.rise = (22 + Math.random() * 26) * scale * (1 - r / (12 * scale) * 0.5);
+        u.w = (9 + Math.random() * 7) * scale; u.h = (16 + Math.random() * 14) * scale * (1 - r / (14 * scale) * 0.6);
+        u.sway = Math.random() * 6.28;
+    };
+    fire.tongues.forEach(s => { fire.respawn(s); s.userData.age = Math.random() * s.userData.life; });
+    fire.tint = tint;
+    // the white-hot heart and a warm bloom over the coals
+    fire.core = new THREE.Sprite(new THREE.SpriteMaterial({ map: radialTex('c1fireCore', [[0, 'rgba(255,250,225,1)'], [0.25, 'rgba(255,200,110,0.8)'], [0.6, 'rgba(255,110,30,0.25)'], [1, 'rgba(255,80,20,0)']]), blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, toneMapped: false }));
+    fire.core.position.set(x, y + 6 * scale, z);
+    fire.core.userData.noShadow = true;
+    group.add(fire.core);
+
+    // the coal bed: cracked lumps glowing from inside
+    const coalTex = makeTex('c1coal', 128, 128, 1, 1, (cc, w, h) => {
+        cc.fillStyle = '#000'; cc.fillRect(0, 0, w, h);
+        for (let i = 0; i < 26; i++) {
+            let px = Math.random() * w, py = Math.random() * h;
+            cc.strokeStyle = `rgba(255,${120 + Math.random() * 90 | 0},40,${0.5 + Math.random() * 0.5})`;
+            cc.lineWidth = 1 + Math.random() * 2.5;
+            cc.beginPath(); cc.moveTo(px, py);
+            for (let k = 0; k < 5; k++) { px += (Math.random() - 0.5) * 30; py += (Math.random() - 0.5) * 30; cc.lineTo(px, py); }
+            cc.stroke();
+        }
+    });
+    fire.coalMat = new THREE.MeshStandardMaterial({ color: 0x1a1512, roughness: 0.95, emissive: 0xff7a2a, emissiveMap: coalTex, emissiveIntensity: 2.2, flatShading: true });
+    for (let i = 0; i < 24; i++) {
+        const a = Math.random() * 6.28, r = Math.sqrt(Math.random()) * 15 * scale, s = (2 + Math.random() * 2.6) * scale;
+        const c = new THREE.Mesh(new THREE.DodecahedronGeometry(s, 0), fire.coalMat);
+        c.position.set(x + Math.cos(a) * r, y - 2 + Math.random() * 3 - r * 0.12, z + Math.sin(a) * r);
+        c.rotation.set(Math.random() * 3, Math.random() * 3, Math.random() * 3);
+        c.scale.y = 0.7;
+        c.userData.noShadow = true;
+        group.add(c);
+    }
+
     const anchor = new THREE.Object3D();
     anchor.position.set(x, y + 22 * scale, z);
     group.add(anchor);
-    ch1FX.lamps.push({ anchor, color: 0xff8a3a, intensity: 2.3, dist: 680, steady: false, phase: Math.random() * 10, wp: null, fire: true });
-    const glow = ch1GlowSprite(x, y + 12 * scale, z, 150 * scale, 0xff9a40, 0.55);
+    ch1FX.lamps.push({ anchor, color: 0xff8a3a, intensity: 2.4, dist: 700, steady: false, phase: Math.random() * 10, wp: null, fire: true });
+    const glow = ch1GlowSprite(x, y + 12 * scale, z, 150 * scale, 0xff9a40, 0.5);
     group.add(glow);
-    ch1FX.glows.push({ sprite: glow, base: 0.55, phase: Math.random() * 10, steady: false });
+    fire.glow = glow;
     ch1FX.fires.push(fire);
 
-    // embers riding the heat
-    const N = 46;
+    // sparks: small and quick, most die within a hand's breadth, a few
+    // ride the heat up past the kettle
+    const N = 70;
     const geo = new THREE.BufferGeometry();
-    const p = new Float32Array(N * 3);
-    geo.setAttribute('position', new THREE.BufferAttribute(p, 3));
+    geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(N * 3), 3));
     const pts = new THREE.Points(geo, new THREE.PointsMaterial({
-        map: radialTex('c1spark', [[0, 'rgba(255,230,160,1)'], [0.3, 'rgba(255,140,40,0.8)'], [1, 'rgba(255,80,0,0)']]),
-        size: 5 * scale, color: 0xffb060, blending: THREE.AdditiveBlending, transparent: true, depthWrite: false, toneMapped: false
+        map: radialTex('c1spark2', [[0, 'rgba(255,245,210,1)'], [0.25, 'rgba(255,170,60,0.9)'], [1, 'rgba(255,80,0,0)']]),
+        size: 1.9 * scale, color: 0xffc070, blending: THREE.AdditiveBlending, transparent: true, depthWrite: false, toneMapped: false
     }));
     pts.frustumCulled = false;
     pts.userData.noShadow = true;
     const data = [];
-    for (let i = 0; i < N; i++) data.push({ age: Math.random() * 3, life: 1.5 + Math.random() * 2, vx: 0, vy: 0, vz: 0, x, y, z });
+    for (let i = 0; i < N; i++) data.push({ age: Math.random() * 2, life: 0.1, vx: 0, vy: 0, vz: 0, x, y: -9999, z });
     group.add(pts);
-    ch1FX.embers = { points: pts, data, x, y: y + 6 * scale, z };
+    ch1FX.embers = { points: pts, data, x, y: y + 8 * scale, z, burst: 0 };
 
-    // a lazy column of smoke
+    // a thin, lazy column of smoke
     const smokeTex = radialTex('c1smoke', [[0, 'rgba(200,200,205,0.5)'], [0.5, 'rgba(160,160,170,0.2)'], [1, 'rgba(140,140,150,0)']]);
     for (let i = 0; i < 7; i++) {
-        const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: smokeTex, color: 0x6a6a74, transparent: true, depthWrite: false, opacity: 0 }));
+        const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: smokeTex, color: 0x5a5a62, transparent: true, depthWrite: false, opacity: 0 }));
         s.userData = { age: i / 7 * 6, life: 6, noShadow: true };
         group.add(s);
-        ch1FX.smoke.push({ sprite: s, x, y: y + 30 * scale, z });
+        ch1FX.smoke.push({ sprite: s, x, y: y + 36 * scale, z });
     }
 }
 
@@ -1425,7 +1489,7 @@ function updateCh1FX(focusX, focusZ) {
         const L = l.userData.lamp;
         if (!L) { l.intensity = 0; continue; }
         l.userData.fade = Math.min(1, l.userData.fade + 0.05);
-        const flick = L.steady ? 1 : (0.86 + 0.10 * Math.sin(t * 9 + L.phase) + 0.06 * Math.sin(t * 23 + L.phase * 1.7)) * (L.fire ? 0.9 + 0.12 * Math.sin(t * 17 + L.phase) : 1);
+        const flick = L.steady ? 1 : (0.86 + 0.10 * Math.sin(t * 9 + L.phase) + 0.06 * Math.sin(t * 23 + L.phase * 1.7)) * (L.fire ? 1.12 * (ch1FX.fireFlick || 0.9) / (0.86 + 0.10 * Math.sin(t * 9 + L.phase) + 0.06 * Math.sin(t * 23 + L.phase * 1.7)) : 1);
         l.intensity = L.intensity * flick * l.userData.fade;
     }
 
@@ -1435,29 +1499,53 @@ function updateCh1FX(focusX, focusZ) {
         g.sprite.material.opacity = g.base * (0.85 + 0.1 * Math.sin(t * 9 + g.phase) + 0.05 * Math.sin(t * 23 + g.phase));
     }
 
-    // fire
+    // fire: one shared flicker drives the flames, coals, halo, the light
+    // and the fire's sound (ambience.js reads ch1FX.fireFlick)
     for (const f of ch1FX.fires) {
-        for (const s of f.flames) {
+        const flick = 0.82 + 0.1 * Math.sin(t * 7.3) + 0.06 * Math.sin(t * 17.1 + 1.3) + 0.05 * Math.sin(t * 31 + 0.4) + (Math.random() - 0.5) * 0.06;
+        f.flick = flick;
+        ch1FX.fireFlick = flick;
+        for (const s of f.tongues) {
             const u = s.userData;
-            const k = 0.75 + 0.25 * Math.sin(t * 13 + u.ph) + 0.12 * Math.sin(t * 29 + u.ph * 2);
-            s.scale.set(u.w * (0.85 + 0.15 * Math.sin(t * 11 + u.ph)), u.h * k, 1);
-            s.position.set(f.x + u.ox + Math.sin(t * 7 + u.ph) * 1.5, f.y + u.h * k * 0.42, f.z + u.oz);
+            u.age += dt;
+            if (u.age >= u.life) f.respawn(s);
+            const k = u.age / u.life;
+            const grow = Math.min(1, k * 5);
+            s.scale.set(u.w * (1 - k * 0.55) * (0.8 + 0.2 * grow), u.h * (0.55 + 0.55 * Math.sin(Math.PI * Math.min(1, k * 1.2))) * flick, 1);
+            s.position.set(
+                f.x + u.ox * (1 - k * 0.5) + Math.sin(t * 6 + u.sway) * 1.6 * f.scale * k,
+                f.y + u.rise * k + s.scale.y * 0.42,
+                f.z + u.oz * (1 - k * 0.5));
+            s.material.opacity = Math.min(1, k * 8) * (1 - k) * 0.95;
+            f.tint.setRGB(1, 1 - k * 0.35, 1 - k * 0.6);
+            s.material.color.copy(f.tint);
         }
+        const cs = (18 + 5 * flick) * f.scale;
+        f.core.scale.set(cs, cs * 0.8, 1);
+        f.core.material.opacity = 0.5 + 0.2 * flick;
+        f.coalMat.emissiveIntensity = 1.8 + 0.9 * (flick - 0.8) * 3 + 0.25 * Math.sin(t * 1.3);
     }
     if (ch1FX.embers) {
         const E = ch1FX.embers, p = E.points.geometry.attributes.position;
+        // now and then a log settles and throws a burst of sparks
+        if (Math.random() < dt * 0.35) E.burst = 10 + (Math.random() * 12 | 0);
         for (let i = 0; i < E.data.length; i++) {
             const e = E.data[i];
             e.age += dt;
             if (e.age > e.life) {
-                e.age = 0; e.life = 0.8 + Math.random() * 1.6;
-                e.x = E.x + (Math.random() - 0.5) * 16; e.y = E.y; e.z = E.z + (Math.random() - 0.5) * 16;
-                e.vx = (Math.random() - 0.5) * 14; e.vy = 12 + Math.random() * 18; e.vz = (Math.random() - 0.5) * 14;
+                const bursting = E.burst > 0;
+                if (!bursting && Math.random() > dt * 12) { p.setXYZ(i, 0, -9999, 0); continue; } // idle until spawned
+                if (bursting) E.burst--;
+                e.age = 0; e.life = bursting ? 0.9 + Math.random() * 1.6 : 0.3 + Math.random() * 0.9;
+                e.x = E.x + (Math.random() - 0.5) * 18; e.y = E.y; e.z = E.z + (Math.random() - 0.5) * 18;
+                const up = bursting ? 50 + Math.random() * 50 : 24 + Math.random() * 30;
+                e.vx = (Math.random() - 0.5) * (bursting ? 40 : 16); e.vy = up; e.vz = (Math.random() - 0.5) * (bursting ? 40 : 16);
             }
-            e.vx += (Math.random() - 0.5) * 60 * dt + 6 * dt; e.vz += (Math.random() - 0.5) * 60 * dt;
+            e.vx += ((Math.random() - 0.5) * 90 + 8) * dt; e.vz += (Math.random() - 0.5) * 90 * dt;
+            e.vy -= 10 * dt;
             e.x += e.vx * dt; e.y += e.vy * dt; e.z += e.vz * dt;
-            const alive = e.age / e.life;
-            p.setXYZ(i, e.x, alive > 0.92 ? -9999 : e.y, e.z);
+            // twinkle: a spark winks out for a frame now and then
+            p.setXYZ(i, e.x, (e.age / e.life > 0.9 || Math.random() < 0.08) ? -9999 : e.y, e.z);
         }
         p.needsUpdate = true;
     }
