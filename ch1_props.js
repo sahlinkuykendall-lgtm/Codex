@@ -1337,7 +1337,9 @@ function subPalm(g, M, scale, rng) {
 
 // Resolve a label-keyed builder: exact key, then containment
 function ch1LabelBuilder(o) {
-    const l = (o.label || '').toLowerCase();
+    // modelLabel: the label an object was modelled for, kept when a story
+    // renames it (a renamed "Sam's Tool Shed" is still a tool shed)
+    const l = (o.modelLabel || o.label || '').toLowerCase();
     if (CH1_LABEL_BUILDERS[l]) return CH1_LABEL_BUILDERS[l];
     for (const key in CH1_LABEL_BUILDERS) {
         if (l.includes(key)) return CH1_LABEL_BUILDERS[key];

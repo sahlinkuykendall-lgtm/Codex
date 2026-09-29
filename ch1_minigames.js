@@ -81,7 +81,7 @@ function mgEnter(mode) {
         MG.hand = ch1MakeDart(ch1Mats());
         scene3.add(MG.hand);
         mgEl('mg-title').textContent = 'CAMP DARTS';
-        mgEl('mg-hint').textContent = 'Three darts. Sam\'s chalk says 132.';
+        mgEl('mg-hint').textContent = 'Three darts. The chalk on the plank says RAIS — 132.';
         mgEl('mg-keys').innerHTML = '<span class="key">MOUSE</span> AIM &nbsp; <span class="key">HOLD LMB</span> STEADY &nbsp; <span class="key">RELEASE</span> THROW &nbsp; <span class="key">ESC</span> WALK AWAY';
         if (document.pointerLockElement !== glCanvas) { try { glCanvas.requestPointerLock(); } catch (e) { /* needs a click */ } }
     } else if (mode === 'tea') {
@@ -482,7 +482,7 @@ function mgDartsShowResult() {
     const p = MG.puzzle;
     if (!p || p.stage !== 'done') return;
     if (document.pointerLockElement === glCanvas) document.exitPointerLock();
-    const line = p.beatSam ? "Sam's chalk number finally falls. Somewhere, he owes you a beer he can't pay."
+    const line = p.beatSam ? "The Rais's chalk number finally falls. Over by the fire, somebody laughs until he coughs."
         : p.score >= 100 ? "From inside the dorm: 'Not bad, Doctor.' You didn't announce yourself."
         : p.score >= 60 ? 'A grunt of acknowledgment through the dorm wall.'
         : p.score >= 30 ? "From inside the dorm: 'The wall. Again.'"

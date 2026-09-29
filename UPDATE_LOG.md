@@ -12,6 +12,37 @@ Other docs:
 
 ---
 
+## V4.0.0 — 2026-09-29 — The new story begins: Chapter 1 rebuilt (the Archaeologist)
+- **New Game now opens a character-creation screen.** You pick a name, gender (pronouns
+  and how people address you) and background. Only the Archaeologist is playable: the
+  Inspector, Fixer and Journalist show as "coming in a later update." Choice notices can
+  be turned on or off here.
+- **Chapter 1 is the new story's Archaeologist opening** (`story/regions/ch01_opening_archaeologist.md`),
+  built on the existing camp. The old story (Ellis, Sam, Tariq, the Codex pulse, sanity)
+  is gone from it.
+  - **New people:** Rais Abdallah, Dr. Lindqvist, Hana, Uncle Farouk, Saber the tea boy,
+    Uncle Hamid and Gamal, plus Lena Brandt's team at midnight.
+  - **Main path:** the payroll choice (pay / make Lindqvist pay / make the men wait) opens
+    the dig zone. Trench A holds Miriam's notebook page, Trench B's spoil (sieve) holds the
+    find-store key, and Trench C is the Coptic stake. The find store holds the Codex. The
+    exit choice (quiet / call Amira / the Foundation's car) leads to a chapter-end card.
+  - **The midnight car:** at 00:00 on the new story clock, a black Land Cruiser drives in,
+    and three people search Miriam's tent. You can listen, photograph them, confront
+    them, or miss it.
+  - **Optional:** the Osiris Shaft, and Petamun's seal (the glyph-seal minigame) with the
+    bronze seal behind it.
+  - **Side quests:** the Rais's son, Hana's sherds, Saber's tea and the burn bin, the
+    1926 truck, the supply line's coupling pin, Miriam's buried caches, and the darts
+    tournament.
+- **New systems:**
+  - The HUD clock replaces sanity. Waiting at the fire or bed skips time.
+  - Relationships and faction reputation, with "___ will remember that." notices.
+  - **J** opens your notes and the people you know.
+  - Old saves don't load (new save key).
+- Retired: the satphone, the Ministry inspector, Sam's gear, and the old patrols.
+- Still to do: re-model the chalk towers as quarried limestone, turn the buried Land
+  Rover into a 1920s truck, and put a find-store sign on the shed.
+
 ## Story bible rewrite — 2026-09-29 — docs only (no version bump)
 - **The whole story has been replaced.** The old bible (`MASTER_LORE_BIBLE.md`,
   `NEW_CHARACTERS.md`) and its story are retired: Ellis, Sam, the Uarha, the Heart, and

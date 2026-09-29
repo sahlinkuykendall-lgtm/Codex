@@ -93,6 +93,7 @@
         #mapview-hint { position: absolute; top: 14px; left: 0; right: 0; text-align: center; z-index: 9; color: rgba(212,175,55,0.65); font-size: 11.5px; letter-spacing: 3px; text-shadow: 0 1px 2px #000; pointer-events: none; }
     </style>
     <link rel="stylesheet" href="ui3d.css?v=6">
+    <link rel="stylesheet" href="story.css?v=1">
 </head>
 <body>
     <div id="game-container">
@@ -134,7 +135,8 @@
         </div>
         <!-- Top-right: Sanity only -->
         <div id="hud" class="hidden">
-            <div>Sanity: <span id="stat-sanity">CALM</span></div>
+            <div id="hud-sanity-row">Sanity: <span id="stat-sanity">CALM</span></div>
+            <div id="hud-clock-row" style="display:none">Time: <span id="stat-clock">20:30</span></div>
             <div style="margin-top: 6px;">Funds: <span id="stat-funds">2000</span> EGP</div>
         </div>
         <!-- Bottom-left: Stamina only -->
@@ -185,13 +187,13 @@
                 </svg>
                 <div>
                     <h1 id="menu-title"><span class="t1">THE CODEX</span><span class="t2"><span class="t3">of</span>GIZA</span></h1>
-                    <div id="menu-sub">GIZA PLATEAU · AUTUMN 2023</div>
+                    <div id="menu-sub">EGYPT · THE PRESENT DAY</div>
                 </div>
             </div>
             <div id="menu-press">PRESS ANY KEY</div>
             <nav id="menu-buttons">
                 <button class="menu-btn hidden" id="menu-continue">CONTINUE<small id="menu-continue-info"></small></button>
-                <button class="menu-btn" id="menu-start">NEW EXCAVATION</button>
+                <button class="menu-btn" id="menu-start">NEW GAME</button>
                 <button class="menu-btn" id="menu-settings">SETTINGS</button>
                 <button class="menu-btn" id="menu-mapview">SITE OVERVIEW</button>
             </nav>
@@ -271,22 +273,24 @@
         })();
     </script>
     <script src="lib/three.min.js"></script>
-    <script src="data.js?v=21"></script>
+    <script src="data.js?v=22"></script>
     <script src="dialogue.js?v=12"></script>
-    <script src="engine.js?v=14"></script>
+    <script src="engine.js?v=15"></script>
     <script src="settings.js?v=3"></script>
     <script src="backpack.js?v=2"></script>
     <script src="ambience.js?v=2"></script>
     <script src="ch1_layout.js?v=3"></script>
     <script src="ch1_world.js?v=8"></script>
-    <script src="ch1_props.js?v=4"></script>
-    <script src="ch1_minigames.js?v=4"></script>
+    <script src="ch1_props.js?v=5"></script>
+    <script src="ch1_minigames.js?v=5"></script>
     <script src="ch1_openworld.js?v=4"></script>
     <script src="ch1_supply.js?v=2"></script>
     <script src="ch1_interiors.js?v=1"></script>
     <script src="cine3d.js?v=2"></script>
     <script src="tips3d.js?v=1"></script>
-    <script src="engine3d.js?v=10"></script>
+    <script src="engine3d.js?v=11"></script>
     <script src="title3d.js?v=2"></script>
+    <script src="story_core.js?v=1"></script>
+    <script src="ch1a_story.js?v=1"></script>
 </body>
 </html>

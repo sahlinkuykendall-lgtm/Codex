@@ -919,7 +919,7 @@ function startGame() {
 // are respawned from spawnHostilesForLocation() on load, and transient
 // UI state (dialogue, pause, fades) is stripped so loading is always a
 // clean resume standing in the world.
-const SAVE_KEY = 'codexOfGiza_save_v1';
+const SAVE_KEY = 'codexOfGiza_save_v2'; // v2: the new story (story/ bible)
 let saveFlash = 0;  // frames left to show "Saved" feedback in the pause menu
 let lastSaveAt = 0; // timestamp of the most recent write (shown in the pause menu)
 

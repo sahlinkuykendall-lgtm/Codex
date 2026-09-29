@@ -1264,7 +1264,7 @@ function buildMinistryCarCh1() {
     body.add(beam);
     body.traverse(m => { if (m.isMesh && !m.userData.noShadow) m.castShadow = true; });
     carGroup.add(body);
-    const label = makeLabelSprite('Ministry Car', '#f4e4b0');
+    const label = makeLabelSprite(window.CH1_CAR_LABEL || 'Ministry Car', '#f4e4b0');
     label.position.y = 76;
     carGroup.add(label);
     carGroup.userData.label = label;

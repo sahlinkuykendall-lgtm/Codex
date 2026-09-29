@@ -29,13 +29,13 @@ _Source: `regions/ch01_opening_archaeologist.md`_
 
 | ID | Name | Giver | Outcome |
 |---|---|---|---|
-| SQ-01A-01 | The Rais's Son | Rais Abdallah | `rel_abdallah` +, and the Qufti family helps in Ch10 |
-| SQ-01A-02 | Hana's Conservation | Hana | Hana becomes a Cairo contact (appraisal discounts) |
-| SQ-01A-03 | The Tea Boy's Secret | Tea boy Saber | Proof of the Foundation payments (a Radwan proof item in Ch4) |
-| SQ-01A-04 | The Truck of 1926 | Collectible trail | The diary is a 1920s Keeper sighting (lore), plus good finds |
-| SQ-01A-05 | Supply Line Blues | Rail foreman | 1,500 EGP, and the workmen like you |
-| SQ-01A-06 | Twelve Caches | Tips and exploration | Rucksack, 3,000 EGP, a spare phone |
-| SQ-01A-07 | Darts Night | Workmen | 2,000 EGP and a nickname |
+| SQ-01A-01 | The Rais's Son | Rais Abdallah | Rais +15, and the Qufti family owes you (Ch10) |
+| SQ-01A-02 | Hana's Conservation | Hana | Hana +15, and **conservation wax** (reseals the find store) |
+| SQ-01A-03 | The Tea Boy's Secret | Saber | **Half-burned papers**: Vasse transfers, and "Dr. Hale's cooperation is no longer required" (a Radwan proof item in Ch4) |
+| SQ-01A-04 | The Truck of 1926 | Exploration | Lore, and 40 EGP |
+| SQ-01A-05 | Supply Line Blues | Uncle Hamid | 1,500 EGP, workmen +10 |
+| SQ-01A-06 | Miriam's Caches | The detector | Money, gear |
+| SQ-01A-07 | Darts Night | The dartboard | 2,000 EGP, and a nickname ("Abu Ramy") |
 
 ## CH1-C — MARSA TARFA, RED SEA COAST (Fixer opening)
 _Source: `regions/ch01_opening_fixer.md`_

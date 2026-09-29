@@ -1,6 +1,6 @@
 # 3D CONVERSION — BRANCH NOTES
 
-**Branch:** `3d-conversion` · **Status:** walkable full-game graybox + a fully art-directed Chapter 1 camp (V3.2–3.4: visuals, in-world minigames, title screen, settings, ambience)
+**Branch:** `3d-conversion` · **Status:** V4.0.0: new story, with Chapter 1-A (the Archaeologist opening) rebuilt on the art-directed camp. Walkable full-game graybox + a fully art-directed Chapter 1 camp (V3.2–3.4: visuals, in-world minigames, title screen, settings, ambience)
 
 ## Entry points (renamed)
 
@@ -41,6 +41,21 @@
 - `tips3d.js`: timed first-steps tips on a new game (hold X to disable).
 - `ch1_supply.js`: the animated supply-line train and worker (visual only).
 - `ch1_interiors.js`: art-directed tent / dorm / foreman office interiors.
+- **The new story (V4.0.0+).** `story_core.js` and `ch1a_story.js` load LAST (after
+  `title3d.js`), with `story.css`. The story bible in `story/` is the source of truth.
+  - `story_core.js`: `gameState.story` holds the player (name, gender, pronouns, background),
+    `rel`/`rep`/`heat`, story flags (`sflag`), the story clock (`clockAdvance`, `onClockPassed`),
+    choice notices, and the New Game character-creation screen (it wraps `titleBeginIntro`).
+    The HUD shows Time instead of Sanity.
+  - `ch1a_story.js`: the Archaeologist opening. It relabels and re-scenes the built Ch1
+    objects by id, adds the new people (`PERSON_OBJECTS`), hides retired objects
+    (`c1aHidden`), and holds every scene, the midnight car, the exit choice, the chapter-end
+    card and the J notes panel. It sets `builtSignature = null`, because the title screen
+    builds the camp before this file loads.
+  - A renamed object keeps its model through `modelLabel` (`ch1LabelBuilder` reads it first).
+  - Saves use the key `codexOfGiza_save_v2`, so old-story saves are ignored.
+  - The old Ch1 scenes in `dialogue.js` and chapters 2–7 are still in the code, but the new
+    game never reaches them. They get replaced chapter by chapter.
 - Ch1 is tone-mapped (ACES) and shadowed; other maps still use the old
   untone-mapped graybox path. `buildWorld()` branches on `isCh1`.
 
