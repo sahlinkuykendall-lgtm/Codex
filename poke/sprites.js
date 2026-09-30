@@ -360,37 +360,99 @@ SPR.c1p_ramp = (w, d) => {
 };
 
 // ---- VEHICLES ----
-function truck(w, d, P3, tarp) {
-    const st = stage(w, d, 22), { A } = st, x = st.x, top = st.y - 20, cab = Math.round(w * 0.3);
-    A.r(x + cab, top, w - cab, d, tarp[1]); A.dith(x + cab, top + (d >> 1), w - cab, d >> 1, tarp[2], 0);   // load bed / tarp top
-    A.r(x + cab, top, w - cab, 2, tarp[0]);
-    for (let i = cab + 8; i < w; i += 12) A.vl(x + i, top + 2, d - 2, tarp[2]);
-    A.r(x, top + 4, cab, d - 4, P3[1]); A.r(x + 2, top + 8, cab - 4, d - 12, P3[0]);                            // cab roof
-    const wy = top + d;
-    A.r(x + cab, wy, w - cab, 14, tarp[2]); A.r(x + cab, wy + 12, w - cab, 4, PAL.wood[2]);
-    A.r(x, wy, cab, 16, P3[1]); A.r(x + 3, wy + 2, cab - 8, 6, PAL.blue[3]); A.px(x + 5, wy + 3, PAL.blue[0]);
-    A.r(x, wy + 12, cab, 3, P3[2]); A.r(x, wy + 9, 2, 3, PAL.gold[0]);
-    for (const tx of [x + 8, x + w - 20, x + w - 34]) { A.ell(tx + 5, wy + 17, 5, 4, PAL.dark[3]); A.ell(tx + 5, wy + 17, 2, 1, PAL.metal[1]); }
+// Seen like the buildings: from above and a little to the south. A car
+// faces right (east): you see its roof, bonnet, windscreen and boot from
+// above, and its south flank below that, with the doors, windows and two
+// wheels in their arches. Palettes are [light, mid, dark, deep].
+const GLASS = ['#c4e6fa', '#8ec2ea', '#4a7cb8', '#2a4a78'];
+function wheel(A, cx, cy, r, hub) {
+    A.ell(cx, cy, r, r, '#1a1c22'); A.ell(cx, cy, r - 1, r - 1, '#2a2c34');
+    A.ell(cx, cy, Math.max(1, r - 3), Math.max(1, r - 3), hub || '#9aa4ae'); A.px(cx - 1, cy - 1, '#e6ecf0');
+}
+function carSprite(w, d, P, o) {
+    o = o || {};
+    const W = Math.min(w - 4, 96), D = Math.max(20, Math.min(Math.round(d * 0.45), 26)), sideH = 14, st = stage(W, D, sideH + 4, 6), { A } = st;
+    const x = st.x, top = st.y + (st.d - D) - sideH, deck = top + D, bot = deck + sideH;
+    const at = (f) => x + Math.round(W * f);
+    // --- the body from above: a rounded slab ---
+    A.r(x + 3, top, W - 6, D, P[1]); A.r(x + 1, top + 2, W - 2, D - 4, P[1]); A.r(x, top + 4, W, D - 8, P[1]);
+    A.r(x + 3, top, W - 6, 1, P[0]);
+    A.r(at(0.74), top + 2, at(0.97) - at(0.74), D - 4, P[0]); A.hl(at(0.74), top + 2, at(0.97) - at(0.74), '#ffffff'); A.hl(at(0.76), top + (D >> 1), at(0.95) - at(0.76), P[1]);   // the bonnet, a crease down it
+    A.r(at(0.03), top + 2, at(0.2) - at(0.03), D - 4, P[0]);                                                                                         // the boot
+    // --- the cabin, raised: rear window, roof, windscreen ---
+    const cy0 = top + 3, cy1 = top + D - 3, roofL = o.boxy ? 0.24 : 0.3, roofR = 0.63;
+    A.r(at(0.2), cy0, at(roofL) - at(0.2), cy1 - cy0, GLASS[3]); A.hl(at(0.2), cy0, at(roofL) - at(0.2), GLASS[2]);                             // rear window
+    A.r(at(roofL), cy0 - 1, at(roofR) - at(roofL), cy1 - cy0 + 2, P[0]); A.hl(at(roofL), cy0 - 1, at(roofR) - at(roofL), '#ffffff'); A.vl(at(roofR) - 1, cy0, cy1 - cy0, P[2]);   // roof
+    A.poly([[at(roofR), cy0 - 1], [at(0.74), cy0 + 1], [at(0.74), cy1 - 1], [at(roofR), cy1 + 1]], GLASS[1]);                                    // windscreen, raked
+    A.r(at(roofR) + 1, cy0 + ((cy1 - cy0) >> 1), at(0.74) - at(roofR) - 1, (cy1 - cy0) >> 1, GLASS[2]);
+    A.line(at(roofR) + 2, cy1 - 2, at(0.71), cy0 + 2, '#ffffff');
+    if (o.rack) for (let k = 0; k < 3; k++) A.hl(at(roofL) + 2, cy0 + 2 + k * Math.round((cy1 - cy0 - 4) / 2), at(roofR) - at(roofL) - 4, P[3]);
+    if (o.lightbar) { const lx = at(0.42); A.r(lx, cy0 + 2, 7, 4, '#d0402f'); A.r(lx + 7, cy0 + 2, 7, 4, '#3c78c0'); A.hl(lx, cy0 + 2, 14, '#ffffff'); }
+    // --- the south flank: windows along the cabin, doors, the sill ---
+    A.r(x, deck, W, sideH, P[1]); A.hl(x, deck, W, P[0]); A.r(x, deck, 2, sideH - 3, P[2]); A.r(x + W - 2, deck, 2, sideH - 3, P[2]);
+    A.r(at(0.21), deck + 1, at(0.72) - at(0.21), 5, o.tint || GLASS[3]); A.hl(at(0.21), deck + 1, at(0.72) - at(0.21), GLASS[2]);
+    A.vl(at(0.46), deck + 1, 5, P[2]); A.px(at(0.27), deck + 3, GLASS[0]); A.px(at(0.53), deck + 3, GLASS[0]);
+    A.vl(at(0.46), deck + 6, sideH - 9, P[2]); A.vl(at(0.21), deck + 6, sideH - 9, P[2]); A.vl(at(0.72), deck + 6, sideH - 9, P[2]);
+    A.r(at(0.25), deck + 8, 3, 1, P[3]); A.r(at(0.5), deck + 8, 3, 1, P[3]);
+    if (o.stripe) { A.r(x + 2, deck + 9, W - 4, 2, o.stripe[1]); if (o.badge) { A.r(at(0.3), deck + 7, 10, 5, '#ffffff'); A.hl(at(0.3) + 2, deck + 9, 6, o.stripe[2]); } }
+    A.r(x, bot - 3, W, 3, P[2]); A.hl(x, bot - 1, W, P[3]);
+    A.r(x + W - 3, deck + 2, 3, 3, '#fff4c0'); A.r(x, deck + 2, 2, 3, '#d0402f');
+    A.r(x - 1, deck + sideH - 5, 3, 3, '#3a3e48'); A.r(x + W - 2, deck + sideH - 5, 3, 3, '#3a3e48');
+    A.r(at(0.72), deck - 2, 3, 3, P[2]);                                                                                                           // wing mirror
+    for (const f of [0.19, 0.81]) { const cx = at(f); A.ell(cx, bot - 3, 8, 6, P[3]); wheel(A, cx, bot, 6, o.hub); }                              // wheels in their arches
+    if (o.dust) for (let k = 0; k < 8; k++) A.px(x + hash2(k, W) * W, deck + 3 + hash2(W, k) * (sideH - 6), P[0]);
     return st;
 }
-SPR_L['supply truck'] = (w, d) => fit(truck(w, d, PAL.blue, PAL.canvas));
-SPR_L['ministry vehicle'] = (w, d) => fit(car(w, d, PAL.white));
-function car(w, d, P3) {
-    const st = stage(w, d, 12), { A } = st, x = st.x, top = st.y - 10;
-    A.r(x + 2, top, w - 4, d, P3[1]); A.r(x + Math.round(w * 0.25), top + 3, Math.round(w * 0.5), d - 6, P3[0]);     // roof
-    A.r(x + Math.round(w * 0.22), top + 3, 3, d - 6, PAL.blue[3]); A.r(x + Math.round(w * 0.75), top + 3, 3, d - 6, PAL.blue[3]);   // glass, front and back
-    const wy = top + d;
-    A.r(x, wy, w, 10, P3[1]); A.r(x, wy + 7, w, 3, P3[3] || P3[2]);
-    A.r(x + Math.round(w * 0.3), wy + 1, Math.round(w * 0.4), 4, PAL.blue[3]);
-    A.r(x, wy + 3, 2, 3, PAL.gold[0]); A.r(x + w - 2, wy + 3, 2, 3, PAL.red[1]);
-    for (const tx of [x + 7, x + w - 17]) { A.ell(tx + 5, wy + 10, 5, 4, PAL.dark[3]); A.ell(tx + 5, wy + 10, 2, 1, PAL.metal[1]); }
+function truckSprite(w, d, cabP, load) {
+    const W = Math.min(w, 150), D = Math.max(26, Math.min(d, 44)), sideH = 20, st = stage(W, D, sideH + 8, 4), { A } = st;
+    const x = st.x, top = st.y - sideH, deck = top + D, bot = deck + sideH, cabX = x + W - 42;
+    // the load bed with a tarp over hoops, from above and from the side
+    A.r(x, top - 6, cabX - x - 2, D + 6, load[1]); A.hl(x, top - 6, cabX - x - 2, load[0]);
+    for (let i = x + 8; i < cabX - 4; i += 14) { A.vl(i, top - 6, D + 6, load[2]); A.vl(i + 1, top - 5, D + 4, load[0]); }   // the hoops under the canvas
+    A.r(x, deck, cabX - x - 2, sideH - 6, load[2]); A.hl(x, deck, cabX - x - 2, load[1]);
+    for (let i = x + 4; i < cabX - 6; i += 9) A.vl(i, deck + 2, sideH - 9, load[3]);                                        // lacing
+    A.r(x, deck + sideH - 6, cabX - x, 3, '#6a4a30'); A.hl(x, deck + sideH - 6, cabX - x, '#8a6440');                     // the wooden bed
+    // the cab
+    A.r(cabX, top + 4, 40, D - 4, cabP[0]); A.hl(cabX, top + 4, 40, '#ffffff');
+    A.r(cabX + 24, top + 6, 8, D - 8, GLASS[1]); A.r(cabX + 24, top + 6 + ((D - 8) >> 1), 8, (D - 8) >> 1, GLASS[2]);       // windscreen
+    A.r(cabX + 32, top + 6, 8, D - 8, cabP[1]);                                                                            // bonnet
+    A.r(cabX, deck, 40, sideH, cabP[1]); A.hl(cabX, deck, 40, cabP[0]);
+    A.r(cabX + 6, deck + 3, 16, 7, GLASS[3]); A.hl(cabX + 6, deck + 3, 16, GLASS[1]); A.px(cabX + 9, deck + 5, GLASS[0]);    // door window
+    A.vl(cabX + 24, deck + 3, sideH - 7, cabP[2]); A.r(cabX + 18, deck + 12, 3, 1, cabP[3]);
+    A.r(cabX + 30, deck + 3, 10, sideH - 7, cabP[2]); for (let j = deck + 5; j < deck + sideH - 5; j += 2) A.hl(cabX + 31, j, 8, cabP[3]);   // radiator grille
+    A.r(cabX + 37, deck + 4, 3, 3, '#fff4c0');
+    A.r(x, bot - 3, W, 3, '#2a2c34');
+    for (const cx of [x + 16, x + 34, cabX + 26]) { A.ell(cx, bot - 2, 9, 6, '#1a1c22'); wheel(A, cx, bot, 7); }
     return st;
 }
-SPR.inspector = (w, d) => fit(car(w, d, PAL.dark));          // the black car
-SPR.ow_wreck = (w, d) => {                                   // the wrecked Land Rover: rust, no wheels, sand to the sills
-    const st = car(Math.min(w, 76), Math.min(d, 40), [PAL.brick[0], PAL.red[3], PAL.dark[1], PAL.dark[2]]), { A } = st;
-    A.ell(st.x + 20, st.base - 2, 22, 5, PAL.sand[1]); A.ell(st.x + st.w - 14, st.base - 1, 16, 4, PAL.sand[2]);
-    return Object.assign(fit(st), { ox: Math.round((w - st.c.width) / 2) });
+const CAR_BLACK = ['#5a5e6c', '#30343e', '#1e2028', '#101218'], CAR_WHITE = ['#ffffff', '#e6eaef', '#b8c0ca', '#8a94a0'], CAR_RUST = ['#d49a6c', '#a86a44', '#7a4a30', '#523020'];
+SPR.inspector = (w, d) => fit(carSprite(w, d, CAR_BLACK, { rack: true, boxy: true, tint: '#101820', hub: '#5a6272' }));             // the black Land Cruiser
+SPR_L['ministry vehicle'] = (w, d, o) => fit(carSprite(w, d, CAR_WHITE, { stripe: ['#6a8ad0', '#2e5aa0', '#1f3a74'], badge: true, lightbar: o && o.id === 'd_min1' }));
+SPR_L['supply truck'] = (w, d) => fit(truckSprite(w, d, ['#78b0e0', '#3c78c0', '#285496', '#1a3868'], ['#ece0b8', '#d4c090', '#b09c6c', '#8a7650']));
+SPR.ow_wreck = (w, d) => {                                   // the expedition's 1926 truck: spoked wheels, a canvas cab, rusted where it stopped
+    const W = 86, D = 20, sideH = 18, st = stage(W, D, sideH + 8, 6), { A } = st, x = st.x, top = st.y + (st.d - D) - sideH, deck = top + D, bot = deck + sideH;
+    const RUST = ['#d49a6c', '#a86a44', '#7a4a30', '#523020'], PLANK = ['#b8946a', '#94704c', '#6e5034'];
+    // the bed: grey old boards, one missing
+    A.r(x, top + 2, 46, D - 2, PLANK[1]); for (let i = x + 2; i < x + 46; i += 6) A.vl(i, top + 2, D - 2, PLANK[2]); A.r(x + 26, top + 6, 6, D - 8, '#3a2a1c');
+    A.r(x, deck, 46, 8, PLANK[1]); A.hl(x, deck, 46, PLANK[0]); for (let i = x + 3; i < x + 46; i += 9) A.vl(i, deck + 1, 7, PLANK[2]);
+    // the cab: an open box under a sagging canvas roof on four posts
+    A.r(x + 46, top - 6, 18, D + 4, '#c8b888'); A.hl(x + 46, top - 6, 18, '#e8dcb0'); A.r(x + 46, top + D - 4, 18, 2, '#9a885c'); for (let i = x + 49; i < x + 64; i += 5) A.vl(i, top - 5, D + 2, '#b0a070');
+    for (const px of [x + 46, x + 62]) A.r(px, deck - 2, 2, 10, '#3a2a1c');
+    A.r(x + 48, deck + 1, 12, 6, '#2a1c14'); A.r(x + 50, deck + 2, 6, 2, '#6a4a30'); A.ell(x + 60, deck, 3, 2, '#3a2a1c');                   // seat, steering wheel
+    // the long bonnet and the radiator standing up at the front
+    A.r(x + 64, top + 4, 18, D - 6, RUST[0]); A.hl(x + 64, top + 4, 18, '#e8b88c'); A.hl(x + 65, top + (D >> 1), 16, RUST[1]);
+    A.r(x + 64, deck, 18, 10, RUST[1]); for (let i = x + 66; i < x + 80; i += 3) A.vl(i, deck + 2, 6, RUST[2]);                               // louvres
+    A.r(x + 82, top, 5, D + 10, RUST[2]); A.r(x + 83, top + 2, 3, D + 6, '#3a2a1c'); for (let j = top + 3; j < deck + 8; j += 2) A.hl(x + 83, j, 3, RUST[3]);   // radiator
+    A.ell(x + 84, deck - 2, 3, 3, '#e8dcb0');                                                                                                   // a headlamp, glass long gone
+    // mudguards arching over big spoked wheels (the front one sunk in the sand)
+    const spoked = (cx, cy, r) => { A.ell(cx, cy, r, r, '#2a1c14'); A.ell(cx, cy, r - 2, r - 2, RUST[2]); for (let k = 0; k < 8; k++) A.line(cx, cy, cx + Math.round(Math.cos(k * 0.785) * (r - 2)), cy + Math.round(Math.sin(k * 0.785) * (r - 2)), RUST[0]); A.ell(cx, cy, 1, 1, '#1a1410'); };
+    spoked(x + 14, bot - 1, 9); spoked(x + 72, bot, 9);
+    for (const cx of [x + 14, x + 72]) { A.poly([[cx - 12, deck + 10], [cx - 8, deck + 5], [cx + 8, deck + 5], [cx + 12, deck + 10]], '#3a3e48'); A.hl(cx - 8, deck + 5, 16, '#5a6272'); }
+    A.r(x + 26, deck + 8, 36, 2, '#3a3e48');                                                                                                      // running board
+    // the desert has been at it for a century
+    A.ell(x + 74, bot + 1, 16, 6, '#f2dca2'); A.hl(x + 60, bot - 4, 26, '#fbeec8'); A.ell(x + 10, bot + 2, 14, 4, '#e8cf8e');
+    for (let k = 0; k < 10; k++) A.px(x + 4 + hash2(k, 3) * 78, top + 4 + hash2(3, k) * (D + sideH - 8), '#523020');
+    return Object.assign(fit(st), { solid: [(w - W) / 2, d - 16, W, 14] });
 };
 // the supply train: a little diesel loco and two tipping skips, parked on the line
 SPR.carts = (w, d) => {
@@ -574,7 +636,17 @@ function digGate(w, d) {
     A.r(x - 10, top + 2, 2, 22, PAL.wood[2]); A.r(x - 24, top - 8, 30, 14, PAL.red[1]); A.r(x - 24, top - 8, 30, 1, PAL.red[0]); A.r(x - 21, top - 5, 24, 1, PAL.white[0]); A.r(x - 19, top - 2, 20, 1, PAL.white[0]); A.r(x - 21, top + 1, 24, 1, PAL.white[0]);
     return fit(st);
 }
-SPR.puzzle_glyph = SPR.tunnel_mouth = (w, d, o) => { const st = propStage(w, d, 40, 44), { A } = st; A.r(st.x, st.y, 38, 42, PAL.rock[2]); A.r(st.x, st.y, 38, 4, PAL.rock[0]); A.r(st.x + 6, st.y + 8, 26, 34, PAL.rock[3]); A.r(st.x + 9, st.y + 11, 20, 31, o.id === 'tunnel_mouth' ? PAL.dark[3] : PAL.rock[1]); if (o.id !== 'tunnel_mouth') for (let j = 0; j < 4; j++) for (let i = 0; i < 3; i++) A.r(st.x + 12 + i * 6, st.y + 14 + j * 7, 3, 4, PAL.gold[2]); return propFit(st, w, d); };
+SPR.puzzle_glyph = SPR.tunnel_mouth = (w, d, o) => {       // a doorway cut into the cliff face: dressed jambs, a lintel, the dark inside (or the sealed stone)
+    const shaft = o.id === 'tunnel_mouth', W = shaft ? 40 : 30, H = 40, st = propStage(w, d, W, H), { A } = st, x = st.x, y = st.y;
+    A.r(x, y, W, H, '#9a7e58'); A.r(x, y, W, 3, '#f4e8d0'); A.r(x, y + 3, W, 4, '#c2a67c');                                            // the lintel
+    for (let k = 0; k < W; k += 10) A.vl(x + k, y + 3, 4, '#735c3e');
+    A.r(x + 3, y + 8, 5, H - 8, '#c2a67c'); A.r(x + W - 8, y + 8, 5, H - 8, '#735c3e');                                                  // jambs: lit, shaded
+    for (let j = y + 12; j < y + H; j += 8) { A.hl(x + 3, j, 5, '#9a7e58'); A.hl(x + W - 8, j, 5, '#4e3e2a'); }
+    if (shaft) { A.r(x + 8, y + 8, W - 16, H - 8, '#140c08'); A.r(x + 8, y + 8, W - 16, 4, '#2a1c14'); for (let j = y + 14; j < y + H; j += 5) A.hl(x + 12, j, W - 24, '#3a2a1c'); }   // the dark, a ladder going down
+    else { A.r(x + 8, y + 8, W - 16, H - 8, '#b8a47c'); A.hl(x + 8, y + 8, W - 16, '#e8dcc0'); for (let j = 0; j < 4; j++) for (let i = 0; i < 2; i++) { A.r(x + 10 + i * 6, y + 12 + j * 7, 4, 5, '#c89020'); A.hl(x + 10 + i * 6, y + 12 + j * 7, 4, '#ffe890'); } }   // the seal: four rows of gold signs
+    A.r(x, y + H - 2, W, 2, '#4e3e2a');
+    return Object.assign(propFit(st, w, d), { solid: [(w - W) / 2, d - 6, W, 6] });
+};
 
 // ---- PLANTS ----
 function palm(seed) {

@@ -12,6 +12,27 @@ Other docs:
 
 ---
 
+## POKE-STYLE P0.4 — 2026-09-30 — (branch `poke-style`) A fresh camp, crisp art, real cars, the M map
+- **The camp is laid out fresh, like a DS town:** a compact tile map with straight roads
+  between the areas.
+  - The director's camp is in the middle, the workers' camp to the west, and the dig zone
+    under the escarpment to the north. The Osiris Shaft and the sealed door are cut into the
+    cliff face.
+  - Trench A is to the east, the guard post on the road in. The oasis, supply line,
+    cemetery, sheikh's tomb, Bedouin shelter and watchtower are all a short walk away.
+  - Every person and thing from Chapter 1 is still there, with their story text.
+- **Crisp and solid, like the reference:** flat sand with tufts and ripples; clean paths
+  with ragged edges; the oasis with a pale rim and light streaks; stepped cliffs with strata.
+  No gradients or blur.
+- **Cars that look like cars:**
+  - The midnight Land Cruiser: black, with tinted glass and a roof rack.
+  - The white Ministry cars: a blue stripe, a badge, a light bar.
+  - The supply trucks: a canvas tilt and a cab with a grille.
+  - The 1926 expedition truck: spoked wheels, a canvas cab and a wooden bed, half buried.
+- **New: the M map.** It shows your area with the places you've found named on it; press M
+  again to zoom out to Egypt. Every chapter region from the bible is there, locked until the
+  story takes you there, each with a teaser. ESC is now the menu, and M the map.
+
 ## POKE-STYLE P0.3 — 2026-09-30 — (branch `poke-style`) A cleaner look, buildings with character
 - **The grain is gone.** The checkerboard dithering that read as dust or noise is replaced by
   smooth blends and flat colour, and the sand has smooth dune shading.

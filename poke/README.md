@@ -12,23 +12,24 @@ there are no image files.
 | WASD / arrows | Walk (8 directions, free movement) |
 | SHIFT | Run (or turn on "Always run" in Settings) |
 | SPACE / ENTER / Z | Look at what you're facing, talk, next page |
-| ESC / M | The menu (Map, Journal, Bag, Settings, Save, Title) · back |
+| M | The map: your area; M again zooms out to all of Egypt |
+| ESC | The menu (Map, Journal, Bag, Settings, Save, Title) · back |
 | Walk up into a door | Go inside (Miriam's tent, the dormitory, the site office) |
 
 ## What's in it
 
-- **The same map as the 3D Chapter 1.** `tools/export_poke_map.js` boots the 3D build and
-  exports every object, wall, road, the rail line, the named places and a terrain grid to
-  `poke/map_ch1.js`, at 64 world units per tile. What each thing says when you look at it
-  comes from the 3D story too.
-- **Changed to suit this style (the layout pass):**
-  - The outside of the map is a raised rock plateau with cliff faces, where the 3D build
-    has an invisible dune wall. This is the Pokémon border.
-  - The three buildings you can enter are drawn shallower than their 3D footprints, as DS
-    buildings are.
-  - The dig-zone gate stands open, since the story logic isn't wired in yet.
-  - The fence, which the 3D data lists twice, is drawn once.
-  - Three workmen stand by the fire and walk around a little.
+- **A fresh camp, laid out like a DS town** (`poke/camp.js`): a 78×58 tile map, compact,
+  with straight roads between the areas. The director's camp is in the middle, the workers' camp
+  to the west, the dig zone under the escarpment to the north (the Osiris Shaft and the sealed
+  door are cut into its cliff), trench A to the east, the guard post on the road in, the oasis,
+  the supply line, the cemetery, the sheikh's tomb and more. It has a rock plateau all round.
+  Every person and thing from the 3D chapter is here, and what each says comes from the 3D
+  story (`tools/export_poke_map.js` → `poke/map_ch1.js`, looked up by id).
+- **The look:** crisp and solid, with flat colours and hard edges. Things look 3D because the
+  light is consistent: lit tops, shaded sides, a contact shadow under each thing. Buildings
+  and vehicles each have their own character.
+- **The M map:** your area with the places you've found; M again zooms out to Egypt, with
+  every chapter region from the bible, locked until the story takes you there, each with a teaser.
 - **The opening** (from the story bible): Alexandria in 391 AD with the Serapeum burning,
   Petamun's seven Houses on a map of Egypt, Miriam finding the Codex in the Osiris Shaft,
   and the black car four nights ago. Then the Ministry letter. ESC skips it.
@@ -62,12 +63,14 @@ there are no image files.
 
 | File | What it does |
 |---|---|
-| `map_ch1.js` | The exported Chapter 1 map (generated; don't edit) |
-| `art.js` | Palette, pixel drawing helpers, outline pass, the ground painter (256-px chunks, on demand) |
+| `map_ch1.js` | What everything says, and the interiors, exported from the 3D build (generated; don't edit) |
+| `camp.js` | The camp's tile layout (where everything goes) and the crisp tile ground |
+| `art.js` | Palette, pixel drawing helpers, colour mixing, the outline pass |
 | `text.js` | Crisp pixel text, DS window frames, place plaques, sound blips, the Egyptian frieze, menu icons |
 | `sprites.js` | Every building, tent, vehicle, prop, plant, animal, fence and rock wall |
 | `people.js` | Characters built from parts; the creator's options; the cast |
-| `world.js` | Builds the outdoor map: entities, collision, trees, scattered plants, doors |
+| `world.js` | Builds the camp from the layout: entities, collision, trees, plants, doors |
+| `worldmap.js` | The M map: the area, and Egypt with the chapter regions |
 | `interiors.js` | The three rooms and their furniture |
 | `ui.js` | Text box, place banner, title screen, pause menu |
 | `intro.js` | The opening scenes, male/female, the character creator, the name grid, the permit |

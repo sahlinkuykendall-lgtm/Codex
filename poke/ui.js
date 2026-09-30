@@ -171,7 +171,7 @@ const Title = {
             Txt.draw(g, str, bx + 26, by + 8 + i * 15, { col: i === this.sel ? UI.ink : UI.dim });
             if (i === this.sel) A.poly([[bx + 13, by + 10 + i * 15], [bx + 13, by + 18 + i * 15], [bx + 18, by + 14 + i * 15]], '#d04838');
         });
-        Txt.draw(g, 'POKE-STYLE BUILD  P0.3', VW - 6, VH - 14, { col: '#8898d0', align: 'right' });
+        Txt.draw(g, 'POKE-STYLE BUILD  P0.4', VW - 6, VH - 14, { col: '#8898d0', align: 'right' });
         Txt.draw(g, '▲▼ choose    SPACE select', 6, VH - 14, { col: '#8898d0' });
     },
 };
@@ -200,6 +200,7 @@ const Menu = {
                 if (k === 'CLOSE') this.open = false;
                 else if (k === 'SAVE') { Game.save(); this.saved = 2.2; Sfx.save(); }
                 else if (k === 'TITLE SCREEN') { this.open = false; Game.fadeTo(() => { Game.state = 'title'; Title.sel = 0; }); }
+                else if (k === 'MAP') { this.open = false; WorldMap.show(0); }
                 else { this.page = k.toLowerCase(); this.sub = 0; }
             }
         } else if (P === 'settings') {
@@ -213,7 +214,7 @@ const Menu = {
         } else {
             const n = P === 'journal' ? Game.journal.length : P === 'bag' ? Game.bagList().length : 0;
             if (n) { if (I.up) { this.sub = (this.sub + n - 1) % n; Sfx.move(); } if (I.down) { this.sub = (this.sub + 1) % n; Sfx.move(); } }
-            if (I.back || I.menu || (I.ok && P === 'map')) { Sfx.back(); this.page = 'main'; }
+            if (I.back || I.menu) { Sfx.back(); this.page = 'main'; }
         }
         this.saved -= dt;
     },
@@ -264,23 +265,10 @@ const Menu = {
             Txt.wrap(HELP[this.SETTINGS[this.sub].key], VW - 60).forEach((ln, i) => Txt.draw(g, ln, 24, hy + i * 12, { col: '#3058a0' }));
             if (VH - hy > 120) {
                 Txt.draw(g, 'CONTROLS', 24, hy + 34, { col: UI.gold });
-                [['WASD / arrows', 'Walk'], ['SHIFT', 'Run'], ['SPACE / ENTER / Z', 'Look, talk, next'], ['ESC / M', 'This menu, or back'], ['Walk up to a door', 'Go inside']].forEach(([k2, v2], i) => { Txt.draw(g, k2, 24, hy + 50 + i * 13, { col: UI.ink }); Txt.draw(g, v2, 150, hy + 50 + i * 13, { col: UI.dim }); });
+                [['WASD / arrows', 'Walk'], ['SHIFT', 'Run'], ['SPACE / ENTER / Z', 'Look, talk, next'], ['M', 'Map (M again: all of Egypt)'], ['ESC', 'This menu, or back'], ['Walk up to a door', 'Go inside']].forEach(([k2, v2], i) => { Txt.draw(g, k2, 24, hy + 50 + i * 13, { col: UI.ink }); Txt.draw(g, v2, 150, hy + 50 + i * 13, { col: UI.dim }); });
             }
             Txt.draw(g, '▲▼ choose   ◄► change', 24, VH - 28, { col: UI.dim });
-        } else if (this.page === 'map') {
-            const mm = Game.miniMap(), sc = Math.max(1, Math.floor(Math.min((VW - 170) / mm.width, (VH - 50) / mm.height))) || 1;
-            const mx = 18, my = 34;
-            A.r(mx - 2, my - 2, mm.width * sc + 4, mm.height * sc + 4, '#c89020'); A.r(mx - 1, my - 1, mm.width * sc + 2, mm.height * sc + 2, '#38404c');
-            g.drawImage(mm, mx, my, mm.width * sc, mm.height * sc);
-            const out = Game.outdoorPos(), k = sc / TILE;
-            Game.maps.ch1.places.forEach(p => { if (Game.seen[p.id]) { A.r(mx + p.x * k - 1, my + p.y / TILT * k - 1, 3, 3, '#38404c'); A.px(mx + p.x * k, my + p.y / TILT * k, '#ffe890'); } });
-            if ((Game.time * 3 | 0) % 2) { A.r(mx + out[0] * k - 2, my + out[1] / TILT * k - 2, 5, 5, '#ffffff'); A.r(mx + out[0] * k - 1, my + out[1] / TILT * k - 1, 3, 3, '#d04838'); }
-            const lx = mx + mm.width * sc + 14;
-            Txt.draw(g, 'PLACES FOUND', lx, 34, { col: UI.gold });
-            const found = Game.maps.ch1.places.filter(p => Game.seen[p.id]);
-            found.slice(0, Math.floor((VH - 84) / 12)).forEach((p, i) => Txt.draw(g, p.name.replace(/^THE /, '').slice(0, 22), lx, 48 + i * 12, { col: UI.ink }));
-            Txt.draw(g, found.length + ' of ' + Game.maps.ch1.places.length, lx, VH - 28, { col: UI.dim });
-        } else if (this.page === 'journal' || this.page === 'bag') {
+                } else if (this.page === 'journal' || this.page === 'bag') {
             const list = this.page === 'journal' ? Game.journal.map(j => [j.label, j.text]) : Game.bagList();
             if (!list.length) Txt.draw(g, this.page === 'journal' ? 'Nothing written yet. Look at things: it all goes in here.' : 'Empty.', 24, 40, { col: UI.dim });
             else {

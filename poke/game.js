@@ -50,7 +50,10 @@ const Game = {
         this.state = 'play';
     },
     resetWorld() {
-        this.maps = { ch1: World.buildOutdoor(window.POKE_MAP) };
+        this.camp = this.camp || campLayout();
+        CampGround.init(this.camp);
+        this.maps = { ch1: World.buildCamp(this.camp, window.POKE_MAP) };
+        this._mm = null;
         this.journal = []; this.bag = { 'Field journal': 1, 'Letter of appointment': 1 }; this.seen = {}; this.taken = {};
     },
     newGame() {
@@ -73,7 +76,7 @@ const Game = {
         if (!pl.choices) pl.choices = Object.assign({}, pl.gender === 'f' ? CHOICES_F : CHOICES_M);
         const key = JSON.stringify(pl.choices) + pl.gender;
         if (pl.sheetKey !== key) { pl.sheetKey = key; pl.sheet = personSheet(lookFromChoices(pl.choices, pl.gender)); }
-        if (map.outdoor) { const CH = Ground.CH, cx = Math.floor(this.player.x / CH), cy = Math.floor(this.player.y / CH); for (let j = -1; j <= 1; j++) for (let i = -2; i <= 2; i++) Ground.get(cx + i, cy + j); }
+        if (map.outdoor) { const CH = CampGround.CH, cx = Math.floor(this.player.x / CH), cy = Math.floor(this.player.y / CH); for (let j = -1; j <= 1; j++) for (let i = -2; i <= 2; i++) CampGround.get(cx + i, cy + j); }
         else Banner.show(map.name);
     },
     note(label, text, id) {
@@ -103,17 +106,11 @@ const Game = {
     // ---- the map in the menu: one pixel per tile ----
     miniMap() {
         if (this._mm) return this._mm;
-        const M = window.POKE_MAP, G = M.grid, [c, g] = mk(M.gw, M.gh), A = pa(g);
-        for (let j = 0; j < M.gh; j++) for (let i = 0; i < M.gw; i++) {
-            const k = j * M.gw + i, up = G.hgt[Math.max(0, k - M.gw - 1)] - G.hgt[k];
-            let col = PAL.sand[up > 3 ? 3 : up < -3 ? 0 : 1];
-            if (G.out[k] === '1') col = PAL.rock[3]; else if (G.rock[k] === '1') col = PAL.rock[2]; else if (G.dip[k] === '1') col = PAL.dirt[1]; else if (G.path[k] !== '0') col = PAL.road[2]; else if (G.wadi[k] === '1') col = PAL.gravel[1];
-            A.px(i, j, col);
-        }
-        const S = 1 / M.TILE_U;
-        for (const w of M.walls) if (w.k === 'pond') A.ell((w.x + w.w / 2) * S, (w.y + w.h / 2) * S, w.w / 2 * S, w.h / 2 * S, PAL.water[2]); else if (w.k === 'trunk') A.px(w.x * S, w.y * S, PAL.green[2]);
-        for (const o of M.objects) if (/bldg|trailer|shed|post|booth|storage|mess|hanatent|maqam|shelter/i.test(o.id + o.model) && o.w < 500) A.r(o.x * S, o.y * S, Math.max(2, o.w * S), Math.max(2, o.h * S), PAL.wood[3]);
-        for (const line of [M.rail, M.railLoop]) for (let i = 0; i + 1 < line.length; i++) A.line(line[i][0] * S, line[i][1] * S, line[i + 1][0] * S, line[i + 1][1] * S, PAL.dark[1]);
+        const L = this.camp, [c, g] = mk(L.W, L.H), A = pa(g);
+        const COL = { [T.SAND]: '#ecd49a', [T.PATH]: '#c89e62', [T.ROCK]: '#9a7e58', [T.WATER]: '#4a98dc', [T.DIG]: '#5a422a', [T.STONE]: '#e8dcc0', [T.RAIL]: '#5a5048', [T.GRAVEL]: '#b8a882' };
+        for (let y = 0; y < L.H; y++) for (let x = 0; x < L.W; x++) A.px(x, y, COL[L.get(x, y)]);
+        for (const e of this.maps.ch1.ents) if (e.spr && e.w >= TILE * 2 && !e.spr.flat) A.r(e.x / TILE, e.y / TILE, e.w / TILE, Math.max(1, e.d / TILE), '#804c28');
+        for (const [tx, ty] of L.trees) A.px(tx, ty, '#388030');
         return (this._mm = c);
     },
 
@@ -154,6 +151,7 @@ const Game = {
             if (!this.fade.done && this.fade.t >= 0.22) { this.fade.done = true; this.fade.fn(); }
             if (this.fade.t >= 0.5) this.fade = null;
         }
+        if (WorldMap.open) { WorldMap.update(dt, I); return; }
         if (Menu.open) { Menu.update(dt, I); return; }
         if (this.state === 'title') { if (!this.fade) Title.update(dt, I); return; }
         if (this.state === 'intro') { if (!this.fade) Intro.update(dt, I); return; }
@@ -165,6 +163,7 @@ const Game = {
         if (Dlg.active) { Dlg.update(dt, I); return; }
         if (this.fade) return;
         if (I.menu) { Menu.toggle(); return; }
+        if (I.map) { WorldMap.show(0); return; }
         this.movePlayer(dt);
         this.target = this.findTarget();
         if (I.ok && this.target) this.examine(this.target);
@@ -292,6 +291,7 @@ const Game = {
         else if (this.state === 'play') this.drawWorld(g);
         else { g.fillStyle = '#101838'; g.fillRect(0, 0, VW, VH); Txt.draw(g, 'Drawing the desert…', VW >> 1, VH >> 1, { col: '#ffe890', align: 'center' }); }
         if (Menu.open) Menu.draw(g);
+        if (WorldMap.open) WorldMap.draw(g);
         if (this.fade) { const t = this.fade.t, a = t < 0.22 ? t / 0.22 : 1 - (t - 0.22) / 0.28; g.fillStyle = 'rgba(0,0,0,' + Math.max(0, Math.min(1, a)).toFixed(2) + ')'; g.fillRect(0, 0, VW, VH); }
     },
     drawWorld(g) {
@@ -301,7 +301,7 @@ const Game = {
         let cy = m.ph <= VH ? (m.ph - VH) / 2 : Math.max(0, Math.min(m.ph - VH, p.y - 12 - VH / 2));
         cx = Math.round(cx); cy = Math.round(cy);
         this.cam = [cx, cy];
-        if (m.outdoor) Ground.draw(g, cx, cy, VW, VH);
+        if (m.outdoor) CampGround.draw(g, cx, cy, VW, VH);
         else { g.fillStyle = '#0c0a10'; g.fillRect(0, 0, VW, VH); g.drawImage(m.bg, -cx, -cy); }
         const L = this.light(), night = L.dark > 0.5;
         // everything that stands, back to front
@@ -362,7 +362,7 @@ const Game = {
         }
         Banner.draw(g);
         Toast.draw(g, 1 / 60);
-        if (this.hintT < 14 && !Dlg.active) Txt.draw(g, 'MOVE: WASD / arrows    RUN: Shift    LOOK / TALK: Space    MENU: Esc', VW >> 1, VH - 14, { col: '#ffffff', shadow: '#30302c', align: 'center' });
+        if (this.hintT < 14 && !Dlg.active) Txt.draw(g, 'MOVE: WASD / arrows    RUN: Shift    LOOK / TALK: Space    MAP: M    MENU: Esc', VW >> 1, VH - 14, { col: '#ffffff', shadow: '#30302c', align: 'center' });
         if (Dlg.active) Dlg.draw(g);
     },
     tag(g, s, x, y) {
@@ -391,11 +391,12 @@ const Game = {
             if (k === ' ' || k === 'Enter' || k === 'z' || k === 'e') { this.I.ok = true; e.preventDefault(); }
             if (k === 'Enter') this.I.enter = true;
             if (k === 'Escape' || k === 'x' || k === 'Backspace') this.I.back = true;
-            if (k === 'Escape' || k === 'm' || k === 'Tab') { this.I.menu = true; e.preventDefault(); }
+            if (k === 'Escape' || k === 'Tab') { this.I.menu = true; e.preventDefault(); }
+            if (k === 'm') this.I.map = true;
         });
         window.addEventListener('keyup', e => { const k = e.key.length === 1 ? e.key.toLowerCase() : e.key; if (MAPK[k]) this.keys[MAPK[k]] = false; });
         window.addEventListener('blur', () => { this.keys = {}; });
-        Ground.init(window.POKE_MAP);
+
         this.state = 'title';
         let last = performance.now();
         const loop = (now) => {

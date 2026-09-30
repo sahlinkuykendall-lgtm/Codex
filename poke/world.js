@@ -1,10 +1,9 @@
 // ============================================================
 // THE CODEX OF GIZA — POKE STYLE: THE WORLD (poke/world.js)
-// Builds the outdoor map from the exported 3D layout (poke/map_ch1.js):
-// every object becomes an entity with a sprite, the collision walls
-// become solids (and fences, rock walls and trees where that's what they
-// are), desert plants are scattered, and doors lead to the interiors
-// (poke/interiors.js).
+// Builds the outdoor map from the camp layout (poke/camp.js): every thing
+// becomes an entity with a sprite and what it says (from poke/map_ch1.js,
+// by id), the plateau and water become solid, trees and desert plants are
+// placed, and doors lead to the interiors (poke/interiors.js).
 //
 // An entity: { x, y, w, d }  its footprint in pixels (x,y = top-left)
 //            spr              from a drawer in sprites.js
@@ -49,135 +48,90 @@ const World = {
     },
 
     // ============================================================
-    // THE OUTDOOR MAP
+    // THE CAMP (the hand-laid tile map in camp.js)
     // ============================================================
-    buildOutdoor(M) {
-        const S = TILE / M.TILE_U, px = v => Math.round(v * S), pxY = v => Math.round(v * S * TILT);   // (y is squashed by the tilt)
-        const map = { key: 'ch1', outdoor: true, pw: Math.ceil(M.W * S), ph: Math.ceil(M.H * S * TILT), ents: [], grid: {}, doors: [], places: [], people: [] };
-        const G = M.grid;
-        const tileAt = (s, x, y) => { const i = Math.floor(x / TILE), j = Math.floor(y / TILE); return (i < 0 || j < 0 || i >= M.gw || j >= M.gh) ? '1' : s[j * M.gw + i]; };
+    buildCamp(L, M) {
+        const map = { key: 'ch1', outdoor: true, camp: L, pw: L.W * TILE, ph: L.H * TILE, ents: [], grid: {}, doors: [], places: [], people: [] };
         const byId = {}; for (const o of M.objects) byId[o.id] = o;
-        const occupied = [];                                   // footprints, so plants don't grow through things
-        const occ = (x, y, w, h) => occupied.push([x - 10, y - 10, w + 20, h + 20]);
-        const isOcc = (x, y) => occupied.some(r => x > r[0] && y > r[1] && x < r[0] + r[2] && y < r[1] + r[3]);
-
-        // ---- walls: solids, and fences / rock where that's what they are ----
-        // The three buildings you can enter are drawn shallower than their 3D footprints
-        // (SHELL_DEPTH of it, kept at the front): a DS building is mostly front wall and
-        // roof, and the ground behind it is free to walk. Their own wall list is replaced.
-        const SHELL_DEPTH = 0.68;
-        const shells = ['dorm_bldg', 'foreman_bldg', 'tent_bldg'].map(id => byId[id]).filter(Boolean);
-        const within = (w, o, m) => w.x >= o.x - m && w.y >= o.y - m && w.x + w.w <= o.x + o.w + m && w.y + w.h <= o.y + o.h + 40;
-        const inShell = (w) => shells.some(o => within(w, o, 8));
-        const table = byId.d_cooking;
-        const objRects = M.objects.filter(o => !o.deco || o.w < 300).map(o => o);
-        const underObject = (w) => objRects.some(o => w.x < o.x + o.w && w.x + w.w > o.x && w.y < o.y + o.h && w.y + w.h > o.y);
-        const trees = [];
-        for (const w of M.walls) {
-            const x = px(w.x), y = pxY(w.y), ww = Math.max(2, px(w.w)), hh = Math.max(2, pxY(w.h));
-            if (w.k === 'trenchPlank') {                         // planks across the trench: you walk over them
-                const st = stage(ww, hh, 0), A = st.A; A.r(st.x, st.y, ww, hh, PAL.plank[0]); for (let i = 0; i < ww; i += 10) A.vl(st.x + i, st.y, hh, PAL.plank[2]); A.r(st.x, st.y + hh - 2, ww, 2, PAL.plank[2]);
-                World.addEnt(map, { x, y, w: ww, d: hh, spr: Object.assign(fit(st), { flat: true }) });
-                continue;
-            }
-            if (w.k === 'trunk') { trees.push([x + ww / 2, y + hh / 2]); continue; }
-            if (inShell(w) || w.k === 'gate' || (w.k === 'northFence' && w.h > 40)) continue;   // (the fence is listed twice; the gate stands open)
-            if (w.k !== 'pond') World.addSolid(map, x, y, ww, hh);
-            else World.addSolid(map, x + 6, y + 6, ww - 12, hh - 12);
-            if (w.k === 'northFence' || w.k === 'chain' || w.k === 'rope' || (w.k === 'rail' && !(table && within(w, table, 8)))) {
-                const spr = w.w >= w.h ? fenceH(ww, w.k) : fenceV(hh, w.k);
-                World.addEnt(map, { x, y, w: ww, d: hh, spr, sortY: y + hh });
-            } else if (w.k === 'outcrop' || w.k === 'ridge' || w.k === 'cutting') {
-                World.addEnt(map, { x, y, w: ww, d: hh, spr: rockBlock(ww, hh, 'rb' + w.x + w.y) }); occ(x, y, ww, hh);
-            } else if (w.k === 'yardang' && !underObject(w)) {
-                World.addEnt(map, { x, y, w: ww, d: hh, spr: rockBlock(ww, hh, 'yd' + w.x + w.y) }); occ(x, y, ww, hh);
-            } else if (w.k === 'ministryHut') {
-                World.addEnt(map, { x, y, w: ww, d: hh, spr: SPR_L['ministry post'](ww, hh) }); occ(x, y, ww, hh);
-            } else if (w.k === 'digshed') {
-                World.addEnt(map, { x, y, w: ww, d: hh, spr: SPR_L['dig shed clipboard'](ww, hh) }); occ(x, y, ww, hh);
-            }
+        // solid ground: rows of plateau and water, merged into runs
+        for (let y = 0; y < L.H; y++) for (let x = 0; x < L.W;) {
+            if (!SOLID_TILE[L.get(x, y)]) { x++; continue; }
+            let x1 = x; while (x1 < L.W && SOLID_TILE[L.get(x1, y)]) x1++;
+            World.addSolid(map, x * TILE, y * TILE + (L.get(x, y) === T.WATER ? 6 : 0), (x1 - x) * TILE, TILE - (L.get(x, y) === T.WATER ? 6 : 0));
+            x = x1;
         }
-
-        // ---- objects ----
-        const SKIP_SPR = { fl_ministry_post: 1, fl_digshed: 1, perimeter: 1 };
+        const occ = new Set(), mark = (tx, ty, tw, th) => { for (let j = ty - 1; j <= ty + th; j++) for (let i = tx - 1; i <= tx + tw; i++) occ.add(i + ',' + j); };
+        const DRAW_AS = { fl_ministry_post: 'ministry post', fl_digshed: 'dig shed clipboard', fl_toolshed: "sam's tool shed", fl_guard_booth: 'guard booth', d_gearstor: 'gear storage', fl_trailer: 'site trailer', fl_scaffold: 'scaffolding', fl_palm: 'palm tree', fl_cactus: 'palm tree', fl_boulder: 'big boulder', fl_ruins: null, fl_stake_sam: 'survey stake' };
+        const NO_SPRITE = { trench: 1, ow_oasis: 1, fl_cooking: 1, fl_crates: 1, perimeter: 1, fl_sand_east: 1, fl_stars: 1, fl_ruins: 1, c1m_mess_in: 1 };
+        const OPEN = { dig_gate: 1, c1p_pavement: 1, d_gearstor: 1, c1p_cemetery: 1, ow_ruins: 1, c1p_ramp: 1 };
         const NIGHT_ONLY = { c1p_oldwoman: 1 }, HIDDEN = { c1a_lena: 1, c1a_lenaman1: 1, c1a_lenaman2: 1 };
-        const DOORS = { tent_door: 'INT_TENT', dorm_door: 'INT_DORM', foreman_door: 'INT_FOREMAN' };
         const PICKUP = /^(painted sherd|fossil)$/;
-        for (const o of M.objects) {
-            if (HIDDEN[o.id]) continue;
-            const x = px(o.x), y = pxY(o.y), w = Math.max(4, px(o.w)), d = Math.max(4, pxY(o.h));
-            if (DOORS[o.id]) {
-                map.doors.push({ x, y: y - 6, w, h: d + 6, to: DOORS[o.id], label: o.label.replace(/^Enter /, '') });
-                continue;
+        const place = (id, tx, ty, tw, th) => {
+            const o = byId[id];
+            if (!o) { console.warn('camp: no object', id); return; }
+            if (HIDDEN[id]) return;
+            const x = tx * TILE, y = ty * TILE, w = tw * TILE, d = th * TILE;
+            const e = { x, y, w, d, id, label: o.label, say: o.say };
+            if (id === 'dig_gate') { e.label = 'Dig Zone Gate'; e.say = ['System', 'The dig zone gate: chain-link, Miriam\'s handwriting on a laminated sign — ACTIVE EXCAVATION, AUTHORISED STAFF ONLY.\n\nIt stands open. The Rais has unlocked it for you.']; }
+            if (CAST[id]) {
+                const cx = x + w / 2, cy = y + d - 4;
+                Object.assign(e, { x: cx, y: cy, w: 0, d: 0, person: { sheet: personSheet(LOOKS[CAST[id]]), dir: 0, frame: 0 }, sortY: cy, nightOnly: !!NIGHT_ONLY[id] });
+                if (id === 'c1p_oldwoman') e.light = { x: 6, y: -14, r: 60, c: '#ffd080' };
+                World.addEnt(map, e); map.people.push(e); return;
             }
-            const e = { x, y, w, d, id: o.id, label: o.label, say: o.say, scene: o.scene };
-            if (shells.includes(o)) { const cutD = Math.round(d * SHELL_DEPTH); e.y = y + d - cutD; e.d = cutD; }
-            if (o.id === 'dig_gate') { e.label = 'Dig Zone Gate'; e.say = ['System', 'The dig zone gate: chain-link, Miriam\'s handwriting on a laminated sign — ACTIVE EXCAVATION, AUTHORISED STAFF ONLY.\n\nIt stands open. The Rais has unlocked it for you.']; }
-            if (CAST[o.id]) {
-                const cx = x + w / 2, cy = y + d / 2 + 6;
-                Object.assign(e, { x: cx, y: cy, w: 0, d: 0, person: { sheet: personSheet(LOOKS[CAST[o.id]]), dir: 0, frame: 0 }, sortY: cy, nightOnly: !!NIGHT_ONLY[o.id] });
-                World.addEnt(map, e);
-                map.people.push(e);                              // people block the way themselves (they can move)
-                if (o.id === 'c1p_oldwoman') e.light = { x: 6, y: -14, r: 60, c: '#ffd080' };
-                continue;
-            }
-            const drawer = SKIP_SPR[o.id] ? null : (SPR[o.id] || SPR_L[o.model] || SPR_L[(o.label || '').toLowerCase()]);
             let spr = null;
-            if (drawer) spr = drawer(e.w, e.d, o);
-            if (spr && spr.anchor) { e.x = x + w / 2; e.y = y + d / 2; e.w = 0; e.d = 0; e.sortY = e.y; }
+            if (!NO_SPRITE[id]) {
+                const as = DRAW_AS[id], drawer = as !== undefined ? (as && SPR_L[as]) : (SPR[id] || SPR_L[o.model] || SPR_L[(o.label || '').toLowerCase()]);
+                if (drawer) spr = drawer(w, d, o);
+            }
+            if (spr && spr.anchor) { e.x = x + w / 2; e.y = y + d - 4; e.w = 0; e.d = 0; e.sortY = e.y; }
             e.spr = spr;
             if (spr && PICKUP.test(o.model)) e.pickup = o.model === 'fossil' ? 'Fossil' : 'Painted sherd';
-            if (!spr && !o.say) continue;                       // a zone with nothing to see or say
+            if (!spr && !e.say) return;
             World.addEnt(map, e);
-            if (spr && !spr.flat) occ(x, y, w, d);
+            if (spr && !spr.flat && !spr.solid && !OPEN[id] && tw * th >= 2 && !spr.anchor) World.addSolid(map, x + 2, y + 2, w - 4, d - 4, e);   // buildings are solid all through
+            if (spr && !spr.flat) mark(tx, ty, tw, th);
+        };
+        for (const [id, tx, ty, tw, th] of L.things) place(id, tx, ty, tw, th);
+        for (const pre in L.scatter) L.scatter[pre].forEach(([tx, ty], i) => place(pre + i, tx, ty, 1, 1));
+        L.lamps.forEach(([tx, ty], i) => place('ow_pathlamp' + i, tx, ty, 1, 1));
+        // doors on the front of the three buildings you can enter
+        for (const [id, frac, to] of L.doors) {
+            const e = map.ents.find(q => q.id === id); if (!e) continue;
+            map.doors.push({ x: e.x + e.w * frac - 16, y: e.y + e.d - 8, w: 32, h: 14, to, label: byId[id === 'tent_bldg' ? 'tent_door' : id === 'dorm_bldg' ? 'dorm_door' : 'foreman_door'].label.replace(/^Enter /, '') });
         }
-        // the three buildings you can enter are solid all the way through
-        for (const o of shells) { const d = pxY(o.h), cutD = Math.round(d * SHELL_DEPTH); World.addSolid(map, px(o.x), pxY(o.y) + d - cutD, px(o.w), cutD - 2); }
-
-        // ---- trees on the 3D map's trunks: palms by the water, acacias out in the open ----
-        const oasis = M.places.find(p => p.id === 'oasis');
-        trees.forEach(([tx, ty], i) => {
-            const nearWater = oasis && Math.hypot(tx - oasis.at[0] * S, ty - oasis.at[1] * S * TILT) < 520;
-            const spr = (nearWater || hash2(tx | 0, ty | 0) < 0.7) ? palm('p' + i) : acacia('a' + i);
-            World.addEnt(map, { x: tx, y: ty + 2, w: 0, d: 0, spr, sortY: ty + 2 });
-            occupied.push([tx - 12, ty - 8, 24, 16]);
-        });
+        // trees
+        L.trees.forEach(([tx, ty], i) => { const x = tx * TILE + 16, y = ty * TILE + 28; World.addEnt(map, { x, y, w: 0, d: 0, spr: palm('cp' + i), sortY: y }); World.addSolid(map, x - 4, y - 4, 8, 5); mark(tx, ty, 1, 1); });
         // the camel, couched beside the Bedouin tent
-        const sh = byId.ow_shelter;
-        if (sh) World.addEnt(map, { x: px(sh.x + sh.w) + 26, y: pxY(sh.y + sh.h * 0.8), w: 0, d: 0, spr: camel(), label: 'Camel', say: ['System', 'A camel, couched, chewing sideways with great patience. It looks at you as if you owe it money.'] });
-
-        // ---- desert plants and stones, scattered on open sand ----
-        // (a handful of drawn variants, shared: thousands of plants, a few canvases)
+        const sh = map.ents.find(q => q.id === 'ow_shelter');
+        if (sh) World.addEnt(map, { x: sh.x + sh.w + 24, y: sh.y + sh.d, w: 0, d: 0, spr: camel(), label: 'Camel', say: ['System', 'A camel, couched, chewing sideways with great patience. It looks at you as if you owe it money.'] });
+        // plants and stones on the open sand
         const memo = {}, variant = (kind, n, make) => { const key = kind + (n % 7); return Object.assign({}, memo[key] || (memo[key] = make(key))); };
-        for (let j = 1; j < M.gh - 1; j++) for (let i = 1; i < M.gw - 1; i++) {
-            const k = j * M.gw + i;
-            if (G.out[k] === '1' || G.path[k] !== '0' || G.rock[k] === '1' || G.dip[k] === '1') continue;
-            const r = hash2(i * 7 + 3, j * 13 + 5);
-            const x = i * TILE + 4 + hash2(i, j + 99) * 24, y = (j * TILE + 8 + hash2(i + 77, j) * 22) * TILT;
-            const nearWater = oasis && Math.hypot(x - oasis.at[0] * S, y - oasis.at[1] * S * TILT) < 460;
-            const wadi = G.wadi[k] === '1';
+        for (let ty = 1; ty < L.H - 1; ty++) for (let tx = 1; tx < L.W - 1; tx++) {
+            if (L.get(tx, ty) !== T.SAND || occ.has(tx + ',' + ty)) continue;
+            const r = hash2(tx * 7 + 3, ty * 13 + 5), k = ty * L.W + tx;
+            const nearWater = Math.hypot(tx - 8, ty - 15) < 7;
             let spr = null;
-            if (nearWater && r < 0.34) spr = variant('g', k, s => shrub(s, false));
-            else if (wadi && r < 0.22) spr = r < 0.1 ? variant('wr' + Math.round(r * 40), k, s => rocks(0, 0, s, 1, 5 + Math.round(r * 40))) : variant('d', k, s => shrub(s, true));
-            else if (r < 0.035) spr = r > 0.012 ? variant('d', k, s => shrub(s, true)) : variant('g', k, s => shrub(s, false));
-            else if (r > 0.988) { const rr = 4 + Math.round(hash2(i, j) * 5); spr = variant('r' + rr, k, s => rocks(0, 0, s, 1, rr)); }
-            if (!spr || isOcc(x, y)) continue;
-            if (spr.solid) { spr.ox = -spr.c.width / 2; spr.oy = -spr.c.height + 1; spr.solid = spr.c.width > 16 ? [-spr.c.width / 2 + 2, -5, spr.c.width - 4, 5] : null; }
+            if (nearWater && r < 0.4) spr = variant('g', k, q => shrub(q, false));
+            else if (r < 0.05) spr = r > 0.02 ? variant('d', k, q => shrub(q, true)) : variant('g', k, q => shrub(q, false));
+            else if (r > 0.985) { const rr = 4 + Math.round(hash2(tx, ty) * 5); spr = variant('r' + rr, k, q => rocks(0, 0, q, 1, rr)); }
+            if (!spr) continue;
+            const x = tx * TILE + 8 + hash2(tx, ty + 99) * 16, y = ty * TILE + 12 + hash2(tx + 77, ty) * 16;
+            if (spr.solid) { spr.ox = -spr.c.width / 2; spr.oy = -spr.c.height + 1; spr.solid = null; }
             World.addEnt(map, { x, y, w: 0, d: 0, spr, sortY: y });
         }
-
-        // ---- people who are just there: three workmen by the fire ----
-        const bz = byId.rest_brazier;
-        if (bz) [['worker1', -46, 10], ['worker2', 40, 26], ['worker3', -8, 52]].forEach(([look, dx, dy], i) => {
-            const cx = px(bz.x + bz.w / 2) + dx, cy = pxY(bz.y + bz.h / 2) + dy;
+        // three workmen by the fire
+        const bz = map.ents.find(q => q.id === 'rest_brazier');
+        if (bz) [['worker1', -40, 10], ['worker2', 36, 22], ['worker3', -6, 44]].forEach(([look, dx, dy], i) => {
+            const cx = bz.x + bz.w / 2 + dx, cy = bz.y + bz.d / 2 + dy;
             const lines = ['"The new doctor." He looks you up and down, and makes room by the fire.', '"Eleven days. My wife asks me every night: where is the money? I tell her: ask the Swede."', '"Doctor Miriam knew every man\'s name. Every one. You will learn them?"'];
-            const e = World.addEnt(map, { x: cx, y: cy, w: 0, d: 0, label: 'Workman', say: ['Workman', lines[i]], person: { sheet: personSheet(LOOKS[look]), dir: i === 2 ? 3 : i ? 1 : 2, frame: 0 }, sortY: cy, wander: { home: [cx, cy], r: 40, t: 2 + i * 1.7 } });
+            const e = World.addEnt(map, { x: cx, y: cy, w: 0, d: 0, label: 'Workman', say: ['Workman', lines[i]], person: { sheet: personSheet(LOOKS[look]), dir: i === 2 ? 3 : i ? 1 : 2, frame: 0 }, sortY: cy, wander: { home: [cx, cy], r: 36, t: 2 + i * 1.7 } });
             map.people.push(e);
         });
-
-        map.places = M.places.map(p => ({ id: p.id, name: p.name, x: p.at[0] * S, y: p.at[1] * S * TILT, r: p.r * S }));
-        map.spawn = [px(M.spawn[0]), pxY(M.spawn[1])];
+        map.places = L.places.map(([id, name, tx, ty, r]) => ({ id, name, x: tx * TILE + 16, y: ty * TILE + 16, r: r * TILE }));
+        map.spawn = [L.spawn[0] * TILE + 16, L.spawn[1] * TILE + 16];
         map.ents.forEach(e => { if (e.spr && e.spr.light) e.light = e.spr.light; });
         return map;
     },
+
 };
