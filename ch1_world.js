@@ -89,6 +89,43 @@ function makeTex(name, w, h, rx, ry, draw, linear) {
     return tex;
 }
 
+// A photographed PBR set packed by tools/pack_texture.js (textures/<name>.js),
+// repeated `rep` times per UV unit. Data URIs, so WebGL can use them from
+// file://. Returns null when the pack isn't loaded. `mean` resolves to the
+// colour map's average (linear) once decoded.
+function ch1PhotoSet(name, rep) {
+    const src = window.CODEX_TEX && window.CODEX_TEX[name];
+    if (!src || !src.color) return null;
+    if (texCache['photo_' + name]) return texCache['photo_' + name];
+    const load = (uri, srgb) => {
+        if (!uri) return null;
+        const t = new THREE.Texture();
+        const img = new Image();
+        img.onload = () => { t.image = img; t.needsUpdate = true; };
+        img.src = uri;
+        t.wrapS = t.wrapT = THREE.RepeatWrapping;
+        t.repeat.set(rep, rep);
+        if (srgb) t.encoding = THREE.sRGBEncoding;
+        t.anisotropy = 8;
+        return t;
+    };
+    const set = { color: load(src.color, true), normal: load(src.normal), rough: load(src.rough), ao: load(src.ao) };
+    set.mean = new Promise(res => {
+        const img = new Image();
+        img.onload = () => {
+            const c = document.createElement('canvas'); c.width = c.height = 32;
+            const cc = c.getContext('2d'); cc.drawImage(img, 0, 0, 32, 32);
+            const d = cc.getImageData(0, 0, 32, 32).data;
+            let r = 0, g = 0, b = 0;
+            for (let i = 0; i < d.length; i += 4) { r += d[i]; g += d[i + 1]; b += d[i + 2]; }
+            const n = d.length / 4;
+            res(new THREE.Color(r / n / 255, g / n / 255, b / n / 255).convertSRGBToLinear());
+        };
+        img.src = src.color;
+    });
+    return (texCache['photo_' + name] = set);
+}
+
 // Scatter n translucent specks — the base of most canvas textures
 function speckle(cc, w, h, base, colors, n, sMin, sMax, aMin, aMax) {
     if (base) { cc.fillStyle = base; cc.fillRect(0, 0, w, h); }
@@ -377,18 +414,39 @@ function ch1Mats() {
         speckle(cc, w, h, null, ['#4e3e2c', '#a08a68', '#c7b28a'], 1400, 1, 3, 0.2, 0.6);
     });
 
-    // Ground: sand and rock blended per vertex (aRock), both at world scale
-    const ground = std({ map: sand, bumpMap: sandBump, bumpScale: 0.55, vertexColors: true, roughness: 0.96 });
+    // Ground: sand and rock blended per vertex (aRock), both at world scale.
+    // The sand is a photographed PBR set (textures/sand.js, Ground089 from
+    // ambientCG) when it's loaded: colour, normal, roughness and AO, one
+    // tile per ~80 units (2.5 m). Its colour is balanced toward the drawn
+    // sand's so the level's palette holds (sandGain); without it, the
+    // drawn sand and ripple bump are used.
+    const photo = ch1PhotoSet('sand', 3.25);
+    const ground = photo
+        ? std({ map: photo.color, normalMap: photo.normal, normalScale: new THREE.Vector2(1.3, 1.3), roughnessMap: photo.rough, vertexColors: true, roughness: 1 })
+        : std({ map: sand, bumpMap: sandBump, bumpScale: 0.55, vertexColors: true, roughness: 0.96 });
+    const sandGain = { value: new THREE.Vector3(1, 1, 1) };
+    if (photo) photo.mean.then(m => {
+        // the drawn sand's mean is #b89c74; pull the photo most of the way to it
+        const want = new THREE.Color(0xb89c74).convertSRGBToLinear();
+        sandGain.value.set(Math.pow(want.r / m.r, 0.8), Math.pow(want.g / m.g, 0.8), Math.pow(want.b / m.b, 0.8));
+    });
     ground.onBeforeCompile = (sh) => {
         sh.uniforms.rockMap = { value: rock };
         sh.uniforms.dirtMap = { value: dirt };
+        sh.uniforms.sandAO = { value: photo ? photo.ao : null };
+        sh.uniforms.sandGain = sandGain;
+        sh.uniforms.rippleMap = { value: sandBump };
         sh.vertexShader = 'attribute vec2 aMix;\nvarying vec2 vMix;\nvarying vec3 vWPos;\n' +
             sh.vertexShader.replace('#include <uv_vertex>', '#include <uv_vertex>\nvMix = aMix;\nvWPos = (modelMatrix * vec4(position, 1.0)).xyz;');
-        sh.fragmentShader = 'uniform sampler2D rockMap;\nuniform sampler2D dirtMap;\nvarying vec2 vMix;\nvarying vec3 vWPos;\n' +
+        sh.fragmentShader = 'uniform sampler2D rockMap;\nuniform sampler2D dirtMap;\nuniform vec3 sandGain;\n' + (photo ? '#define SAND_PHOTO\nuniform sampler2D sandAO;\nuniform sampler2D rippleMap;\n' : '') + 'varying vec2 vMix;\nvarying vec3 vWPos;\n' +
             sh.fragmentShader.replace('#include <map_fragment>', `
                 vec4 sandC = texture2D(map, vUv);
                 vec4 sandFar = texture2D(map, vUv * 0.21 + 0.37);
                 sandC = mix(sandC, sandFar, 0.45);
+                #ifdef SAND_PHOTO
+                    sandC.rgb *= sandGain * mix(1.0, texture2D(sandAO, vUv).r, 0.6);
+                    sandC.rgb *= 0.94 + 0.12 * texture2D(rippleMap, vUv / 3.25).r;   // wind ripples, ~8 m apart
+                #endif
                 vec4 rockC = texture2D(rockMap, vec2(vWPos.x + vWPos.z * 0.35, vWPos.y * 1.6) / 300.0);
                 vec4 dirtC = texture2D(dirtMap, vec2(vWPos.x + vWPos.z, vWPos.y * 2.2) / 180.0);
                 vec4 texelColor = mix(sandC, rockC, vMix.x);
@@ -1489,7 +1547,7 @@ function updateCh1FX(focusX, focusZ) {
         const fx = Math.round(focusX / texel) * texel, fz = Math.round(focusZ / texel) * texel;
         const fy = ch1Height(focusX, focusZ);
         ch1FX.sun.target.position.set(fx, fy, fz);
-        const LD = D.k > 0.5 ? D.sun : CH1_MOON_DIR;   // by day the sun casts the shadows
+        const LD = D.alt > 0.02 ? D.sun : CH1_MOON_DIR;   // the sun casts the shadows once it's up
         ch1FX.sun.position.set(fx + LD.x * 2600, fy + Math.max(0.12, LD.y) * 2600, fz + LD.z * 2600);
         ch1FX.sun.target.updateMatrixWorld();
     }
@@ -2261,11 +2319,12 @@ function ch1ApplyDay(D) {
     if (ch1FX.hemi) {
         ch1FX.hemi.color.setHex(0x4a5c8a).lerp(_dayTmp.setHex(0xcfe0ff), k);
         ch1FX.hemi.groundColor.setHex(0x2a2218).lerp(_dayTmp.setHex(0x8a6a44), k);
-        ch1FX.hemi.intensity = 0.42 + k * 0.55;
+        ch1FX.hemi.intensity = 0.38 + k * 0.42;
     }
     if (ch1FX.sun) {
-        ch1FX.sun.color.setHex(0x9fb6e6).lerp(_dayTmp.setHex(0xfff2dc).lerp(new THREE.Color(0xffa860), low * 0.8), k);
-        ch1FX.sun.intensity = 0.62 + k * 1.6;
+        // moonlight by night; white-gold by day, deep amber as the sun gets low
+        ch1FX.sun.color.setHex(0x86a0d8).lerp(_dayTmp.setHex(0xfff2dc).lerp(new THREE.Color(0xff9a50), low * 0.9), Math.max(k, D.alt > 0.02 ? 0.6 : 0));
+        ch1FX.sun.intensity = D.alt > 0.02 ? 0.9 + k * 1.55 : 0.34;
     }
     if (scene3.fog) {
         scene3.fog.color.copy(CH1_HAZE).lerp(CH1_DAY_HAZE, k);
@@ -2275,5 +2334,5 @@ function ch1ApplyDay(D) {
     }
     if (scene3.background && scene3.background.isColor) scene3.background.copy(CH1_HAZE).lerp(CH1_DAY_HAZE, k);
     const b = (typeof gfxSettings === 'function' && gfxSettings().brightness) || 1;
-    if (typeof renderer3 !== 'undefined' && currentMapKey === 1 && !interiorState.active) renderer3.toneMappingExposure = 0.95 * b * (1 - k * 0.12);
+    if (typeof renderer3 !== 'undefined' && currentMapKey === 1 && !interiorState.active) renderer3.toneMappingExposure = 0.95 * b * (1 - k * 0.17);
 }

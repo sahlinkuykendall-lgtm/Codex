@@ -12,6 +12,30 @@ Other docs:
 
 ---
 
+## V4.1.4 — 2026-09-29 — Chapter 1: real sand, and a lighting pass through the whole day
+**The sand**
+- The ground is now your photographed sand (Ground089, from ambientCG), with its colour,
+  surface relief, roughness and shading. Each tile covers about 2.5 m, and a second, larger
+  sample breaks up the repeat.
+- Its colour is balanced toward the old palette, so the level doesn't turn orange. The
+  old wind ripples are still there as a light shading pattern about 8 m apart.
+- The drawn sand is still the fallback if the texture file is missing.
+- New tool: `tools/pack_texture.js` packs any ambientCG / Poly Haven texture folder into
+  `textures/<name>.js` (1024 px JPEGs as data URIs, 0.44 MB for the sand). This is needed
+  because browsers won't let WebGL use image files from a double-clicked `index.html`.
+
+**The lighting (Chapter 1)**
+- **Sunrise fixed:** the sun now casts the light and shadows as soon as it clears the
+  horizon. Before, dawn was lit from the moon's side until mid-morning, and the dunes had
+  a white glare lit from below the horizon.
+- **Golden hour:** the low sun now turns deep amber, with long shadows across the sand, and
+  there's still some warm light right at sunrise and sunset.
+- **Noon:** more sunlight against less sky light, and slightly lower exposure. The midday
+  scene had very little contrast; now shadows and sand detail read.
+- **Night:** moonlight is softer and bluer, so the dunes no longer shine white under the moon.
+  Lamps and fires carry the camp.
+- The brightness setting still scales everything as before.
+
 ## V4.1.3 — 2026-09-29 — Crates, drums and barrels: mixed, not the same box everywhere
 - **Every crate in the world now picks a look.** The same spot always gets the same one:
   - Single crates are the nailed wooden crate (with FRAGILE sticker) or the old SCA-stencilled box.

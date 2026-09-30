@@ -50,6 +50,20 @@
 - **Day and night:** `ch1DayState()` / `ch1ApplyDay()` in `ch1_world.js` drive the sky
   shader's `uDay` / `uSunDir`, the hemi and sun lights, fog, lamps and exposure from the
   story clock. The clock is capped at 04:40 until `ch1_complete`, then runs free.
+  - V4.1.4 lighting pass:
+    - The shadow light is the sun whenever `D.alt > 0.02`, and the moon otherwise.
+    - The sun runs amber (0xff9a50) when low. The day hemisphere light is lower (0.38 + 0.42k)
+      and the day sun higher.
+    - Moonlight is 0.34 at 0x86a0d8, and exposure is `0.95 * b * (1 - 0.17k)`.
+- **Photographed textures:**
+  - `tools/pack_texture.js <name> <folder>` writes `textures/<name>.js` (`window.CODEX_TEX`,
+    data URIs; file:// can't feed image files to WebGL). `ch1PhotoSet(name, repeat)` turns
+    it into textures.
+  - The Ch1 ground uses `sand` (Ground089) at repeat 3.25 per 260-unit UV, which is about
+    80 units per tile.
+  - `sandGain` pulls its average colour toward the drawn sand's (#b89c74), so vertex
+    colours and the lighting stay tuned.
+  - `textures/sand.js` loads just before `ch1_world.js`.
 - `ch1_dog.js` (loads after `ch1a_story.js`): Bosta the camp dog. It has a rigged model
   (poses: stand, sit, lie, sleep, roll; a trot gait), a behaviour loop (sleep, wander, idle,
   home, or follow the player's breadcrumb trail), synthesized bark, growl and whimper, and
