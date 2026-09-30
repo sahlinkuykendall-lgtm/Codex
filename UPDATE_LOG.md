@@ -12,6 +12,38 @@ Other docs:
 
 ---
 
+## POKE-STYLE P0.10 — 2026-09-30 — (branch `poke-style`) Miriam's metal detector
+- **The detector is a real tool now** (`poke/detector.js`). Take it from beside Hana's table,
+  then press **Q** outdoors to switch it on:
+  - **The coil** swings in front of you as you walk.
+  - **The tick** gets faster and higher as you close in. Its note tells you the metal: iron
+    growls low, silver sings.
+  - **Face the signal:** it reads loudest straight ahead, so turn on the spot to find the
+    direction.
+  - **Its own little screen** (bottom left) has eight signal bars. Close in and it reads the
+    **metal** (IRON, FOIL, TIN, ALLOY, BRASS, COIN, SILVER) and **how deep** it is.
+  - **Right on top of it**, the screen says DIG HERE, with a ring round your feet and an
+    arrow over your head. **SPACE digs**: dirt flies, five story minutes pass, and you leave
+    a hole.
+- **40 things to find:**
+  - The 16 finds from the 3D chapter now give what they say:
+    - **Miriam's caches** (a side quest): her emergency tin (1,200 EGP), her spare phone,
+      her field glasses, her old rucksack. Found X of 4.
+    - **The four 1926 relics** (a side quest): the Kodak, the Harvard trowel, the brass tag,
+      and the glass plate with the Rais's grandfather on it.
+    - Eight others: coins, scrap, a thermos, a compass, Hamid's multitool…
+  - 24 new ones on open sand. Most are junk: ring-pulls, bottle caps, nails, a tin spoon.
+    Some are history: a silver tetradrachm of Ptolemy II, a Napoleonic button, a Persian
+    arrowhead, a Mamluk fals, a Camel Corps badge, a silver ring. The site register pays a
+    finder's fee for the old ones.
+  - FOIL is always junk and IRON nearly always, but not quite. Brass and silver are worth
+    digging.
+- **What changed on the map:** the 16 small "something buried" bumps are gone. The finds are
+  under the sand now, so only the detector hears them. Nothing else moved: in the pixel
+  check, the only differences are those bumps (107 pixels each).
+- Everything you dig is saved. The journal keeps a "Detector finds" count, and the screen
+  shows how many are left.
+
 ## POKE-STYLE P0.9 — 2026-09-30 — (branch `poke-style`) The main story, and a watch in the bag (Area 1, step 3)
 - **Chapter 1-A can be played from the gate to the chapter-end card.** Every main beat from
   the bible is in, ported from the 3D `ch1a_story.js` with the same words and choices:

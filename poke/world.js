@@ -55,7 +55,7 @@ const World = {
     // THE CAMP (the hand-laid tile map in camp.js)
     // ============================================================
     buildCamp(L, M) {
-        const map = { key: 'ch1', outdoor: true, camp: L, pw: L.W * TILE, ph: L.H * TILE, ents: [], grid: {}, doors: [], places: [], people: [] };
+        const map = { key: 'ch1', outdoor: true, camp: L, pw: L.W * TILE, ph: L.H * TILE, ents: [], grid: {}, doors: [], places: [], people: [], buried: [] };
         const byId = {}; for (const o of M.objects) byId[o.id] = o;
         // solid ground: rows of plateau and water, merged into runs
         for (let y = 0; y < L.H; y++) for (let x = 0; x < L.W;) {
@@ -75,6 +75,7 @@ const World = {
             if (!o) { console.warn('camp: no object', id); return; }
             const hidden = !!HIDDEN[id];              // placed, but not there until the story brings them (e.gone)
             const x = tx * TILE, y = ty * TILE, w = tw * TILE, d = th * TILE;
+            if (/^ow_cache\d/.test(id)) { map.buried.push({ id, x: x + w / 2, y: y + d / 2, say: o.say }); return; }   // under the sand: only the detector finds these (detector.js)
             const e = { x, y, w, d, id, label: o.label, say: o.say };
             if (id === 'dig_gate') { e.label = 'Dig Zone Gate'; e.say = ['System', 'The dig zone gate: chain-link, Miriam\'s handwriting on a laminated sign — ACTIVE EXCAVATION, AUTHORISED STAFF ONLY.\n\nIt stands open. The Rais has unlocked it for you.']; }
             if (CAST[id]) {

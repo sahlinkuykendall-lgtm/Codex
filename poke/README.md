@@ -13,6 +13,7 @@ there are no image files.
 | SHIFT | Run (or turn on "Always run" in Settings) |
 | SPACE / ENTER / Z | Look at what you're facing, talk, next page |
 | M | The map: your area; M again zooms out to all of Egypt |
+| Q | Metal detector on / off (once you've taken it from beside Hana's table) |
 | ESC | The menu (Map, Journal, Bag, Settings, Save, Title) · back |
 | Walk up into a door | Go inside (Miriam's tent, the dormitory, the site office) |
 
@@ -82,6 +83,7 @@ there are no image files.
 | `interiors.js` | The three rooms and their furniture |
 | `ui.js` | Text box (with the choice box), place banner, title screen, pause menu |
 | `story.js` | The story engine: flags, affinity, reputation, money, items, tasks, notices, and the scene runner |
+| `detector.js` | Miriam's metal detector: the 40 buried finds, the signal and metal readout, digging |
 | `ch1_scenes.js` | Chapter 1-A's story, ported from the 3D `ch1a_story.js`: every main beat, the midnight car, the exit choice and the chapter-end card |
 | `backgrounds.js` | The four backgrounds: skills, gear, papers, their paintings and opening cutscenes |
 | `intro.js` | The opening scenes, the background choice, male/female, the character creator, the name grid, your papers |

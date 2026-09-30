@@ -48,7 +48,7 @@ const Game = {
         this.journal = d.journal || []; this.bag = d.bag || {}; this.seen = d.seen || {}; this.taken = d.taken || {};
         this.story = Story.restore(d.story);
         if (this.set.time === 5) this.hour = storyHour();
-        storySync();
+        Detector.sync(); storySync();                    // (buried spots first: they must not see the parked car)
         if (this.set.time === 4 && d.hour != null) this.hour = d.hour;
         for (const e of this.maps.ch1.ents) if (e.id && this.taken[e.id]) World.removeEnt(this.maps.ch1, e);
         this.enter(this.maps.ch1);
@@ -61,6 +61,7 @@ const Game = {
         this._mm = null;
         this.journal = []; this.bag = { 'Field journal': 1, 'Letter of appointment': 1 }; this.seen = {}; this.taken = {};
         this.story = Story.fresh(this.player.bg); this.lenaCar = null;
+        Detector.spots = []; Detector.on = false; Detector.dig = null;
     },
     newGame() {
         this.resetWorld();
@@ -68,7 +69,7 @@ const Game = {
         p.x = m.spawn[0]; p.y = m.spawn[1]; p.dir = DIR.up;
         this.enter(m);
         if (this.set.time === 5) this.hour = storyHour();
-        storySync();
+        Detector.sync(); storySync();                    // (buried spots first: they must not see the parked car)
         this.state = 'play'; this.hintT = 0;
         // the Rais comes to meet you with a lantern, says his piece (poke/ch1_scenes.js), and walks back to the fire
         const rais = World.addEnt(m, { x: p.x, y: p.y - 34, w: 0, d: 0, label: 'Rais Abdallah', person: { sheet: personSheet(LOOKS.rais), dir: DIR.down, frame: 0 }, sortY: p.y - 34, light: { x: 6, y: -12, r: 64, c: '#ffd080' } });
@@ -181,9 +182,13 @@ const Game = {
         storyFrame(dt);                                    // the story's timed events, and the world matching the story
         if (I.menu) { Menu.toggle(); return; }
         if (I.map) { WorldMap.show(0); return; }
+        if (Detector.dig) { Detector.update(dt); return; }            // kneeling, digging
+        if (I.tool && Detector.toggle()) return;
         this.movePlayer(dt);
+        Detector.update(dt);
         this.target = this.findTarget();
-        if (I.ok && this.target) this.examine(this.target);
+        if (I.ok && Detector.on && Detector.pin) Detector.startDig();
+        else if (I.ok && this.target) this.examine(this.target);
         // walked into a named place for the first time?
         if (this.map.outdoor) { const p = this.nearPlace(); if (p && p !== this.lastPlace) { this.lastPlace = p; Banner.show(p.name); this.seen[p.id] = 1; } else if (!p) this.lastPlace = null; }
     },
@@ -336,12 +341,13 @@ const Game = {
         }
         const me = { person: p, x: p.x, y: p.y, sortY: p.y, me: true };
         vis.push(me);
+        const coil = m.outdoor && Detector.coil(p); if (coil) vis.push(coil);
         vis.sort((a, b) => a.sortY - b.sortY);
         // soft shadows first, so they fall on the ground and never across a sprite
         g.fillStyle = 'rgba(64,40,24,0.2)';
         for (const e of vis) {
             const sp = e.spr;
-            if (e.person) continue;
+            if (e.person || e.custom) continue;
             if (!sp || sp.flat || sp.noShadow || sp.thin) continue;
             if (!e.w) { const r = Math.min(16, Math.max(5, sp.c.width * 0.3)); A.ell(Math.round(e.x - cx + 2), Math.round(e.y - cy), r, Math.max(2, Math.round(r * 0.32)), g.fillStyle); continue; }
             // sized from the drawing itself (a footprint can be bigger than what's drawn on it)
@@ -350,6 +356,7 @@ const Game = {
             else A.ell(left + (cw >> 1) + 2, bottom, Math.max(4, Math.round(cw * 0.42)), Math.max(2, Math.min(5, Math.round(cw * 0.12))), g.fillStyle);
         }
         for (const e of vis) {
+            if (e.custom) { e.custom(g, cx, cy); continue; }
             if (e.person) {
                 const P = e.person, fr = (e.me ? p.sheet : P.sheet).frames[P.dir][P.frame || 0];
                 A.ell(Math.round(e.x - cx + 1), Math.round(e.y - cy), 7, 2, 'rgba(64,40,24,0.28)');
@@ -376,6 +383,7 @@ const Game = {
             }
             g.globalCompositeOperation = 'multiply'; g.drawImage(this.tintC, 0, 0); g.globalCompositeOperation = 'source-over';
         }
+        if (m.outdoor) Detector.drawWorld(g, cx, cy);
         // name tag over what you're facing, and the door you're near
         if (!Dlg.active && this.set.names) {
             const t = this.target;
@@ -385,6 +393,7 @@ const Game = {
         Banner.draw(g);
         Toast.draw(g, 1 / 60);
         Notice.draw(g, 1 / 60);
+        Detector.drawHud(g);
         if (this.hintT < 14 && !Dlg.active) Txt.draw(g, 'MOVE: WASD / arrows    RUN: Shift    LOOK / TALK: Space    MAP: M    MENU: Esc', VW >> 1, VH - 14, { col: '#ffffff', shadow: '#30302c', align: 'center' });
         if (Dlg.active) Dlg.draw(g);
     },
@@ -416,6 +425,7 @@ const Game = {
             if (k === 'Escape' || k === 'x' || k === 'Backspace') this.I.back = true;
             if (k === 'Escape' || k === 'Tab') { this.I.menu = true; e.preventDefault(); }
             if (k === 'm') this.I.map = true;
+            if (k === 'q') this.I.tool = true;
         });
         window.addEventListener('keyup', e => { const k = e.key.length === 1 ? e.key.toLowerCase() : e.key; if (MAPK[k]) this.keys[MAPK[k]] = false; });
         window.addEventListener('blur', () => { this.keys = {}; });

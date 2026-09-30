@@ -152,7 +152,7 @@ Build each of these into the poke UI:
   `story/01_CHARACTERS.md`.
 - **Thirst and hunger:** drink from the well, the barrels, the canteen or tea; eat lentils
   and dates. When empty, you can't run.
-- **The metal detector:** caches and relics. The 3D logic is in `ch1a_finds.js`.
+- **The metal detector:** ✅ DONE in P0.10 (`poke/detector.js`): 40 buried finds, the signal, metal readout, dig. Miriam's caches and the 1926 relics are found with it; bringing the relics to the Rais (SQ-01A-04) is step 4.
 - **The camera:** photograph Lena.
 - **Injury** (limp until Hana patches you or you rest) and **knockout**.
 
