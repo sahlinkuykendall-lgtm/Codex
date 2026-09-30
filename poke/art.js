@@ -11,6 +11,9 @@
 // ============================================================
 
 const TILE = 32;
+// How steeply we look down: 1 = straight down; less = more tilt (the ground's
+// north-south is squashed and fronts of things show more). Applied to every y.
+const TILT = 0.8;
 const PAL = {
     line: '#3a2a1c',          // the outline around everything
     // sand, lightest to darkest (dunes are shaded by which way they face)
@@ -95,12 +98,17 @@ function pa(g) {
             }
             return A;
         },
-        // checkerboard dither of colour c over a rect (mixes two tones)
-        dith(x, y, w, h, c, phase) {
-            g.fillStyle = c;
-            for (let j = 0; j < h; j++) for (let i = (j + (phase || 0)) & 1; i < w; i += 2) g.fillRect((x | 0) + i, (y | 0) + j, 1, 1);
+        // blend colour c half over a rect (a smooth mid-tone; the old checkerboard read as grain)
+        dith(x, y, w, h, c) {
+            if (w <= 0 || h <= 0) return A;
+            g.globalAlpha = 0.5; g.fillStyle = c; g.fillRect(x | 0, y | 0, w | 0, h | 0); g.globalAlpha = 1;
             return A;
         },
+        // a vertical gradient from colour a (top) to b (bottom), one row at a time
+        vgrad(x, y, w, h, a, b) { for (let j = 0; j < h; j++) A.r(x, y + j, w, 1, mix(a, b, h > 1 ? j / (h - 1) : 0)); return A; },
+        hgrad(x, y, w, h, a, b) { for (let i = 0; i < w; i++) A.r(x + i, y, 1, h, mix(a, b, w > 1 ? i / (w - 1) : 0)); return A; },
+        // soft translucent paint (shadows, light, weathering)
+        soft(x, y, w, h, c, a) { if (w > 0 && h > 0) { g.globalAlpha = a; g.fillStyle = c; g.fillRect(x | 0, y | 0, w | 0, h | 0); g.globalAlpha = 1; } return A; },
     };
     return A;
 }
@@ -109,17 +117,28 @@ function pa(g) {
 // needs a 1-px empty margin. Returns the same canvas.
 function outline(c, col) {
     const g = c.getContext('2d'), w = c.width, h = c.height;
-    const d = g.getImageData(0, 0, w, h), a = d.data;
-    const solid = (x, y) => x >= 0 && y >= 0 && x < w && y < h && a[(y * w + x) * 4 + 3] > 0;
-    const edge = [];
+    const d = g.getImageData(0, 0, w, h), a = d.data, out = new Uint8ClampedArray(a);
+    const at = (x, y) => (x >= 0 && y >= 0 && x < w && y < h && a[(y * w + x) * 4 + 3] > 128) ? (y * w + x) * 4 : -1;
+    const fixed = col ? hex(col) : null;
     for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
-        if (solid(x, y)) continue;
-        if (solid(x - 1, y) || solid(x + 1, y) || solid(x, y - 1) || solid(x, y + 1)) edge.push(x, y);
+        if (at(x, y) >= 0) continue;
+        // the neighbour this edge pixel borders (below first: the outline sits under things)
+        const n = [at(x, y - 1), at(x, y + 1), at(x - 1, y), at(x + 1, y)].find(v => v >= 0);
+        if (n === undefined) continue;
+        const o = (y * w + x) * 4;
+        if (fixed) { out[o] = fixed[0]; out[o + 1] = fixed[1]; out[o + 2] = fixed[2]; }
+        else { out[o] = a[n] * 0.34 + 22; out[o + 1] = a[n + 1] * 0.3 + 14; out[o + 2] = a[n + 2] * 0.32 + 20; }   // the colour, much darker, a touch warm
+        out[o + 3] = 255;
     }
-    g.fillStyle = col || PAL.line;
-    for (let i = 0; i < edge.length; i += 2) g.fillRect(edge[i], edge[i + 1], 1, 1);
+    g.putImageData(new ImageData(out, w, h), 0, 0);
     return c;
 }
+// colour arithmetic: mix two hex colours, or darken (k < 0) / lighten (k > 0) one
+function mix(a, b, t) {
+    const A = hex(a), B = hex(b);
+    return '#' + [0, 1, 2].map(i => Math.max(0, Math.min(255, Math.round(A[i] + (B[i] - A[i]) * t))).toString(16).padStart(2, '0')).join('');
+}
+function shade(c, k) { return k < 0 ? mix(c, '#20141c', -k) : mix(c, '#fffaf0', k); }
 
 // A steady random number from integers (same place → same value)
 function hash2(x, y) {
@@ -140,7 +159,6 @@ function vnoise(x, y, s) {
     const a = hash2(ix, iy), b = hash2(ix + 1, iy), c = hash2(ix, iy + 1), d = hash2(ix + 1, iy + 1);
     return a + (b - a) * tx + (c - a) * ty + (a - b - c + d) * tx * ty;
 }
-const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map(v => (v + 0.5) / 16);
 const hex = (s) => [parseInt(s.slice(1, 3), 16), parseInt(s.slice(3, 5), 16), parseInt(s.slice(5, 7), 16)];
 
 // ============================================================
@@ -152,7 +170,7 @@ const Ground = {
     init(M) {
         this.M = M;
         this.S = TILE / M.TILE_U;                       // world units → pixels
-        this.pw = Math.ceil(M.W * this.S); this.ph = Math.ceil(M.H * this.S);
+        this.pw = Math.ceil(M.W * this.S); this.ph = Math.ceil(M.H * this.S * TILT);
         const G = M.grid, n = M.gw * M.gh;
         const bits = (s) => { const a = new Float32Array(n); for (let i = 0; i < n; i++) a[i] = s.charCodeAt(i) - 48; return a; };
         this.hgt = Float32Array.from(G.hgt);
@@ -167,21 +185,21 @@ const Ground = {
         this.rock = bits(G.rock); this.wadi = bits(G.wadi); this.dip = bits(G.dip); this.out = bits(G.out);
         // rails, in pixels
         const S = this.S;
-        this.rails = [M.rail, M.railLoop].map(line => line.map(p => [p[0] * S, p[1] * S]));
+        this.rails = [M.rail, M.railLoop].map(line => line.map(p => [p[0] * S, p[1] * S * TILT]));
         // the pond (an ellipse inside its wall rect)
         const pond = M.walls.find(w => w.k === 'pond');
-        this.pond = pond ? { cx: (pond.x + pond.w / 2) * S, cy: (pond.y + pond.h / 2) * S, rx: pond.w / 2 * S + 10, ry: pond.h / 2 * S + 8 } : null;
+        this.pond = pond ? { cx: (pond.x + pond.w / 2) * S, cy: (pond.y + pond.h / 2) * S * TILT, rx: pond.w / 2 * S + 10, ry: (pond.h / 2 * S + 8) * TILT } : null;
         // the north escarpment: a cliff face right across the back of the dig zone
         const cb = M.walls.find(w => w.k === 'cliffBase');
-        this.cliff = cb ? { x0: cb.x * S, x1: (cb.x + cb.w) * S, y0: cb.y * S - 40, y1: (cb.y + cb.h) * S } : null;
+        this.cliff = cb ? { x0: cb.x * S, x1: (cb.x + cb.w) * S, y0: cb.y * S * TILT - 44, y1: (cb.y + cb.h) * S * TILT } : null;
         // roads and worn paths: the real lines, in pixels
-        this.roads = (M.roads || []).map(r => ({ x1: r[0] * S, y1: r[1] * S, x2: r[2] * S, y2: r[3] * S, hw: Math.max(7, r[4] * S), kind: r[5] }));
+        this.roads = (M.roads || []).map(r => ({ x1: r[0] * S, y1: r[1] * S * TILT, x2: r[2] * S, y2: r[3] * S * TILT, hw: Math.max(7, r[4] * S), kind: r[5] }));
         this.cols = {};
         for (const k of ['sand', 'road', 'rock', 'gravel', 'dirt', 'water']) this.cols[k] = PAL[k].map(hex);
     },
     // bilinear sample of a grid at pixel (x, y); cells are centred on tiles
     samp(a, x, y) {
-        const M = this.M, fx = x / TILE - 0.5, fy = y / TILE - 0.5;
+        const M = this.M, fx = x / TILE - 0.5, fy = y / (TILE * TILT) - 0.5;
         let ix = Math.floor(fx), iy = Math.floor(fy);
         const tx = fx - ix, ty = fy - iy;
         const cx = (v) => v < 0 ? 0 : v >= M.gw ? M.gw - 1 : v, cy = (v) => v < 0 ? 0 : v >= M.gh ? M.gh - 1 : v;
@@ -236,7 +254,6 @@ const Ground = {
         const P = this.pond, K = this.cliff;
         for (let j = 0; j < CH; j++) for (let i = 0; i < CH; i++) {
             const x = X0 + i, y = Y0 + j, o = (j * CH + i) * 4;
-            const by = BAYER[(x & 3) + (y & 3) * 4];
             const n1 = vnoise(x, y, 9), n2 = vnoise(x + 900, y - 300, 40);
             const edge = (n1 - 0.5) * 0.32;                      // wobble on every boundary
             // which way the ground faces: light from the upper left
@@ -260,13 +277,13 @@ const Ground = {
                     const sp = hash2(x, y);
                     if (sp > 0.965) k = 2; else if (sp < 0.012) k = 0;
                     if (hash2(x >> 4, y >> 4) > 0.8 && ((x + (y >> 2)) % 16 === 0 || (y + (x >> 3)) % 16 === 0) && hash2(x >> 2, y >> 2) > 0.3) k = 3;   // cracks, in patches
-                    if (outF < 0.545) k = 4; else if (outF < 0.6 || north <= 0.5) k = 0; else if (outF < 0.68 && by > 0.5) k = 0;
+                    if (outF < 0.545) k = 4; else if (outF < 0.6 || north <= 0.5) k = 0; else if (outF < 0.64) k = 0;
                     col = C.rock[k];
                 }
             } else if (P && Math.pow((x - P.cx) / P.rx, 2) + Math.pow((y - P.cy) / P.ry, 2) < 1 + edge * 0.4) {
                 // the oasis pool: a pale rim, deeper toward the middle, a few glints
                 const q = Math.pow((x - P.cx) / P.rx, 2) + Math.pow((y - P.cy) / P.ry, 2);
-                col = q > 0.86 ? C.water[0] : q > 0.55 + by * 0.15 ? C.water[1] : q > 0.25 + by * 0.15 ? C.water[2] : C.water[3];
+                col = q > 0.86 ? C.water[0] : q > 0.55 + n1 * 0.08 ? C.water[1] : q > 0.25 + n1 * 0.08 ? C.water[2] : C.water[3];
                 if (((x + y * 3) % 23 === 0 || (x * 2 + y) % 31 === 0) && hash2(x >> 2, y >> 1) > 0.6 && q < 0.8) col = C.water[0];
             } else if (inCliff) {
                 // the escarpment's face: strata running across, darker toward the foot
@@ -280,30 +297,32 @@ const Ground = {
             } else if (this.samp(this.dip, x, y) + edge * 0.5 > 0.5) {
                 // the open trench: a shadowed wall under its north lip, then the floor
                 const up = this.samp(this.dip, x, y - 14);
-                col = up < 0.5 ? C.dirt[3] : C.dirt[n2 > 0.55 && by > 0.4 ? 1 : 0];
+                col = up < 0.5 ? C.dirt[3] : C.dirt[n2 > 0.55 ? 1 : 0];
                 const sp = hash2(x, y);
                 if (up >= 0.5 && sp > 0.985) col = C.dirt[2]; else if (up >= 0.5 && sp < 0.006) col = C.road[1];   // stones, sherds
             } else {
                 // sand, shaded by the dunes
-                let t = 1.6 - lit * 1.5 + (by - 0.5) * 0.9 + (n2 - 0.5) * 0.5;
-                t = t < 0 ? 0 : t > 4 ? 4 : t;
-                col = C.sand[Math.round(t)];
+                let t = 1.5 - lit * 1.5 + (n2 - 0.5) * 0.45 + (n1 - 0.5) * 0.12;
+                t = t < 0 ? 0 : t > 3.99 ? 3.99 : t;
+                const ti = Math.floor(t), tf = t - ti, a0 = C.sand[ti], a1 = C.sand[ti + 1];
+                col = [a0[0] + (a1[0] - a0[0]) * tf, a0[1] + (a1[1] - a0[1]) * tf, a0[2] + (a1[2] - a0[2]) * tf];
                 // wind ripples in patches; a scatter of grit
-                if (n2 > 0.56 && ((y + Math.round(Math.sin(x * 0.11 + n2 * 9) * 2.2)) % 9 === 0)) col = C.sand[Math.min(4, Math.round(t) + 1)];
+                // wind ripples, in patches: a soft darker line with a lit edge above it
+                if (n2 > 0.58) { const ry = (y + Math.round(Math.sin(x * 0.09 + n2 * 9) * 2.4)) % 10; if (ry === 0) col = col.map(v => v * 0.93); else if (ry === 9) col = col.map(v => Math.min(255, v * 1.03)); }
                 const gr = hash2(x, y);
-                if (gr > 0.992) col = C.sand[4]; else if (gr < 0.006) col = C.sand[0];
+                if (gr > 0.9975) col = col.map(v => v * 0.82); else if (gr < 0.002) col = col.map(v => Math.min(255, v * 1.08));
                 // a dune's crest: where the lit side meets the shaded one, a thin bright edge
-                if (steep > 0.5 && lit > -0.08 && lit < 0.1 && by > 0.3) col = C.sand[0];
+                if (steep > 0.55 && lit > -0.06 && lit < 0.06) col = col.map(v => Math.min(255, v * 1.05));   // a dune's crest catches the light
                 {
                     const wadiF = this.samp(this.wadi, x, y) + edge;
                     const pathF = roads.length ? this.roadAt(roads, x, y) + edge * 0.9 : 0;
                     if (pathF > 0.5) {
                         // worn road: packed and pale, a darker edge, stones
-                        col = pathF < 0.56 ? C.road[2] : C.road[by > 0.62 ? 1 : 0];
+                        col = pathF < 0.56 ? C.road[2] : C.road[n2 > 0.64 ? 1 : 0];
                         const st = hash2(x, y);
                         if (st > 0.985) col = C.road[2]; else if (st < 0.01) col = C.sand[0];
                     } else if (wadiF > 0.5) {
-                        col = wadiF < 0.56 ? C.gravel[2] : C.gravel[by > 0.5 ? 1 : 0];
+                        col = wadiF < 0.56 ? C.gravel[2] : C.gravel[n1 > 0.55 ? 1 : 0];
                         if (hash2(x >> 1, y >> 1) > 0.9) col = C.gravel[2];     // pebbles
                         if (hash2(x >> 1, y >> 1) < 0.05) col = C.rock[0];
                     }
@@ -312,7 +331,7 @@ const Ground = {
             if (rails) {
                 const [rd, ra] = this.railAt(x, y);
                 if (rd < 9) {
-                    col = C.gravel[by > 0.5 ? 1 : 2];                            // ballast
+                    col = C.gravel[n1 > 0.5 ? 1 : 2];                            // ballast
                     if (rd < 7 && Math.floor(ra) % 8 < 3) col = hex(PAL.wood[2]);   // sleepers
                     if (rd >= 3.4 && rd < 5) col = hex(PAL.metal[Math.floor(ra) % 8 < 3 ? 1 : 2]);   // the two rails
                 }

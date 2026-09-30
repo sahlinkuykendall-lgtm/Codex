@@ -12,6 +12,27 @@ Other docs:
 
 ---
 
+## POKE-STYLE P0.3 — 2026-09-30 — (branch `poke-style`) A cleaner look, buildings with character
+- **The grain is gone.** The checkerboard dithering that read as dust or noise is replaced by
+  smooth blends and flat colour, and the sand has smooth dune shading.
+- **Softer outlines:** each outline is a darker shade of the colour it borders, not near-black.
+- **Soft shadows** under buildings, props, trees and people.
+- **Closer, and more tilted:** the camera is zoomed in (about 270 pixels tall on most
+  screens), and the ground is seen at a steeper angle, so front walls show more.
+- **Every building redrawn with its own character:**
+  - Miriam's tent: striped canvas, a sunlit roof, a khayamiya-coloured valance, a fly sheet
+    over the door, a red lining inside, and her name board.
+  - The dorm: a blue tin roof with a water tank, stove pipe and rust, plank walls, a porch
+    roof and bench.
+  - The site office: whitewashed, with blue shutters and door, a sign, rebar, and a rug
+    airing on the roof.
+  - The sheds: ribbed tin with double doors and padlocks.
+  - The cabins: siding, stripes, window grilles and metal steps.
+  - The Ministry post: a flag, a radio mast and sandbags on the roof.
+  - The mess tent: patches, a stencilled number, sandbags.
+  - The gear store: a striped canopy.
+- **Palms redrawn** with clean tapered fronds.
+
 ## POKE-STYLE P0.2 — 2026-09-30 — (branch `poke-style`) Chapter 1 as a DS Pokémon-style game
 This lives on its own branch and doesn't change the 3D game (still V4.1.6). Open
 `poke.html` to play it; `poke/README.md` has the details.

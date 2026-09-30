@@ -52,8 +52,8 @@ const World = {
     // THE OUTDOOR MAP
     // ============================================================
     buildOutdoor(M) {
-        const S = TILE / M.TILE_U, px = v => Math.round(v * S);
-        const map = { key: 'ch1', outdoor: true, pw: Math.ceil(M.W * S), ph: Math.ceil(M.H * S), ents: [], grid: {}, doors: [], places: [], people: [] };
+        const S = TILE / M.TILE_U, px = v => Math.round(v * S), pxY = v => Math.round(v * S * TILT);   // (y is squashed by the tilt)
+        const map = { key: 'ch1', outdoor: true, pw: Math.ceil(M.W * S), ph: Math.ceil(M.H * S * TILT), ents: [], grid: {}, doors: [], places: [], people: [] };
         const G = M.grid;
         const tileAt = (s, x, y) => { const i = Math.floor(x / TILE), j = Math.floor(y / TILE); return (i < 0 || j < 0 || i >= M.gw || j >= M.gh) ? '1' : s[j * M.gw + i]; };
         const byId = {}; for (const o of M.objects) byId[o.id] = o;
@@ -74,7 +74,7 @@ const World = {
         const underObject = (w) => objRects.some(o => w.x < o.x + o.w && w.x + w.w > o.x && w.y < o.y + o.h && w.y + w.h > o.y);
         const trees = [];
         for (const w of M.walls) {
-            const x = px(w.x), y = px(w.y), ww = Math.max(2, px(w.w)), hh = Math.max(2, px(w.h));
+            const x = px(w.x), y = pxY(w.y), ww = Math.max(2, px(w.w)), hh = Math.max(2, pxY(w.h));
             if (w.k === 'trenchPlank') {                         // planks across the trench: you walk over them
                 const st = stage(ww, hh, 0), A = st.A; A.r(st.x, st.y, ww, hh, PAL.plank[0]); for (let i = 0; i < ww; i += 10) A.vl(st.x + i, st.y, hh, PAL.plank[2]); A.r(st.x, st.y + hh - 2, ww, 2, PAL.plank[2]);
                 World.addEnt(map, { x, y, w: ww, d: hh, spr: Object.assign(fit(st), { flat: true }) });
@@ -105,7 +105,7 @@ const World = {
         const PICKUP = /^(painted sherd|fossil)$/;
         for (const o of M.objects) {
             if (HIDDEN[o.id]) continue;
-            const x = px(o.x), y = px(o.y), w = Math.max(4, px(o.w)), d = Math.max(4, px(o.h));
+            const x = px(o.x), y = pxY(o.y), w = Math.max(4, px(o.w)), d = Math.max(4, pxY(o.h));
             if (DOORS[o.id]) {
                 map.doors.push({ x, y: y - 6, w, h: d + 6, to: DOORS[o.id], label: o.label.replace(/^Enter /, '') });
                 continue;
@@ -132,19 +132,19 @@ const World = {
             if (spr && !spr.flat) occ(x, y, w, d);
         }
         // the three buildings you can enter are solid all the way through
-        for (const o of shells) { const d = px(o.h), cutD = Math.round(d * SHELL_DEPTH); World.addSolid(map, px(o.x), px(o.y) + d - cutD, px(o.w), cutD - 2); }
+        for (const o of shells) { const d = pxY(o.h), cutD = Math.round(d * SHELL_DEPTH); World.addSolid(map, px(o.x), pxY(o.y) + d - cutD, px(o.w), cutD - 2); }
 
         // ---- trees on the 3D map's trunks: palms by the water, acacias out in the open ----
         const oasis = M.places.find(p => p.id === 'oasis');
         trees.forEach(([tx, ty], i) => {
-            const nearWater = oasis && Math.hypot(tx - oasis.at[0] * S, ty - oasis.at[1] * S) < 520;
+            const nearWater = oasis && Math.hypot(tx - oasis.at[0] * S, ty - oasis.at[1] * S * TILT) < 520;
             const spr = (nearWater || hash2(tx | 0, ty | 0) < 0.7) ? palm('p' + i) : acacia('a' + i);
             World.addEnt(map, { x: tx, y: ty + 2, w: 0, d: 0, spr, sortY: ty + 2 });
             occupied.push([tx - 12, ty - 8, 24, 16]);
         });
         // the camel, couched beside the Bedouin tent
         const sh = byId.ow_shelter;
-        if (sh) World.addEnt(map, { x: px(sh.x + sh.w) + 26, y: px(sh.y + sh.h * 0.8), w: 0, d: 0, spr: camel(), label: 'Camel', say: ['System', 'A camel, couched, chewing sideways with great patience. It looks at you as if you owe it money.'] });
+        if (sh) World.addEnt(map, { x: px(sh.x + sh.w) + 26, y: pxY(sh.y + sh.h * 0.8), w: 0, d: 0, spr: camel(), label: 'Camel', say: ['System', 'A camel, couched, chewing sideways with great patience. It looks at you as if you owe it money.'] });
 
         // ---- desert plants and stones, scattered on open sand ----
         // (a handful of drawn variants, shared: thousands of plants, a few canvases)
@@ -153,8 +153,8 @@ const World = {
             const k = j * M.gw + i;
             if (G.out[k] === '1' || G.path[k] !== '0' || G.rock[k] === '1' || G.dip[k] === '1') continue;
             const r = hash2(i * 7 + 3, j * 13 + 5);
-            const x = i * TILE + 4 + hash2(i, j + 99) * 24, y = j * TILE + 8 + hash2(i + 77, j) * 22;
-            const nearWater = oasis && Math.hypot(x - oasis.at[0] * S, y - oasis.at[1] * S) < 460;
+            const x = i * TILE + 4 + hash2(i, j + 99) * 24, y = (j * TILE + 8 + hash2(i + 77, j) * 22) * TILT;
+            const nearWater = oasis && Math.hypot(x - oasis.at[0] * S, y - oasis.at[1] * S * TILT) < 460;
             const wadi = G.wadi[k] === '1';
             let spr = null;
             if (nearWater && r < 0.34) spr = variant('g', k, s => shrub(s, false));
@@ -169,14 +169,14 @@ const World = {
         // ---- people who are just there: three workmen by the fire ----
         const bz = byId.rest_brazier;
         if (bz) [['worker1', -46, 10], ['worker2', 40, 26], ['worker3', -8, 52]].forEach(([look, dx, dy], i) => {
-            const cx = px(bz.x + bz.w / 2) + dx, cy = px(bz.y + bz.h / 2) + dy;
+            const cx = px(bz.x + bz.w / 2) + dx, cy = pxY(bz.y + bz.h / 2) + dy;
             const lines = ['"The new doctor." He looks you up and down, and makes room by the fire.', '"Eleven days. My wife asks me every night: where is the money? I tell her: ask the Swede."', '"Doctor Miriam knew every man\'s name. Every one. You will learn them?"'];
             const e = World.addEnt(map, { x: cx, y: cy, w: 0, d: 0, label: 'Workman', say: ['Workman', lines[i]], person: { sheet: personSheet(LOOKS[look]), dir: i === 2 ? 3 : i ? 1 : 2, frame: 0 }, sortY: cy, wander: { home: [cx, cy], r: 40, t: 2 + i * 1.7 } });
             map.people.push(e);
         });
 
-        map.places = M.places.map(p => ({ id: p.id, name: p.name, x: p.at[0] * S, y: p.at[1] * S, r: p.r * S }));
-        map.spawn = [px(M.spawn[0]), px(M.spawn[1])];
+        map.places = M.places.map(p => ({ id: p.id, name: p.name, x: p.at[0] * S, y: p.at[1] * S * TILT, r: p.r * S }));
+        map.spawn = [px(M.spawn[0]), pxY(M.spawn[1])];
         map.ents.forEach(e => { if (e.spr && e.spr.light) e.light = e.spr.light; });
         return map;
     },

@@ -20,109 +20,145 @@ function stage(w, d, up, side) {
 }
 function fit(st, extra) { return Object.assign({ c: outline(st.c), ox: -(st.c.width - st.w) / 2, oy: -(st.up + 1) }, extra || {}); }
 
-// ---- building parts ----
-function wallPlain(A, x, y, w, h, P3) {
-    A.r(x, y, w, h, P3[1]);
-    A.r(x, y, w, 2, P3[2]);                       // shadow under the eave
-    A.r(x, y + h - 2, w, 2, P3[2]);               // foot
-    A.dith(x, y + 2, w, Math.min(4, h - 4), P3[2], 0);
-}
-function wallPlanks(A, x, y, w, h, P3) {
-    A.r(x, y, w, h, P3[1]);
-    for (let i = 0; i < w; i += 6) A.vl(x + i, y, h, P3[2]);
-    for (let i = 3; i < w; i += 12) A.r(x + i, y + 3, 2, 1, P3[0]);
-    A.r(x, y, w, 2, P3[3] || P3[2]);
-    A.r(x, y + h - 1, w, 1, P3[3] || P3[2]);
-}
-function wallBrick(A, x, y, w, h, P3) {
-    A.r(x, y, w, h, P3[1]);
-    for (let j = 0; j < h; j += 4) { A.hl(x, y + j, w, P3[2]); for (let i = (j / 4 & 1) * 4; i < w; i += 8) A.vl(x + i, y + j, 4, P3[2]); }
-    A.r(x, y, w, 2, P3[3] || P3[2]);
-}
-function door(A, x, y, w, h, col, frame) {
-    A.r(x - 1, y - 1, w + 2, h + 1, frame || PAL.wood[3]);
-    A.r(x, y, w, h, col);
-    A.vl(x + w - 1, y, h, PAL.dark[2]);
-    A.px(x + w - 3, y + (h >> 1), PAL.gold[1]);
-}
-function windowP(A, x, y, w, h, lit) {
-    A.r(x - 1, y - 1, w + 2, h + 2, PAL.wood[3]);
-    A.r(x, y, w, h, lit ? PAL.gold[0] : PAL.blue[3]);
-    if (!lit) { A.r(x, y, w, 1, PAL.blue[2]); A.px(x + 1, y + 1, PAL.blue[0]); }
-    A.vl(x + (w >> 1), y, h, PAL.wood[3]);
-    A.r(x - 1, y + h + 1, w + 2, 1, PAL.wood[1]);
-}
-// gable roof, ridge running left-right; returns y of the front eave
-function roofGable(A, x, top, w, d, rise, P3, ribs) {
-    const ridge = top + Math.round(d * 0.45);
-    A.r(x, top, w, ridge - top, P3[2]);                        // back slope, in shade
-    A.r(x, ridge, w, top + d - ridge, P3[1]);                  // front slope
-    A.r(x, ridge, w, 2, P3[0]);                                // the ridge catches the light
-    A.r(x, top + d - 2, w, 2, P3[3] || P3[2]);                 // eave shadow
-    if (ribs) for (let i = 2; i < w; i += ribs) { A.vl(x + i, top, ridge - top, P3[3] || P3[2]); A.vl(x + i, ridge + 2, top + d - ridge - 4, P3[2]); }
-    A.vl(x, top, d, P3[0]); A.vl(x + w - 1, top, d, P3[3] || P3[2]);
-    return top + d;
-}
-function roofFlat(A, x, top, w, d, P3) {
-    A.r(x, top, w, d, P3[1]);
-    A.r(x + 3, top + 3, w - 6, d - 6, P3[2]);                  // the deck, inside the parapet
-    A.dith(x + 3, top + 3, w - 6, d - 6, P3[1], 0);
-    A.r(x, top, w, 2, P3[0]); A.vl(x, top, d, P3[0]);
-    A.r(x, top + d - 2, w, 2, P3[2]);
-}
-
 const SPR = {};   // by object id
 const SPR_L = {}; // by model label (lower case)
 
-// ---- TENTS ----
-// A ridge tent: canvas slopes down front and back, a short wall, the door laced open
-function tentRidge(w, d, P4, doorAt, doorW) {
-    const wallH = 14, rise = 14, st = stage(w, d, wallH + rise, 8), { A } = st;
-    const x = st.x, top = st.y - wallH - rise, eave = st.y + d - wallH, ridge = top + Math.round((eave - top) * 0.4), fh = eave - ridge;
-    for (let i = 0; i <= 4; i++) {                              // guy ropes down to their pegs
-        const gx = x + Math.round(i * (w - 1) / 4), out = (i - 2) * 4;
-        A.line(gx, eave, gx + out, st.base - 1, P4[3]); A.r(gx + out - 1, st.base - 2, 2, 2, PAL.wood[3]);
+// ---- building parts ----
+// The clean look: every surface is one flat colour, with a light edge where
+// the sun (upper left) catches it and a dark edge where it turns away; bold
+// lines for seams and ribs; no noise. Palettes are [light, mid, dark, deep].
+const WOOD = ['#dca468', '#b87a44', '#8e5630', '#5e3620'], BLUEROOF = ['#9ad6f0', '#58a6d6', '#3478ae', '#1f4c7a'], TIN = ['#dfe6ea', '#b2bec6', '#86949e', '#5a6872'];
+const WHITEWASH = ['#fffaec', '#f0e4c6', '#d6c29c', '#ae9670'], SHUTTER = ['#78b4ec', '#4884cc', '#2e5ea2', '#203f74'], CANVAS2 = ['#fbf3dc', '#ebdcb4', '#cdb88a', '#a38c60'];
+const KHAYAMIYA = ['#d0402f', '#2f5fae', '#efbb35'];
+function boards(A, x, y, w, h, P, seed) {
+    A.r(x, y, w, h, P[1]);
+    for (let i = 0; i < w; i += 6) {
+        A.vl(x + i, y, h, P[2]); A.vl(x + i + 1, y, h, P[0]);
+        const k = hash2(i + (seed || 0), 7);
+        if (k > 0.55) A.r(x + i + 2, y + 4 + Math.round(k * (h - 10)), 3, 1, P[2]);            // a knot
+        if (k < 0.18) A.r(x + i + 2, y + 3, 4, h - 5, shade(P[1], -0.06));                        // an older board
     }
-    A.r(x, top, w, ridge - top, P4[2]); A.dith(x, top, w, 3, P4[3], 0);                      // back slope, in shade
-    A.r(x, ridge, w, fh, P4[0]);                                                              // front slope: sunlit, falling into shade at the eave
-    A.r(x, ridge + Math.round(fh * 0.5), w, fh - Math.round(fh * 0.5), P4[1]);
-    A.dith(x, ridge + Math.round(fh * 0.34), w, Math.round(fh * 0.16), P4[1], 0);
-    A.dith(x, ridge + Math.round(fh * 0.82), w, fh - Math.round(fh * 0.82), P4[2], 1);
-    const panels = Math.max(3, Math.round(w / 30));                                           // the sewn panels
-    for (let i = 1; i < panels; i++) { const sx = x + Math.round(i * w / panels); A.vl(sx, top, eave - top, P4[2]); A.vl(sx + 1, ridge + 2, fh - 2, P4[0]); }
-    A.r(x + Math.round(w * 0.16), ridge + Math.round(fh * 0.55), 7, 6, P4[2]); A.r(x + Math.round(w * 0.16), ridge + Math.round(fh * 0.55), 7, 1, P4[3]);   // patches
-    A.r(x + Math.round(w * 0.72), ridge + Math.round(fh * 0.22), 6, 5, P4[1]); A.r(x + Math.round(w * 0.72), ridge + Math.round(fh * 0.22), 6, 1, P4[2]);
-    A.r(x - 3, ridge - 1, w + 6, 3, PAL.wood[2]); A.r(x - 3, ridge - 1, w + 6, 1, PAL.wood[0]);   // the ridge pole, poking out at both ends
-    A.r(x - 4, ridge - 2, 2, 5, PAL.wood[3]); A.r(x + w + 2, ridge - 2, 2, 5, PAL.wood[3]);
-    A.r(x, eave - 1, w, 3, P4[2]);                                                                 // the eave and its scalloped edge
-    for (let i = 0; i < w - 2; i += 6) { A.r(x + i + 1, eave + 2, 4, 1, P4[2]); A.r(x + i + 2, eave + 3, 2, 1, P4[2]); }
-    A.r(x, eave + 2, w, wallH - 2, P4[1]); A.dith(x, eave + 2, w, 4, P4[2], 0);                   // the wall below it
-    for (let i = 4; i < w; i += 9) A.vl(x + i, eave + 6, wallH - 7, P4[2]);
-    A.r(x, eave + wallH - 2, w, 2, P4[3]);
-    A.vl(x, top, eave - top + wallH, P4[3]); A.vl(x + w - 1, top, eave - top + wallH, P4[3]);
-    if (doorAt != null) {                                       // the doorway: dark inside, flaps tied back
-        const dw = doorW || 22, dx = x + Math.round(doorAt - dw / 2);
-        A.r(dx, eave - 8, dw, wallH + 8, PAL.dark[3]);
-        A.poly([[dx, eave - 8], [dx + 6, eave - 8], [dx, eave + wallH]], P4[0]); A.poly([[dx + dw, eave - 8], [dx + dw - 6, eave - 8], [dx + dw, eave + wallH]], P4[2]);
-        A.r(dx - 1, eave - 9, dw + 2, 2, PAL.wood[2]);
-        A.r(dx + 5, eave + wallH - 3, dw - 10, 3, PAL.red[2]); A.dith(dx + 5, eave + wallH - 3, dw - 10, 3, PAL.gold[1], 0);   // the edge of a rug
+    A.r(x, y, w, 3, P[3]); A.r(x, y + 3, w, 1, P[2]);                                             // shadow under the eave
+    A.r(x, y + h - 3, w, 3, P[2]); A.hl(x, y + h - 1, w, P[3]);                                   // the sill board
+}
+function plaster(A, x, y, w, h, P, seed) {
+    A.r(x, y, w, h, P[0]);
+    const R = rng('pl' + seed);
+    for (let i = 0; i < 5; i++) { const px = x + R() * (w - 26), py = y + 6 + R() * (h - 20); A.r(px, py, 14 + R() * 12, 5 + R() * 5, P[1]); }   // patched plaster
+    for (let i = 0; i < 3; i++) { const px = x + 8 + R() * (w - 30), py = y + 8 + R() * (h - 24); A.r(px, py, 8, 3, '#d49a6c'); A.r(px + 3, py + 3, 8, 3, '#c07e54'); A.hl(px, py + 3, 11, '#a0603c'); }   // brick showing through
+    A.r(x, y, w, 3, P[3]); A.r(x, y + 3, w, 2, P[2]);
+    A.r(x, y + h - 8, w, 8, P[1]); A.hl(x, y + h - 8, w, P[2]); A.hl(x, y + h - 1, w, P[3]);   // a darker plinth
+}
+function corrugated(A, x, y, w, h, P) {
+    A.r(x, y, w, h, P[1]);
+    for (let i = 0; i < w; i += 4) { A.vl(x + i, y, h, P[0]); A.vl(x + i + 2, y, h, P[2]); }
+    A.r(x, y, w, 3, P[3]); A.r(x, y + h - 2, w, 2, P[3]);
+}
+function door(A, x, y, w, h, P, frame) {
+    const F = frame || WOOD;
+    A.r(x - 2, y - 2, w + 4, h + 2, F[3]); A.r(x - 1, y - 1, w + 2, h + 1, F[2]); A.hl(x - 1, y - 1, w + 2, F[0]);
+    A.r(x, y, w, h, P[1]); A.vl(x, y, h, P[0]); A.vl(x + w - 1, y, h, P[2]);
+    const pw = w - 6, ph = Math.max(4, Math.floor((h - 9) / 2));
+    for (const py of [y + 3, y + 6 + ph]) { A.r(x + 3, py, pw, ph, P[2]); A.hl(x + 3, py + ph - 1, pw, P[0]); A.vl(x + 3 + pw - 1, py, ph, P[0]); }
+    A.r(x + w - 4, y + (h >> 1), 2, 2, '#f0c040'); A.px(x + w - 4, y + (h >> 1), '#fff4b0');
+}
+function win(A, x, y, w, h, o) {
+    o = o || {};
+    const F = o.frame || WOOD;
+    A.r(x - 2, y - 2, w + 4, h + 4, F[3]); A.r(x - 1, y - 1, w + 2, h + 2, F[1]); A.hl(x - 1, y - 1, w + 2, F[0]);
+    if (o.lit) { A.r(x, y, w, h, '#ffd878'); A.r(x, y + (h >> 1), w, h - (h >> 1), '#f5b54e'); A.r(x, y, 3, h, '#c8503c'); A.r(x + w - 3, y, 3, h, '#c8503c'); }   // lamplight, curtains
+    else { A.r(x, y, w, h, '#9ed2f4'); A.r(x, y + (h >> 1), w, h - (h >> 1), '#6aa6de'); A.line(x + 1, y + h - 3, x + 4, y, '#e8f6ff'); A.line(x + 3, y + h - 2, x + 6, y + 1, '#e8f6ff'); }   // sky in the glass, a glint
+    A.vl(x + (w >> 1), y, h, F[2]); A.hl(x, y + (h >> 1), w, F[2]);
+    A.r(x - 3, y + h + 1, w + 6, 2, F[0]); A.hl(x - 3, y + h + 3, w + 6, F[3]);                  // the sill
+    if (o.shutters) for (const sx of [x - 3 - (w >> 1), x + w + 3]) { const S = o.shutters; A.r(sx, y - 2, w >> 1, h + 4, S[1]); A.vl(sx, y - 2, h + 4, S[0]); A.vl(sx + (w >> 1) - 1, y - 2, h + 4, S[2]); for (let j = y; j < y + h + 2; j += 3) A.hl(sx + 1, j, (w >> 1) - 2, S[2]); }
+}
+function roofRibbed(A, x, top, w, d, P, rib) {                   // gable roof, ridge running left–right
+    const ridge = top + Math.round(d * 0.34), front = top + d - ridge;
+    A.r(x, top, w, ridge - top, P[2]);
+    A.r(x, ridge, w, front, P[1]); A.r(x, ridge, w, Math.round(front * 0.4), P[0]);
+    for (let i = 3; i < w - 1; i += rib) { A.vl(x + i, top + 1, ridge - top - 1, P[3]); A.vl(x + i, ridge + 3, front - 5, P[2]); A.vl(x + i + 1, ridge + 3, Math.round(front * 0.4) - 3, '#ffffff'); }
+    A.r(x - 2, ridge - 2, w + 4, 4, P[0]); A.hl(x - 2, ridge - 2, w + 4, '#ffffff'); A.hl(x - 2, ridge + 1, w + 4, P[2]);   // ridge cap
+    A.r(x - 2, top + d - 3, w + 4, 3, P[2]); A.hl(x - 2, top + d - 3, w + 4, P[0]); A.hl(x - 2, top + d - 1, w + 4, P[3]);  // gutter
+    A.vl(x, top, d, P[0]); A.vl(x + w - 1, top, d, P[3]);
+    return top + d;
+}
+function roofFlat(A, x, top, w, d, P) {                          // a flat roof inside a parapet
+    A.r(x, top, w, d, P[0]);
+    A.r(x + 4, top + 4, w - 8, d - 8, P[1]); A.r(x + 4, top + 4, w - 8, 3, P[2]); A.vl(x + 4, top + 4, d - 8, P[2]);   // the deck, shadowed by the parapet
+    A.hl(x, top, w, '#ffffff'); A.hl(x, top + d - 1, w, P[3]); A.vl(x + w - 1, top, d, P[2]);
+}
+function roofTank(A, x, y) { A.r(x + 2, y + 12, 2, 6, '#5a6872'); A.r(x + 14, y + 12, 2, 6, '#5a6872'); A.ell(x + 9, y + 12, 9, 3, '#20242c'); A.r(x, y + 3, 19, 10, '#3a4050'); A.r(x, y + 3, 5, 10, '#5a6272'); A.ell(x + 9, y + 3, 9, 3, '#6a7282'); A.ell(x + 9, y + 3, 6, 1, '#3a4050'); }
+function roofDish(A, x, y) { A.ell(x + 6, y + 5, 6, 5, '#b2bec6'); A.ell(x + 5, y + 4, 4, 3, '#ffffff'); A.line(x + 6, y + 5, x + 10, y, '#5a6872'); A.r(x + 5, y + 10, 2, 3, '#5a6872'); }
+function roofAC(A, x, y) { A.r(x, y, 16, 10, '#e6eaef'); A.r(x, y, 16, 2, '#ffffff'); A.r(x, y + 10, 16, 4, '#98a2ae'); A.ell(x + 8, y + 5, 3, 3, '#5a6872'); A.ell(x + 8, y + 5, 1, 1, '#c2c9d2'); }
+
+// ---- TENTS ----
+// A big canvas wall tent: the roof falls from its ridge pole to a scalloped
+// valance in khayamiya colours, the wall below it, the door laced open.
+function tentRidge(w, d, P, doorAt, doorW, o) {
+    o = o || {};
+    const wallH = 20, rise = 10, st = stage(w, d, wallH + rise, 10), { A } = st;
+    const x = st.x, top = st.y - wallH - rise, eave = st.y + d - wallH, ridge = top + Math.round((eave - top) * 0.24), fh = eave - ridge;
+    for (let i = 0; i <= 5; i++) {                              // guy ropes down to their pegs
+        const gx = x + Math.round(i * (w - 1) / 5), out = (i - 2.5) * 4;
+        A.line(gx, eave + 2, gx + out, st.base - 1, P[3]); A.r(gx + out - 1, st.base - 2, 3, 2, WOOD[3]);
+    }
+    A.r(x, top, w, ridge - top, P[2]); A.hl(x, top, w, P[3]);                     // the back slope, turned from the sun
+    A.r(x, ridge, w, fh, P[0]); A.r(x, ridge + Math.round(fh * 0.62), w, fh - Math.round(fh * 0.62), P[1]);   // the front slope: bright, then its lower half in shadow
+    const panels = Math.max(3, Math.round(w / 34));
+    for (let i = 1; i < panels; i++) { const sx = x + Math.round(i * w / panels); A.vl(sx, top + 1, eave - top - 1, P[2]); A.vl(sx + 1, ridge + 2, fh - 2, '#ffffff'); }
+    if (o.patches !== false) { A.r(x + Math.round(w * 0.18), ridge + Math.round(fh * 0.5), 8, 7, P[1]); A.hl(x + Math.round(w * 0.18), ridge + Math.round(fh * 0.5), 8, P[2]); A.vl(x + Math.round(w * 0.18) + 7, ridge + Math.round(fh * 0.5), 7, P[2]); }
+    A.r(x - 4, ridge - 2, w + 8, 4, WOOD[1]); A.hl(x - 4, ridge - 2, w + 8, WOOD[0]); A.hl(x - 4, ridge + 1, w + 8, WOOD[3]);   // the ridge pole
+    A.r(x - 5, ridge - 3, 3, 6, WOOD[3]); A.r(x + w + 2, ridge - 3, 3, 6, WOOD[3]);
+    const T = o.trim || KHAYAMIYA;                                                                      // the valance
+    A.r(x, eave - 1, w, 4, T[0]); A.hl(x, eave - 1, w, shade(T[0], 0.25));
+    for (let i = 0, k = 0; i < w - 1; i += 8, k++) { A.poly([[x + i, eave + 3], [x + i + 8, eave + 3], [x + i + 4, eave + 7]], T[k % 2 ? 1 : 2]); }
+    A.r(x, eave + 3, w, wallH - 3, P[1]);                                                               // the wall
+    for (let i = 5; i < w; i += 9) { A.vl(x + i, eave + 7, wallH - 9, P[2]); A.vl(x + i + 1, eave + 7, wallH - 9, P[0]); }
+    A.r(x, eave + wallH - 3, w, 3, P[2]); A.hl(x, eave + wallH - 1, w, P[3]);
+    if (o.stripes) for (let i = 0; i < w; i += 24) { A.soft(x + i, top, 12, eave - top - 1, o.stripes, 0.22); A.soft(x + i, eave + 3, 12, wallH - 6, o.stripes, 0.22); }   // striped canvas
+    A.vl(x, top, eave - top + wallH, P[0]); A.vl(x + w - 1, top, eave - top + wallH, P[3]);
+    if (doorAt != null) {
+        const dw = doorW || 24, dx = x + Math.round(doorAt - dw / 2), dy = eave - 4;
+        A.r(dx, dy, dw, wallH + 4, '#3a2418');                                                        // inside, in shadow
+        A.r(dx + 2, dy + 4, dw - 4, wallH - 2, KHAYAMIYA[0]);                                        // the lining: red, a band of blue, gold diamonds
+        A.r(dx + 2, dy + 4 + (wallH >> 1), dw - 4, 3, KHAYAMIYA[1]);
+        for (let i = dx + 5; i < dx + dw - 5; i += 7) A.poly([[i, dy + 9], [i + 3, dy + 6], [i + 6, dy + 9], [i + 3, dy + 12]], KHAYAMIYA[2]);
+        A.r(dx + 4, dy + wallH, dw - 8, 4, '#8a5a34'); A.hl(dx + 4, dy + wallH, dw - 8, '#b88458');                              // a rug on the floor inside
+        A.poly([[dx, dy], [dx + 7, dy], [dx, dy + wallH + 4]], P[0]); A.poly([[dx + dw, dy], [dx + dw - 7, dy], [dx + dw, dy + wallH + 4]], P[2]);   // flaps tied back
+        A.r(dx + 1, dy + 10, 2, 2, WOOD[3]); A.r(dx + dw - 3, dy + 10, 2, 2, WOOD[3]);
+        if (o.porch) {                                                                                 // a fly sheet over the door on two poles
+            const px = dx - 12, pwid = dw + 24;
+            A.r(px, dy - 10, pwid, 8, P[0]); A.hl(px, dy - 10, pwid, '#ffffff'); A.hl(px, dy - 3, pwid, P[2]);
+            for (let i = 0, k = 0; i < pwid - 1; i += 6, k++) A.poly([[px + i, dy - 2], [px + i + 6, dy - 2], [px + i + 3, dy + 2]], T[k % 3]);
+            A.r(px + 1, dy - 2, 2, wallH + 8, WOOD[2]); A.r(px + pwid - 3, dy - 2, 2, wallH + 8, WOOD[2]);
+        }
     }
     return st;
 }
-SPR.tent_bldg = (w, d) => fit(tentRidge(w, d, PAL.canvas, w / 2, 26));
-SPR.c1m_mess = (w, d) => {
-    // an army marquee, faded drab, the south side rolled up on poles: table and benches inside
-    const st = tentRidge(Math.round(w * 0.74), Math.round(d * 0.7), PAL.khaki, null), { A } = st;
-    const x = st.x, eave = st.y + st.d - 12, ww = st.w;
-    A.r(x + 6, eave, ww - 12, 12, PAL.dark[3]);
-    for (const px of [x + 6, x + (ww >> 1), x + ww - 8]) A.r(px, eave, 2, 12, PAL.wood[1]);
-    A.r(x + 22, eave + 5, ww - 44, 3, PAL.plank[0]); A.r(x + 22, eave + 8, ww - 44, 1, PAL.wood[3]);
-    A.r(x + 26, eave + 10, ww - 52, 2, PAL.wood[2]);
-    const s = fit(st);
-    s.ox = Math.round((w - st.c.width) / 2); s.oy += Math.round(d * 0.15);
-    return s;
+SPR.tent_bldg = (w, d) => {
+    const st = tentRidge(w, d, CANVAS2, w / 2, 26, { porch: true, stripes: '#c89a58' }), { A } = st;
+    const x = st.x + Math.round(w * 0.78), y = st.base - 26;                                            // her name on a board by the door
+    A.r(x + 6, y + 6, 2, 16, WOOD[3]); A.r(x, y, 16, 8, WOOD[0]); A.r(x, y + 7, 16, 1, WOOD[3]); A.r(x + 2, y + 2, 12, 1, '#5e3620'); A.r(x + 3, y + 4, 9, 1, '#5e3620');
+    return fit(st);
 };
-// the round canvas tent with its awning
+SPR.c1m_mess = (w, d) => {
+    // an army marquee, faded olive, the south side rolled up on poles: table and benches inside
+    const OL = ['#b8be86', '#98a068', '#747c4c', '#4e5634'];
+    const st = tentRidge(Math.round(w * 0.74), Math.round(d * 0.72), OL, null, 0, { trim: ['#747c4c', '#98a068', '#b8be86'] }), { A } = st;
+    const x = st.x, eave = st.y + st.d - 20, ww = st.w;
+    const roofTop = st.y - 30, sx = x + Math.round(ww * 0.62), sy = roofTop + Math.round((eave - roofTop) * 0.5);
+    A.r(sx, sy, 22, 10, OL[1]); A.r(sx + 3, sy + 2, 3, 6, '#3a3e24'); A.r(sx + 8, sy + 2, 5, 2, '#3a3e24'); A.r(sx + 11, sy + 2, 2, 6, '#3a3e24'); A.r(sx + 16, sy + 2, 3, 6, '#3a3e24');   // a stencilled number, half faded
+    A.r(x + Math.round(ww * 0.3), sy - 6, 10, 8, '#c8c898'); A.hl(x + Math.round(ww * 0.3), sy - 6, 10, '#e0e0b8'); A.vl(x + Math.round(ww * 0.3) + 9, sy - 6, 8, OL[2]);   // a newer patch
+    for (const bx of [x - 4, x + ww - 12]) for (let k = 0; k < 2; k++) { A.ell(bx + 8, eave + 16 - k * 5, 7, 3, '#c9b48e'); A.hl(bx + 2, eave + 18 - k * 5, 12, '#8a7658'); }   // sandbags at the corners
+    A.r(x + 4, eave + 3, ww - 8, 17, '#2c2618');
+    A.r(x + 2, eave + 3, ww - 4, 4, OL[2]); for (let i = x + 4; i < x + ww - 6; i += 10) A.r(i, eave + 7, 6, 2, OL[3]);   // the rolled-up wall
+    for (const px of [x + 4, x + (ww >> 1), x + ww - 6]) A.r(px, eave + 3, 2, 17, WOOD[1]);
+    A.r(x + 22, eave + 11, ww - 44, 4, WOOD[0]); A.hl(x + 22, eave + 15, ww - 44, WOOD[3]); A.r(x + 26, eave + 17, ww - 52, 2, WOOD[2]);
+    for (let i = x + 30; i < x + ww - 30; i += 16) { A.r(i, eave + 10, 3, 2, '#ffffff'); A.px(i + 6, eave + 11, '#c8503c'); }   // glasses, a teapot
+    const sp = fit(st);
+    sp.ox = Math.round((w - st.c.width) / 2); sp.oy += Math.round(d * 0.14);
+    return sp;
+};
 SPR.c1m_hanatent = (w, d) => {
     const R = Math.round(Math.min(w, d) * 0.36), st = stage(w, d, 22), { A } = st;
     const cx = st.x + (w >> 1), cy = st.y + (d >> 1) - 4;
@@ -164,81 +200,96 @@ SPR.ow_shelter = (w, d) => {
 };
 
 // ---- BUILDINGS ----
-// things that live on roofs
-function roofTank(A, x, y) { A.ell(x + 8, y + 12, 8, 3, PAL.dark[3]); A.r(x, y + 3, 17, 10, PAL.dark[1]); A.ell(x + 8, y + 3, 8, 3, PAL.dark[0]); A.ell(x + 8, y + 3, 5, 1, PAL.dark[2]); A.vl(x + 2, y + 5, 7, PAL.dark[0]); }
-function roofDish(A, x, y) { A.ell(x + 6, y + 5, 6, 5, PAL.white[2]); A.ell(x + 5, y + 4, 4, 3, PAL.white[0]); A.line(x + 6, y + 5, x + 10, y, PAL.metal[3]); A.r(x + 5, y + 10, 2, 3, PAL.metal[3]); }
-function roofAC(A, x, y) { A.r(x, y, 14, 9, PAL.white[1]); A.r(x, y, 14, 2, PAL.white[0]); A.r(x, y + 9, 14, 4, PAL.white[3]); A.ell(x + 7, y + 5, 3, 2, PAL.metal[3]); A.px(x + 7, y + 5, PAL.dark[2]); }
-SPR.dorm_bldg = (w, d) => {                       // the workers' bunkhouse: planks, corrugated iron
-    const wallH = 26, st = stage(w, d, wallH), { A } = st, x = st.x, top = st.y - wallH;
-    const eave = roofGable(A, x - 2, top, w + 4, d, 0, PAL.metal, 4);
+SPR.dorm_bldg = (w, d) => {                       // the workers' bunkhouse: blue corrugated iron over warm planks
+    const wallH = 38, st = stage(w, d, wallH + 12), { A } = st, x = st.x, top = st.y - wallH;
+    const eave = roofRibbed(A, x - 3, top, w + 6, d, BLUEROOF, 5);
     const R = rng('dormroof');
-    for (let i = 0; i < 9; i++) { const rx = x + R() * (w - 14), ry = top + 4 + R() * (d - 14); A.r(rx, ry, 5 + R() * 8, 2 + R() * 3, PAL.brick[2]); A.px(rx + 1, ry + 1, PAL.red[3]); }   // rust
-    A.r(x + Math.round(w * 0.62), top + Math.round(d * 0.58), 14, 9, PAL.metal[0]); A.r(x + Math.round(w * 0.62), top + Math.round(d * 0.58), 14, 1, PAL.white[0]);                       // a newer sheet
-    roofTank(A, x + 8, top - 4);
-    A.r(x + w - 18, top + Math.round(d * 0.2), 3, 9, PAL.dark[2]); A.r(x + w - 19, top + Math.round(d * 0.2) - 2, 5, 2, PAL.dark[1]);                                                       // stove pipe
-    wallPlanks(A, x, eave, w, wallH, PAL.wood);
+    for (let i = 0; i < 6; i++) { const rx = x + R() * (w - 20), ry = top + Math.round(d * 0.4) + R() * (d * 0.45); A.r(rx, ry, 1, 4 + R() * 8, '#b8683c'); }   // rust runs
+    A.r(x + Math.round(w * 0.6), top + Math.round(d * 0.5), 18, 8, BLUEROOF[0]); A.hl(x + Math.round(w * 0.6), top + Math.round(d * 0.5), 18, '#ffffff');       // a newer sheet
+    roofTank(A, x + 10, top - 10);
+    A.r(x + w - 22, top + 2, 4, 12, '#3a4050'); A.r(x + w - 23, top, 6, 3, '#5a6272');                                                                      // stove pipe
+    boards(A, x, eave, w, wallH, WOOD, 3);
     const dx = x + Math.round(w * 0.55);
-    door(A, dx, eave + 7, 13, wallH - 7, PAL.wood[2]);
-    for (const wx of [0.12, 0.32, 0.8]) windowP(A, x + Math.round(w * wx), eave + 8, 11, 9, wx === 0.32);
-    A.r(dx - 3, eave + wallH, 19, 2, PAL.plank[1]); A.r(dx - 1, eave + wallH + 2, 15, 1, PAL.plank[2]);                                                                                   // step
+    A.r(dx - 8, eave, 34, 6, BLUEROOF[1]); A.hl(dx - 8, eave + 5, 34, BLUEROOF[3]);                                                                          // a little porch roof
+    door(A, dx, eave + 11, 18, wallH - 11, ['#7fb0d8', '#4c80b8', '#305a8c', '#1f3c60']);
+    for (const wx of [0.1, 0.3, 0.78]) win(A, x + Math.round(w * wx), eave + 12, 16, 13, { lit: wx === 0.3 });
+    A.r(dx - 4, eave + wallH, 26, 3, '#c9b48e'); A.hl(dx - 4, eave + wallH + 2, 26, '#8a7658');                                                              // a stone step
+    A.r(x + w - 42, eave + 22, 26, 3, WOOD[0]); A.hl(x + w - 42, eave + 24, 26, WOOD[3]); A.r(x + w - 40, eave + 25, 2, 9, WOOD[3]); A.r(x + w - 20, eave + 25, 2, 9, WOOD[3]);   // bench
     return fit(st);
 };
-SPR.foreman_bldg = (w, d) => {                    // the site office: plastered mud brick, flat roof, blue shutters
-    const wallH = 28, st = stage(w, d, wallH + 10), { A } = st, x = st.x, top = st.y - wallH;
-    roofFlat(A, x, top, w, d, PAL.plaster);
-    for (const rx of [x + 3, x + w - 6]) for (let k = 0; k < 3; k++) A.vl(rx + k, top - 7 - k, 9 + k, PAL.red[3]);      // rebar, waiting for a second storey
-    roofTank(A, x + w - 34, top + 6); roofDish(A, x + 12, top + 8); roofAC(A, x + Math.round(w * 0.45), top + Math.round(d * 0.45));
-    A.r(x + 34, top + d - 20, 22, 11, PAL.red[2]); A.dith(x + 34, top + d - 20, 22, 11, PAL.gold[1], 0);                   // a rug put out to air
+SPR.foreman_bldg = (w, d) => {                    // the site office: whitewashed mud brick, blue shutters, a busy flat roof
+    const wallH = 42, st = stage(w, d, wallH + 12), { A } = st, x = st.x, top = st.y - wallH;
+    roofFlat(A, x, top, w, d, WHITEWASH);
+    for (const cx of [x, x + w - 8]) { A.r(cx, top - 5, 8, 7, WHITEWASH[0]); A.hl(cx, top - 5, 8, '#ffffff'); A.vl(cx + 7, top - 5, 7, WHITEWASH[2]); }   // corner piers
+    for (const rx of [x + 2, x + w - 6]) for (let k = 0; k < 3; k++) A.vl(rx + k, top - 11 - k, 7 + k, '#9a4a2c');                                    // rebar, waiting for a second storey
+    roofTank(A, x + w - 38, top + 4); roofDish(A, x + 14, top + 7); roofAC(A, x + Math.round(w * 0.45), top + Math.round(d * 0.4));
+    A.r(x + 36, top + d - 20, 24, 12, KHAYAMIYA[0]); for (let i = 0; i < 24; i += 6) A.r(x + 36 + i, top + d - 20, 3, 12, KHAYAMIYA[2]);              // a rug put out to air
     const wy = top + d;
-    wallPlain(A, x, wy, w, wallH, PAL.plaster);
-    for (let i = 0; i < 6; i++) { const bx = x + 6 + hash2(i, 7) * (w - 22), by = wy + 10 + hash2(i, 9) * 12; A.r(bx, by, 6, 2, PAL.brick[1]); A.r(bx + 2, by + 3, 6, 2, PAL.brick[2]); }   // brick showing through
-    const dx = x + Math.round(w * 0.58);
-    door(A, dx, wy + 8, 14, wallH - 8, PAL.blue[1], PAL.plaster[3]);
-    for (const wx of [0.18, 0.82]) { const px = x + Math.round(w * wx); windowP(A, px, wy + 9, 11, 9, wx < 0.5); A.r(px - 5, wy + 8, 3, 11, PAL.blue[1]); A.r(px + 13, wy + 8, 3, 11, PAL.blue[1]); A.vl(px - 5, wy + 8, 11, PAL.blue[2]); }
-    const sx = x + Math.round(w * 0.3);
-    A.r(sx, wy + 3, 40, 8, PAL.white[0]); A.r(sx, wy + 3, 40, 1, PAL.blue[2]); A.r(sx + 3, wy + 6, 34, 1, PAL.dark[2]); A.r(sx + 8, wy + 8, 24, 1, PAL.dark[1]);   // the sign
+    plaster(A, x, wy, w, wallH, WHITEWASH, 'office');
+    A.r(x + w - 10, wy - 2, 3, wallH, '#86949e'); A.hl(x + w - 10, wy - 2, 3, '#b2bec6');                                                              // drainpipe
+    const dx = x + Math.round(w * 0.6);
+    A.r(dx - 3, wy + 5, 24, 5, WHITEWASH[2]); A.hl(dx - 3, wy + 9, 24, WHITEWASH[3]);                                                                  // lintel
+    door(A, dx, wy + 11, 18, wallH - 11, SHUTTER, WHITEWASH);
+    for (const wx of [0.16, 0.84]) win(A, x + Math.round(w * wx) - 7, wy + 12, 14, 13, { lit: wx < 0.5, frame: WHITEWASH, shutters: SHUTTER });
+    const sx = x + Math.round(w * 0.3) - 6;                                                                                                             // the sign
+    A.r(sx, wy + 6, 50, 11, SHUTTER[3]); A.r(sx + 1, wy + 7, 48, 9, '#ffffff'); A.r(sx + 4, wy + 9, 24, 1, '#203f74'); A.r(sx + 4, wy + 12, 18, 1, '#203f74'); A.r(sx + 32, wy + 9, 14, 4, '#d0402f');
+    roofAC(A, x + Math.round(w * 0.36), wy + 22);
     return fit(st);
 };
-function shed(w, d, P3, doorCol, sign) {         // a corrugated-iron shed
-    const wallH = 24, st = stage(w, d, wallH), { A } = st, x = st.x, top = st.y - wallH;
-    const eave = roofGable(A, x - 1, top, w + 2, d, 0, PAL.metal, 3);
+function shed(w, d, wall, doorCol, sign) {        // a corrugated-iron shed
+    const wallH = 32, st = stage(w, d, wallH + 4), { A } = st, x = st.x, top = st.y - wallH;
+    const eave = roofRibbed(A, x - 2, top, w + 4, d, TIN, 4);
     const R = rng('shed' + w + d);
-    for (let i = 0; i < 7; i++) { const rx = x + R() * (w - 12), ry = top + 3 + R() * (d - 10); A.r(rx, ry, 4 + R() * 7, 2 + R() * 3, PAL.brick[2]); }
-    A.r(x, eave, w, wallH, P3[1]);
-    for (let i = 0; i < w; i += 3) A.vl(x + i, eave, wallH, P3[2]);
-    A.r(x, eave, w, 2, P3[3]); A.r(x, eave + wallH - 2, w, 2, P3[3]);
-    for (let i = 0; i < 6; i++) A.r(x + hash2(i, w) * (w - 6), eave + 5 + hash2(i, d) * (wallH - 10), 3, 2, PAL.red[3]);   // rust
-    door(A, x + (w >> 1) - 8, eave + 5, 16, wallH - 5, doorCol || P3[3]);
-    A.r(x + (w >> 1) + 5, eave + 14, 2, 3, PAL.gold[1]);                                                                   // a padlock
-    if (sign) { A.r(x + 4, eave + 4, 18, 8, PAL.gold[1]); A.r(x + 4, eave + 4, 18, 1, PAL.gold[0]); A.r(x + 6, eave + 7, 14, 1, PAL.dark[3]); A.r(x + 6, eave + 9, 9, 1, PAL.dark[3]); }
+    for (let i = 0; i < 5; i++) { const rx = x + R() * (w - 12), ry = top + Math.round(d * 0.45) + R() * d * 0.4; A.r(rx, ry, 1, 3 + R() * 7, '#b8683c'); }
+    corrugated(A, x, eave, w, wallH, wall);
+    for (let i = 0; i < 4; i++) A.r(x + hash2(i, w) * (w - 8), eave + 6 + hash2(i, d) * (wallH - 12), 2, 5, '#b8683c');
+    const dw = 26, dx = x + (w >> 1) - (dw >> 1);                                                                    // double doors
+    A.r(dx - 1, eave + 7, dw + 2, wallH - 7, wall[3]); A.r(dx, eave + 8, (dw >> 1) - 1, wallH - 8, doorCol[1]); A.r(dx + (dw >> 1), eave + 8, (dw >> 1), wallH - 8, doorCol[1]);
+    for (let j = eave + 11; j < eave + wallH - 2; j += 5) { A.hl(dx + 1, j, (dw >> 1) - 3, doorCol[2]); A.hl(dx + (dw >> 1) + 1, j, (dw >> 1) - 2, doorCol[2]); }
+    A.vl(dx, eave + 8, wallH - 8, doorCol[0]); A.r(dx + (dw >> 1) - 3, eave + 18, 5, 4, '#f0c040'); A.px(dx + (dw >> 1) - 2, eave + 18, '#fff4b0');   // padlock
+    if (sign) { A.r(x + 5, eave + 6, 22, 10, '#f0c040'); A.hl(x + 5, eave + 6, 22, '#ffe890'); A.r(x + 8, eave + 9, 16, 1, '#3a2418'); A.r(x + 8, eave + 12, 10, 1, '#3a2418'); }
     return st;
 }
-SPR_L["sam's tool shed"] = (w, d) => fit(shed(w, d, PAL.metal, PAL.dark[1], true));
-SPR_L['dig shed clipboard'] = (w, d) => fit(shed(w, d, [PAL.olive[0], PAL.olive[1], PAL.olive[2], PAL.olive[3]], PAL.wood[2], true));
+SPR_L["sam's tool shed"] = (w, d) => fit(shed(w, d, TIN, ['#9aa8b0', '#6c7a84', '#4a5660', '#303a42'], true));
+SPR_L['dig shed clipboard'] = (w, d) => fit(shed(w, d, ['#a8b478', '#86925a', '#626c40', '#434a2a'], ['#c89058', '#a86c3c', '#804c28', '#5c3418'], true));
 function cabin(w, d, stripe) {                   // a white site cabin with a coloured stripe
-    const wallH = 24, st = stage(w, d, wallH), { A } = st, x = st.x, top = st.y - wallH;
-    A.r(x, top, w, d, PAL.white[1]); A.r(x + 2, top + 2, w - 4, d - 4, PAL.white[2]); A.dith(x + 2, top + (d >> 1), w - 4, (d >> 1) - 2, PAL.white[3], 0); A.r(x, top, w, 2, PAL.white[0]);
-    for (let i = 8; i < w; i += 12) A.vl(x + i, top + 2, d - 4, PAL.white[3]);
-    if (w > 50 && d > 30) { roofAC(A, x + w - 22, top + 6); A.r(x + 8, top + Math.round(d * 0.5), 6, 6, PAL.metal[2]); A.r(x + 9, top + Math.round(d * 0.5) + 1, 4, 4, PAL.dark[2]); }
+    const wallH = 30, st = stage(w, d, wallH + 4), { A } = st, x = st.x, top = st.y - wallH;
+    const WH = ['#ffffff', '#e6eaef', '#c2c9d2', '#98a2ae'];
+    A.r(x, top, w, d, WH[1]); A.r(x + 3, top + 3, w - 6, d - 6, WH[2]); A.hl(x, top, w, '#ffffff'); A.vl(x + w - 1, top, d, WH[3]);
+    for (let i = 10; i < w - 4; i += 12) A.vl(x + i, top + 3, d - 6, WH[1]);
+    if (w > 50 && d > 24) { roofAC(A, x + w - 24, top + 5); A.r(x + 8, top + (d >> 1) - 3, 7, 7, WH[3]); A.r(x + 9, top + (d >> 1) - 2, 5, 5, '#5a6872'); }
     const wy = top + d;
-    A.r(x, wy, w, wallH, PAL.white[1]); A.r(x, wy, w, 2, PAL.white[3]);
-    A.r(x, wy + 11, w, 4, stripe); A.r(x, wy + wallH - 2, w, 2, PAL.white[3]);
-    for (let i = 10; i < w; i += 20) A.vl(x + i, wy + 2, wallH - 4, PAL.white[2]);
-    door(A, x + Math.round(w * 0.62), wy + 6, 12, wallH - 6, PAL.white[2], PAL.metal[3]);
-    windowP(A, x + Math.round(w * 0.2), wy + 6, 13, 8, true);
-    A.r(x + 4, wy + wallH, 6, 2, PAL.dark[2]); A.r(x + w - 10, wy + wallH, 6, 2, PAL.dark[2]);   // blocks it stands on
+    A.r(x, wy, w, wallH, WH[1]);
+    for (let j = wy + 4; j < wy + wallH - 2; j += 4) A.hl(x, j, w, WH[2]);
+    A.r(x, wy, w, 3, WH[3]); A.r(x, wy + 12, w, 5, stripe[1]); A.hl(x, wy + 12, w, stripe[0]); A.hl(x, wy + 16, w, stripe[2]);
+    A.r(x, wy + wallH - 2, w, 2, WH[3]);
+    const dx = x + Math.round(w * 0.64);
+    door(A, dx, wy + 8, 14, wallH - 8, WH, ['#c2c9d2', '#98a2ae', '#6a7480', '#4a525c']);
+    A.r(dx - 3, wy + wallH, 20, 3, '#86949e'); A.hl(dx - 3, wy + wallH, 20, '#b2bec6');                           // metal step
+    win(A, x + Math.round(w * 0.18), wy + 7, 16, 9, { lit: true, frame: ['#c2c9d2', '#98a2ae', '#6a7480', '#4a525c'] });
+    for (let i = 0; i < 16; i += 3) A.vl(x + Math.round(w * 0.18) + i, wy + 7, 9, '#6a7480');                     // a grille
+    A.r(x + 4, wy + wallH, 7, 3, '#5a5048'); A.r(x + w - 11, wy + wallH, 7, 3, '#5a5048');                       // the blocks it stands on
     return st;
 }
-SPR_L['site trailer'] = (w, d) => fit(cabin(w, d, PAL.blue[1]));
-SPR_L['ministry post'] = (w, d) => { const st = cabin(w, d, PAL.blue[2]), { A } = st; A.r(st.x + 4, st.y - 20 - 12, 1, 14, PAL.metal[2]); A.r(st.x + 5, st.y - 20 - 12, 9, 2, PAL.red[1]); A.r(st.x + 5, st.y - 20 - 10, 9, 2, PAL.white[0]); A.r(st.x + 5, st.y - 20 - 8, 9, 2, PAL.dark[3]); return fit(st); };
-SPR_L['guard booth'] = (w, d) => fit(cabin(w, d, PAL.red[1]));
-SPR_L['gear storage'] = (w, d) => {              // an open canopy over stacked crates
-    const st = stage(w, d, 24), { A } = st, x = st.x, top = st.y - 24;
-    for (const px of [x + 1, x + w - 3]) A.r(px, top + d, 2, 24, PAL.wood[2]);
-    for (let i = 0; i < w - 20; i += 18) crateAt(A, x + 8 + i, st.base - 15 - (i % 36 ? 0 : 6), 15, i % 36 ? 0 : 1);
-    A.r(x, top, w, d, PAL.olive[1]); A.dith(x, top + (d >> 1), w, d >> 1, PAL.olive[2], 0);
-    A.r(x, top, w, 2, PAL.olive[0]); A.r(x, top + d - 2, w, 3, PAL.olive[3]);
-    for (let i = 10; i < w; i += 20) A.vl(x + i, top + 2, d - 4, PAL.olive[2]);
+SPR_L['site trailer'] = (w, d) => fit(cabin(w, d, SHUTTER));
+SPR_L['ministry post'] = (w, d) => {
+    const st = cabin(w, d, ['#6a8ad0', '#2e4f9a', '#1f3a74']), { A } = st, fx = st.x + 6, fy = st.y - 30 - 24, rt = st.y - 30;
+    roofTank(A, st.x + 22, rt + 4); roofDish(A, st.x + Math.round(w * 0.55), rt + 8); roofAC(A, st.x + Math.round(w * 0.3), rt + Math.round(d * 0.5));
+    for (let i = 0; i < 5; i++) { A.ell(st.x + w - 30 + i * 5, rt + d - 10, 3, 2, '#c9b48e'); A.hl(st.x + w - 32 + i * 5, rt + d - 8, 5, '#8a7658'); }   // sandbags along the edge
+    A.r(st.x + Math.round(w * 0.78), rt - 16, 1, 22, '#5a6872'); A.px(st.x + Math.round(w * 0.78), rt - 17, '#d0402f');                              // a radio mast
+    A.r(fx, fy, 2, 26, '#86949e');                                                                                  // the flag: red, white, black
+    A.r(fx + 2, fy, 14, 3, '#d0402f'); A.r(fx + 2, fy + 3, 14, 3, '#ffffff'); A.r(fx + 2, fy + 6, 14, 3, '#20242c'); A.px(fx + 8, fy + 4, '#f0c040');
+    return fit(st);
+};
+SPR_L['guard booth'] = (w, d) => fit(cabin(w, d, ['#f08070', '#d0402f', '#a02c20']));
+SPR_L['gear storage'] = (w, d) => {              // an open canopy, striped, over stacked crates
+    const st = stage(w, d, 30), { A } = st, x = st.x, top = st.y - 30;
+    for (const px of [x + 1, x + w - 4]) { A.r(px, top + d, 3, 30, WOOD[2]); A.vl(px, top + d, 30, WOOD[0]); }
+    A.soft(x + 3, top + d, w - 6, 30, '#20141c', 0.18);                                                               // shade under it
+    for (let i = 0; i < w - 20; i += 18) crateAt(A, x + 8 + i, st.base - 17 - (i % 36 ? 0 : 7), 16, i % 36 ? 0 : 1);
+    for (let i = 0; i < w; i += 10) { A.r(x + i, top, 5, d, '#8ca05c'); A.r(x + i + 5, top, 5, d, '#e9dfb8'); }        // green and cream stripes
+    A.r(x, top, w, 2, '#ffffff'); A.soft(x, top + (d >> 1), w, d - (d >> 1), '#20141c', 0.12);
+    for (let i = 0, k = 0; i < w - 1; i += 10, k++) A.poly([[x + i, top + d], [x + i + 10, top + d], [x + i + 5, top + d + 5]], k % 2 ? '#e9dfb8' : '#8ca05c');   // scalloped front
     return fit(st);
 };
 // the sheikh's tomb: a whitewashed cube and dome, a green door, a green flag
@@ -441,13 +492,14 @@ SPR_L['work lamp'] = (w, d) => {                                   // a floodlig
 SPR_L['radio antenna'] = (w, d) => { const st = propStage(w, d, 16, 50), { A } = st, cx = st.x + 7; A.r(cx, st.y, 1, 48, PAL.metal[2]); for (let j = 6; j < 40; j += 8) A.hl(cx - 4 + (j >> 3), st.y + j, 9 - (j >> 2), PAL.metal[1]); A.line(cx, st.y + 12, cx - 6, st.y + 48, PAL.metal[3]); A.line(cx, st.y + 12, cx + 7, st.y + 48, PAL.metal[3]); A.px(cx, st.y, PAL.red[1]); return propFit(st, w, d); };
 SPR_L['road closed'] = (w, d) => { const st = propStage(w, d, 30, 22), { A } = st; A.r(st.x + 2, st.y + 8, 2, 13, PAL.wood[2]); A.r(st.x + 24, st.y + 8, 2, 13, PAL.wood[2]); A.r(st.x, st.y + 2, 28, 8, PAL.white[0]); for (let i = 0; i < 28; i += 8) A.poly([[st.x + i, st.y + 10], [st.x + i + 4, st.y + 10], [st.x + i + 8, st.y + 2], [st.x + i + 4, st.y + 2]], PAL.red[1]); return propFit(st, w, d, { solid: [w / 2 - 14, d - 6, 28, 6] }); };
 SPR_L['camp gate post'] = (w, d) => { const st = propStage(w, d, 12, 40), { A } = st; A.r(st.x + 2, st.y + 2, 6, 37, PAL.wood[1]); A.r(st.x + 2, st.y + 2, 2, 37, PAL.wood[0]); A.r(st.x + 1, st.y, 8, 3, PAL.wood[2]); A.r(st.x + 2, st.y + 10, 6, 2, PAL.metal[3]); return propFit(st, w, d); };
-SPR_L['scaffolding'] = SPR.d_scaff = (w, d) => {
+SPR_L['scaffolding'] = SPR.d_scaff = (w, d) => Object.assign(scaffold(w, d), { noShadow: true });
+function scaffold(w, d) {
     const st = stage(w, d, 40), { A } = st, x = st.x, top = st.y - 38;
     for (let i = 0; i <= w - 2; i += Math.max(16, Math.round((w - 2) / 3))) A.r(x + i, top, 2, 38 + d, PAL.metal[2]);
     for (const y of [top + 4, top + 22]) { A.r(x, y, w, 2, PAL.metal[3]); A.r(x, y + 2, w, 4, PAL.plank[1]); A.r(x, y + 5, w, 1, PAL.plank[2]); }
     A.line(x, top + 8, x + w - 2, top + 22, PAL.metal[3]); A.line(x + w - 2, top + 26, x, top + 38 + d, PAL.metal[3]);
     return fit(st);
-};
+}
 SPR_L['cooking table'] = SPR_L['equipment table'] = (w, d) => {
     const L = Math.max(30, w), st = stage(L, 14, 12), { A } = st, x = st.x, top = st.y - 8;
     A.r(x, top, L, 12, PAL.plank[0]); for (let i = 0; i < L; i += 14) A.vl(x + i, top, 12, PAL.plank[1]); A.r(x, top + 12, L, 3, PAL.plank[2]);
@@ -508,7 +560,8 @@ SPR_L['vegetable crates'] = (w, d, o) => { const st = propStage(w, d, 38, 26), {
 SPR.c1c_milcrates = (w, d) => { const st = propStage(w, d, 34, 26), { A } = st; for (const [x, y] of [[0, 12], [16, 14], [6, 2]]) { A.r(st.x + x, st.y + y, 16, 5, PAL.olive[1]); A.r(st.x + x, st.y + y + 5, 16, 7, PAL.olive[2]); A.r(st.x + x, st.y + y + 5, 16, 1, PAL.olive[3]); A.r(st.x + x + 6, st.y + y + 7, 4, 2, PAL.gold[1]); } return propFit(st, w, d, { solid: [w / 2 - 16, d - 12, 32, 12] }); };
 // the dig zone gate: two chain-link leaves, a red sign
 // the dig zone gate, standing open: a leaf swung back on each post, the warning sign beside it
-SPR.dig_gate = (w, d) => {
+SPR.dig_gate = (w, d) => Object.assign(digGate(w, d), { noShadow: true });
+function digGate(w, d) {
     const st = stage(w, d, 40, 24), { A } = st, x = st.x, top = st.y - 22;
     for (const [px, s] of [[x - 2, -1], [x + w - 2, 1]]) {
         A.r(px, top - 4, 4, 30 + d, PAL.metal[2]); A.vl(px, top - 4, 30 + d, PAL.metal[0]); A.r(px - 1, top - 6, 6, 3, PAL.metal[3]);
@@ -520,34 +573,40 @@ SPR.dig_gate = (w, d) => {
     }
     A.r(x - 10, top + 2, 2, 22, PAL.wood[2]); A.r(x - 24, top - 8, 30, 14, PAL.red[1]); A.r(x - 24, top - 8, 30, 1, PAL.red[0]); A.r(x - 21, top - 5, 24, 1, PAL.white[0]); A.r(x - 19, top - 2, 20, 1, PAL.white[0]); A.r(x - 21, top + 1, 24, 1, PAL.white[0]);
     return fit(st);
-};
+}
 SPR.puzzle_glyph = SPR.tunnel_mouth = (w, d, o) => { const st = propStage(w, d, 40, 44), { A } = st; A.r(st.x, st.y, 38, 42, PAL.rock[2]); A.r(st.x, st.y, 38, 4, PAL.rock[0]); A.r(st.x + 6, st.y + 8, 26, 34, PAL.rock[3]); A.r(st.x + 9, st.y + 11, 20, 31, o.id === 'tunnel_mouth' ? PAL.dark[3] : PAL.rock[1]); if (o.id !== 'tunnel_mouth') for (let j = 0; j < 4; j++) for (let i = 0; i < 3; i++) A.r(st.x + 12 + i * 6, st.y + 14 + j * 7, 3, 4, PAL.gold[2]); return propFit(st, w, d); };
 
 // ---- PLANTS ----
 function palm(seed) {
-    const R = rng(seed), [c, g] = mk(66, 84), A = pa(g), lean = Math.round((R() - 0.5) * 10), tx = 33, ty = 80;
-    for (let j = 0; j < 52; j++) {                                // the trunk, ringed, leaning a little
-        const x = tx + Math.round(lean * (j / 52) * (j / 52)) - 2, y = ty - j;
-        A.r(x, y, 5, 1, PAL.wood[1]); A.px(x, y, PAL.wood[0]); A.px(x + 4, y, PAL.wood[3]);
-        if (j % 4 === 0) A.r(x, y, 5, 1, PAL.wood[2]);
+    const R = rng(seed), [c, g] = mk(72, 88), A = pa(g), lean = Math.round((R() - 0.5) * 10), tx = 36, ty = 84;
+    for (let j = 0; j < 54; j++) {                                // the trunk: ringed, leaning a little, lit on its left
+        const x = tx + Math.round(lean * (j / 54) * (j / 54)) - 3, y = ty - j, wd = j < 6 ? 7 : 6;
+        A.r(x, y, wd, 1, '#b07a48'); A.r(x, y, 2, 1, '#d4a06a'); A.r(x + wd - 2, y, 2, 1, '#7a4e2c');
+        if (j % 5 === 0) A.r(x, y, wd, 1, '#8a5c34');
     }
-    A.r(tx - 3, ty - 1, 7, 2, PAL.wood[2]);
-    const hx = tx + lean, hy = ty - 52;
-    const frond = (ang, len, droop, col, col2) => {
-        let px = hx, py = hy;
-        for (let t = 1; t <= len; t++) {
-            const k = t / len, nx = hx + Math.cos(ang) * t, ny = hy + Math.sin(ang) * t * 0.62 + droop * k * k;
-            A.line(px, py, nx, ny, col);
-            if (t % 2 === 0 && t > 3) { const lw = Math.round((1 - Math.abs(k - 0.5) * 1.4) * 6) + 1; A.line(nx, ny, nx - Math.sin(ang) * lw * 0.4, ny + lw, col2); A.line(nx, ny, nx + Math.sin(ang) * lw * 0.4, ny - lw * 0.45, col); }
-            px = nx; py = ny;
-        }
+    const hx = tx + lean, hy = ty - 54;
+    const LEAF = [['#2f7a3a', '#1f5a2c'], ['#4aa04a', '#2f7a3a'], ['#78c85a', '#4aa04a']];
+    // one frond: a tapered blade along a drooping arc, a lighter midrib down its middle
+    const frond = (ang, len, droop, tone) => {
+        const pts = [];
+        for (let t = 0; t <= 1.0001; t += 0.1) pts.push([hx + Math.cos(ang) * len * t, hy + Math.sin(ang) * len * t * 0.6 + droop * t * t]);
+        const L = [], Rt = [];
+        pts.forEach((pt, i) => {
+            const nx = pts[Math.min(i + 1, pts.length - 1)][0] - pts[Math.max(i - 1, 0)][0], ny = pts[Math.min(i + 1, pts.length - 1)][1] - pts[Math.max(i - 1, 0)][1], nl = Math.hypot(nx, ny) || 1;
+            const t = i / (pts.length - 1), wdt = Math.sin(Math.min(1, t * 1.6) * Math.PI * 0.5) * (1 - t * 0.85) * 5.5 + 0.6;
+            L.push([pt[0] - ny / nl * wdt, pt[1] + nx / nl * wdt]); Rt.push([pt[0] + ny / nl * wdt, pt[1] - nx / nl * wdt]);
+        });
+        A.poly(L.concat(Rt.reverse()), LEAF[tone][1]);
+        A.poly(L.map((q, i) => [(q[0] + pts[i][0]) / 2, (q[1] + pts[i][1]) / 2]).concat(pts.slice().reverse()), LEAF[tone][0]);
+        for (let i = 0; i + 1 < pts.length; i++) A.line(pts[i][0], pts[i][1], pts[i + 1][0], pts[i + 1][1], tone === 2 ? '#a8e070' : LEAF[Math.min(2, tone + 1)][0]);
+        for (let i = 3; i < pts.length - 1; i += 2) { const q = Rt[Rt.length - 1 - i]; A.px(q[0], q[1], LEAF[tone][1]); }   // notches along the edge
     };
-    const n = 9;
-    for (let i = 0; i < n; i++) frond(Math.PI + (i / (n - 1)) * Math.PI + (R() - 0.5) * 0.25, 22 + R() * 7, 8 + R() * 8, PAL.green[3], PAL.green[2]);   // the back row, dark
-    for (let i = 0; i < n; i++) frond((i / n) * Math.PI * 2 + R() * 0.4, 20 + R() * 8, 12 + R() * 10, PAL.green[1], PAL.green[2]);
-    for (let i = 0; i < 5; i++) frond(-Math.PI * 0.9 + i * 0.4 + R() * 0.2, 14 + R() * 5, 3, PAL.green[0], PAL.green[1]);
-    A.ell(hx - 2, hy + 3, 2, 2, PAL.gold[2]); A.ell(hx + 3, hy + 4, 2, 2, PAL.brick[2]);      // dates
-    return { c: outline(c), ox: -33, oy: -81, solid: [-4, -4, 8, 5] };
+    const n = 7;
+    for (let i = 0; i < n; i++) frond(Math.PI + (i / (n - 1)) * Math.PI + (R() - 0.5) * 0.2, 22 + R() * 6, 6 + R() * 6, 0);   // the back fronds, in shade
+    for (let i = 0; i < n; i++) frond((i / n) * Math.PI * 2 + R() * 0.4, 21 + R() * 7, 12 + R() * 9, 1);
+    for (let i = 0; i < 4; i++) frond(-Math.PI * 0.85 + i * 0.5 + R() * 0.2, 14 + R() * 4, 4, 2);                              // young fronds on top, catching the sun
+    A.ell(hx - 3, hy + 4, 2, 2, '#e0a030'); A.ell(hx + 2, hy + 5, 2, 2, '#c07830'); A.ell(hx, hy + 3, 2, 2, '#e8b840');           // dates
+    return { c: outline(c), ox: -36, oy: -85, solid: [-4, -4, 8, 5] };
 }
 function acacia(seed) {
     const R = rng(seed), [c, g] = mk(70, 56), A = pa(g);

@@ -171,7 +171,7 @@ const Title = {
             Txt.draw(g, str, bx + 26, by + 8 + i * 15, { col: i === this.sel ? UI.ink : UI.dim });
             if (i === this.sel) A.poly([[bx + 13, by + 10 + i * 15], [bx + 13, by + 18 + i * 15], [bx + 18, by + 14 + i * 15]], '#d04838');
         });
-        Txt.draw(g, 'POKE-STYLE BUILD  P0.2', VW - 6, VH - 14, { col: '#8898d0', align: 'right' });
+        Txt.draw(g, 'POKE-STYLE BUILD  P0.3', VW - 6, VH - 14, { col: '#8898d0', align: 'right' });
         Txt.draw(g, '▲▼ choose    SPACE select', 6, VH - 14, { col: '#8898d0' });
     },
 };
@@ -273,8 +273,8 @@ const Menu = {
             A.r(mx - 2, my - 2, mm.width * sc + 4, mm.height * sc + 4, '#c89020'); A.r(mx - 1, my - 1, mm.width * sc + 2, mm.height * sc + 2, '#38404c');
             g.drawImage(mm, mx, my, mm.width * sc, mm.height * sc);
             const out = Game.outdoorPos(), k = sc / TILE;
-            Game.maps.ch1.places.forEach(p => { if (Game.seen[p.id]) { A.r(mx + p.x * k - 1, my + p.y * k - 1, 3, 3, '#38404c'); A.px(mx + p.x * k, my + p.y * k, '#ffe890'); } });
-            if ((Game.time * 3 | 0) % 2) { A.r(mx + out[0] * k - 2, my + out[1] * k - 2, 5, 5, '#ffffff'); A.r(mx + out[0] * k - 1, my + out[1] * k - 1, 3, 3, '#d04838'); }
+            Game.maps.ch1.places.forEach(p => { if (Game.seen[p.id]) { A.r(mx + p.x * k - 1, my + p.y / TILT * k - 1, 3, 3, '#38404c'); A.px(mx + p.x * k, my + p.y / TILT * k, '#ffe890'); } });
+            if ((Game.time * 3 | 0) % 2) { A.r(mx + out[0] * k - 2, my + out[1] / TILT * k - 2, 5, 5, '#ffffff'); A.r(mx + out[0] * k - 1, my + out[1] / TILT * k - 1, 3, 3, '#d04838'); }
             const lx = mx + mm.width * sc + 14;
             Txt.draw(g, 'PLACES FOUND', lx, 34, { col: UI.gold });
             const found = Game.maps.ch1.places.filter(p => Game.seen[p.id]);

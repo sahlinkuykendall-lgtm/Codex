@@ -120,8 +120,8 @@ const Game = {
     // ---- the screen ----
     resize() {
         const W = window.innerWidth, H = window.innerHeight;
-        let s = Math.max(1, Math.round(H / 350));
-        if (this.set.zoom === 1) s = Math.max(1, s - 1); else if (this.set.zoom === 2) s += 1;
+        let s = Math.max(1, Math.round(H / 290));
+        if (this.set.zoom === 1) s = Math.max(1, Math.round(H / 390)); else if (this.set.zoom === 2) s += 1;
         this.scale = s; this.VW = Math.ceil(W / s); this.VH = Math.ceil(H / s);
         const c = this.canvas;
         c.width = this.VW; c.height = this.VH; c.style.width = this.VW * s + 'px'; c.style.height = this.VH * s + 'px';
@@ -315,10 +315,22 @@ const Game = {
         const me = { person: p, x: p.x, y: p.y, sortY: p.y, me: true };
         vis.push(me);
         vis.sort((a, b) => a.sortY - b.sortY);
+        // soft shadows first, so they fall on the ground and never across a sprite
+        g.fillStyle = 'rgba(64,40,24,0.2)';
+        for (const e of vis) {
+            const sp = e.spr;
+            if (e.person) continue;
+            if (!sp || sp.flat || sp.noShadow || sp.thin) continue;
+            if (!e.w) { const r = Math.min(16, Math.max(5, sp.c.width * 0.3)); A.ell(Math.round(e.x - cx + 2), Math.round(e.y - cy), r, Math.max(2, Math.round(r * 0.32)), g.fillStyle); continue; }
+            // sized from the drawing itself (a footprint can be bigger than what's drawn on it)
+            const left = Math.round(e.x + sp.ox - cx), bottom = Math.round(e.y + sp.oy + sp.c.height - cy) - 2, cw = sp.c.width;
+            if (cw > 60 && cw >= e.w - 6) { g.fillRect(left + 4, bottom - 1, cw - 4, 4); g.fillRect(left + cw - 1, bottom - Math.min(e.d, 30), 3, Math.min(e.d, 30)); }   // buildings: along the foot and down the east side
+            else A.ell(left + (cw >> 1) + 2, bottom, Math.max(4, Math.round(cw * 0.42)), Math.max(2, Math.min(5, Math.round(cw * 0.12))), g.fillStyle);
+        }
         for (const e of vis) {
             if (e.person) {
                 const P = e.person, fr = (e.me ? p.sheet : P.sheet).frames[P.dir][P.frame || 0];
-                g.fillStyle = 'rgba(40,28,16,0.30)'; A.ell(Math.round(e.x - cx), Math.round(e.y - cy), 7, 2, g.fillStyle);
+                A.ell(Math.round(e.x - cx + 1), Math.round(e.y - cy), 7, 2, 'rgba(64,40,24,0.28)');
                 g.drawImage(fr, Math.round(e.x - 16 - cx), Math.round(e.y - 30 - cy));
             } else {
                 const sp = e.spr, c = sp.frames ? sp.frames[Math.floor(this.time * sp.fps) % sp.frames.length] : sp.c;
