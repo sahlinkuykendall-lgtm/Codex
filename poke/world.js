@@ -127,7 +127,7 @@ const World = {
         for (let ty = 1; ty < L.H - 1; ty++) for (let tx = 1; tx < L.W - 1; tx++) {
             if (L.get(tx, ty) !== T.SAND || occ.has(tx + ',' + ty)) continue;
             const r = hash2(tx * 7 + 3, ty * 13 + 5), k = ty * L.W + tx;
-            const nearWater = Math.hypot(tx - 8, ty - 15) < 7;
+            const nearWater = L.lush ? L.lush(tx, ty) : Math.hypot(tx - 8, ty - 15) < 7;   // (green plants by water; the rest dry)
             let spr = null;
             if (nearWater && r < 0.4) spr = variant('g', k, q => shrub(q, false));
             else if (r < 0.05) spr = r > 0.02 ? variant('d', k, q => shrub(q, true)) : variant('g', k, q => shrub(q, false));

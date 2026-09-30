@@ -150,7 +150,7 @@ const BACKGROUNDS = [
         ],
     },
     {
-        id: 'inspector', only: 'The only native Arabic speaker and reader. The best start with the Ministry.', name: 'THE INSPECTOR', ready: false,
+        id: 'inspector', only: 'The only native Arabic speaker and reader. The best start with the Ministry.', name: 'THE INSPECTOR', ready: true,
         place: 'Saqqara  ·  the inspectorate', lon: 31.22, lat: 29.87, chapter: '1-B',
         who: 'An Egyptian junior antiquities inspector in their late twenties. Idealistic, underpaid, good at noticing things.',
         hook: 'Miriam logged a leather codex into your evidence store for safekeeping. This morning the log line is scratched out and the Codex is gone. Your boss says: file it as a clerical error.',

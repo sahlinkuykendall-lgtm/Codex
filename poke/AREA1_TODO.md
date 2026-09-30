@@ -215,6 +215,6 @@ Also:
 - Run a playthrough of the whole night, with each exit choice.
 - Check the save and load in the middle of the night.
 - Run `poke_audit.js` again after adding things to the map.
-- Then start on the other three openings: the Inspector (Saqqara), the Fixer (Marsa Tarfa)
-  and the Journalist (Port Said). Their cutscenes and data are already in
+- Then start on the other three openings: the Inspector (Saqqara, **started in P0.23: see
+  `poke/INSPECTOR_TODO.md`**), the Fixer (Marsa Tarfa) and the Journalist (Port Said). Their cutscenes and data are already in
   `poke/backgrounds.js`; set `ready: true` when each map exists.

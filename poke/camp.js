@@ -10,7 +10,7 @@
 //   CampGround    → paints the tiles, crisp: flat colours, hard edges
 // ============================================================
 
-const T = { SAND: 0, PATH: 1, ROCK: 2, WATER: 3, DIG: 4, STONE: 5, RAIL: 6, GRAVEL: 7, YARD: 8 };
+const T = { SAND: 0, PATH: 1, ROCK: 2, WATER: 3, DIG: 4, STONE: 5, RAIL: 6, GRAVEL: 7, YARD: 8, FIELD: 9, ROAD: 10 };
 const SOLID_TILE = { [T.ROCK]: 1, [T.WATER]: 1 };
 
 function campLayout() {
@@ -226,6 +226,31 @@ const CampGround = {
                 A.r(x + 1, y + 1, TILE - 2, TILE - 2, C.stone[1]);
                 for (const [sx, sy, sw, sh] of [[2, 2, 13, 12], [17, 3, 13, 10], [3, 16, 11, 14], [16, 15, 14, 14]]) { A.r(x + sx, y + sy, sw, sh, h > 0.5 ? C.stone[0] : C.stone[1]); A.hl(x + sx, y + sy, sw, '#fff6e0'); A.hl(x + sx, y + sy + sh - 1, sw, C.stone[2]); }
                 if (h > 0.4) { A.ell(x + 9, y + 9, 3, 3, '#c4b088'); A.ell(x + 9, y + 9, 1, 1, C.stone[0]); }         // a nummulite
+            } else if (t === T.FIELD) {
+                // crops in rows: clover, wheat or onions by the field (a field is a 6×5 patch of tiles), a ridge of earth at its edge
+                const fk = hash2(Math.floor(tx / 6) * 3 + 1, Math.floor(ty / 5) * 7 + 2), P = fk < 0.45 ? ['#6cbc4c', '#4e9a3a', '#8cd060'] : fk < 0.75 ? ['#d8c060', '#b8a040', '#f0dc88'] : ['#5aa048', '#3e7e34', '#a8d878'];
+                A.r(x, y, TILE, TILE, '#7a5a38');
+                for (let k = 1; k < TILE; k += 4) { A.r(x, y + k, TILE, 2, P[0]); A.hl(x, y + k, TILE, P[2]); A.hl(x, y + k + 2, TILE, '#5e4428'); }
+                for (let k = 0; k < 5; k++) A.px(x + Math.floor(hash2(tx * 5 + k, ty) * 30), y + 1 + Math.floor(hash2(ty * 5 + k, tx) * 7) * 4, P[1]);
+                if (n(0, -1) !== T.FIELD) A.r(x, y, TILE, 2, '#9a7a50');
+                if (n(-1, 0) !== T.FIELD) A.r(x, y, 2, TILE, '#9a7a50');
+                if ((tx % 6 === 0) && n(-1, 0) === T.FIELD) A.vl(x, y, TILE, '#6a4c30');                                       // the ridge between two fields
+            } else if (t === T.ROAD) {
+                // an asphalt road, grey and patched, crumbling to sand at its edges
+                A.r(x, y, TILE, TILE, '#77726c');
+                for (let k = 0; k < 6; k++) { const px = x + Math.floor(hash2(tx * 3 + k, ty * 11) * 28), py = y + Math.floor(hash2(ty * 3 + k, tx * 11) * 28); A.r(px, py, 3, 2, k & 1 ? '#6a655f' : '#86817a'); }
+                if (h > 0.7) { A.r(x + 6, y + 8, 12, 8, '#6a655f'); A.hl(x + 6, y + 8, 12, '#8e8982'); }                     // a patch
+                for (const [dx, dy] of [[0, -1], [0, 1], [-1, 0], [1, 0]]) {
+                    if (n(dx, dy) === T.ROAD) continue;
+                    for (let k = 0; k < TILE; k += 2) {
+                        const d = 1 + Math.floor(hash2(tx * 29 + k, ty * 13 + dx + dy * 7) * 3);
+                        if (dy === -1) A.r(x + k, y, 2, d, C.sand[1]); if (dy === 1) A.r(x + k, y + TILE - d, 2, d, C.sand[1]);
+                        if (dx === -1) A.r(x, y + k, d, 2, C.sand[1]); if (dx === 1) A.r(x + TILE - d, y + k, d, 2, C.sand[1]);
+                    }
+                }
+                const vert = n(0, -1) === T.ROAD && n(0, 1) === T.ROAD && n(-1, 0) !== T.ROAD, horiz = n(-1, 0) === T.ROAD && n(1, 0) === T.ROAD && n(0, -1) !== T.ROAD;
+                if (horiz && (tx & 1)) A.r(x + 4, y + TILE - 1, 14, 2, '#e8e0c8');                                            // the dashed centre line (roads are two tiles wide)
+                if (vert && (ty & 1)) A.r(x + TILE - 1, y + 4, 2, 14, '#e8e0c8');
             } else if (t === T.GRAVEL) {
                 A.r(x, y, TILE, TILE, C.gravel[0]);
                 for (let k = 0; k < 9; k++) { const px = x + Math.floor(hash2(tx * 3 + k, ty) * 28), py = y + Math.floor(hash2(ty * 3 + k, tx) * 28); A.r(px, py, 3, 2, C.gravel[1 + (k & 1)]); A.hl(px, py, 3, '#ece0c4'); }

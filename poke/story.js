@@ -55,7 +55,7 @@ const ITEM_INFO = {
 const Story = {
     fresh(bg) {
         const st = STORY_START[bg] || STORY_START.archaeologist;
-        return { v: 1, flags: {}, rel: Object.assign({}, st.rel), rep: Object.assign({}, st.rep), money: st.money, tasks: [], clock: 20 * 60 + 30 };
+        return { v: 1, flags: {}, rel: Object.assign({}, st.rel), rep: Object.assign({}, st.rep), money: st.money, tasks: [], clock: (typeof AREAS !== 'undefined' && AREAS[bg] ? AREAS[bg].clock : 20 * 60 + 30) };
     },
     get s() { return Game.story || (Game.story = this.fresh(Game.player.bg)); },
     // load an old save (or one from before the story engine)
@@ -169,7 +169,7 @@ function storyHour() { return (Story.s.clock / 60) % 24; }
 function clockAdvance(mins) {
     const s = Story.s, before = s.clock;
     s.clock = s.flags.ch1_complete ? s.clock + mins : Math.min(CLOCK_END, s.clock + mins);
-    if (typeof storyClockPassed === 'function') storyClockPassed(before, s.clock);
+    if (typeof area === 'function') area().clockPassed(before, s.clock);
 }
 function clockTick(dt) { clockAdvance(Math.min(0.25, dt) * CLOCK_RATE); }
 

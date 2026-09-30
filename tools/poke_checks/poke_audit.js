@@ -73,6 +73,22 @@ const LAUNCH = process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } :
     // is the tent door still reachable with the car there?
     seen = flood(); const td = m.doors.find(d => d.to === 'INT_TENT'); out.car.tentDoorReachable = near(seen, { x: td.x, y: td.y, w: td.w, d: td.h });
     sflag('lena_event', undefined); storySync();
+    // 5. the other areas (each background's opening): everything reachable, every door, every room
+    out.areas = {};
+    for (const bg of Object.keys(AREAS).filter(k => k !== 'archaeologist')) {
+      Game.player.bg = bg; Game.newGame(); Dlg.active = false;
+      const am = Game.maps.ch1, AW = Math.ceil(am.pw / S), AH = Math.ceil(am.ph / S);
+      const aflood = () => { const seen = new Uint8Array(AW * AH), q = [[Math.floor(am.spawn[0] / S), Math.floor(am.spawn[1] / S)]]; seen[q[0][1] * AW + q[0][0]] = 1;
+        while (q.length) { const [i, j] = q.pop(); for (const [a, c] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const x = i + a, y = j + c; if (x < 0 || y < 0 || x >= AW || y >= AH || seen[y * AW + x]) continue; if (World.blocked(am, x * S + 2, y * S, 12, S)) continue; seen[y * AW + x] = 1; q.push([x, y]); } } return seen; };
+      const anear = (seen, e) => { const x0 = e.w ? e.x : e.x - 10, y0 = e.w ? e.y : e.y - 12, x1 = e.w ? e.x + e.w : e.x + 10, y1 = e.w ? e.y + e.d : e.y + 4;
+        for (let x = Math.floor((x0 - 18) / S); x <= Math.floor((x1 + 18) / S); x++) for (let y = Math.floor((y0 - 18) / S); y <= Math.floor((y1 + 22) / S); y++) if (x >= 0 && y >= 0 && x < AW && y < AH && seen[y * AW + x]) return true; return false; };
+      const seenA = aflood(), R2 = { unreachable: [], doorsUnreachable: [], rooms: [], places: am.places.length, things: am.ents.filter(e => e.say || scriptFor(e)).length };
+      for (const e of am.ents) if ((e.say || scriptFor(e)) && !e.gone && !e.nightOnly && !e.noLook && !anear(seenA, e)) R2.unreachable.push(e.id || e.label);
+      for (const d of am.doors) if (!anear(seenA, { x: d.x, y: d.y, w: d.w, d: d.h })) R2.doorsUnreachable.push(d.to);
+      for (const d of am.doors) { try { const r = buildRoom(d.to, area().objects(), [0, 0]); for (const e of r.ents) if ((e.label || e.script) && !(e.say || scriptFor(e))) R2.rooms.push(d.to + ': ' + e.label + ' says nothing'); } catch (err) { R2.rooms.push(d.to + ': ' + err.message); } }
+      out.areas[bg] = R2;
+    }
+    Game.player.bg = 'archaeologist';
     return out;
   });
   console.log(JSON.stringify(R, null, 1));

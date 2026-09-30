@@ -74,10 +74,13 @@ there are no image files.
 
 | File | What it does |
 |---|---|
+| `map_ch1b.js` | What everything at Saqqara says (Chapter 1-B, the Inspector) |
 | `map_ch1.js` | What everything says, and the interiors, exported from the 3D build (generated; don't edit) |
+| `saqqara.js` | Saqqara's tile layout: the necropolis, the inspectorate, Mit Rahina |
 | `camp.js` | The camp's tile layout (where everything goes) and the crisp tile ground |
 | `art.js` | Palette, pixel drawing helpers, colour mixing, the outline pass |
 | `text.js` | Crisp pixel text, DS window frames, place plaques, sound blips, the Egyptian frieze, menu icons |
+| `sprites_ch1b.js` | Saqqara's buildings and landmarks: the Step Pyramid, the Serapeum, the village, the colossus |
 | `sprites.js` | Every building, tent, vehicle, prop, plant, animal, fence and rock wall |
 | `people.js` | Characters built from parts; the creator's options; the cast |
 | `world.js` | Builds the camp from the layout: entities, collision, trees, plants, doors |
@@ -94,6 +97,8 @@ there are no image files.
 | `ch1_places.js` | The Osiris Shaft's three levels, the watchtower, the running supply train, Trench B's stake, the find store's seal |
 | `ch1_rooms.js` | Seven more rooms, with their furniture and scenes: the guard booth, the old Ministry post, Lindqvist's trailer, the dig shed, the mess tent, Hana's tent, the sheikh's tomb |
 | `ch1_scenes.js` | Chapter 1-A's story, ported from the 3D `ch1a_story.js`: every main beat, the midnight car, the exit choice and the chapter-end card |
+| `areas.js` | Which place each background opens in: the map, the objects, the start time, the story hooks |
+| `ch1b_scenes.js` | Chapter 1-B, the Inspector's opening at Saqqara (see `INSPECTOR_TODO.md`) |
 | `backgrounds.js` | The four backgrounds: skills, gear, papers, their paintings and opening cutscenes |
 | `intro.js` | The opening scenes, the background choice, male/female, the character creator, the name grid, your papers |
 | `game.js` | The loop: input, movement and collision, camera, drawing, day/night, doors, saving |

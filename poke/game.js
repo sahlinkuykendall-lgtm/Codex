@@ -43,21 +43,22 @@ const Game = {
         let d = null;
         try { d = JSON.parse(localStorage.getItem(this.SAVE)); } catch (e) { }
         if (!d) return this.newGame();
-        this.resetWorld();
         Object.assign(this.player, { name: d.name, gender: d.gender, choices: d.choices || null, bg: d.bg || 'archaeologist', egyptian: !!d.egyptian, x: d.x, y: d.y, dir: d.dir || 0 });
+        this.resetWorld();                                 // (after the background is known: it decides the area)
         this.journal = d.journal || []; this.bag = d.bag || {}; this.seen = d.seen || {}; this.taken = d.taken || {};
         this.story = Story.restore(d.story);
         if (this.set.time === 5) this.hour = storyHour();
-        Detector.sync(); storySync();                    // (buried spots first: they must not see the parked car)
+        area().sync();                                   // (Giza: buried spots first, they must not see the parked car)
         if (this.set.time === 4 && d.hour != null) this.hour = d.hour;
         for (const e of this.maps.ch1.ents) if (e.id && this.taken[e.id]) World.removeEnt(this.maps.ch1, e);
         this.enter(this.maps.ch1);
         this.state = 'play';
     },
     resetWorld() {
-        this.camp = this.camp || campLayout();
+        const A = area();                                  // the background's own place (poke/areas.js)
+        if (this.campFor !== A) { this.camp = A.layout(); this.campFor = A; }
         CampGround.init(this.camp);
-        this.maps = { ch1: World.buildCamp(this.camp, window.POKE_MAP) };
+        this.maps = { ch1: World.buildCamp(this.camp, A.objects()) };
         this._mm = null;
         this.journal = []; this.bag = { 'Field journal': 1, 'Letter of appointment': 1 }; this.seen = {}; this.taken = {};
         this.story = Story.fresh(this.player.bg); this.lenaCar = null;
@@ -70,8 +71,9 @@ const Game = {
         p.x = m.spawn[0]; p.y = m.spawn[1]; p.dir = DIR.up;
         this.enter(m);
         if (this.set.time === 5) this.hour = storyHour();
-        Detector.sync(); storySync();                    // (buried spots first: they must not see the parked car)
-        systemsNewGame();
+        const A = area();
+        if (!A.giza) { this.state = 'play'; this.hintT = 0; A.newGame(); return; }
+        A.newGame();                                     // (Giza: buried spots first, they must not see the parked car)
         this.state = 'play'; this.hintT = 0;
         // the Rais comes to meet you with a lantern, says his piece (poke/ch1_scenes.js), and walks back to the fire
         const rais = World.addEnt(m, { x: p.x, y: p.y - 34, w: 0, d: 0, label: 'Rais Abdallah', person: { sheet: personSheet(LOOKS.rais), dir: DIR.down, frame: 0 }, sortY: p.y - 34, light: { x: 6, y: -12, r: 64, c: '#ffd080' } });
@@ -101,7 +103,7 @@ const Game = {
     bagList() {
         const DESC = { 'Field journal': 'Your field journal. Everything you look at goes into it (JOURNAL, in the menu).', 'Letter of appointment': 'The Ministry\'s letter: you are acting director of the Giza Western Field concession, effective immediately.', 'Painted sherd': 'Painted pottery sherds from the surface. Late Period, mostly. Hana will want to see them.', 'Fossil': 'Nummulites: coin-shaped fossils from the limestone the pyramids are built of. Herodotus thought they were the builders\' lentils.' };
         const key = k => ITEM_INFO[k] && ITEM_INFO[k].key ? 1 : 0;
-        const watch = ['Watch   ' + clockStr(), 'Your watch. It is ' + this.clockText().replace('  ', ', ') + '.' + (this.story && !sflag('ch1_complete') ? (Story.s.clock < 24 * 60 ? ' Midnight in ' + (l => (l >= 60 ? Math.floor(l / 60) + ' h ' : '') + Math.ceil(l % 60) + ' min.')(24 * 60 - Story.s.clock) : ' The night ends at 04:40.') : '')];
+        const watch = ['Watch   ' + clockStr(), 'Your watch. It is ' + this.clockText().replace('  ', ', ') + '.' + (this.story && area().watch ? area().watch() : '')];
         return [watch].concat(Object.keys(this.bag).sort((a, b) => key(b) - key(a)).map(k => [(key(k) ? '★ ' : '') + k + (k === 'Canteen' ? '  (' + (sflag('canteen') ?? 3) + '/3)' : this.bag[k] > 1 ? '  ×' + this.bag[k] : ''), (DESC[k] || (ITEM_INFO[k] && ITEM_INFO[k].desc) || '') + (ITEM_USE[k] && k !== 'Canteen' ? '  (SPACE: use it.)' : ''), k]));
     },
     findCount() { return (this.bag['Painted sherd'] || 0) + (this.bag['Fossil'] || 0); },
@@ -109,7 +111,7 @@ const Game = {
     placeName() {
         if (this.map && !this.map.outdoor) return this.map.name;
         const p = this.nearPlace();
-        return p ? p.name : 'THE GIZA PLATEAU';
+        return p ? p.name : area().name;
     },
     nearPlace() {
         const m = this.maps.ch1, [x, y] = this.outdoorPos();
@@ -123,7 +125,7 @@ const Game = {
     miniMap() {
         if (this._mm) return this._mm;
         const L = this.camp, [c, g] = mk(L.W, L.H), A = pa(g);
-        const COL = { [T.SAND]: '#ecd49a', [T.PATH]: '#c89e62', [T.ROCK]: '#9a7e58', [T.WATER]: '#4a98dc', [T.DIG]: '#5a422a', [T.STONE]: '#e8dcc0', [T.RAIL]: '#5a5048', [T.GRAVEL]: '#b8a882' };
+        const COL = { [T.SAND]: '#ecd49a', [T.PATH]: '#c89e62', [T.ROCK]: '#9a7e58', [T.WATER]: '#4a98dc', [T.DIG]: '#5a422a', [T.STONE]: '#e8dcc0', [T.RAIL]: '#5a5048', [T.GRAVEL]: '#b8a882', [T.FIELD]: '#5aa048', [T.ROAD]: '#77726c', [T.YARD]: '#e8c98e' };
         for (let y = 0; y < L.H; y++) for (let x = 0; x < L.W; x++) A.px(x, y, COL[L.get(x, y)]);
         for (const e of this.maps.ch1.ents) if (e.spr && e.w >= TILE * 2 && !e.spr.flat) A.r(e.x / TILE, e.y / TILE, e.w / TILE, Math.max(1, e.d / TILE), '#804c28');
         for (const [tx, ty] of L.trees) A.px(tx, ty, '#388030');
@@ -184,18 +186,18 @@ const Game = {
         if (Dlg.active) { Dlg.update(dt, I); return; }
         if (this.fade) return;
         clockTick(dt);                                     // story time passes only while you're free to walk about
-        storyFrame(dt);                                    // the story's timed events, and the world matching the story
+        area().frame(dt);                                  // the story's timed events, and the world matching the story
+        const gz = area().giza;
         if (I.menu) { Menu.toggle(); return; }
         if (I.map) { WorldMap.show(0); return; }
-        if (Detector.dig) { Detector.update(dt); return; }            // kneeling, digging
-        if (I.tool && Detector.toggle()) return;
+        if (gz && Detector.dig) { Detector.update(dt); return; }      // kneeling, digging
+        if (gz && I.tool && Detector.toggle()) return;
         if (I.phone) { Phone.toggle(); return; }
         this.movePlayer(dt);
-        Detector.update(dt);
-        Bosta.update(dt);
+        if (gz) { Detector.update(dt); Bosta.update(dt); }
         this.target = this.findTarget();
         if (I.cam) takePhoto();
-        if (I.ok && Detector.on && Detector.pin) Detector.startDig();
+        if (gz && I.ok && Detector.on && Detector.pin) Detector.startDig();
         else if (I.ok && this.target) this.examine(this.target);
         // walked into a named place for the first time?
         if (this.map.outdoor) { const p = this.nearPlace(); if (p && p !== this.lastPlace) { this.lastPlace = p; Banner.show(p.name); this.seen[p.id] = 1; } else if (!p) this.lastPlace = null; }
@@ -229,7 +231,7 @@ const Game = {
         else if (p.y > m.exit.y) this.goOutside();
     },
     goInside(d) {
-        if (storyDoor(d)) { this.player.y += 6; return; }            // the story stops you at the door (someone's in there)
+        if (area().door(d)) { this.player.y += 6; return; }            // the story stops you at the door (someone's in there)
         const back = [d.x + d.w / 2, d.y + d.h + 10];
         Sfx.door();
         this.fadeTo(() => {
@@ -237,7 +239,7 @@ const Game = {
             room.back = back;
             this.player.x = room.spawn[0]; this.player.y = room.spawn[1]; this.player.dir = DIR.up;
             this.enter(room);
-            storyOnEnter(d.to);
+            area().onEnter(d.to);
             const def = ROOMS[d.to];                                   // the first time in: what the building is
             if (def.enter && !sflag('in_' + d.to)) { sflag('in_' + d.to, true); Dlg.open(def.enter[0], def.enter[1]); }
         });
@@ -261,7 +263,7 @@ const Game = {
         const night = this.light().dark > 0.5;
         let best = null, bd = 22;
         const px = p.x, py = p.y - 5;
-        const dogT = Bosta.talkable();
+        const dogT = area().giza && Bosta.talkable();
         for (const e of dogT ? m.ents.concat([dogT]) : m.ents) {
             if (!(e.say || scriptFor(e)) || e.gone || e.noLook || (e.nightOnly && !night)) continue;
             let rx, ry, rw, rh;
@@ -363,8 +365,7 @@ const Game = {
         }
         const me = { person: p, x: p.x, y: p.y, sortY: p.y, me: true };
         vis.push(me);
-        const coil = m.outdoor && Detector.coil(p); if (coil) vis.push(coil);
-        const dog = Bosta.ent(); if (dog) vis.push(dog);
+        if (area().giza) { const coil = m.outdoor && Detector.coil(p); if (coil) vis.push(coil); const dog = Bosta.ent(); if (dog) vis.push(dog); }
         vis.sort((a, b) => a.sortY - b.sortY);
         // soft shadows first, so they fall on the ground and never across a sprite
         g.fillStyle = 'rgba(64,40,24,0.2)';
@@ -409,7 +410,7 @@ const Game = {
             }
             g.globalCompositeOperation = 'multiply'; g.drawImage(this.tintC, 0, 0); g.globalCompositeOperation = 'source-over';
         }
-        if (m.outdoor) Detector.drawWorld(g, cx, cy);
+        if (m.outdoor && area().giza) Detector.drawWorld(g, cx, cy);
         // name tag over what you're facing, and the door you're near
         if (!Dlg.active && this.set.names) {
             const t = this.target;
@@ -419,7 +420,7 @@ const Game = {
         Banner.draw(g);
         Toast.draw(g, 1 / 60);
         Notice.draw(g, 1 / 60);
-        Detector.drawHud(g);
+        if (area().giza) Detector.drawHud(g);
         if (this.hintT < 14 && !Dlg.active) Txt.draw(g, 'MOVE: WASD / arrows    RUN: Shift    LOOK / TALK: Space    MAP: M    MENU: Esc', VW >> 1, VH - 14, { col: '#ffffff', shadow: '#30302c', align: 'center' });
         if (Dlg.active) Dlg.draw(g);
     },

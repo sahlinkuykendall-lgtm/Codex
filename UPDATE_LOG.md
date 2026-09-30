@@ -12,6 +12,52 @@ Other docs:
 
 ---
 
+## POKE-STYLE P0.23 — 2026-09-30 — (branch `poke-style`) The Inspector's opening begins: Saqqara (Chapter 1-B, step 1)
+- **The Inspector is playable.** Pick the Inspector and their three intro scenes play (the
+  ledger, the Director's office, Saqqara). Then you arrive at the inspectorate at 08:30 on
+  a Tuesday morning. The plan for the rest is in `poke/INSPECTOR_TODO.md`, taken from the
+  bible's Ch1-B.
+- **Each background has its own place** (`poke/areas.js`): its own map, what things say,
+  when its clock starts, and its story hooks. The Archaeologist's Giza is unchanged, pixel
+  for pixel.
+- **Saqqara** (`poke/saqqara.js`) is 80×58 tiles, the same size as the Giza camp:
+  - **the desert necropolis:**
+    - the Step Pyramid of Djoser inside its panelled enclosure wall, entered by the one
+      real gate
+    - the Heb-Sed chapels, the serdab (Djoser looks out through its holes) and the South
+      Tomb's cobra frieze
+    - the Serapeum's steps down to its locked gate in the cliff, and the ghaffir's hut
+    - the Teti pyramid (a hill of its own rubble) and its dig with Rais Gad
+    - a field of mastabas, one with a fresh robbers' hole
+    - the sealed tomb in the far corner, with a faint painted river, a woman and a boy
+  - **the inspectorate compound** on the escarpment's edge
+  - **the coach park:** a tour coach, camels, a souvenir stall
+  - **Mit Rahina, down in the green:**
+    - fields and canals, and palm groves
+    - village houses, some with the Hajj painted by the door
+    - the mosque and its minaret, the café, the bakery, the village well
+    - the market stalls, the garage, a tuk-tuk, a donkey cart
+    - the museum garden with the fallen colossus of Ramesses II and the alabaster sphinx
+  - new ground: fields of clover, wheat and onions, and asphalt roads
+- **The people follow the bible.** Umm Sabry, Samy Ragab and Rais Gad are on the map, and
+  Director Fathi is in his office. All of them have new looks, and nobody comes over from
+  Giza. Everyone else is a nameless local.
+- **Beat 1:**
+  - tea with Umm Sabry: Samy stayed late, and "a black car comes for the Director on
+    Tuesdays"; her price is gossip, so there's a task to find who's romancing the
+    accountant
+  - the Director: "File it as a clerical error."
+  - inside the inspectorate: the scratched-out ledger line (Miriam's signature) and Shelf
+    4B, empty, the label in Samy's hand
+- **Water and food, as the rule says:**
+  - water: the village well, water jars at the inspectorate, the Teti dig and the
+    Serapeum, the office cooler
+  - food: bread at the bakery, ful and ta'ameya at the café, oranges from the fruit stall
+- **The Inspector's Investigation skill** (from the bible) is added to the skills.
+- **The audit checks every area now.** Saqqara: 11 places, 66 things to look at, all
+  reachable; its door and room are fine; 167 scenes, no errors. Giza's look check: 33 of 33
+  views identical. The Giza playthroughs are clean.
+
 ## POKE-STYLE P0.22 — 2026-09-30 — (branch `poke-style`) The road lamps, evenly placed
 - **One rule for every road lamp:** exactly eight tiles apart and always on the same side.
   - main road: the west kerb, from the dig gate to the way out (5 lamps)

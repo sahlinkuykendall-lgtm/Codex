@@ -20,12 +20,12 @@ const SKILLS = {
     excavation: 'Excavation', hieroglyphs: 'Hieroglyphs', greek: 'Greek', coptic: 'Coptic',
     arabic: 'Egyptian Arabic', arabicRead: 'Arabic reading', photography: 'Photography', stealth: 'Stealth',
     climbing: 'Climbing', riding: 'Riding', firstAid: 'First aid', lockpicking: 'Lockpicking',
-    haggling: 'Haggling', diving: 'Diving', desert: 'Desert survival',
+    haggling: 'Haggling', diving: 'Diving', desert: 'Desert survival', investigation: 'Investigation',
 };
 const SKILL_XP = [0, 100, 250, 450, 700, 1000];      // total XP for levels 0..5
 const BG_SKILLS = {                                    // story/01_CHARACTERS.md
     archaeologist: { excavation: 3, hieroglyphs: 2, greek: 1, coptic: 1, photography: 1, firstAid: 1 },
-    inspector: { arabic: 5, arabicRead: 5, hieroglyphs: 2, excavation: 1, stealth: 1 },
+    inspector: { arabic: 5, arabicRead: 5, hieroglyphs: 2, investigation: 2, excavation: 1, stealth: 1 },
     fixer: { arabic: 3, lockpicking: 2, haggling: 3, diving: 1, stealth: 1 },
     journalist: { photography: 3, stealth: 1, haggling: 1, arabic: 1 },
 };

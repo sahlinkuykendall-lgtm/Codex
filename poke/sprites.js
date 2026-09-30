@@ -750,12 +750,12 @@ SPR_L['stone wall'] = SPR_L['old limestone wall'] = (w, d) => {
 // little grit), drawn back to front a pixel at a time and shaded by its slope, lit from the upper
 // left in four flat tones, with pebbles, an outline and a soft shadow at its foot. Each heap in
 // the dig zone has its own size; Trench B's (ow_spoil) is fresher, the earth still dark.
-const SPOIL_SIZE = { fl_spoil: [1, 1], ow_spoil: [0.86, 1.15, true], d_spoil2: [0.74, 0.9], d_spoil3: [0.6, 0.85] };
+const SPOIL_SIZE = { fl_spoil: [1, 1], ow_spoil: [0.86, 1.15, true], d_spoil2: [0.74, 0.9], d_spoil3: [0.6, 0.85], c1b_teti: [1, 1.9, 'rock'], c1b_tetispoil: [0.9, 1.1, true] };   // (Saqqara: the Teti pyramid is a mound of its own rubble)
 SPR_L['spoil mound'] = SPR.ow_spoil = (w, d, o) => {
     const [k, hk, fresh] = SPOIL_SIZE[o.id] || [0.9, 1], R = rng(o.id);
     const rx = Math.max(10, Math.round(w / 2 * k) - 2), ry = Math.max(6, Math.round(d / 2 * k) - 1), H = Math.round(Math.min(rx, 34) * 0.62 * hk);
     const UP = Math.round(H * 1.5) + 8, st = stage(w, d + 6, UP), { A } = st, cx = st.x + (w >> 1), cy = st.y + (d >> 1) + 2;   // (room above for the lumps)
-    const P = fresh ? ['#d4b274', '#b89456', '#98763e', '#74562c', '#523a1c'] : [PAL.sand[1], PAL.sand[2], PAL.sand[3], PAL.sand[4], PAL.rock[4]];
+    const P = fresh === 'rock' ? ['#e4d2a8', '#c8b088', '#a88e68', '#86704e', '#5a4832'] : fresh ? ['#d4b274', '#b89456', '#98763e', '#74562c', '#523a1c'] : [PAL.sand[1], PAL.sand[2], PAL.sand[3], PAL.sand[4], PAL.rock[4]];
     const lumps = [0, 1, 2].map(() => ({ x: cx + (R() - 0.5) * rx, y: cy + (R() - 0.5) * ry * 0.8, r: rx * (0.35 + R() * 0.25), h: H * (0.14 + R() * 0.18) }));
     const z = (x, y) => {
         const e = ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2; if (e >= 1) return -1;
