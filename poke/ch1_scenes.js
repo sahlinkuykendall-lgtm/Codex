@@ -88,12 +88,13 @@ scene('c1a_hana', {
             c.push({ text: n >= 3 ? 'Give her three painted sherds.' : '"Still looking for your sherds." (you have ' + n + ' of 3)', onSelect: () => {
                 if (!hasItem('Painted sherd', 3)) return;
                 dropItem('Painted sherd', 3);
-                sflag('hana_q', 'done'); rel('hana', 15); taskDone('hana_sherds');
+                sflag('hana_q', 'done'); sflag('hana_valuation', true); rel('hana', 15); taskDone('hana_sherds');
                 storyNote('Hana\'s conservation (side quest)', 'Done. Hana joined the sherds: one potter, one ibis. She gave you a stick of conservation wax, "for anything you need to close again without anyone knowing."');
                 startDialogue('c1a_hana_done');
             } });
         }
         if (sflag('injured') && !sflag('patched')) c.push({ text: '"Could you look at this cut?"', nextScene: 'c1a_hana_aid' });
+        if (hasItem('Faience amulet (Eye of Horus)')) c.push({ text: 'Show her the Eye of Horus from the looters\' pit.', nextScene: 'c1a_hana_amulet' });
         c.push({ text: '"Goodnight, Hana."', onSelect: c1aMetHana });
         return c;
     },
@@ -192,6 +193,7 @@ function storySync() {
         const open = !!sflag('gate_open');
         if (gate.isOpen !== open) { gate.isOpen = open; gate.spr = open ? gate.sprOpen : gate.sprLocked; World.setSolid(m, gate.lock, !open); }
     }
+    Bosta.sync();
     const here = sflag('lena_event') === 'searching';
     for (const e of m.ents) if (e.lenaEvent) e.gone = !here;
     if (here && !Game.lenaCar) {
@@ -232,6 +234,7 @@ scene('c1a_rais', {
     },
     get choices() {
         const c = [], p = sflag('payroll');
+        if (hasItem('Glass plate photograph') && !sflag('rais_photo')) c.push({ text: 'Show him the glass plate photograph from 1926.', nextScene: 'c1a_rais_photo' });
         if (!p || p === 'delayed') c.push({ text: p === 'delayed' ? '"About the wages. I\'ve thought again."' : '"Tell me about the wages."', nextScene: 'c1a_pay' });
         if (!sflag('rais_miriam')) c.push({ text: '"What do you think happened to Miriam?"', nextScene: 'c1a_rais_miriam' });
         if (sflag('gate_open')) c.push({ text: '"Tell me about the trenches."', nextScene: 'c1a_rais_trenches' });
@@ -666,7 +669,8 @@ scene('c1a_lena_photo', {
 });
 scene('c1a_lena_confront', {
     speaker: 'The Woman in Black',
-    text: () => `The torches swing onto you. The two men move apart, the way people move who expect trouble. The woman doesn't move at all.\n\n"${PC.doctor}." She knows your name. "Lena Brandt. Security, Vasse Foundation. The Foundation funds this site. We're recovering property belonging to our client."\n\nShe holds out a card between two fingers.`,
+    text: () => `The torches swing onto you. The two men move apart, the way people move who expect trouble. The woman doesn't move at all.\n\n"${PC.doctor}." She knows your name. "Lena Brandt. Security, Vasse Foundation. The Foundation funds this site. We're recovering property belonging to our client."\n\nShe holds out a card between two fingers.` +
+        (Bosta.near() ? `\n\nAt your heel, every hair on Bosta's back is standing up, and she is making a sound like an engine that doesn't want to start. The woman looks at the dog, not at you, for a long moment.` : ''),
     choices: [
         { text: '"Get out of my camp."', onSelect: () => { rel('lena', 5, true); sflag('met_lena', true); }, nextScene: 'c1a_lena_out' },
         { text: '"What property?"', onSelect: () => sflag('met_lena', true), nextScene: 'c1a_lena_book' },

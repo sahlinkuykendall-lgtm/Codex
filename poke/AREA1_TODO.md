@@ -115,7 +115,11 @@ tints (`Game.hour`, `light()`), so tie them to the story clock.
 9. **The chapter-end card** lists the choices that carry forward. Then you can keep
    exploring, or go to the title.
 
-## 4. Side quests (bible §SIDE QUESTS, SQ-01A-01 to 11)
+## 4. Side quests (bible §SIDE QUESTS, SQ-01A-01 to 11) — ✅ DONE in P0.12
+> Done in `poke/ch1_side.js` and `poke/bosta.js` (Hana's sherds are in `ch1_scenes.js`, the
+> caches and relics in `detector.js`). Bosta follows as a new sprite; at home she's the
+> original fire sprite. Tea and darts call `playMinigame()` stand-ins until step 5.
+
 | Quest | What happens |
 |---|---|
 | The Rais's Son | Mina's 1,500 EGP debt to Hagg Sayed: pay it, hand over the darts winnings, or race Hagg Sayed on horseback (three choices during the race) |

@@ -19,7 +19,7 @@ const BURIED_3D = [
     ['IRON', 5, () => pocket('Thermos of karkadeh')],
     ['BRASS', 4, () => storyPay(60, 'Scrap brass')],
     ['TIN', 3, () => pocket('Tin compass')],
-    ['ALLOY', 7, () => { pocket("Miriam's spare phone"); storyPay(150, 'In the phone case'); sflag('spare_phone', true); c1aCache('phone'); }],
+    ['ALLOY', 7, () => { pocket("Miriam's spare phone"); storyPay(150, 'In the phone case'); sflag('spare_phone', true); c1aCache('phone'); if (!sflag('c1_exit')) startDialogue('c1a_phone_found'); }],
     ['IRON', 4, () => { pocket("Hamid's multitool"); }],
     ['TIN', 4, () => pocket('Tin of dried mint')],
     ['BRASS', 8, () => { pocket('Field glasses'); sflag('field_glasses', true); c1aCache('glasses'); }],
@@ -98,6 +98,7 @@ function c1aCache(what) {
 }
 function c1aRelic() {
     const n = (sflag('relics_1926') || 0) + 1; sflag('relics_1926', n);
+    if (n >= 4) c1aRelicsDone();
     storyNote('The truck of 1926 (side quest)', 'Relics of the 1926 Harvard–Boston expedition, dug up round the camp: ' + n + ' of 4.' + (sflag('plate_photo') ? ' One is a glass plate of the 1926 workmen, and the boy in front has the Rais\'s face.' : ''));
     storyNotice('1926 relic ' + n + ' of 4.');
 }

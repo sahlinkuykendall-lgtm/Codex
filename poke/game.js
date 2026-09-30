@@ -62,6 +62,7 @@ const Game = {
         this.journal = []; this.bag = { 'Field journal': 1, 'Letter of appointment': 1 }; this.seen = {}; this.taken = {};
         this.story = Story.fresh(this.player.bg); this.lenaCar = null;
         Detector.spots = []; Detector.on = false; Detector.dig = null;
+        Object.assign(Bosta, { x: 0, y: 0, crumbs: [], still: 0, awake: false, warned: false });
     },
     newGame() {
         this.resetWorld();
@@ -186,6 +187,7 @@ const Game = {
         if (I.tool && Detector.toggle()) return;
         this.movePlayer(dt);
         Detector.update(dt);
+        Bosta.update(dt);
         this.target = this.findTarget();
         if (I.ok && Detector.on && Detector.pin) Detector.startDig();
         else if (I.ok && this.target) this.examine(this.target);
@@ -245,7 +247,8 @@ const Game = {
         const night = this.light().dark > 0.5;
         let best = null, bd = 22;
         const px = p.x, py = p.y - 5;
-        for (const e of m.ents) {
+        const dogT = Bosta.talkable();
+        for (const e of dogT ? m.ents.concat([dogT]) : m.ents) {
             if (!(e.say || scriptFor(e)) || e.gone || (e.nightOnly && !night)) continue;
             let rx, ry, rw, rh;
             if (e.person) { rx = e.x - 8; ry = e.y - 12; rw = 16; rh = 14; }
@@ -274,6 +277,7 @@ const Game = {
             if (e.pickup) {
                 this.bag[e.pickup] = (this.bag[e.pickup] || 0) + 1; this.taken[e.id] = 1;
                 World.removeEnt(this.map, e); Sfx.get(); Toast.show('Got a ' + e.pickup.toLowerCase() + '!');
+                storyPickup(e.pickup);
             }
         });
     },
@@ -342,6 +346,7 @@ const Game = {
         const me = { person: p, x: p.x, y: p.y, sortY: p.y, me: true };
         vis.push(me);
         const coil = m.outdoor && Detector.coil(p); if (coil) vis.push(coil);
+        const dog = Bosta.ent(); if (dog) vis.push(dog);
         vis.sort((a, b) => a.sortY - b.sortY);
         // soft shadows first, so they fall on the ground and never across a sprite
         g.fillStyle = 'rgba(64,40,24,0.2)';

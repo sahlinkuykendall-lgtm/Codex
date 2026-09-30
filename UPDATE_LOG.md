@@ -12,6 +12,51 @@ Other docs:
 
 ---
 
+## POKE-STYLE P0.12 — 2026-09-30 — (branch `poke-style`) The side quests (Area 1, step 4)
+- **All eleven side quests from the bible**, ported from the 3D build with its words and
+  rewards (`poke/ch1_side.js`, `poke/bosta.js`):
+  1. **The Rais's Son:** pay Mina's 1,500 EGP, hand over the darts winnings, or **race Hagg
+     Sayed** on his old grey mare at the camp gate. Three choices during the race decide
+     it. Win and the debt is gone (Rais +15).
+  2. **Hana's Conservation:** the three sherds give you the wax and now **Hana's
+     valuation**: +20% on the sherd set. Find **all eight sherds** and the register pays
+     for the set (250 EGP, 300 with her valuation), and they join into Thoth's ibis.
+  3. **The Tea Boy's Secret:** Saber only talks to someone who pours a proper glass (the
+     kettle by the fire), then tells you about Lindqvist's burn bin. A glass of mint tea
+     is also what Farouk would rather have than money.
+  4. **The Truck of 1926:** the glovebox diary (the old woman with a lamp, "one of the
+     Keepers"). The four relics dug with the detector get logged with the Ministry
+     (600 EGP, Ministry +5), and showing the Rais the glass plate of his grandfather is
+     Rais +12.
+  5. **Supply Line Blues:** Uncle Hamid's coupling pin, in the sorted crates (1,500 EGP,
+     workmen +10). Dig up his lost multitool and he'll be glad of it (50 EGP).
+  6. **Miriam's Caches:** dig up her spare phone and you can **call "A.S."**, then or
+     later from Miriam's desk. That's Amira, early (Amira +12), and the legal exit
+     remembers that you kept your promise.
+  7. **Darts Night:** a 200 EGP stake; beat the Rais's 132 for 2,000 EGP and the nickname
+     "Abu Ramy".
+  8. **Bosta:** wake the camp dog, scratch her ears, give her dates (Miriam's cache, the
+     Bedouin shelter) and **she follows you**. She trots along the way you walked, sits
+     when you stop, and lies down if you wait. Teach her to sit three times and she gives
+     you her paw. At midnight she barks at the car and growls at Lena. She has new
+     walking and sitting frames in the camp's style. While she's at home she's the same
+     dog by the fire as before.
+  9. **Pharaoh's Lentils:** the five fossils on the fossil pavement.
+  10. **The Lamp at the Tomb:** the old woman at the sheikh's tomb (at night) knows Miriam
+      is "somewhere safe" and gives you the Keepers' tile (Keepers +5). You can also light a
+      candle at the tomb.
+  11. **The Looters' Pit:** take the faience Eye of Horus the robbers missed, or leave it
+      for the Ministry. Show it to Hana and she'll log it for the inspectorate.
+- Also: Hana's finds tray, and dates at the Bedouin shelter.
+- **Skills** have their starting levels by background now (the Archaeologist: Excavation 3,
+  Hieroglyphs 2), with XP building up for step 6.
+- **Stand-ins until step 5:** pouring tea always works, and darts is a random score that
+  beats the Rais about half the time, so the 2,000 EGP isn't free. The race is choices, as
+  the bible has it.
+- Tested: every quest start to finish, Bosta following, sitting, pawing and growling, and
+  save and load with her following. The main story still plays through, and the camp's
+  33 views are pixel-identical to P0.11.
+
 ## POKE-STYLE P0.11 — 2026-09-30 — (branch `poke-style`) The detector, rebalanced
 - **The detector is no longer a money printer.** Digging up all 40 spots paid about
   3,350 EGP (42% of your starting money), enough to make the payroll choice free. It now

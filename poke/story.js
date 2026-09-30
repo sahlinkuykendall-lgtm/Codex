@@ -92,6 +92,14 @@ function rep(f, delta, quiet) {
 
 // ---- skills (step 6 builds skills and levels; until then XP is kept for them) ----
 function skillXP(skill, n) { const x = Story.s.xp || (Story.s.xp = {}); x[skill] = (x[skill] || 0) + n; }
+// a background's starting levels (story/01_CHARACTERS.md), plus a level per 100 XP until step 6 does it properly
+const SKILL_START = {
+    archaeologist: { english: 5, excavation: 3, hieroglyphs: 2, french: 1 },
+    inspector: { arabic: 5, hieroglyphs: 2, investigation: 2 },
+    fixer: { arabic: 3, lockpicking: 2, haggling: 3, diving: 1 },
+    journalist: { english: 5, french: 2, photography: 3, investigation: 2 },
+};
+function skillLevel(skill) { return ((SKILL_START[Game.player.bg] || {})[skill] || 0) + Math.floor(((Story.s.xp || {})[skill] || 0) / 100); }
 
 // ---- money ----
 function money() { return Story.s.money; }
@@ -168,7 +176,12 @@ function clockTick(dt) { clockAdvance(Math.min(0.25, dt) * CLOCK_RATE); }
 // ---- minigames ----
 // playMinigame(kind, opts, done): step 5 draws the real ones (sieve, tea, darts, the race).
 // Until then this stands in for them and reports a plain success, so the story can go on.
-function playMinigame(kind, opts, done) { Sfx.ok(); done(Object.assign({ ok: true }, opts || {})); }
+function playMinigame(kind, opts, done) {
+    Sfx.ok();
+    const r = Object.assign({ ok: true }, opts || {});
+    if (kind === 'darts') r.score = 96 + Math.floor(Math.random() * 64);          // a stand-in round: beats the Rais's 132 about half the time
+    done(r);
+}
 
 // ============================================================
 // SCENES
