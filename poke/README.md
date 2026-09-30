@@ -106,6 +106,7 @@ there are no image files.
 | `ch1b_serapeum.js` | Chapter 1-B beat 4: waiting for night, the Serapeum's galleries (a dark room of granite bull coffins), the night ghaffir's patrol, Samy's drop in the service room, the Codex, and the black car |
 | `ch1b_radwan.js` | Chapter 1-B beat 5: the black car at midnight, Colonel Radwan, Fathi's sealed (empty) box, and listening in without being seen |
 | `ch1b_panic.js` | Chapter 1-B beat 6: the ghaffir's message, the dart pistol, Samy searching the galleries with a torch and a knife, and the standoff (talk, dart or run; expose him or let him flee) |
+| `ch1b_exit.js` | Chapter 1-B beat 7: Miriam's note inside the Codex, Karim's offer, the exit choice (quiet, legal, deal), the chapter-end card, and Umm Sabry's Saqqara story |
 | `backgrounds.js` | The four backgrounds: skills, gear, papers, their paintings and opening cutscenes |
 | `intro.js` | The opening scenes, the background choice, male/female, the character creator, the name grid, your papers |
 | `game.js` | The loop: input, movement and collision, camera, drawing, day/night, doors, saving |

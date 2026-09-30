@@ -12,6 +12,44 @@ Other docs:
 
 ---
 
+## POKE-STYLE P0.34 — 2026-09-30 — (branch `poke-style`) Miriam's note and the way out: the Inspector's opening can be finished (Chapter 1-B, step 7)
+- **Beat 7** (from the bible), the end of the Inspector's story.
+- **Look at the Codex properly,** somewhere nobody can see you: SPACE on it in your bag, or
+  "Sit on the bench, and look at the Codex properly" at the ghaffir's hut. Leaves of papyrus
+  in a leather cover with a long flap, like the Nag Hammadi books; Greek, with little marks
+  in the margin that look like hieroglyphs and aren't. Inside the flap, folded small, a note
+  in pencil, in the same hand as the logbook entry three days ago, Dr. M. Hale:
+  *"Father Bishoy. El-Fishawy. Thursday. Don't trust the police."* She logged it into a
+  police-and-Ministry evidence store, and hid a note in it saying not to trust the police.
+- **A message from an unknown number:** "Inspector. We both know where the brick came from.
+  5,000 pounds to hold it for a week, somewhere safe, and nobody gets hurt. Then we talk. K."
+- **The exit choice** (`c1_exit`):
+  - **quiet:** a leave form the Director signs without reading; by noon, a microbus to
+    Cairo with the Codex at the bottom of a bag of oranges. Nobody knows you have it
+  - **legal:** Dr. Amira Sayed (Manuscripts, from the Ministry directory on your service
+    phone) comes herself; with the Director watching "like a man at his own funeral", you
+    log the Codex back in properly, her signature beside yours, and give her Karim's name
+    (and Samy's, unless you let him flee). rel Amira +15, rep Ministry +10
+  - **deal:** "A week." At dawn a boy on a scooter hands you 5,000 pounds in used fifties.
+    Rep Gebali +10. The Gebali always collect
+- **The chapter-end card** (END OF CHAPTER ONE · SAQQARA) lists what carries forward: the
+  exit, what happened to Samy, Karim by the sphinx, Radwan and the empty box, the forged
+  seal, the cigarettes, Umm Sabry's story, the night ghaffir. Then "Thursday, Café
+  El-Fishawy, Cairo. Father Bishoy is waiting for someone who isn't coming." Keep exploring
+  Saqqara, or back to the title (the button no longer says "the camp" at Saqqara).
+- **Umm Sabry's Saqqara story** (the Inspector-only lore seed from the bible): after the
+  tea, by day, ask her for one. Setne, son of Ramesses, and the tomb of the magician
+  Naneferkaptah, where the magician's drowned wife and son sat beside him: "That book cost us
+  everything. Leave it." The tomb is somewhere at the edge where the sand comes in, "the
+  magician's wife and son painted on the wall by the river" (the sealed tomb in the far
+  corner has that paint).
+- **The Inspector's main story is complete,** from tea with Umm Sabry to the end card.
+  Next on the list: the side quests, the jobs, the seal register, the secrets, and the
+  rooms (steps 8 to 11 of `poke/INSPECTOR_TODO.md`).
+- Tested: reading from the bag and from the bench, all three exits (each after a different
+  end for Samy), the end card, and Umm Sabry's story. The audit is clean (227 scenes), the
+  playthroughs and the earlier Inspector flows pass, and Giza's 33 views are identical.
+
 ## POKE-STYLE P0.33 — 2026-09-30 — (branch `poke-style`) Samy's panic: the standoff in the galleries (Chapter 1-B, step 6); softer fields
 - **Beat 6, Samy's panic** (from the bible). Karim's man opened the cooler bag and found a
   brick. A while after the black car has gone, your phone buzzes: the old ghaffir. "Samy

@@ -90,7 +90,7 @@ const Panic = {
         sflag('c1b_standoff_done', true); sflag('ch1b_samy_fate', fate); taskDone('c1b_standoff');
         if (this.samy) World.removeEnt(this.map, this.samy);
         const g = this.map && this.map.ents.find(e => e.id === 'c1b_nightghaf'); if (g) g.gone = true;          // (gone up the steps to his father)
-        task('c1b_note', 'The night is nearly over. Somewhere quiet, look at the Codex properly. (Beat 7, Miriam\'s note and the way out, comes in the next update.)');
+        task('c1b_note', 'The night is nearly over. Somewhere nobody can see you, look at the Codex properly: SPACE on it in your bag (Esc → BAG), or sit on the ghaffir\'s bench.');
     },
 };
 // hand the galleries over to Panic while it's on (poke/ch1b_serapeum.js does the rest of the time)

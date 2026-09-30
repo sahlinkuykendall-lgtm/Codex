@@ -148,7 +148,22 @@ Samy comes looking for the Codex with a torch and a knife: a standoff in the gal
 - **Expose him to Fathi** → `ch1b_samy_exposed` ★ (Karim's crews are Cold to you in Ch2).
 - **Let him flee** → Samy becomes a small Ch2 informant (he owes you).
 
-## 7. Beat 7: Miriam's note, and the exit
+## 7. Beat 7: Miriam's note, and the exit — ✅ DONE in P0.34 (the main story is complete)
+> Done in `poke/ch1b_exit.js`:
+> - look at the Codex somewhere nobody can see you (SPACE on it in the bag, or the
+>   ghaffir's bench): in the flap, Miriam's note, "Father Bishoy, El-Fishawy, Thursday.
+>   Don't trust the police."
+> - a message from an unknown number: Karim, who can count bricks, offering 5,000 to hold it
+> - `c1_exit`: **quiet** (leave, a microbus to Cairo, the Codex in a bag of oranges),
+>   **legal** (Dr. Amira Sayed comes herself; the Codex logged back in with her signature;
+>   rel_amira +15, rep_ministry +10; Karim's name given, and Samy's too unless you let him
+>   flee, so the two choices don't fight), **deal** (5,000 EGP by a boy on a scooter; rep
+>   Gebali +10; you owe them)
+> - the chapter-end card (SAQQARA), with what carries forward
+> - **the lore seed:** Umm Sabry's Saqqara story (after the tea, by day): Setne and the
+>   tomb of Naneferkaptah, "the magician's wife and son are painted on the wall by the
+>   river" (`ch1b_tomb_story`; the sealed tomb in the far corner matches)
+
 Inside the Codex's flap: *"Father Bishoy, El-Fishawy, Thursday. Don't trust the police."*
 Then the exit choice `c1_exit`:
 - **Quiet:** take it home and vanish on leave.
