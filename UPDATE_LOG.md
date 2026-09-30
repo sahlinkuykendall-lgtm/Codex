@@ -12,6 +12,28 @@ Other docs:
 
 ---
 
+## V4.1.6 — 2026-09-30 — Narration: the text boxes read aloud, with a voice for every character
+- **Text boxes are now read aloud** using the voices built into your browser, so there's
+  nothing to download.
+  - The **narrator** reads the story text.
+  - When a character's line has "quoted speech", the quotes are spoken in **that
+    character's voice**, and the narration around them in the narrator's.
+  - Speech stops when a text box closes, and moves on when you pick a choice.
+- **New settings tab: SETTINGS → VOICES.**
+  - Turn narration on or off, and set its volume and speed.
+  - A voice list for each character: the narrator, Rais Abdallah, Dr. Lindqvist, Hana, Uncle
+    Farouk, Saber, Uncle Hamid, Gamal, Hagg Sayed, Lena Brandt, Dr. Amira Sayed, the old woman,
+    plus "other men" and "other women" for everyone else.
+  - A **pitch** slider for each character, and a **▶** button that plays a test line in their
+    voice (it also plays when you change the voice or pitch).
+  - **Reset voices** restores the defaults.
+- **Default voices:** each character starts with a voice of their gender, spread so neighbours
+  sound different, and with their own pitch and pace (the Rais slow and deep, Saber quick and
+  high, Farouk slowest of all). The most natural voices are picked first.
+- **Getting better voices:** Microsoft Edge has the most natural free voices (marked ★ in the
+  list). In Windows you can add more under Settings → Time & Language → Speech → Add voices.
+  The VOICES tab says how many voices your browser has.
+
 ## V4.1.5 — 2026-09-29 — Lindqvist can be asked about the wages
 - **Meeting Dr. Lindqvist before settling the payroll** now gives you *"The Rais says the
   men haven't been paid in eleven days."* He dodges: "Friday. The transfer's coming

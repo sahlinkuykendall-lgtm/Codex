@@ -55,6 +55,17 @@
     - The sun runs amber (0xff9a50) when low. The day hemisphere light is lower (0.38 + 0.42k)
       and the day sun higher.
     - Moonlight is 0.34 at 0x86a0d8, and exposure is `0.95 * b * (1 - 0.17k)`.
+- **Narration (V4.1.6):** `narration.js` loads last. It uses the Web Speech API.
+  - It wraps `startDialogue` and reads the whole line from `CINE.type.full`, because the
+    typewriter empties the box. It reads the speaker with `textContent`, because `innerText`
+    comes back in CSS capitals.
+  - It splits the text on `"`: quotes go to the speaker's voice, and the rest to the narrator.
+  - `NARR_CAST` lists the characters: speaker names, gender, default pitch and rate, and a test
+    line. A new speaker in a later chapter needs adding there, or it falls to "other men/women".
+  - Player choices are saved in settings as `voiceCast[id] = {voice, pitch}`. The VOICES tab is
+    added to `SETTINGS_TABS` and drawn by a `renderSettings` wrapper.
+  - Chrome's online voices stop after about 15 s, so lines are queued in chunks of about
+    180 characters.
 - **Photographed textures:**
   - `tools/pack_texture.js <name> <folder>` writes `textures/<name>.js` (`window.CODEX_TEX`,
     data URIs; file:// can't feed image files to WebGL). `ch1PhotoSet(name, repeat)` turns
