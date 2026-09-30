@@ -765,7 +765,7 @@ function lampPost(w, d, tall, col) {
     A.r(cx - 3, st.y, 9, 2, '#3a3e48'); A.px(cx + 1, st.y - 1, '#3a3e48');
     A.r(cx - 2, st.y + 2, 7, 6, '#ffe890'); A.r(cx - 2, st.y + 2, 2, 6, '#fff8d8'); A.r(cx + 3, st.y + 2, 2, 6, '#f0c040');
     A.r(cx - 3, st.y + 8, 9, 1, '#3a3e48'); A.vl(cx - 3, st.y + 2, 6, '#3a3e48'); A.vl(cx + 5, st.y + 2, 6, '#3a3e48');
-    return propFit(st, w, d, { light: { x: 0, y: -h + 6, r: tall ? 70 : 52, c: col || '#ffd890' } });
+    return propFit(st, w, d, { light: { x: 0, y: -h + 6, r: tall ? 70 : 52, far: tall ? 190 : 150, c: col || '#ffd890' } });   // (far: a dim glow well past the bright pool)
 }
 SPR_L['path lamp'] = (w, d) => lampPost(w, d, false);
 SPR_L['lantern'] = (w, d) => lampPost(w, d, false);

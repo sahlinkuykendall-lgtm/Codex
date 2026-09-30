@@ -12,6 +12,28 @@ Other docs:
 
 ---
 
+## POKE-STYLE P0.20 — 2026-09-30 — (branch `poke-style`) Music; fewer lamps that reach further
+- **Music** (`poke/music.js`): little chiptune loops made on the fly, with no sound files.
+  Each has a square-wave lead, a triangle bass, soft arpeggios and a darbuka (doum and tak).
+  Most are in maqam Hijaz, one in a minor Nahawand. Each place has its own tune:
+  - **title:** slow and grand, for the title screen and the chapter-end card
+  - **camp by night:** bell-like, unhurried, 16 bars (most of the story is at night)
+  - **camp by day:** a walking tune over the maqsum rhythm, 16 bars (also the minigames)
+  - **indoors:** a small plucked tune
+  - **down the shaft:** a low drone, a slow line and water dripping
+
+  It fades between tunes as you go in and out or the night comes on. A new **Music**
+  setting (Off / Low / Normal / Loud) sits next to Sound in the menu. Browsers only allow
+  sound after a key or a click, so the music starts on your first key press.
+- **Road lamps:**
+  - 11 instead of 18, about eight tiles apart on the kerbs, taking turns side to side
+  - one at each junction's corner, none bunched up
+  - the bright pool of light is the same size, but a dim glow now reaches about three
+    times as far, so the road between lamps isn't dark
+  - the yard lanterns got the same longer glow
+- **The look check:** by day, only the lamp positions changed; by night, the lighting did.
+  The audit and the three playthroughs are clean.
+
 ## POKE-STYLE P0.19 — 2026-09-30 — (branch `poke-style`) Seven buildings open up; the guard post, the trailer and the scaffold redrawn
 - **You can go inside seven more buildings.** The first time you step in, you read what the
   building used to say when you examined it. What used to happen at the door now happens at

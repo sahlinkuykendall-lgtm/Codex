@@ -83,6 +83,7 @@ there are no image files.
 | `world.js` | Builds the camp from the layout: entities, collision, trees, plants, doors |
 | `worldmap.js` | The M map: the area, and Egypt with the chapter regions |
 | `interiors.js` | Rooms: the shell (floor and wall styles), the furniture, the first three rooms |
+| `music.js` | The tunes: chiptune loops synthesised on the fly (title, camp by day and night, indoors, the shaft) |
 | `ui.js` | Text box (with the choice box), place banner, title screen, pause menu |
 | `story.js` | The story engine: flags, affinity, reputation, money, items, tasks, notices, and the scene runner |
 | `detector.js` | Miriam's metal detector: the 40 buried finds, the signal and metal readout, digging |

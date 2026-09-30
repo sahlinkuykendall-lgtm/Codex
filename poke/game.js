@@ -11,7 +11,7 @@
 const Game = {
     VW: 480, VH: 270, scale: 3,
     state: 'boot',
-    set: { textSpeed: 1, run: 0, zoom: 0, volIdx: 2, volume: 1, names: 1, notices: 1, time: 5, sv: 2 },
+    set: { textSpeed: 1, run: 0, zoom: 0, volIdx: 2, volume: 1, music: 2, names: 1, notices: 1, time: 5, sv: 2 },
     player: { x: 0, y: 0, dir: 0, frame: 0, anim: 0, name: '', gender: 'm', choices: null, bg: 'archaeologist', egyptian: false, sheet: null },
     maps: {}, map: null,
     journal: [], bag: {}, seen: {}, taken: {}, story: null,
@@ -167,6 +167,7 @@ const Game = {
             if (!this.fade.done && this.fade.t >= 0.22) { this.fade.done = true; this.fade.fn(); }
             if (this.fade.t >= 0.5) this.fade = null;
         }
+        try { Music.tick(); } catch (e) { }                        // (the tunes: poke/music.js)
         if (EndCard.open) { if (!this.fade) EndCard.update(dt, I); return; }
         if (Mini.cur) { if (!this.fade) Mini.update(dt, I, this.keys); return; }
         if (WorldMap.open) { WorldMap.update(dt, I); return; }
@@ -399,8 +400,9 @@ const Game = {
                 for (const e of m.ents) {
                     const li = e.light; if (!li || e.gone || (e.nightOnly && !night)) continue;
                     const x = Math.round((e.person || !e.w ? e.x : e.x + e.w / 2) + li.x - cx), y = Math.round((e.person || !e.w ? e.y : e.y + e.d) + li.y - cy);
-                    if (x < -li.r || x > VW + li.r || y < -li.r || y > VH + li.r) continue;
+                    const lr = li.far || li.r; if (x < -lr || x > VW + lr || y < -lr || y > VH + lr) continue;
                     const fl = li.flicker ? 1 + Math.sin(this.time * 11 + e.x) * 0.06 : 1, [r, gg, b] = hex(li.c), a = L.dark;
+                    if (li.far) [[1, 0.06], [0.72, 0.08]].forEach(([k, al]) => TA.ell(x, y, Math.round(li.far * k * fl), Math.round(li.far * k * fl * 0.8), 'rgba(' + r + ',' + gg + ',' + b + ',' + (al * a).toFixed(3) + ')'));
                     [[1, 0.16], [0.7, 0.2], [0.42, 0.26], [0.2, 0.3]].forEach(([k, al]) => TA.ell(x, y, Math.round(li.r * k * fl), Math.round(li.r * k * fl * 0.8), 'rgba(' + r + ',' + gg + ',' + b + ',' + (al * a).toFixed(3) + ')'));
                 }
                 if (m.dark) { const x = Math.round(p.x - cx), y = Math.round(p.y - 14 - cy); [[1, 0.18], [0.66, 0.24], [0.36, 0.3]].forEach(([k, al]) => TA.ell(x, y, Math.round(90 * k), Math.round(72 * k), 'rgba(255,220,160,' + al + ')')); }   // your torch

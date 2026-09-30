@@ -112,9 +112,11 @@ function campLayout() {
     // trees: the palms of the oasis and along the roads
     const trees = [[3, 11], [12, 12], [3, 17], [7, 10], [9, 20], [4, 20], [15, 14], [2, 24], [26, 34], [29, 16], [36, 40], [44, 40], [10, 46], [61, 35], [73, 40], [63, 53], [30, 37], [18, 53], [23, 30], [49, 26]];
     // lamps along the roads, on the kerbs
-    const lamps = [];
-    for (let y = 20; y < 54; y += 6) lamps.push([38, y], [41, y + 3]);
-    lamps.push([20, 36], [28, 33], [48, 36], [56, 38], [50, 45], [12, 36]);
+    // lamps on the kerbs, about eight tiles apart, sides taking turns, one at each junction's corner (their glow reaches far)
+    const lamps = [[38, 21], [38, 33], [41, 39], [38, 46], [41, 53],          // the main road: the dig gate, west road, east road, guard post, the way out
+        [32, 36], [23, 33], [14, 36],                                          // west to the workers' camp
+        [48, 36], [58, 36],                                                    // east, past the fossil pavement
+        [49, 45]];                                                             // to the guard post
     // the fence round the dig zone: [x0, x1, y], the gate between the runs
     const fences = [[15, 36, 18], [42, 63, 18]];
     // planks across the trench: [x0, x1, y]
