@@ -66,6 +66,17 @@
   - Source files go in `avatars/`. The web uploader caps files at 25 MB, but the converter
     reads them from anywhere.
   - **Art direction (chosen V4.0.7): realistic.** Characters are realistic, rigged in Mixamo and animated with Mixamo animations (download them "Without Skin"; they share one skeleton, so each animation works on every Mixamo-rigged character). `models/remy.js` (Remy, with walk and dodge) is packed and ready but not loaded yet.
+  - **Props from the library (V4.1.2):** `ch1a_finds.js` and then `ch1a_models.js` load
+    after `models3d.js` and their `models/<name>.js` packs. `ch1a_models.js` holds the
+    dartboard, radios, Codex viewer, mess tent, Hana's tent, Miriam's kitchen, the tool rack
+    and the trench kit.
+    - Its helpers are `c1mBox` (a model's box in its group's space) and `c1mCentre`
+      (centre it and seat it on the ground).
+    - The builders run before the models parse, so always measure a model in its group's
+      space, never in world space.
+    - Packs with no textures get a material per mesh name (see `KIT` for the camp kitchen).
+    - Prepare models with `tools/prepare_model.js`. It takes `--keep`, `--keepmat`, `--drop`,
+      `--tris`, `--tex` and `--error`.
   - The first realistic-character pass may push the download size up. Plan to wrap the game as a Windows .exe with Electron (GitHub Releases for hosting) when it gets heavy.
 - The supply line runs one forward-only route: in from the desert, round the balloon loop
   (`CH1_RAIL_LOOP` in `ch1_layout.js`), and back out. So the loco always leads.

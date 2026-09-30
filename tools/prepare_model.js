@@ -8,7 +8,7 @@
 //   - writes models/<name>.glb and models/<name>.js (base64, loads from
 //     file:// and GitHub Pages alike)
 //
-//   node tools/prepare_model.js <name> <input.glb> [--keep Node] [--tris 8000] [--tex 1024]
+//   node tools/prepare_model.js <name> <input.glb> [--keep Node] [--keepmat Mat] [--drop A,B] [--tris 8000] [--tex 1024] [--error 0.02]
 // ============================================================
 const fs = require('fs');
 const path = require('path');
@@ -58,11 +58,20 @@ const countTris = (doc) => {
             else n.dispose();
         }
     }
+    // --drop A,B: throw away pieces by node name (e.g. a fishing rod in a camp set)
+    const drop = opt('drop', null);
+    if (drop) for (const nm of drop.split(',')) for (const n of root.listNodes()) if (n.getName() === nm) n.dispose();
+    // --keepmat A,B: keep only the parts made of these materials (packs that group by material, not node)
+    const keepmat = opt('keepmat', null);
+    if (keepmat) {
+        const want = new Set(keepmat.split(','));
+        for (const m of root.listMeshes()) for (const p of m.listPrimitives()) if (!p.getMaterial() || !want.has(p.getMaterial().getName())) { m.removePrimitive(p); p.dispose(); }
+    }
     // Draco-compressed input: drop the extension so the game never needs a decoder
     for (const ext of root.listExtensionsUsed()) if (/draco/i.test(ext.extensionName)) ext.dispose();
     await doc.transform(prune(), dedup(), weld());
     const before = countTris(doc);
-    if (before > tris) await doc.transform(simplify({ simplifier: MeshoptSimplifier, ratio: Math.max(0.005, tris / before), error: 0.02 }));
+    if (before > tris) await doc.transform(simplify({ simplifier: MeshoptSimplifier, ratio: Math.max(0.005, tris / before), error: +opt('error', 0.02) }));
     await doc.transform(textureCompress({ encoder: sharp, resize: [tex, tex], targetFormat: 'jpeg', quality: 82, pattern: /baseColor|diffuse|albedo|/i }), prune());
     const after = countTris(doc);
     const dir = path.join(ROOT, 'models');

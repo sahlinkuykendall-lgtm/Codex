@@ -12,6 +12,30 @@ Other docs:
 
 ---
 
+## V4.1.2 — 2026-09-29 — Your new models in the camp: dartboard, radio, the Codex, tents, camp kitchen, dig tools
+- **The dartboard** in the worker camp is now the real Winmau board. It's sized so its
+  double ring sits exactly on the game's scoring edge, so darts score the same as before.
+- **The radio** is the Philips portable, on its crate in the worker camp. A second one sits
+  on a crate beside **Uncle Farouk** at the guard booth, with his thermos (new: "Farouk's Radio").
+- **The Codex:** when you unwrap it in the find store, the book appears above the text
+  and turns slowly in the lamplight.
+- **New: the Mess Tent**, north of the director's camp. It's the military marquee, open to
+  the camp, with a trestle table, benches, a tea urn, bread and a lamp. You can look inside.
+- **New: Hana's Tent**, the round canvas tent with its awning, beside the mess tent.
+- **New: Miriam's Camp Kitchen** beside her tent. It's the camping set: stove, blue gas
+  bottle, red cooler, enamel mugs and a folding table, all on a kilim. The set arrived all white,
+  so every piece is given its own colour and finish in the game.
+- **A fourth find on Hana's table:** the pottery strainer (the "sieve" model). It's an
+  ancient perforated bowl of the kind used to strain beer mash in the workers' town. The
+  finds tray text mentions it.
+- **New: the Tool Rack** in front of the dig shed: shovels, picks, a broom, a hoe, a
+  folding army spade and rubber buckets. A **wheelbarrow, shovel, pick and buckets** now sit at the
+  north end of the east trench.
+- **Model tools:** `prepare_model.js` gained `--drop` (throw away a piece, like the
+  fishing rod), `--keepmat` (keep parts by material, for packs grouped that way) and
+  `--error` (how far simplifying may go).
+- Downloaded props are now skipped when off-screen. Only animated characters are always drawn.
+
 ## V4.1.1 — 2026-09-29 — Your downloaded models: the first ones in the game, and a plan for the rest
 - **Hana's table now holds real scanned artefacts** from your model library:
   - The seated limestone statuette of Steward Au, cut out of the statue pack.

@@ -63,7 +63,7 @@ function modelSpawn(name, opts) {
         m.position.y = -gltf.userData.minY * k;
         m.traverse(o => {
             if (!o.isMesh) return;
-            o.castShadow = true; o.receiveShadow = true; o.frustumCulled = false;
+            o.castShadow = true; o.receiveShadow = true; o.frustumCulled = !o.isSkinnedMesh;   // skinned bounds lag the pose; props cull normally
             // scanned props often arrive marked fully metallic, which renders black
             // without reflections to show: opts.matte makes them stone/leather/papyrus
             if (opts.matte) o.material = [].concat(o.material).map(mt => { const c = mt.clone(); c.metalness = 0; c.roughness = Math.max(0.7, c.roughness || 0); c.metalnessMap = null; return c; }).reduce((a, c, i, arr) => arr.length === 1 ? c : arr, null);

@@ -53,6 +53,15 @@ Preview sheets are in `models/previews/`.
 | plow_scene_tomb_egypt | A tomb relief (ploughing) | 500k | Tomb wall panels: Ch8 Tuna el-Gebel (Petosiris's tomb has farming scenes) | Reduce to about 20k |
 | statue_of_ramesses_iii | A seated Ramesses III | 1.47M | Ch9 Luxor (Medinet Habu is his temple) | Draco; reduce to about 25k |
 | remy | Mixamo character (walk, dodge) | 35k | Stand-in for any modern NPC | — |
+| winmau_blade_5_dart_board | Dartboard | 51k | **Ch1 worker camp dartboard (DONE, V4.1.2)** | Sized so the double ring is the game's scoring edge |
+| retro_philips_radio | Portable transistor radio | 188k | **Ch1 camp radio and Farouk's radio (DONE, cut to 10k)**; any Cairo café or taxi later | — |
+| old_book_game_ready | Leather book with straps | 0.5k | **The Codex (DONE: the 3D view while you unwrap it)**; the journal/inventory later | — |
+| large_militery_tent | Army marquee, one side open | 7k | **Ch1 Mess Tent (DONE)**; Ch6 Western Desert army camp | — |
+| realistic_tent | Round canvas tent with awning | 40k | **Ch1 Hana's Tent (DONE, cut to 17k)**; Bedouin/Siwa camps | — |
+| fishing_camp_assets | Stove, gas bottle, cooler, mugs, folding table, mat (untextured) | 803k | **Ch1 Miriam's Camp Kitchen (DONE, rod dropped, coloured per piece)** | Colours are in `KIT`, `ch1a_models.js` |
+| sieve | Ancient perforated pottery bowl (a strainer, not a dig sieve) | 297k | **Ch1 Hana's table (DONE, cut to 18k)** | A dig sieve on trestles is still on the wishlist |
+| dirty_shovel, pickaxe, old_pickaxe, farming_hoe, broom, survival_shovel | Dig tools | 0.4–6k | **Ch1 Tool Rack and trench kit (DONE)**; every later dig | — |
+| garden_tools_pack | Hose, planter, bucket, wheelbarrow, rakes, shovel | 30k | **Wheelbarrow and bucket: Ch1 (DONE)**. The rest for Ch2 gardens and village farms | Pieces are grouped by material, so use `--keepmat Wheelbarrow` |
 
 ---
 

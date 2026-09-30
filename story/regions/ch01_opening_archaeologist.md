@@ -148,6 +148,10 @@ Dr. Miriam Hale, "left for family reasons" four days ago. Nobody at camp believe
 | **The Watchtower** | An old antiquities-police tower. Climb it (Climbing XP) and every place goes on your map. With the field glasses, you see a car waiting by the Osiris Shaft |
 | **The Builders' Ramp** | A construction ramp with sledge ruts, and the history of the ramp debate (Hatnub, 2018) |
 | **The Fossil Pavement** | Five nummulites |
+| **The Mess Tent** (V4.1.2) | An army marquee north of the director's camp: trestle table, benches, tea urn |
+| **Hana's Tent** (V4.1.2) | A round canvas tent with an awning |
+| **Miriam's Camp Kitchen** (V4.1.2) | Stove, gas bottle, cooler and mugs on a kilim beside her tent |
+| **The Tool Rack** (V4.1.2) | In front of the dig shed; a wheelbarrow kit at the east trench |
 
 ## PEOPLE (besides the main cast above)
 - **Bosta**, the camp dog: a sandy baladi dog, one ear up and one flopped, named for the
