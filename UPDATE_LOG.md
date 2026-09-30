@@ -12,6 +12,43 @@ Other docs:
 
 ---
 
+## POKE-STYLE P0.31 — 2026-09-30 — (branch `poke-style`) The Serapeum at night: the galleries, the patrol, the Codex (Chapter 1-B, step 4)
+- **Beat 4** (from the bible): Samy moves the Codex from his locker to the Serapeum's
+  service room for Karim's man to collect after midnight. Get there first.
+- **Waiting for night:** the task sends you to the bench at the ghaffir's hut by the
+  Serapeum. "Wait on the bench until eleven at night" skips there (water and food run
+  down as the hours pass; the text says to eat and drink first). The gate sends you to the
+  bench if it's still daylight.
+- **The gate:** after eleven the old ghaffir is sitting in the dark, listening. He unlocks
+  the gate without asking. "My son does the night rounds down there. He has good ears and
+  a very big mouth. I, on the other hand, am old, and asleep."
+- **The galleries,** a new underground room, lit only by your torch and a few dim
+  emergency lights: a long main gallery, and off it, in chambers cut into the rock, seven
+  great granite coffins of the Apis bulls (niched like palace fronts; one with a band of
+  hieroglyphs; one with its lid pushed aside by robbers, two thousand years ago). Stone
+  steps up to the gate.
+- **The night ghaffir** walks the gallery with a lantern, stopping to look into the
+  chambers. His view is a cone on the floor, as in the tail. Hide behind the coffins
+  (there's room behind every one). If he sees you, he shouts "Inspector! At this hour!"
+  loud enough to wake the dead, and you go back to the steps to try again.
+- **The service room** at the east end: pumps, a workbench, a steel cabinet, and the steel
+  service door. Get there, and a motorbike stops up above with no light: seven seconds
+  to hide. Samy comes in with a torch, puts a red cooler bag in the cabinet, sweeps the
+  torch round the room, and leaves. Hide behind the pumps or the bench. If his torch
+  finds you, he runs off with the bag, and you try again.
+- **The Codex:** in the bag, in a torn Ministry evidence envelope: a leather-bound papyrus
+  codex, its tag SAQ/EV/0419, SHELF 4B, in your own office's hand. You take it and leave
+  the bag with a brick in it. (Miriam's note inside the flap is for beat 7.)
+- **Getting out:** back through the galleries. If the night ghaffir sees you now, you bluff
+  ("Checking the seals") and he goes.
+- **Outside:** headlights. A big black car turning in at the inspectorate's gate. New
+  task: go and see, without being seen. That's beat 5, the staged arrival, in the next
+  update.
+- Tested: waiting, the gate, being seen by the ghaffir, hiding while Samy drops the bag,
+  taking the Codex, getting out, and saving and loading. The cabinet, the hiding places
+  and the space behind all seven coffins can all be reached. The audit is clean (206
+  scenes), the playthroughs and the tail tests pass, and Giza's 33 views are identical.
+
 ## POKE-STYLE P0.30 — 2026-09-30 — (branch `poke-style`) Saqqara's buildings fixed, and Mit Rahina comes alive
 - **The village houses are rebuilt.** They were mostly roof with a thin strip of wall, and
   windows were drawn over doors, and the painted Hajj murals over shutters. Now each is

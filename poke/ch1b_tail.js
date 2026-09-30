@@ -121,7 +121,7 @@ const Tail = {
     // the cones on the ground, the meter over Samy's head, the line at the top of the screen (drawn over the night)
     draw(g, cx, cy) {
         const A = pa(g), m = Game.map;
-        if (this.ride && this.karim && this.scooter) { if (this.karim.gone) { World.removeEnt(m, this.scooter); this.ride = false; } else { this.scooter.x = this.karim.x + 6; this.scooter.y = this.karim.y + 3; this.scooter.sortY = this.karim.y + 3; } }
+        if (this.ride && this.karim && this.scooter) { if (this.karim.gone) { World.removeEnt(Game.maps.ch1, this.scooter); this.ride = false; } else { this.scooter.x = this.karim.x + 6; this.scooter.y = this.karim.y + 3; this.scooter.sortY = this.karim.y + 3; } }
         if (!this.samy || this.phase === 'wait' || this.phase === 'end' || m !== Game.maps.ch1) return;
         for (const [w, a, r, h] of this.cones()) {
             const pts = [[Math.round(w.x - cx), Math.round(w.y - 4 - cy)]], N = 18;
@@ -156,7 +156,7 @@ const Tail = {
         sflag('c1b_tail_done', true); sflag('ch1b_karim_seen', true); taskDone('c1b_tail');
         storyNote('Karim el-Gebali', 'Samy met him by the alabaster sphinx at Mit Rahina: 27 or so, a Cairo accent, a black tracksuit, white trainers, a black scooter with a Cairo plate. He paid Samy in an envelope. The grandson of Hagg Mahmoud el-Gebali; the Gebali are the old Qurna family in every antiquities police file.');
         storyNote('Tonight', '"Out of your locker, into the service room. My man comes after midnight." Samy is moving something from his locker to the Serapeum\'s service room tonight, for Karim\'s man to collect.');
-        task('c1b_night', 'Tonight, after midnight, Samy moves "it" from his locker to the Serapeum\'s service room, and Karim\'s man collects. Be there first. (Beat 4, the Serapeum at night, comes in the next update.)');
+        task('c1b_night', 'Tonight Samy moves "it" from his locker to the Serapeum\'s service room, and Karim\'s man collects after midnight. Get there first. (Wait for dark on the bench at the ghaffir\'s hut, by the Serapeum.)');
         clockAdvance(15);
     },
 };

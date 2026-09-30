@@ -84,7 +84,25 @@ A daytime tail through Mit Rahina's market. Stay in sight but out of his line of
 stalls, the tuk-tuk and the crowd are cover. He meets **Karim el-Gebali** (sharp trainers).
 A new mechanic: view cones for the people you're tailing.
 
-## 4. Beat 4: the evidence store and the Serapeum at night
+## 4. Beat 4: the evidence store and the Serapeum at night — ✅ DONE in P0.31
+> Done in `poke/ch1b_serapeum.js`:
+> - wait for night on the bench at the ghaffir's hut (the gate sends you there if it's early)
+> - after eleven, the old ghaffir opens the tourist gate and "sees nothing"; his son does
+>   the night rounds inside
+> - **the galleries** (`INT_SERAPEUM`, dark): the main gallery, seven granite Apis coffins
+>   in their chambers, rock between them, dim emergency lights, the steps up
+> - **the night ghaffir's patrol**, with a lantern and a view cone (the tail's rules):
+>   seen, and his shouting sends you back to the steps
+> - **the service room** at the east end: pumps, a workbench, the steel cabinet and the
+>   service door. Reach it and Samy comes in seven seconds later with a torch, puts a
+>   cooler bag in the cabinet, sweeps the room and goes. Seen, and he runs with the bag
+>   (try again)
+> - **the Codex** in the bag (tag SAQ/EV/0419, Shelf 4B): you leave a brick in its place;
+>   Miriam's note stays for beat 7
+> - outside: a black car turning in at the inspectorate, which sets up beat 5
+>
+> Beat 5 picks up from the `c1b_blackcar` task.
+
 At night, Samy moves the Codex from his locker to the Serapeum's service room for pickup.
 - **The Serapeum galleries:** a new interior. Huge granite bull sarcophagi in long dark
   galleries, a torch, a stealth section.

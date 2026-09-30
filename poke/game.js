@@ -441,7 +441,7 @@ const Game = {
             A.r(sx - 1, sy - 1, 3, 3, '#ffffff');
         }
         if (m.outdoor && area().giza) Detector.drawWorld(g, cx, cy);
-        if (m.outdoor && area().overlay) area().overlay(g, cx, cy);        // (the story's own marks on the world: poke/ch1b_tail.js's view cones)
+        if (area().overlay) area().overlay(g, cx, cy);        // (the story's own marks on the world: poke/ch1b_tail.js's view cones)
         // name tag over what you're facing, and the door you're near
         if (!Dlg.active && this.set.names) {
             const t = this.target;
