@@ -55,7 +55,11 @@ and a way for a conversation to run a script: a series of lines, a choice, and f
 changes. Hook `examine()` in `game.js` so a person or object with a script runs that script
 instead of its single line.
 
-## 2. The story clock
+## 2. The story clock — ✅ DONE in P0.8
+> Done: `clockTick`/`clockAdvance`/`storyHour` in `poke/story.js`; the "Story clock" light
+> setting (the default); rest/wait at `rest_brazier` and `tent_cot`; `storyClockPassed()` in
+> `poke/ch1_scenes.js` sets `lena_event = 'coming'` at midnight (the car and the search are 3.5).
+
 Chapter 1-A is one night, 20:30 to 04:40, with one story minute for every 2 real seconds of
 play. Resting at the fire or in the camp bed skips an hour, or straight to midnight. After
 the chapter-end card, the clock runs free. The poke game already has hours and day/night

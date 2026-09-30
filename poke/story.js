@@ -140,9 +140,23 @@ const Notice = {
     },
 };
 
-// ---- the clock (story minutes; step 2 ties it to the light and the midnight event) ----
+// ---- the story clock ----
+// Minutes since midnight of the first day. Chapter 1-A is one night: 20:30 to 04:40, one
+// story minute for every 2 real seconds of play (arrival to midnight is about seven minutes).
+// It only runs while you're walking about, not in a conversation or a menu. Resting skips it
+// forward. It stops at 04:40 (the story has you gone before dawn); after the chapter-end card
+// it runs free. When "Time of day" is on "Story clock" (the default), the light follows it.
+// A chapter's scenes can define storyClockPassed(before, after) to fire things at set times.
+const CLOCK_RATE = 1 / 2, CLOCK_END = 24 * 60 + 4 * 60 + 40;
 function clockStr(m) { m = Math.floor(m === undefined ? Story.s.clock : m) % 1440; return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); }
-function clockAdvance(mins) { Story.s.clock += mins; }
+function clockAt(h, min) { return (h < 12 ? 24 * 60 : 0) + h * 60 + (min || 0); }   // hours before noon count as "after midnight"
+function storyHour() { return (Story.s.clock / 60) % 24; }
+function clockAdvance(mins) {
+    const s = Story.s, before = s.clock;
+    s.clock = s.flags.ch1_complete ? s.clock + mins : Math.min(CLOCK_END, s.clock + mins);
+    if (typeof storyClockPassed === 'function') storyClockPassed(before, s.clock);
+}
+function clockTick(dt) { clockAdvance(Math.min(0.25, dt) * CLOCK_RATE); }
 
 // ============================================================
 // SCENES

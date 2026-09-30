@@ -121,3 +121,45 @@ scene('c1a_hana_done', {
     text: `She fits them edge to edge under the lamp, and the black flicks become a line, and the line becomes a bird: long curved beak, one leg raised. An ibis.\n\n"Thoth's bird. Ptolemaic, I think. Pretty." She presses a stick of dark wax into your hand. "Conservation wax. For anything you need to close again without anyone knowing." She doesn't explain, and you don't ask.`,
     choices: [{ text: 'Pocket the wax.', onSelect: () => pocket('Conservation wax') }],
 });
+
+// ============================================================
+// THE NIGHT (step 2): rest / wait, and what happens at set times
+// ============================================================
+STORY_SCRIPTS.rest_brazier = 'rest_brazier';
+STORY_SCRIPTS.tent_cot = 'c1a_tent_cot';
+function c1aWaitChoices() {
+    const c = [], s = Story.s, done = sflag('ch1_complete');
+    if (done || s.clock < CLOCK_END) c.push({ text: 'Rest a while. (an hour passes)', onSelect: () => c1aRest(60, 'c1a_rested') });
+    if (s.clock < 24 * 60 && sflag('met_rais') && !sflag('lena_event') && !sflag('codex')) c.push({ text: 'Wait until midnight.', onSelect: () => c1aRest(24 * 60 - s.clock + 1) });
+    c.push({ text: 'Get up.' });
+    return c;
+}
+// the screen goes dark, the clock jumps, the screen comes back
+function c1aRest(mins, then) { Game.fadeTo(() => { clockAdvance(mins); if (Game.set.time === 5) Game.hour = storyHour(); if (then) startDialogue(then); }); }
+scene('rest_brazier', {
+    speaker: 'System',
+    text: () => `The workers' fire. Somebody has left a plastic chair for you. The coals tick; the men talk about football and the price of onions. It is ${clockStr()}.` +
+        (Story.s.clock >= CLOCK_END && !sflag('ch1_complete') ? `\n\nThe sky over the Nile is going grey. There's no more night left to wait out.` : ''),
+    get choices() { return c1aWaitChoices(); },
+});
+scene('c1a_tent_cot', {
+    speaker: 'System',
+    text: () => `Miriam's camp bed, the blanket folded with military corners. It feels wrong to lie on it and you're too tired to care. It is ${clockStr()}.` +
+        (Story.s.clock >= CLOCK_END && !sflag('ch1_complete') ? `\n\nThe sky over the Nile is going grey. There's no more night left to wait out.` : ''),
+    get choices() { return c1aWaitChoices(); },
+});
+scene('c1a_rested', { speaker: 'System', text: () => `You close your eyes for what feels like a minute. It is ${clockStr()}.`, choices: [{ text: 'Get up.' }] });
+
+// the clock passed from `before` to `after` (story minutes)
+function storyClockPassed(before, after) {
+    const mid = 24 * 60;
+    if (before < mid && after >= mid && sflag('met_rais') && !sflag('lena_event')) c1aLenaArrive();
+    if (before < CLOCK_END && after >= CLOCK_END && !sflag('ch1_complete')) storyNotice('04:40. The sky over the Nile is going grey.');
+}
+// MIDNIGHT (beat 5 begins): the black car on the east road. The car and the search are step 3e.
+function c1aLenaArrive() {
+    if (sflag('codex') || sflag('lena_event')) return;
+    sflag('lena_event', 'coming');
+    Toast.show(sflag('warned_midnight') ? 'MIDNIGHT. Headlights on the east road. Farouk was right.' : 'MIDNIGHT. Headlights on the east road.');
+    Sfx.tone(70, 1.8, 'sawtooth', 0.03); Sfx.tone(92, 1.4, 'sine', 0.04);
+}

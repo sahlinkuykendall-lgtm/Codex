@@ -11,7 +11,7 @@
 const Game = {
     VW: 480, VH: 270, scale: 3,
     state: 'boot',
-    set: { textSpeed: 1, time: 1, run: 0, zoom: 0, volIdx: 2, volume: 1, names: 1, notices: 1 },
+    set: { textSpeed: 1, run: 0, zoom: 0, volIdx: 2, volume: 1, names: 1, notices: 1, time: 5, sv: 2 },
     player: { x: 0, y: 0, dir: 0, frame: 0, anim: 0, name: '', gender: 'm', choices: null, bg: 'archaeologist', egyptian: false, sheet: null },
     maps: {}, map: null,
     journal: [], bag: {}, seen: {}, taken: {}, story: null,
@@ -26,9 +26,11 @@ const Game = {
         else this.set[k] = i;
         if (k === 'zoom') this.resize();
         if (k === 'time' && i < 4) this.hour = [6.6, 12, 17.7, 22][i];
+        if (k === 'time' && i === 5 && this.story) this.hour = storyHour();
     },
     saveSettings() { try { localStorage.setItem(this.SET, JSON.stringify(this.set)); } catch (e) { } },
-    loadSettings() { try { const s = JSON.parse(localStorage.getItem(this.SET) || 'null'); if (s) Object.assign(this.set, s); } catch (e) { } this.set.volume = [0, 0.4, 1, 1.8][this.set.volIdx]; if (this.set.time < 4) this.hour = [6.6, 12, 17.7, 22][this.set.time]; },
+    loadSettings() { try { const s = JSON.parse(localStorage.getItem(this.SET) || 'null'); if (s) { if (!s.sv) { s.time = 5; s.sv = 2; } Object.assign(this.set, s); } } catch (e) { }   // (settings from before P0.8 move onto the story clock once)
+ this.set.volume = [0, 0.4, 1, 1.8][this.set.volIdx]; if (this.set.time < 4) this.hour = [6.6, 12, 17.7, 22][this.set.time]; },
 
     // ---- saving ----
     hasSave() { try { return !!localStorage.getItem(this.SAVE); } catch (e) { return false; } },
@@ -45,6 +47,7 @@ const Game = {
         Object.assign(this.player, { name: d.name, gender: d.gender, choices: d.choices || null, bg: d.bg || 'archaeologist', egyptian: !!d.egyptian, x: d.x, y: d.y, dir: d.dir || 0 });
         this.journal = d.journal || []; this.bag = d.bag || {}; this.seen = d.seen || {}; this.taken = d.taken || {};
         this.story = Story.restore(d.story);
+        if (this.set.time === 5) this.hour = storyHour();
         if (this.set.time === 4 && d.hour != null) this.hour = d.hour;
         for (const e of this.maps.ch1.ents) if (e.id && this.taken[e.id]) World.removeEnt(this.maps.ch1, e);
         this.enter(this.maps.ch1);
@@ -63,6 +66,7 @@ const Game = {
         const m = this.maps.ch1, p = this.player;
         p.x = m.spawn[0]; p.y = m.spawn[1]; p.dir = DIR.up;
         this.enter(m);
+        if (this.set.time === 5) this.hour = storyHour();
         this.state = 'play'; this.hintT = 0;
         // the Rais comes to meet you with a lantern, says his piece (poke/ch1_scenes.js), and walks back to the fire
         const rais = World.addEnt(m, { x: p.x, y: p.y - 34, w: 0, d: 0, label: 'Rais Abdallah', person: { sheet: personSheet(LOOKS.rais), dir: DIR.down, frame: 0 }, sortY: p.y - 34, light: { x: 6, y: -12, r: 64, c: '#ffd080' } });
@@ -107,7 +111,7 @@ const Game = {
         for (const p of m.places) { const d = Math.hypot(p.x - x, p.y - y); if (d < p.r && d < bd) { bd = d; best = p; } }
         return best;
     },
-    clockText() { const h = Math.floor(this.hour), m = Math.floor((this.hour - h) * 60); return (h < 10 ? '0' : '') + h + ':' + (m < 10 ? '0' : '') + m + '  ' + (this.hour < 5.5 || this.hour >= 19 ? 'Night' : this.hour < 8 ? 'Dawn' : this.hour < 16.5 ? 'Day' : 'Dusk'); },
+    clockText() { const hr = this.story ? storyHour() : this.hour; return clockStr(hr * 60) + '  ' + (hr < 5.5 || hr >= 19 ? 'Night' : hr < 8 ? 'Dawn' : hr < 16.5 ? 'Day' : 'Dusk'); },
 
     // ---- the map in the menu: one pixel per tile ----
     miniMap() {
@@ -163,11 +167,13 @@ const Game = {
         if (this.state === 'intro') { if (!this.fade) Intro.update(dt, I); return; }
         if (this.state !== 'play') return;
         if (this.set.time === 4 && !Dlg.active) this.hour = (this.hour + dt / 30) % 24;       // a day in twelve minutes
+        else if (this.set.time === 5) this.hour = storyHour();                                 // the light follows the story clock
         Banner.update(dt);
         this.hintT += dt;
         this.updatePeople(dt);
         if (Dlg.active) { Dlg.update(dt, I); return; }
         if (this.fade) return;
+        clockTick(dt);                                     // story time passes only while you're free to walk about
         if (I.menu) { Menu.toggle(); return; }
         if (I.map) { WorldMap.show(0); return; }
         this.movePlayer(dt);

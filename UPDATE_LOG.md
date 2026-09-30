@@ -12,6 +12,25 @@ Other docs:
 
 ---
 
+## POKE-STYLE P0.8 — 2026-09-30 — (branch `poke-style`) The story clock (Area 1, step 2)
+- **Chapter 1-A is one night.** You arrive at 20:30. A story minute passes for every 2 real
+  seconds, so midnight comes after about seven minutes of play. The clock only runs while
+  you're walking about, not during a conversation or in a menu. It stops at 04:40, and after
+  the chapter-end card it runs free.
+- **The light follows the story clock.** "Time of day" in Settings has a new option,
+  **Story clock**, and it's now the default. The camp starts at night, and the lamps and the
+  old woman come out with it. Saved settings from before this update move onto it once.
+  Dawn, Day, Dusk, Night and Moving clock are still there if you want to hold the light.
+- **The menu clock** on the permit card shows the story time.
+- **Resting:** at the workers' fire, or on Miriam's camp bed in her tent:
+  - **Rest a while:** the screen goes dark and an hour passes.
+  - **Wait until midnight:** there after you've met the Rais, until the midnight car.
+  - At 04:40 there's no more night left to wait out.
+- **Midnight:** headlights on the east road, with a low rumble. The car arriving and Lena's
+  search of the tent come in step 3.
+- The camp's look hasn't changed: 33 views (every place, day and night, and the three rooms)
+  are pixel-identical to P0.7.
+
 ## POKE-STYLE P0.7 — 2026-09-30 — (branch `poke-style`) The story engine (Area 1, step 1)
 - **The story now has state.** A new `poke/story.js` keeps the story in `Game.story`, and it
   saves and loads with the game:

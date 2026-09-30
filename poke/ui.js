@@ -207,7 +207,7 @@ const Title = {
             Txt.draw(g, str, bx + 26, by + 8 + i * 15, { col: i === this.sel ? UI.ink : UI.dim });
             if (i === this.sel) A.poly([[bx + 13, by + 10 + i * 15], [bx + 13, by + 18 + i * 15], [bx + 18, by + 14 + i * 15]], '#d04838');
         });
-        Txt.draw(g, 'POKE-STYLE BUILD  P0.7', VW - 6, VH - 14, { col: '#8898d0', align: 'right' });
+        Txt.draw(g, 'POKE-STYLE BUILD  P0.8', VW - 6, VH - 14, { col: '#8898d0', align: 'right' });
         Txt.draw(g, '▲▼ choose    SPACE select', 6, VH - 14, { col: '#8898d0' });
     },
 };
@@ -218,7 +218,7 @@ const Menu = {
     MAIN: ['MAP', 'TASKS', 'JOURNAL', 'BAG', 'SETTINGS', 'SAVE', 'TITLE SCREEN', 'CLOSE'],
     SETTINGS: [
         { key: 'textSpeed', label: 'Text speed', opts: ['Slow', 'Normal', 'Fast', 'Instant'] },
-        { key: 'time', label: 'Time of day', opts: ['Dawn', 'Day', 'Dusk', 'Night', 'Moving clock'] },
+        { key: 'time', label: 'Time of day', opts: ['Dawn', 'Day', 'Dusk', 'Night', 'Moving clock', 'Story clock'] },
         { key: 'run', label: 'Always run', opts: ['Off', 'On'] },
         { key: 'zoom', label: 'Zoom', opts: ['Auto', 'Far', 'Near'] },
         { key: 'volume', label: 'Sound', opts: ['Off', 'Low', 'Normal', 'Loud'] },
@@ -297,7 +297,7 @@ const Menu = {
                 const v = row.opts[Game.setIndex(row.key)];
                 Txt.draw(g, (on ? '◄ ' : '') + v + (on ? ' ►' : ''), VW - 26, y, { col: on ? '#3058a0' : UI.dim, align: 'right' });
             });
-            const HELP = { textSpeed: 'How fast the words appear in the text box.', time: 'The light. "Moving clock" runs a whole day in twelve minutes; lamps come on at dusk.', run: 'Run without holding SHIFT (hold it to walk instead).', zoom: 'How much of the map fits on screen.', volume: 'The blips and chimes.', names: 'The name that floats over what you are facing.', notices: 'A quiet line in the corner when someone will remember what you did. It never says how.' };
+            const HELP = { textSpeed: 'How fast the words appear in the text box.', time: 'The light. "Story clock" follows the time of night in the story (the menu shows it). "Moving clock" runs a whole day in twelve minutes. The others hold one time of day.', run: 'Run without holding SHIFT (hold it to walk instead).', zoom: 'How much of the map fits on screen.', volume: 'The blips and chimes.', names: 'The name that floats over what you are facing.', notices: 'A quiet line in the corner when someone will remember what you did. It never says how.' };
             const hy = 44 + this.SETTINGS.length * 18;
             A.r(14, hy - 6, VW - 28, 1, '#c8d0d8');
             Txt.wrap(HELP[this.SETTINGS[this.sub].key], VW - 60).forEach((ln, i) => Txt.draw(g, ln, 24, hy + i * 12, { col: '#3058a0' }));
