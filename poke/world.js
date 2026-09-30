@@ -100,8 +100,8 @@ const World = {
         };
         for (const [id, tx, ty, tw, th] of L.things) place(id, tx, ty, tw, th);
         for (const pre in L.scatter) L.scatter[pre].forEach(([tx, ty], i) => place(pre + i, tx, ty, 1, 1));
-        // lamps keep to the kerb: a lamp whose spot is taken moves along until it's free
-        L.lamps.forEach(([tx, ty], i) => { let y = ty; while (occ.has(tx + ',' + y) && y < ty + 4) y++; place('ow_pathlamp' + i, tx, y, 1, 1); });
+        // lamps stand exactly where camp.js puts them, evenly spaced on the kerbs
+        L.lamps.forEach(([tx, ty], i) => place('ow_pathlamp' + i, tx, ty, 1, 1));
         // the chain-link fence round the dig zone, and planks across the trench
         for (const [x0, x1, ty] of L.fences) { const w = (x1 - x0) * TILE; World.addEnt(map, { x: x0 * TILE, y: ty * TILE + 12, w, d: 4, spr: fenceH(w, 'northFence'), sortY: ty * TILE + 16 }); World.addSolid(map, x0 * TILE, ty * TILE + 10, w, 8); }
         for (const [x0, x1, ty] of L.planks) {

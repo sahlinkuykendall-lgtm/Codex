@@ -68,8 +68,8 @@ function campLayout() {
     const things = [
         // --- the director's camp: two tents facing a yard, the finds table in the middle of it ---
         ['tent_bldg', 30, 24, 7, 3], ['c1m_hanatent', 42, 22, 4, 4], ['d_gearstor', 42, 27, 5, 2], ['d_tarp', 47, 28, 3, 1],
-        ['d_equiptbl', 33, 29, 4, 1], ['c1a_finds', 34, 29, 2, 1], ['c1a_hana', 35, 31, 1, 1], ['ow_detector', 37, 30, 1, 1], ['satphone', 46, 25, 1, 1],
-        ['c1m_mess', 22, 19, 6, 3], ['c1m_kitchen', 27, 25, 2, 2], ['d_lantern1', 29, 27, 1, 1], ['d_lantern2', 37, 27, 1, 1],
+        ['d_equiptbl', 33, 29, 4, 1], ['c1a_finds', 34, 29, 2, 1], ['c1a_hana', 35, 31, 1, 1], ['ow_detector', 36, 30, 1, 1], ['satphone', 46, 25, 1, 1],
+        ['c1m_mess', 22, 19, 6, 3], ['c1m_kitchen', 27, 25, 2, 2], ['d_lantern1', 29, 27, 1, 1], ['d_lantern2', 31, 31, 1, 1],
         ['c1a_lena', 33, 27, 1, 1], ['c1a_lenaman1', 29, 26, 1, 1], ['c1a_lenaman2', 38, 26, 1, 1],
         // --- the workers' camp: bunkhouse and office on the north of their yard ---
         ['dorm_bldg', 4, 22, 8, 3], ['foreman_bldg', 15, 22, 7, 3], ['water_barrels', 23, 23, 2, 2], ['d_antenna', 14, 23, 1, 1], ['d_dustbin', 23, 26, 1, 1],
@@ -112,11 +112,12 @@ function campLayout() {
     // trees: the palms of the oasis and along the roads
     const trees = [[3, 11], [12, 12], [3, 17], [7, 10], [9, 20], [4, 20], [15, 14], [2, 24], [26, 34], [29, 16], [36, 40], [44, 40], [10, 46], [61, 35], [73, 40], [63, 53], [30, 37], [18, 53], [23, 30], [49, 26]];
     // lamps along the roads, on the kerbs
-    // lamps on the kerbs, about eight tiles apart, sides taking turns, one at each junction's corner (their glow reaches far)
-    const lamps = [[38, 21], [38, 33], [41, 39], [38, 46], [41, 53],          // the main road: the dig gate, west road, east road, guard post, the way out
-        [32, 36], [23, 33], [14, 36],                                          // west to the workers' camp
-        [48, 36], [58, 36],                                                    // east, past the fossil pavement
-        [49, 45]];                                                             // to the guard post
+    // lamps: exactly eight tiles apart, always on the same side: the west kerb of the main road,
+    // the north kerb of the roads off it (placed where they're listed: nothing nudges them)
+    const lamps = [[38, 21], [38, 29], [38, 37], [38, 45], [38, 53],           // the main road
+        [30, 33], [22, 33], [14, 33],                                          // west to the workers' camp
+        [47, 36], [55, 36], [63, 36],                                          // east, past the fossil pavement, to the trench path
+        [47, 45]];                                                             // to the guard post
     // the fence round the dig zone: [x0, x1, y], the gate between the runs
     const fences = [[15, 36, 18], [42, 63, 18]];
     // planks across the trench: [x0, x1, y]

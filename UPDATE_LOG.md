@@ -12,6 +12,21 @@ Other docs:
 
 ---
 
+## POKE-STYLE P0.22 — 2026-09-30 — (branch `poke-style`) The road lamps, evenly placed
+- **One rule for every road lamp:** exactly eight tiles apart and always on the same side.
+  - main road: the west kerb, from the dig gate to the way out (5 lamps)
+  - the roads off it: the north kerb, 3 west to the workers' camp, 3 east to the trench
+    path, 1 on the road to the guard post
+- **Lamps stand exactly where they're listed.** The old code nudged a lamp down the road
+  when its spot was taken, which is what made the spacing uneven. That's gone.
+- **Two small moves:**
+  - Miriam's metal detector stand moved one tile west, next to the finds table, to make
+    room for a lamp
+  - the director's camp's second lantern moved to the yard's south-west corner, so it no
+    longer pokes out from behind the midnight car
+- **The look check:** only lamp positions (and the lighting at night) changed. The audit
+  (the midnight car still covers nothing) and the three playthroughs are clean.
+
 ## POKE-STYLE P0.21 — 2026-09-30 — (branch `poke-style`) The shaft, the old seal, the builders' ramp, the sherds and the workers' kitchen redrawn
 - **The shaft entrance** stands out now:
   - a portal of big dressed limestone blocks with a keystone lintel set into the cliff, and
