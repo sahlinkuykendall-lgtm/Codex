@@ -65,7 +65,14 @@ play. Resting at the fire or in the camp bed skips an hour, or straight to midni
 the chapter-end card, the clock runs free. The poke game already has hours and day/night
 tints (`Game.hour`, `light()`), so tie them to the story clock.
 
-## 3. Main beats, in order (bible §MAIN BEATS)
+## 3. Main beats, in order (bible §MAIN BEATS) — ✅ DONE in P0.9
+> Done in `poke/ch1_scenes.js`. `storyFrame()` runs the midnight car (lena_event coming →
+> searching → gone) and `storySync()` makes the world match (the chained dig gate, the Lena
+> trio, the parked car). The chapter-end card is `EndCard` in `ui.js`. Still stand-ins:
+> `playMinigame()` for the sieve (step 5), and the glyph seal is pressed from the choice box
+> (step 5 redraws it). The shaft is text for now (its interior map is step 7). The dig zone
+> fence doesn't reach the cliffs, so the dig shed and the shaft are padlocked in the story too.
+
 1. **Arrival.** Rais Abdallah meets you at the gate with a lantern ("Doctor Miriam did not
    leave for family reasons"). He walks you in. You sleep in Miriam's tent.
 2. **The payroll** at the Rais's fire. The site account is 6,000 EGP short. You can:

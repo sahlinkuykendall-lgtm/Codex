@@ -45,6 +45,10 @@ const ITEM_INFO = {
     'Bronze seal of Petamun': { key: 1, desc: 'A bronze seal the size of your palm, green with age: ΠΕΤΑΜΟΥΝ in Greek, and an ibis.' },
     'Conservation wax': { key: 1, desc: 'Hana\'s dark wax. "For anything you need to close again without anyone knowing."' },
     'Coupling pin': { desc: 'A greased coupling pin wrapped in newspaper. Uncle Hamid\'s supply line needs one.' },
+    'Photos: the midnight visitors': { key: 1, desc: 'Eleven frames on your phone: the woman in charge, her two men, and the car\'s plate, diplomatic green.' },
+    "Lena Brandt's card": { key: 1, desc: 'LENA BRANDT · SECURITY · VASSE FOUNDATION, GENEVA. A phone number, nothing else.' },
+    "Vasse's card": { key: 1, desc: 'CONRAD VASSE, WITH COMPLIMENTS. It came with five thousand pounds.' },
+    'Half-burned papers': { key: 1, desc: 'From Lindqvist\'s burn bin: Vasse Foundation transfer slips, and an email. "Dr. Hale\'s cooperation is no longer required."' },
     'Mint Tea': { desc: 'A glass of mint tea, poured from a height, with foam on it. Saber would approve.' },
 };
 
@@ -112,7 +116,7 @@ function task(id, text) {
     const T = Story.s.tasks, t = T.find(q => q.id === id);
     if (t) { t.text = text; t.done = false; return; }
     T.unshift({ id, text, done: false });
-    storyNotice('New task: ' + text);
+    storyNotice('New task. (Esc → TASKS)');
 }
 function taskDone(id) {                   // ticked off, and moved below the open ones
     const T = Story.s.tasks, i = T.findIndex(q => q.id === id);
@@ -157,6 +161,11 @@ function clockAdvance(mins) {
     if (typeof storyClockPassed === 'function') storyClockPassed(before, s.clock);
 }
 function clockTick(dt) { clockAdvance(Math.min(0.25, dt) * CLOCK_RATE); }
+
+// ---- minigames ----
+// playMinigame(kind, opts, done): step 5 draws the real ones (sieve, tea, darts, the race).
+// Until then this stands in for them and reports a plain success, so the story can go on.
+function playMinigame(kind, opts, done) { Sfx.ok(); done(Object.assign({ ok: true }, opts || {})); }
 
 // ============================================================
 // SCENES

@@ -99,6 +99,64 @@ const Dlg = {
     },
 };
 
+// a watch face: brass rim, white dial, twelve marks, the hands at the story time (pixel lines, no smoothing)
+function drawWatch(g, cx, cy, r) {
+    const A = pa(g), hr = Game.story ? storyHour() : Game.hour, h = hr % 12, m = (hr * 60) % 60;
+    A.ell(cx, cy, r + 2, r + 2, UI.ink); A.ell(cx, cy, r + 1, r + 1, '#e0a030'); A.ell(cx, cy, r - 1, r - 1, UI.ink); A.ell(cx, cy, r - 2, r - 2, '#f8f8f0');
+    if (r >= 6) A.r(cx - 1, cy - r - 4, 3, 2, '#e0a030');
+    for (let i = 0; i < 12; i++) { const a = i / 12 * Math.PI * 2; if (r >= 12 || i % 3 === 0) A.px(Math.round(cx + Math.sin(a) * (r - 4)), Math.round(cy - Math.cos(a) * (r - 4)), i % 3 ? '#9aa0a8' : UI.ink); }
+    const hand = (f, len, col) => { const a = f * Math.PI * 2; A.line(cx, cy, Math.round(cx + Math.sin(a) * len), Math.round(cy - Math.cos(a) * len), col); };
+    hand(h / 12, Math.max(2, Math.round(r * 0.5)), UI.ink); hand(m / 60, Math.max(3, r - 5), '#3058a0');
+    A.px(cx, cy, '#d04838');
+}
+
+// ---- THE CHAPTER-END CARD ----
+// What you did that carries forward, then: keep exploring, or back to the title
+const EndCard = {
+    open: false, lines: [], sel: 0, t: 0, title: '', sub: '', next: '', scroll: 0, maxScroll: 0,
+    show(title, sub, lines, next) { Object.assign(this, { open: true, title, sub, lines, next, sel: 0, t: 0, scroll: 0 }); Sfx.save(); },
+    update(dt, I) {
+        this.t += dt;
+        if (this.t < 1) return;
+        if (I.left || I.right) { this.sel = 1 - this.sel; Sfx.move(); }
+        if (I.up && this.scroll > 0) { this.scroll--; Sfx.tick(); }
+        if (I.down && this.scroll < this.maxScroll) { this.scroll++; Sfx.tick(); }
+        if (I.ok) {
+            Sfx.ok(); this.open = false;
+            if (this.sel === 1) Game.fadeTo(() => { Game.state = 'title'; Title.sel = 0; });
+        }
+    },
+    draw(g) {
+        const VW = Game.VW, VH = Game.VH, A = pa(g), a = Math.min(1, this.t / 0.8);
+        g.fillStyle = 'rgba(12,10,24,' + (0.92 * a).toFixed(2) + ')'; g.fillRect(0, 0, VW, VH);
+        if (this.t < 0.5) return;
+        const w = Math.min(VW - 16, 460), x = (VW - w) >> 1, tw = w - 40;
+        // every line of what you did, as rows of text (a bullet on each first row)
+        const rows = []; this.lines.forEach(l => Txt.wrap(l, tw - 12).forEach((ln, i) => rows.push([ln, i === 0])));
+        const next = Txt.wrap(this.next, tw), fixed = 52 + 6 + next.length * 12 + 30;
+        const fit = Math.max(3, Math.floor((VH - 8 - fixed) / 12)), shown = Math.min(rows.length, fit);
+        this.maxScroll = Math.max(0, rows.length - fit); this.scroll = Math.min(this.scroll, this.maxScroll);
+        const h = fixed + shown * 12, y = Math.max(2, (VH - h) >> 1);
+        frame(g, x, y, w, h, { band: '#e0a030', hi: '#ffe090' });
+        Txt.draw(g, this.title, VW >> 1, y + 7, { col: UI.gold, align: 'center' });
+        Txt.draw(g, this.sub, VW >> 1, y + 19, { col: UI.dim, align: 'center' });
+        frieze(g, x + 12, y + 32, w - 24);
+        let yy = y + 52;
+        for (let i = 0; i < shown; i++) { const [ln, first] = rows[this.scroll + i]; if (first) A.r(x + 22, yy + 4, 3, 3, '#c89020'); Txt.draw(g, ln, x + 32, yy, { col: UI.ink }); yy += 12; }
+        if (this.maxScroll) {                                    // ▲▼ when there's more above or below
+            if (this.scroll > 0) A.poly([[x + w - 18, y + 58], [x + w - 10, y + 58], [x + w - 14, y + 53]], '#d04838');
+            if (this.scroll < this.maxScroll) A.poly([[x + w - 18, yy - 8], [x + w - 10, yy - 8], [x + w - 14, yy - 3]], '#d04838');
+        }
+        yy += 6; next.forEach((ln, i) => Txt.draw(g, ln, x + 20, yy + i * 12, { col: '#3058a0' }));
+        yy = y + h - 20;
+        ['KEEP EXPLORING THE CAMP', 'RETURN TO TITLE'].forEach((s, i) => {
+            const bx = x + 20 + i * ((w - 40) >> 1), on = i === this.sel;
+            if (on) A.poly([[bx, yy + 2], [bx, yy + 10], [bx + 5, yy + 6]], '#d04838');
+            Txt.draw(g, s, bx + 10, yy, { col: on ? UI.ink : UI.dim });
+        });
+    },
+};
+
 // ---- PLACE NAMES ----
 const Banner = {
     text: '', t: 99,
@@ -115,11 +173,11 @@ const Banner = {
 
 // a small popup line at the top ("Got a painted sherd!")
 const Toast = {
-    text: '', t: 99,
-    show(s) { this.text = s; this.t = 0; },
+    text: '', t: 99, dur: 2.6,
+    show(s, dur) { this.text = s; this.t = 0; this.dur = dur || 2.6; },
     draw(g, dt) {
         this.t += dt;
-        if (this.t > 2.6 || !this.text) return;
+        if (this.t > this.dur || !this.text) return;
         const w = Txt.width(this.text) + 24, x = (Game.VW - w) >> 1;
         frame(g, x, 30, w, 22, { band: '#58a848', hi: '#b8f0a0' });
         Txt.draw(g, this.text, x + 12, 35, { col: UI.ink });
@@ -207,7 +265,7 @@ const Title = {
             Txt.draw(g, str, bx + 26, by + 8 + i * 15, { col: i === this.sel ? UI.ink : UI.dim });
             if (i === this.sel) A.poly([[bx + 13, by + 10 + i * 15], [bx + 13, by + 18 + i * 15], [bx + 18, by + 14 + i * 15]], '#d04838');
         });
-        Txt.draw(g, 'POKE-STYLE BUILD  P0.8', VW - 6, VH - 14, { col: '#8898d0', align: 'right' });
+        Txt.draw(g, 'POKE-STYLE BUILD  P0.9', VW - 6, VH - 14, { col: '#8898d0', align: 'right' });
         Txt.draw(g, '▲▼ choose    SPACE select', 6, VH - 14, { col: '#8898d0' });
     },
 };
@@ -286,6 +344,11 @@ const Menu = {
         frame(g, 6, 6, VW - 12, VH - 12);
         Txt.draw(g, this.page.toUpperCase(), 18, 12, { col: UI.gold });
         Txt.draw(g, 'ESC: back', VW - 18, 12, { col: UI.dim, align: 'right' });
+        if (this.page === 'bag') {                              // the watch: always there in the bag
+            const tx = VW - 30 - Txt.width('ESC: back'), s = Game.clockText();
+            Txt.draw(g, s, tx, 12, { col: '#3058a0', align: 'right' });
+            drawWatch(g, tx - Txt.width(s) - 10, 18, 6);
+        }
         frieze(g, 12, 25, VW - 24);
         // (everything below sits under the frieze)
         g.save(); g.translate(0, 14); VH -= 14;
@@ -332,7 +395,12 @@ const Menu = {
                     Txt.draw(g, str, 20, y, { col: on ? UI.ink : UI.dim });
                 }
                 A.r(lw + 20, 32, 1, VH - 50, '#c8d0d8');
-                Txt.wrap(list[this.sub][1], VW - lw - 50).slice(0, Math.floor((VH - 56) / 12)).forEach((ln, i) => Txt.draw(g, ln, lw + 28, 34 + i * 12, { col: UI.ink }));
+                const desc = Txt.wrap(list[this.sub][1], VW - lw - 50).slice(0, Math.floor((VH - 56) / 12));
+                desc.forEach((ln, i) => Txt.draw(g, ln, lw + 28, 34 + i * 12, { col: UI.ink }));
+                if (this.page === 'bag' && this.sub === 0) {        // the watch, big
+                    const r = Math.min(34, Math.max(16, (VH - 90 - desc.length * 12) >> 1)), cx = lw + 28 + Math.round((VW - lw - 50) / 2), cy = 44 + desc.length * 12 + r;
+                    if (cy + r < VH - 20) drawWatch(g, cx, cy, r);
+                }
             }
         }
         g.restore();

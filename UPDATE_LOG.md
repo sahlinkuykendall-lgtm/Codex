@@ -12,6 +12,62 @@ Other docs:
 
 ---
 
+## POKE-STYLE P0.9 — 2026-09-30 — (branch `poke-style`) The main story, and a watch in the bag (Area 1, step 3)
+- **Chapter 1-A can be played from the gate to the chapter-end card.** Every main beat from
+  the bible is in, ported from the 3D `ch1a_story.js` with the same words and choices:
+  1. **The payroll** at the Rais's fire. The site account is 6,000 EGP short. Pay it
+     yourself, send him to **confront Lindqvist** (the Foundation's "emergency float"), or
+     **delay**. Each changes how people feel about you, and all three get you **Miriam's key
+     ring** and open the dig gate. Lindqvist has his whole conversation: "Friday", the mother
+     who died years ago, the Vasse Foundation, the "lost" key.
+  2. **The trenches:**
+     - **Trench A:** dig where the stake was moved, 20 minutes with the men or 45 alone, and
+       find Miriam's notebook page.
+     - **The dig shed clipboard:** Trench B's spoil went to the heaps by the sieve.
+     - **The sieve:** under the red stake is the **MAG key**.
+     - **Trench C:** the red stake with Coptic ⲡⲏⲓ on it.
+  3. **Uncle Farouk** at the guard booth: the black Land Cruiser, and "the other car comes
+     at midnight." Pay him 500 EGP (or give him Saber's tea, once the tea is in) and he
+     owes you.
+  4. **The midnight car.** At midnight, headlights on the road in. A few minutes later a black
+     Land Cruiser is parked by the director's camp, and Lena Brandt and her two men are
+     searching Miriam's tent for 90 story minutes. You can:
+     - **listen** from the shadows
+     - **photograph** them
+     - **step into the light** and meet Lena (she gives you her card)
+     - **slip into the tent** behind them: you're knocked out, wake at the workers' fire,
+       and they take Miriam's page
+     - **miss it**, and they're gone when you get back
+
+     Walking up to the tent door while they're inside counts as finding them.
+  5. **The find store:** the MAG key. Slit the seal cleanly or break it. **The Codex** is in
+     Miriam's green scarf, with her note. With Hana's wax you reseal the store.
+  6. **The Osiris Shaft (optional):** climb down to the empty niche on level 3. **The old
+     seal** on the shaft approach: press owl, eye, serpent, lion in order from the choice
+     box. A wrong stone fires a cedar dart, grazes you, and moves the stones round; Hana
+     patches you up. Behind it is the **bronze seal of Petamun**. (Step 5 redraws this as a
+     pixel minigame.)
+  7. **Headlights**, once you have the Codex, and the exit choice: **quiet** (on foot through
+     the quarry), **legal** (call Amira), or **deal** (the Foundation's car, 5,000 EGP).
+  8. **The chapter-end card:** everything that carries forward (the list scrolls if it's
+     long), then keep exploring the camp with the clock running free, or go back to the title.
+- **The dig gate** is chained and padlocked until you have Miriam's keys, and you can't walk
+  through it. The fence doesn't reach the cliffs, so the dig shed and the shaft are padlocked
+  too, and the find store needs the MAG key. The chain is the only new drawing, and it goes
+  once the gate opens.
+- **Also ported:** the Rais's son Mina (pay his 1,500 EGP debt), Miriam's desk, books and
+  photographs, Gamal and the chalk tally in the dormitory, the payroll ledger, and the burn
+  bin in the site office.
+- **Tasks** follow the story as you go.
+- **A watch in the bag.** It's always the first thing in your BAG: a pixel watch face at the
+  story time, how long until midnight, and the time in the bag's title bar.
+- "New task" notices are one short line now; the full text is in TASKS.
+- The minigames (the sieve, the tea) have stand-ins until step 5: sifting finds the key
+  straight away.
+- Tested: all three payroll choices, all three exits, every midnight outcome, and saving and
+  loading at midnight. The camp's 33 views (every place, day and night, and the three rooms)
+  are pixel-identical to P0.8.
+
 ## POKE-STYLE P0.8 — 2026-09-30 — (branch `poke-style`) The story clock (Area 1, step 2)
 - **Chapter 1-A is one night.** You arrive at 20:30. A story minute passes for every 2 real
   seconds, so midnight comes after about seven minutes of play. The clock only runs while

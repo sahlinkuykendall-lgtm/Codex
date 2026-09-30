@@ -82,7 +82,7 @@ there are no image files.
 | `interiors.js` | The three rooms and their furniture |
 | `ui.js` | Text box (with the choice box), place banner, title screen, pause menu |
 | `story.js` | The story engine: flags, affinity, reputation, money, items, tasks, notices, and the scene runner |
-| `ch1_scenes.js` | Chapter 1-A's conversations, ported from the 3D `ch1a_story.js` |
+| `ch1_scenes.js` | Chapter 1-A's story, ported from the 3D `ch1a_story.js`: every main beat, the midnight car, the exit choice and the chapter-end card |
 | `backgrounds.js` | The four backgrounds: skills, gear, papers, their paintings and opening cutscenes |
 | `intro.js` | The opening scenes, the background choice, male/female, the character creator, the name grid, your papers |
 | `game.js` | The loop: input, movement and collision, camera, drawing, day/night, doors, saving |
@@ -92,8 +92,8 @@ To re-export the map after changing the 3D layout, run
 
 ## Not in it yet
 
-- Most of the story. The engine is in (flags, choices, tasks) and the arrival and Hana are
-  ported. Everyone else still says only the opening line of their scene. See `AREA1_TODO.md`.
+- The side quests (except Hana's and Mina's), the minigames, the phone and the survival
+  systems. The main story plays from the gate to the chapter-end card. See `AREA1_TODO.md`.
 - The minigames (sieve, tea, darts), the supply train moving, and the midnight event.
 - The Inspector's, Fixer's and Journalist's starting areas (their cutscenes are in).
 - Other chapters.

@@ -48,6 +48,7 @@ const Game = {
         this.journal = d.journal || []; this.bag = d.bag || {}; this.seen = d.seen || {}; this.taken = d.taken || {};
         this.story = Story.restore(d.story);
         if (this.set.time === 5) this.hour = storyHour();
+        storySync();
         if (this.set.time === 4 && d.hour != null) this.hour = d.hour;
         for (const e of this.maps.ch1.ents) if (e.id && this.taken[e.id]) World.removeEnt(this.maps.ch1, e);
         this.enter(this.maps.ch1);
@@ -59,7 +60,7 @@ const Game = {
         this.maps = { ch1: World.buildCamp(this.camp, window.POKE_MAP) };
         this._mm = null;
         this.journal = []; this.bag = { 'Field journal': 1, 'Letter of appointment': 1 }; this.seen = {}; this.taken = {};
-        this.story = Story.fresh(this.player.bg);
+        this.story = Story.fresh(this.player.bg); this.lenaCar = null;
     },
     newGame() {
         this.resetWorld();
@@ -67,6 +68,7 @@ const Game = {
         p.x = m.spawn[0]; p.y = m.spawn[1]; p.dir = DIR.up;
         this.enter(m);
         if (this.set.time === 5) this.hour = storyHour();
+        storySync();
         this.state = 'play'; this.hintT = 0;
         // the Rais comes to meet you with a lantern, says his piece (poke/ch1_scenes.js), and walks back to the fire
         const rais = World.addEnt(m, { x: p.x, y: p.y - 34, w: 0, d: 0, label: 'Rais Abdallah', person: { sheet: personSheet(LOOKS.rais), dir: DIR.down, frame: 0 }, sortY: p.y - 34, light: { x: 6, y: -12, r: 64, c: '#ffd080' } });
@@ -96,7 +98,8 @@ const Game = {
     bagList() {
         const DESC = { 'Field journal': 'Your field journal. Everything you look at goes into it (JOURNAL, in the menu).', 'Letter of appointment': 'The Ministry\'s letter: you are acting director of the Giza Western Field concession, effective immediately.', 'Painted sherd': 'Painted pottery sherds from the surface. Late Period, mostly. Hana will want to see them.', 'Fossil': 'Nummulites: coin-shaped fossils from the limestone the pyramids are built of. Herodotus thought they were the builders\' lentils.' };
         const key = k => ITEM_INFO[k] && ITEM_INFO[k].key ? 1 : 0;
-        return Object.keys(this.bag).sort((a, b) => key(b) - key(a)).map(k => [(key(k) ? '★ ' : '') + k + (this.bag[k] > 1 ? '  ×' + this.bag[k] : ''), DESC[k] || (ITEM_INFO[k] && ITEM_INFO[k].desc) || '']);
+        const watch = ['Watch   ' + clockStr(), 'Your watch. It is ' + this.clockText().replace('  ', ', ') + '.' + (this.story && !sflag('ch1_complete') ? (Story.s.clock < 24 * 60 ? ' Midnight in ' + (l => (l >= 60 ? Math.floor(l / 60) + ' h ' : '') + Math.ceil(l % 60) + ' min.')(24 * 60 - Story.s.clock) : ' The night ends at 04:40.') : '')];
+        return [watch].concat(Object.keys(this.bag).sort((a, b) => key(b) - key(a)).map(k => [(key(k) ? '★ ' : '') + k + (this.bag[k] > 1 ? '  ×' + this.bag[k] : ''), DESC[k] || (ITEM_INFO[k] && ITEM_INFO[k].desc) || '']));
     },
     findCount() { return (this.bag['Painted sherd'] || 0) + (this.bag['Fossil'] || 0); },
     outdoorPos() { return this.map && !this.map.outdoor && this.map.back ? this.map.back : [this.player.x, this.player.y]; },
@@ -161,6 +164,7 @@ const Game = {
             if (!this.fade.done && this.fade.t >= 0.22) { this.fade.done = true; this.fade.fn(); }
             if (this.fade.t >= 0.5) this.fade = null;
         }
+        if (EndCard.open) { if (!this.fade) EndCard.update(dt, I); return; }
         if (WorldMap.open) { WorldMap.update(dt, I); return; }
         if (Menu.open) { Menu.update(dt, I); return; }
         if (this.state === 'title') { if (!this.fade) Title.update(dt, I); return; }
@@ -174,6 +178,7 @@ const Game = {
         if (Dlg.active) { Dlg.update(dt, I); return; }
         if (this.fade) return;
         clockTick(dt);                                     // story time passes only while you're free to walk about
+        storyFrame(dt);                                    // the story's timed events, and the world matching the story
         if (I.menu) { Menu.toggle(); return; }
         if (I.map) { WorldMap.show(0); return; }
         this.movePlayer(dt);
@@ -211,6 +216,7 @@ const Game = {
         else if (p.y > m.exit.y) this.goOutside();
     },
     goInside(d) {
+        if (storyDoor(d)) { this.player.y += 6; return; }            // the story stops you at the door (someone's in there)
         const back = [d.x + d.w / 2, d.y + d.h + 10];
         Sfx.door();
         this.fadeTo(() => {
@@ -307,6 +313,7 @@ const Game = {
         else { g.fillStyle = '#101838'; g.fillRect(0, 0, VW, VH); Txt.draw(g, 'Drawing the desert…', VW >> 1, VH >> 1, { col: '#ffe890', align: 'center' }); }
         if (Menu.open) Menu.draw(g);
         if (WorldMap.open) WorldMap.draw(g);
+        if (EndCard.open) EndCard.draw(g);
         if (this.fade) { const t = this.fade.t, a = t < 0.22 ? t / 0.22 : 1 - (t - 0.22) / 0.28; g.fillStyle = 'rgba(0,0,0,' + Math.max(0, Math.min(1, a)).toFixed(2) + ')'; g.fillRect(0, 0, VW, VH); }
     },
     drawWorld(g) {

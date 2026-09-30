@@ -42,6 +42,10 @@ const World = {
         if (sp && sp.solid) { const [sx, sy, sw, sh] = sp.solid; e.solidRef = map.ents.length; World.addSolid(map, e.x + sx, e.y + sy, sw, sh, e); }
         return e;
     },
+    // turn the solid rectangles belonging to `owner` off or back on (a gate that opens)
+    setSolid(map, owner, on) {
+        for (const k in map.grid) for (const s of map.grid[k]) if (s.owner === owner) s.off = !on;
+    },
     removeEnt(map, e) {
         e.gone = true;
         for (const k in map.grid) for (const s of map.grid[k]) if (s.owner === e) s.off = true;
@@ -69,7 +73,7 @@ const World = {
         const place = (id, tx, ty, tw, th) => {
             const o = byId[id];
             if (!o) { console.warn('camp: no object', id); return; }
-            if (HIDDEN[id]) return;
+            const hidden = !!HIDDEN[id];              // placed, but not there until the story brings them (e.gone)
             const x = tx * TILE, y = ty * TILE, w = tw * TILE, d = th * TILE;
             const e = { x, y, w, d, id, label: o.label, say: o.say };
             if (id === 'dig_gate') { e.label = 'Dig Zone Gate'; e.say = ['System', 'The dig zone gate: chain-link, Miriam\'s handwriting on a laminated sign — ACTIVE EXCAVATION, AUTHORISED STAFF ONLY.\n\nIt stands open. The Rais has unlocked it for you.']; }
@@ -77,6 +81,7 @@ const World = {
                 const cx = x + w / 2, cy = y + d - 4;
                 Object.assign(e, { x: cx, y: cy, w: 0, d: 0, person: { sheet: personSheet(LOOKS[CAST[id]]), dir: 0, frame: 0 }, sortY: cy, nightOnly: !!NIGHT_ONLY[id] });
                 if (id === 'c1p_oldwoman') e.light = { x: 6, y: -14, r: 60, c: '#ffd080' };
+                if (hidden) { e.gone = true; e.lenaEvent = true; }
                 World.addEnt(map, e); map.people.push(e); return;
             }
             let spr = null;

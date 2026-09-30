@@ -697,6 +697,20 @@ SPR.c1c_milcrates = (w, d) => { const st = propStage(w, d, 34, 26), { A } = st; 
 // the dig zone gate: two chain-link leaves, a red sign
 // the dig zone gate, standing open: a leaf swung back on each post, the warning sign beside it
 SPR.dig_gate = (w, d) => Object.assign(digGate(w, d), { noShadow: true });
+// the same gate while it's locked: a chain slung between the posts, and a padlock (the story takes it off)
+function digGateLocked(w, d) {
+    const sp = SPR.dig_gate(w, d), [c, g] = mk(sp.c.width, sp.c.height), A = pa(g);
+    g.drawImage(sp.c, 0, 0);
+    const x0 = 25 - 2 + 4, x1 = 25 + w - 2, y0 = 19 + 6;              // just inside the posts (see digGate: stage x 25, top 19)
+    for (let x = x0; x < x1; x++) {
+        const t = (x - x0) / (x1 - x0), y = y0 + Math.round(Math.sin(t * Math.PI) * 5);
+        A.px(x, y + 1, PAL.line); A.px(x, y, (x >> 1) % 2 ? PAL.metal[1] : PAL.metal[3]);
+    }
+    const mx = (x0 + x1) >> 1, my = y0 + 6;
+    A.r(mx - 1, my - 3, 3, 1, PAL.metal[2]); A.r(mx - 2, my - 2, 1, 2, PAL.metal[2]); A.r(mx + 2, my - 2, 1, 2, PAL.metal[2]);   // the shackle
+    A.r(mx - 3, my, 7, 6, PAL.line); A.r(mx - 2, my + 1, 5, 4, PAL.gold[1]); A.r(mx - 2, my + 1, 5, 1, PAL.gold[0]); A.px(mx, my + 3, PAL.dark[2]);
+    return Object.assign({}, sp, { c });
+}
 function digGate(w, d) {
     const st = stage(w, d, 40, 24), { A } = st, x = st.x, top = st.y - 22;
     for (const [px, s] of [[x - 2, -1], [x + w - 2, 1]]) {
