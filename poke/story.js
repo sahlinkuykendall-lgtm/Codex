@@ -174,9 +174,10 @@ function clockAdvance(mins) {
 function clockTick(dt) { clockAdvance(Math.min(0.25, dt) * CLOCK_RATE); }
 
 // ---- minigames ----
-// playMinigame(kind, opts, done): step 5 draws the real ones (sieve, tea, darts, the race).
-// Until then this stands in for them and reports a plain success, so the story can go on.
+// playMinigame(kind, opts, done): the real ones are in poke/minigames.js (sieve, tea, darts,
+// the seal, the race). The fallback below only runs for a kind that has no minigame.
 function playMinigame(kind, opts, done) {
+    if (typeof Mini !== 'undefined' && MINIS[kind]) { Mini.open(kind, opts, done); return; }       // poke/minigames.js
     Sfx.ok();
     const r = Object.assign({ ok: true }, opts || {});
     if (kind === 'darts') r.score = 96 + Math.floor(Math.random() * 64);          // a stand-in round: beats the Rais's 132 about half the time

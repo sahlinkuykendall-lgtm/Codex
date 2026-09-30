@@ -13,7 +13,7 @@
 //   09 Pharaoh's Lentils: the five fossils (here)
 //   10 The Lamp at the Tomb: the old woman, and the saint's tomb (here)
 //   11 The Looters' Pit (here)
-// The minigames (tea, darts, the sieve) are stand-ins until step 5 (playMinigame in story.js).
+// The minigames (the race, darts, tea) are in poke/minigames.js.
 // ============================================================
 
 Object.assign(ITEM_INFO, {
@@ -61,37 +61,18 @@ scene('c1a_sayed', {
     },
     get choices() {
         const c = [];
-        if (sflag('mina') === 'open' && !sflag('race')) c.push({ text: '"You\'re on. Which horse is mine?"', onSelect: () => sflag('race_pts', 0), nextScene: 'c1a_race1' });
+        if (sflag('mina') === 'open' && !sflag('race')) c.push({ text: '"You\'re on. Which horse is mine?"', nextScene: 'c1a_race1' });
         c.push({ text: '"Good night, Hagg."' });
         return c;
     },
 });
-function raceScore(n) { sflag('race_pts', (sflag('race_pts') || 0) + n); }
 scene('c1a_race1', {
     speaker: 'System',
-    text: `He gives you the grey ("she's old, she's wise, she's slower than my bay; that is fair") and swings up onto the bay himself. Half the camp has come to the gate. Somebody is taking bets. Saber is taking bets.\n\nThe Rais drops his handkerchief.`,
-    choices: [
-        { text: 'Kick hard off the line.', onSelect: () => raceScore(1), nextScene: 'c1a_race2' },
-        { text: 'Let the grey find her own pace.', onSelect: () => raceScore(2), nextScene: 'c1a_race2' },
-        { text: 'Tuck in behind the bay and let him break the wind.', onSelect: () => raceScore(1), nextScene: 'c1a_race2' },
-    ],
-});
-scene('c1a_race2', {
-    speaker: 'System',
-    text: () => ((sflag('race_pts') || 0) >= 2 ? `The grey settles into a long, easy gallop that eats the sand. The bay is half a length ahead and working much harder.` : `The bay is away and two lengths clear; the grey is fighting you for her head.`) +
-        `\n\nThe quarry markers come up out of the dark: pale blocks, the turn around them tight and rough with chips.`,
-    choices: [
-        { text: 'Take the turn tight, on the inside.', onSelect: () => raceScore(Math.random() < 0.6 ? 2 : 0), nextScene: 'c1a_race3' },
-        { text: 'Swing wide where the footing is sure.', onSelect: () => raceScore(1), nextScene: 'c1a_race3' },
-    ],
-});
-scene('c1a_race3', {
-    speaker: 'System',
-    text: `Out of the turn and home: the camp lamps, the crowd at the gate, the bay's hooves right beside you. Hagg Sayed is grinning and using his whip.`,
-    choices: [
-        { text: 'Ask her for everything, now.', onSelect: () => raceScore(skillLevel('riding') >= 1 ? 2 : 1), nextScene: 'c1a_race_end' },
-        { text: 'Hold her till the last fifty metres, then go.', onSelect: () => raceScore(2), nextScene: 'c1a_race_end' },
-    ],
+    text: `He gives you the grey ("she's old, she's wise, she's slower than my bay; that is fair") and swings up onto the bay himself. Half the camp has come to the gate. Somebody is taking bets. Saber is taking bets.\n\nThe Rais raises his handkerchief.`,
+    choices: [{ text: 'Swing up onto the grey. (minigame)', onSelect: () => playMinigame('race', {}, r => {
+        if (r.left) { Dlg.open('Hagg Sayed', '"You pull her up? Wise. Another night, Doctor."'); return; }
+        c1aRaceResult(r.won); startDialogue('c1a_race_end');
+    }) }],
 });
 scene('c1a_race_end', {
     speaker: 'System',
@@ -100,13 +81,7 @@ scene('c1a_race_end', {
         : `The bay is a length clear at the gate. The camp groans. Hagg Sayed slides down, delighted with himself, and pats your knee.\n\n"You rode well. She is old. So am I." He considers. "Fifteen hundred, still. I am not a monster."`,
     choices: [{ text: 'Get down off the grey.' }],
 });
-// the race is decided before its last scene shows (so the words match)
-(function () {
-    const c = STORY.c1a_race3.choices;
-    c.forEach(ch => { const on = ch.onSelect; ch.onSelect = () => { on(); c1aRaceResult(); }; });
-})();
-function c1aRaceResult() {
-    const won = (sflag('race_pts') || 0) >= 5;
+function c1aRaceResult(won) {
     sflag('race', won ? 'won' : 'lost');
     skillXP('riding', won ? 90 : 60);
     clockAdvance(15);
@@ -130,9 +105,9 @@ scene('fun_dartboard', {
         if (!sflag('darts_won')) c.push({ text: money() >= 200 ? 'Enter the tournament. (200 EGP stake: beat 132 to win)' : 'Enter the tournament. (you need 200 EGP)', onSelect: () => {
             if (money() < 200) return;
             storyPay(-200, 'Tournament stake');
-            playMinigame('darts', { best: 132 }, r => { clockAdvance(20); c1aDartsResult(r.score, true); });
+            playMinigame('darts', { best: 132 }, r => { if (r.left) { Dlg.open('System', 'You walk away from the line. The stake stays in the pot.'); return; } clockAdvance(20); c1aDartsResult(r.score, true); });
         } });
-        c.push({ text: 'Throw a few for fun.', onSelect: () => playMinigame('darts', { best: 132 }, r => { clockAdvance(10); c1aDartsResult(r.score, false); }) });
+        c.push({ text: 'Throw a few for fun.', onSelect: () => playMinigame('darts', { best: 132 }, r => { if (r.left) return; clockAdvance(10); c1aDartsResult(r.score, false); }) });
         c.push({ text: 'Leave it.' });
         return c;
     },
@@ -187,8 +162,9 @@ scene('c1a_tea', {
 });
 function c1aPourTea() {
     playMinigame('tea', {}, r => {
+        if (r.left) return;
         clockAdvance(5);
-        if (!r.ok) { Dlg.open('System', 'Mostly on the tray. Saber pretends not to have seen.'); return; }
+        if (!r.ok) return;                                             // (the minigame already said how it went)
         if (!hasItem('Mint Tea')) pocket('Mint Tea', 1, true);
         if (sflag('saber') === 'pour') { sflag('saber', 'poured'); Dlg.open('System', 'You pour from as high as you dare. The tea lands with a hiss and a proper head of foam.\n\nAcross the fire, Saber has stopped pretending not to watch. He nods. Go and talk to him.'); }
         else Dlg.open('System', 'You pour from as high as you dare. A proper head of foam. You keep the glass: somebody will appreciate it.');

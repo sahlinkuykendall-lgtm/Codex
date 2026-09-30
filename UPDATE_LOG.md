@@ -12,6 +12,39 @@ Other docs:
 
 ---
 
+## POKE-STYLE P0.13 — 2026-09-30 — (branch `poke-style`) The minigames (Area 1, step 5)
+- **Five minigames in the pixel style** (`poke/minigames.js`), in place of the stand-ins:
+  - **The sieve:** press ◄ and ► in turn to shake the heap. The earth drains through the
+    mesh and the finds come up: sherds, faience beads, copper coins, bone, worked flint, and
+    plenty of stones. ▲▼ picks one and SPACE bags it, with 25 seconds a heap. Trench B's heap
+    under the red stake has **the MAG key** in it; lose it in the sand and you sift again.
+    There are three more old heaps for the register (Hana's valuation adds 20%).
+  - **Mint tea:** ▲▼ raises and lowers the kettle; hold SPACE to pour. Pour from a height
+    for foam, but too high and it splashes. Stop at the gold line with a proper head of
+    foam. The results are perfect, short, flat, messy or spilled. A perfect glass wins Saber
+    over, and it's what Farouk would rather have than money.
+  - **Darts on a real board:** 20 segments, doubles, trebles, the outer bull and the bull.
+    Aim with the arrows. Your hand sways, and holding SPACE steadies it for about a second
+    before your arm starts to shake. Let go to throw; three darts. Beating the Rais's 132
+    takes two trebles. (The 3D darts could only score 125 or 150 near there, so "beat 132"
+    really meant three bullseyes. The real board fixes that.)
+  - **Petamun's seal:** the ring of pale stone, the amber core and four glyph stones,
+    drawn as glyphs: owl, eye, serpent, lion. Pick a stone with the arrows and press it
+    with SPACE. The first press wakes it, and the resonance (the beads round the ring)
+    drains in about ten seconds. A wrong stone fires the cedar dart and the stones move
+    round.
+  - **The race:** the old grey against Hagg Sayed's bay, side-on under the pyramids. Press
+    SPACE as her stride marker crosses the gold to keep her going. The three moments from
+    the bible (off the line, the turn at the quarry markers, the run home) are choices
+    during the race, and they change how she runs.
+- **Tuned by playing them automatically:**
+  - Darts: a bot with perfect aim beats 132 in about two rounds out of three. Aiming by eye
+    and timing the release, a person will do worse.
+  - The race: you can't win without timing your taps; decent timing wins about 30% of
+    races, and good timing wins nearly all of them.
+- The camp's 33 views are pixel-identical to P0.12, and the story and side quests still
+  play through.
+
 ## POKE-STYLE P0.12 — 2026-09-30 — (branch `poke-style`) The side quests (Area 1, step 4)
 - **All eleven side quests from the bible**, ported from the 3D build with its words and
   rewards (`poke/ch1_side.js`, `poke/bosta.js`):

@@ -86,6 +86,7 @@ there are no image files.
 | `detector.js` | Miriam's metal detector: the 40 buried finds, the signal and metal readout, digging |
 | `ch1_side.js` | The eleven side quests (the race, darts, Saber's tea, the 1926 truck, the supply line, Amira's call, the fossils, the old woman, the looters' pit) |
 | `bosta.js` | Bosta the camp dog: her sprites, following you, tricks, barking at the midnight car |
+| `minigames.js` | The five minigames: the sieve, mint tea, darts, Petamun's seal, the race |
 | `ch1_scenes.js` | Chapter 1-A's story, ported from the 3D `ch1a_story.js`: every main beat, the midnight car, the exit choice and the chapter-end card |
 | `backgrounds.js` | The four backgrounds: skills, gear, papers, their paintings and opening cutscenes |
 | `intro.js` | The opening scenes, the background choice, male/female, the character creator, the name grid, your papers |
@@ -96,7 +97,7 @@ To re-export the map after changing the 3D layout, run
 
 ## Not in it yet
 
-- The minigames (stand-ins for now), the phone and the survival systems. The main story plays from the gate to the chapter-end card. See `AREA1_TODO.md`.
+- The phone, skills and XP, thirst and hunger, the camera, injury (step 6). The main story plays from the gate to the chapter-end card. See `AREA1_TODO.md`.
 - The minigames (sieve, tea, darts), the supply train moving, and the midnight event.
 - The Inspector's, Fixer's and Journalist's starting areas (their cutscenes are in).
 - Other chapters.

@@ -517,15 +517,19 @@ scene('c1a_sieve', {
         ? (sflag('mag_key') ? `The sieve on its trestles. Trench B's heap is sifted flat; the red stake lies on top of it.` : `The spoil heaps. One is fresher than the rest, the sand still dark: Trench B's spoil, carted here on the 14th. A red stake leans out of the top of it.`)
         : `A sieve frame on trestles beside the spoil heaps: cast-off earth, never properly sifted.`,
     get choices() {
-        if ((sflag('trenchB_known') || sflag('trenchA')) && !sflag('mag_key')) return [
-            { text: 'Sift the heap under the red stake. (about 30 minutes)', onSelect: () => playMinigame('sieve', { key: true }, r => { clockAdvance(30); startDialogue(r.key ? 'c1a_sieve_key' : 'c1a_sieve_none'); }) },
-            { text: 'Not now.' }];
-        return [{ text: 'Leave it.' }];
+        const c = [], left = 3 - (sflag('sieve_runs') || 0);
+        if ((sflag('trenchB_known') || sflag('trenchA')) && !sflag('mag_key'))
+            c.push({ text: 'Sift the heap under the red stake. (minigame, about 30 minutes)', onSelect: () => playMinigame('sieve', { key: true }, r => { if (r.left) return; clockAdvance(30); c1aSievePay(r); startDialogue(r.key ? 'c1a_sieve_key' : 'c1a_sieve_none'); }) });
+        if (left > 0) c.push({ text: 'Sift one of the old heaps. (' + left + ' left, about 20 minutes)', onSelect: () => playMinigame('sieve', {}, r => { if (r.left) return; sflag('sieve_runs', 4 - left); clockAdvance(20); c1aSievePay(r); }) });
+        c.push({ text: c.length ? 'Not now.' : 'Leave it.' });
+        return c;
     },
 });
+// what the register pays for a heap's finds (Hana's valuation: +20%)
+function c1aSievePay(r) { if (r.earned) storyPay(Math.round(r.earned * (sflag('hana_valuation') ? 1.2 : 1)), 'Sieve finds' + (sflag('hana_valuation') ? ' (Hana\'s valuation)' : '')); }
 scene('c1a_sieve_key', {
     speaker: 'System',
-    text: `Bucket after bucket through the mesh: potsherds, a bead, a Coca-Cola cap from the eighties. Then, in the bottom of the sieve, green with earth: a small brass key on a cardboard tag.\n\nMAG. Magazine. The find store.`,
+    text: `A small brass key on a cardboard tag, green with earth. MAG. Magazine. The find store. Miriam put it in the ground, the only place she trusted.`,
     choices: [{ text: 'Pocket the key.', onSelect: () => {
         sflag('mag_key', true); pocket('Find-store key (MAG)'); taskDone('storekey'); taskDone('trenches');
         storyNote('The find-store key', 'A small brass key on a cardboard tag marked MAG: magazine, the find store. It was in Trench B\'s spoil, under Miriam\'s red stake. The find store is the steel-doored shed on the east side of the dig zone.');
@@ -589,8 +593,8 @@ scene('c1a_shaft_l3', {
     text: `Level one: an empty chamber. Level two: stone sarcophagi in their niches, lids long gone. Level three: water, black and still, standing around a granite sarcophagus on a little island of rock, exactly as the photographs from 1999 show it.\n\nIn the back wall, a recess the size of a bread oven, freshly cut through old plaster. Empty. The plaster crumbs on the ledge are still sharp-edged: days old, not years.\n\nThis is where Miriam found it.\n\nThere is nothing else here. Whatever the "older seal" is, it isn't down here. It's on the approach, where the shaft was first cut.`,
     choices: [{ text: 'Climb back up.', onSelect: () => { if (!sflag('shaft_seen')) { sflag('shaft_seen', true); storyNote('The Osiris Shaft, level 3', 'The niche Miriam cut through the plaster is empty. The "older seal" from her note is up on the shaft approach.'); } } }],
 });
-// the old seal: press the four stones in the right order (owl, eye, serpent, lion).
-// Step 5 redraws this as a pixel minigame; until then you press them from the choice box.
+// the old seal: press the four stones in the right order (owl, eye, serpent, lion): the seal
+// minigame in poke/minigames.js. A wrong stone moves them round (seal_pos).
 const SEAL_ORDER = ['owl', 'eye', 'serpent', 'lion'], SEAL_AT = ['north', 'east', 'south', 'west'];
 function c1aSealShuffle() { const a = SEAL_ORDER.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } sflag('seal_pos', a); }
 scene('puzzle_start_glyph_lock', {
@@ -601,24 +605,12 @@ scene('puzzle_start_glyph_lock', {
     get choices() {
         if (sflag('petamun_seal')) return [{ text: 'Leave it.' }];
         return [
-            { text: 'Wake the seal and press the stones.', onSelect: () => { if (!sflag('seal_pos')) c1aSealShuffle(); sflag('seal_step', 0); startDialogue('c1a_seal_press'); } },
+            { text: 'Wake the seal. (minigame)', onSelect: () => { if (!sflag('seal_pos')) c1aSealShuffle(); playMinigame('seal', {}, r => {
+                if (r.ok) startDialogue('puzzle_glyph_solved');
+                else if (r.dart) { c1aSealShuffle(); sflag('injured', 'dart'); startDialogue('puzzle_glyph_fail'); }
+            }); } },
             { text: 'Leave it, as she asked.' },
         ];
-    },
-});
-scene('c1a_seal_press', {
-    speaker: 'System',
-    text: () => {
-        const n = sflag('seal_step') || 0;
-        return (n ? `The ${SEAL_ORDER[n - 1]} stone glows gold. ${['', 'One', 'Two', 'Three'][n]} of four. ` : `The amber core wakes with a hum you feel in your teeth. `) + `The stones sit around the ring: ` + sflag('seal_pos').map((a, i) => `the ${a} to the ${SEAL_AT[i]}`).join(', ') + '.\n\nWhich stone next?';
-    },
-    get choices() {
-        return sflag('seal_pos').map((a, i) => ({ text: `Press the ${a} (${SEAL_AT[i]}).`, onSelect: () => {
-            const n = sflag('seal_step') || 0;
-            if (a !== SEAL_ORDER[n]) { c1aSealShuffle(); sflag('injured', 'dart'); startDialogue('puzzle_glyph_fail'); return; }
-            sflag('seal_step', n + 1);
-            startDialogue(n + 1 === 4 ? 'puzzle_glyph_solved' : 'c1a_seal_press');
-        } })).concat([{ text: 'Take your hand away.' }]);
     },
 });
 scene('puzzle_glyph_solved', {

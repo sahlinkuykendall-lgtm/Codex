@@ -167,6 +167,7 @@ const Game = {
             if (this.fade.t >= 0.5) this.fade = null;
         }
         if (EndCard.open) { if (!this.fade) EndCard.update(dt, I); return; }
+        if (Mini.cur) { if (!this.fade) Mini.update(dt, I, this.keys); return; }
         if (WorldMap.open) { WorldMap.update(dt, I); return; }
         if (Menu.open) { Menu.update(dt, I); return; }
         if (this.state === 'title') { if (!this.fade) Title.update(dt, I); return; }
@@ -320,6 +321,7 @@ const Game = {
         else if (this.state === 'intro') Intro.draw(g);
         else if (this.state === 'play') this.drawWorld(g);
         else { g.fillStyle = '#101838'; g.fillRect(0, 0, VW, VH); Txt.draw(g, 'Drawing the desert…', VW >> 1, VH >> 1, { col: '#ffe890', align: 'center' }); }
+        if (Mini.cur) Mini.draw(g);
         if (Menu.open) Menu.draw(g);
         if (WorldMap.open) WorldMap.draw(g);
         if (EndCard.open) EndCard.draw(g);
@@ -418,7 +420,7 @@ const Game = {
         this.loadSettings();
         this.resize();
         window.addEventListener('resize', () => this.resize());
-        const MAPK = { ArrowUp: 'up', w: 'up', ArrowDown: 'down', s: 'down', ArrowLeft: 'left', a: 'left', ArrowRight: 'right', d: 'right', Shift: 'run' };
+        const MAPK = { ArrowUp: 'up', w: 'up', ArrowDown: 'down', s: 'down', ArrowLeft: 'left', a: 'left', ArrowRight: 'right', d: 'right', Shift: 'run', ' ': 'act', z: 'act', Enter: 'act' };   // (act: SPACE held, for the minigames)
         window.addEventListener('keydown', e => {
             Sfx.ctx();
             if (this.state === 'intro' && !Dlg.active && Intro.key(e)) { e.preventDefault(); return; }

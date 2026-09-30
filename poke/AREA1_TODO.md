@@ -134,7 +134,10 @@ tints (`Game.hour`, `light()`), so tie them to the story clock.
 | The Lamp at the Tomb | The old woman at night (already placed, `NIGHT_ONLY`). She gives you the Keepers' tile |
 | The Looters' Pit | The faience Eye of Horus in the cemetery: take it, or leave it for the Ministry |
 
-## 5. Minigames (redraw them in the pixel style)
+## 5. Minigames (redraw them in the pixel style) — ✅ DONE in P0.13
+> Done in `poke/minigames.js`: `playMinigame(kind, opts, done)` opens `Mini`. Darts uses a real board
+> (the 3D scoring couldn't reach 126–149). The race keeps the bible's three choices inside it.
+
 - **Sieve:** 3 heaps at the spoil field, plus the MAG key.
 - **Tea:** pour a perfect glass.
 - **Darts.**
