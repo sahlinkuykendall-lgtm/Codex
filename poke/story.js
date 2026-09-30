@@ -209,6 +209,7 @@ function startDialogue(key) {
 }
 // the scene an entity runs when you examine it, if any
 function scriptFor(e) {
+    if (e.script && STORY[e.script]) return e.script;                  // (things without an id can carry their own)
     if (!e.id || !(e.id in STORY_SCRIPTS)) return null;
     const s = STORY_SCRIPTS[e.id], k = typeof s === 'function' ? s(e) : s;
     return k && STORY[k] ? k : null;

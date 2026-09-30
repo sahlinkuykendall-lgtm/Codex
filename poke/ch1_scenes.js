@@ -178,6 +178,7 @@ function storyFrame(dt) {
         task('lena', 'Someone is searching Miriam\'s tent. Go and see (quietly).');
     }
     if (ev === 'searching' && s.clock >= (sflag('lena_until') || 1e9)) c1aLenaLeave(true);
+    Train.update(dt);
     storySync();
 }
 // make the world match the story: the dig gate, the midnight visitors and their car
@@ -193,7 +194,7 @@ function storySync() {
         const open = !!sflag('gate_open');
         if (gate.isOpen !== open) { gate.isOpen = open; gate.spr = open ? gate.sprOpen : gate.sprLocked; World.setSolid(m, gate.lock, !open); }
     }
-    Bosta.sync();
+    Bosta.sync(); placesSync();
     const here = sflag('lena_event') === 'searching';
     for (const e of m.ents) if (e.lenaEvent) e.gone = !here;
     if (here && !Game.lenaCar) {
@@ -586,12 +587,7 @@ STORY_SCRIPTS.puzzle_glyph = 'puzzle_start_glyph_lock';
 scene('c1a_shaft', {
     speaker: 'System',
     text: () => !sflag('gate_open') ? `The survey shaft, cut into the foot of the escarpment. A steel grille is padlocked over the ladder. The key will be on Miriam's ring, and the Rais has the ring.` : `The survey shaft Miriam's team cut to reach the lower levels of the Osiris Shaft, the real one, dug under the causeway in the Late Period and cleared in 1999: three levels of rock-cut chambers going down toward the water table.\n\nA ladder, a rope, and the dark.`,
-    get choices() { if (!sflag('gate_open')) return [{ text: 'Leave it.' }]; return [{ text: sflag('shaft_seen') ? 'Climb down to level 3 again. (15 minutes)' : 'Climb down to level 3. (15 minutes)', onSelect: () => { clockAdvance(15); startDialogue('c1a_shaft_l3'); } }, { text: 'Not now.' }]; },
-});
-scene('c1a_shaft_l3', {
-    speaker: 'System',
-    text: `Level one: an empty chamber. Level two: stone sarcophagi in their niches, lids long gone. Level three: water, black and still, standing around a granite sarcophagus on a little island of rock, exactly as the photographs from 1999 show it.\n\nIn the back wall, a recess the size of a bread oven, freshly cut through old plaster. Empty. The plaster crumbs on the ledge are still sharp-edged: days old, not years.\n\nThis is where Miriam found it.\n\nThere is nothing else here. Whatever the "older seal" is, it isn't down here. It's on the approach, where the shaft was first cut.`,
-    choices: [{ text: 'Climb back up.', onSelect: () => { if (!sflag('shaft_seen')) { sflag('shaft_seen', true); storyNote('The Osiris Shaft, level 3', 'The niche Miriam cut through the plaster is empty. The "older seal" from her note is up on the shaft approach.'); } } }],
+    get choices() { if (!sflag('gate_open')) return [{ text: 'Leave it.' }]; return [{ text: 'Climb down into the shaft. (5 minutes)', onSelect: () => c1aShaftDown('INT_SHAFT1', null) }, { text: 'Not now.' }]; },
 });
 // the old seal: press the four stones in the right order (owl, eye, serpent, lion): the seal
 // minigame in poke/minigames.js. A wrong stone moves them round (seal_pos).

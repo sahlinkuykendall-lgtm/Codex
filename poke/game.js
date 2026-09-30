@@ -240,6 +240,12 @@ const Game = {
         });
     },
     goOutside() {
+        const up = this.map.up;
+        if (up) {                                                      // a ladder up to the level above, not the open air
+            Sfx.door(); clockAdvance(5); this.player.y = this.map.exit.y;
+            this.fadeTo(() => { this.player.x = up.at[0]; this.player.y = up.at[1]; this.player.dir = DIR.down; this.enter(this.maps[up.key]); });
+            return;
+        }
         const back = this.map.back;
         Sfx.door();
         this.player.y = this.map.exit.y;
@@ -381,8 +387,9 @@ const Game = {
             }
         }
         // the light of the hour, and lamps once it's dark
-        if (m.outdoor && (L.c[0] < 250 || L.c[1] < 250)) {
-            const tg = this.tintG, TA = pa(tg);
+        const LT = m.outdoor ? L : m.dark ? { c: [58, 54, 72], dark: 0.9 } : null;           // outdoors the hour; underground, the dark
+        if (LT && (LT.c[0] < 250 || LT.c[1] < 250)) {
+            const tg = this.tintG, TA = pa(tg), L = LT;
             tg.globalCompositeOperation = 'source-over'; tg.fillStyle = 'rgb(' + L.c.join(',') + ')'; tg.fillRect(0, 0, VW, VH);
             if (L.dark > 0.08) {
                 tg.globalCompositeOperation = 'lighter';
@@ -393,6 +400,7 @@ const Game = {
                     const fl = li.flicker ? 1 + Math.sin(this.time * 11 + e.x) * 0.06 : 1, [r, gg, b] = hex(li.c), a = L.dark;
                     [[1, 0.16], [0.7, 0.2], [0.42, 0.26], [0.2, 0.3]].forEach(([k, al]) => TA.ell(x, y, Math.round(li.r * k * fl), Math.round(li.r * k * fl * 0.8), 'rgba(' + r + ',' + gg + ',' + b + ',' + (al * a).toFixed(3) + ')'));
                 }
+                if (m.dark) { const x = Math.round(p.x - cx), y = Math.round(p.y - 14 - cy); [[1, 0.18], [0.66, 0.24], [0.36, 0.3]].forEach(([k, al]) => TA.ell(x, y, Math.round(90 * k), Math.round(72 * k), 'rgba(255,220,160,' + al + ')')); }   // your torch
             }
             g.globalCompositeOperation = 'multiply'; g.drawImage(this.tintC, 0, 0); g.globalCompositeOperation = 'source-over';
         }

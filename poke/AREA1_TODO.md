@@ -167,7 +167,12 @@ Build each of these into the poke UI:
 - **The camera:** photograph Lena.
 - **Injury** (limp until Hana patches you or you rest) and **knockout**.
 
-## 7. Missing things in the world
+## 7. Missing things in the world — ✅ DONE in P0.15
+> Done in `poke/ch1_places.js`: the shaft's three levels (`INT_SHAFT1-3`, a new 'rock' room style,
+> `map.up` for climbing back a level), the watchtower, the running train (`Train`), Trench B's stake and the
+> store seal (`placesSync`). Hagg Sayed, the horses, the heaps, the mason's marks, the false door and the ramp
+> were already placed. Bosta's routine is sleeping by the fire (she follows you once won over).
+
 Check each against the bible's PLACES table and add what's missing:
 - Bosta (the dog), with her routine
 - Hagg Sayed and his horses at the camp gate

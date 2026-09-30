@@ -12,6 +12,35 @@ Other docs:
 
 ---
 
+## POKE-STYLE P0.15 — 2026-09-30 — (branch `poke-style`) The shaft, the watchtower, the train (Area 1, step 7)
+- **Inside the Osiris Shaft** (`poke/ch1_places.js`): climb down from the survey shaft at the
+  foot of the cliff. There are three levels of cut limestone, each lit only by work lamps
+  and your torch:
+  - **Level 1:** a bare chamber, the 1999 clearance mark, the ladder down.
+  - **Level 2:** three sarcophagi in their niches, lids long gone. One is granite, with a
+    Greek name scratched on it and scratched out.
+  - **Level 3:** flooded. Two black pools either side of a causeway of rock, the granite
+    sarcophagus on its island, and **the niche** in the back wall where Miriam found the
+    Codex.
+
+  Each ladder costs five story minutes. Walk onto the ladder at the bottom to climb back up
+  a level, and from level 1 back out into the night. Saving down there saves you at the top.
+- **The watchtower:** climb it (Climbing XP) and every place on the plateau goes on your
+  map. With Miriam's **field glasses** (one of her caches) you see a car with no lights by
+  the Osiris Shaft, someone sitting very still inside. It goes in the journal.
+- **The supply train runs** once Uncle Hamid has his coupling pin. The loco and its two
+  skips go up and down the line, pausing at each end, with the chug of the engine when
+  you're near. It doesn't block you while it's moving.
+- **Trench B's red stake** stands on its spoil heap by the sieve until you've sifted out the
+  MAG key.
+- **The find store's Ministry seal** (paper and red wax) is on its steel door. It shows
+  whether it's whole, slit cleanly, broken, or resealed with Hana's dark wax.
+- Already on the map from before, and checked: Hagg Sayed and his horses, the spoil heaps,
+  the mason's marks, the false door, the builders' ramp, and Bosta's home by the fire.
+- **What's new to look at:** only the stake and the seal. They're small, both in the dig
+  zone, and both change with the story. The camp's 33 views without them are
+  pixel-identical to P0.14.
+
 ## POKE-STYLE P0.14 — 2026-09-30 — (branch `poke-style`) The phone, skills, needs, injury and the camera (Area 1, step 6)
 - **Skills and XP** (`poke/systems.js`), from `story/06_SYSTEMS.md`:
   - Fifteen skills, levels 0–5 (100, 250, 450, 700 and 1,000 XP). Each background starts

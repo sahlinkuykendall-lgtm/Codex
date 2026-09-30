@@ -72,7 +72,11 @@ const FURN = {
 function roomShell(tw, th, style) {
     const pw = tw * TILE, ph = th * TILE, [c, g] = mk(pw, ph), A = pa(g), W = ROOM.WALL, E = ROOM.EDGE;
     // floor
-    if (style === 'tent') {
+    if (style === 'rock') {                             // the shaft: cut limestone, chisel marks, grit in the corners
+        A.r(0, W, pw, ph - W, PAL.rock[2]);
+        for (let y = W; y < ph; y += 24) { A.hl(0, y, pw, PAL.rock[3]); for (let x = ((y / 24) & 1) * 30; x < pw; x += 60) A.vl(x, y, 24, PAL.rock[3]); }
+        for (let i = 0; i < 140; i++) A.px(Math.floor(hash2(i, 31) * pw), W + Math.floor(hash2(i, 32) * (ph - W)), i % 3 ? PAL.rock[3] : PAL.rock[1]);
+    } else if (style === 'tent') {
         A.r(0, W, pw, ph - W, PAL.khaki[1]);
         for (let y = W; y < ph; y += 2) for (let x = (y & 2); x < pw; x += 4) A.px(x, y, PAL.khaki[2]);
         for (let x = 40; x < pw; x += 80) A.vl(x, W, ph - W, PAL.khaki[2]);
@@ -89,7 +93,12 @@ function roomShell(tw, th, style) {
         }
     }
     // back wall
-    if (style === 'tent') {
+    if (style === 'rock') {                             // the rock face: strata, and the marks of chisels
+        A.r(0, 0, pw, W, PAL.rock[1]);
+        for (let j = 6; j < W - 6; j += 9) A.hl(0, j + (j % 2), pw, PAL.rock[2]);
+        for (let i = 0; i < 60; i++) { const x = Math.floor(hash2(i, 41) * pw), y = 4 + Math.floor(hash2(i, 42) * (W - 14)); A.line(x, y, x + 3, y + 2, PAL.rock[3]); }
+        A.r(0, 0, pw, 5, PAL.rock[3]); A.r(0, W - 6, pw, 6, PAL.rock[3]); A.r(0, W - 6, pw, 1, PAL.rock[4]);
+    } else if (style === 'tent') {
         A.r(0, 0, pw, W, PAL.canvas[1]); A.r(0, 0, pw, 10, PAL.canvas[2]); A.dith(0, 10, pw, 6, PAL.canvas[2], 0);
         for (let x = 30; x < pw; x += 60) { A.vl(x, 0, W, PAL.canvas[2]); A.vl(x + 1, 0, W, PAL.canvas[0]); }
         A.r(0, W - 5, pw, 5, PAL.canvas[3]); A.r((pw >> 1) - 3, 0, 6, W, PAL.wood[2]); A.vl((pw >> 1) - 3, 0, W, PAL.wood[0]);
@@ -107,10 +116,17 @@ function roomShell(tw, th, style) {
     A.r(0, 0, E, ph, PAL.dark[2]); A.r(pw - E, 0, E, ph, PAL.dark[2]); A.r(E - 2, W, 2, ph - W, PAL.dark[1]); A.r(pw - E, W, 2, ph - W, PAL.dark[1]);
     A.r(0, ph - E, pw, E, PAL.dark[2]); A.r(E, ph - E, pw - E * 2, 2, PAL.dark[1]);
     const dx = (pw >> 1) - 22;
-    A.r(dx, ph - E, 44, E, style === 'tent' ? PAL.khaki[1] : style === 'planks' ? PAL.plank[1] : PAL.metal[1]);
-    A.r(dx + 4, ph - E - 12, 36, 16, PAL.red[2]); A.dith(dx + 4, ph - E - 12, 36, 16, PAL.red[3], 0); A.r(dx + 4, ph - E - 12, 36, 2, PAL.gold[1]); A.r(dx + 4, ph - E + 2, 36, 2, PAL.gold[1]);
-    // an arrow on the mat: the way out
-    A.poly([[dx + 22, ph - 3], [dx + 16, ph - 10], [dx + 28, ph - 10]], PAL.gold[0]);
+    if (style === 'rock') {                             // no mat down here: the ladder you came down
+        A.r(dx, ph - E, 44, E, PAL.dark[3]);
+        A.r(dx + 12, ph - E - 22, 3, 26, PAL.wood[2]); A.r(dx + 29, ph - E - 22, 3, 26, PAL.wood[2]);
+        for (let j = ph - E - 18; j < ph; j += 6) A.r(dx + 15, j, 14, 2, PAL.wood[1]);
+        A.poly([[dx + 22, ph - E - 30], [dx + 16, ph - E - 24], [dx + 28, ph - E - 24]], PAL.gold[0]);   // up
+    } else {
+        A.r(dx, ph - E, 44, E, style === 'tent' ? PAL.khaki[1] : style === 'planks' ? PAL.plank[1] : PAL.metal[1]);
+        A.r(dx + 4, ph - E - 12, 36, 16, PAL.red[2]); A.dith(dx + 4, ph - E - 12, 36, 16, PAL.red[3], 0); A.r(dx + 4, ph - E - 12, 36, 2, PAL.gold[1]); A.r(dx + 4, ph - E + 2, 36, 2, PAL.gold[1]);
+        // an arrow on the mat: the way out
+        A.poly([[dx + 22, ph - 3], [dx + 16, ph - 10], [dx + 28, ph - 10]], PAL.gold[0]);
+    }
     return { c, pw, ph, doorX: dx };
 }
 
@@ -131,7 +147,7 @@ const WALLART = {
 function buildRoom(key, M, back) {
     const info = {}; for (const o of (M.interiors[key] || [])) info[o.id] = o;
     const def = ROOMS[key], sh = roomShell(def.tw, def.th, def.style), A = pa(sh.c.getContext('2d'));
-    const map = { key, outdoor: false, name: def.name, pw: sh.pw, ph: sh.ph, bg: sh.c, ents: [], grid: {}, doors: [], places: [], people: [], back };
+    const map = { key, outdoor: false, name: def.name, pw: sh.pw, ph: sh.ph, bg: sh.c, ents: [], grid: {}, doors: [], places: [], people: [], back, dark: def.style === 'rock' };   // (dark: lit only by lamps and your torch)
     const W = ROOM.WALL, E = ROOM.EDGE;
     World.addSolid(map, 0, 0, sh.pw, W - 2); World.addSolid(map, 0, 0, E, sh.ph); World.addSolid(map, sh.pw - E, 0, E, sh.ph);
     World.addSolid(map, 0, sh.ph - E, sh.doorX, E); World.addSolid(map, sh.doorX + 44, sh.ph - E, sh.pw - sh.doorX - 44, E);
