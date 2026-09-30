@@ -84,7 +84,7 @@ function saqqaraLayout() {
         ['c1b_cafeowner', 57, 26, 1, 1], ['c1b_baker', 68, 26, 1, 1],
         // --- the market, the garage ---
         ['c1b_stall_fruit', 59, 31, 3, 1], ['c1b_stall_cloth', 59, 35, 3, 1], ['c1b_stall_spice', 66, 31, 3, 1], ['c1b_stall_veg', 66, 35, 3, 1],
-        ['c1b_fruitseller', 60, 33, 1, 1], ['c1b_spiceseller', 67, 33, 1, 1], ['c1b_garage', 70, 31, 4, 3], ['c1b_mechanic', 71, 35, 1, 1], ['c1b_tuktuk', 66, 38, 2, 1],
+        ['c1b_fruitseller', 60, 33, 1, 1], ['c1b_spiceseller', 67, 33, 1, 1], ['c1b_garage', 70, 31, 4, 3], ['c1b_mechanic', 71, 35, 1, 1], ['c1b_bike_mr', 69, 33, 1, 1], ['c1b_tuktuk', 66, 38, 2, 1],
         ['c1b_house5', 54, 31, 4, 3], ['c1b_house6', 54, 36, 4, 3], ['c1b_house7', 70, 37, 4, 3], ['c1b_donkey', 49, 30, 3, 1],
         // --- the museum garden: the colossus, the alabaster sphinx ---
         ['c1b_colossus', 57, 44, 8, 4], ['c1b_sphinx', 67, 48, 4, 2], ['c1b_kiosk', 57, 50, 2, 1], ['c1b_statues', 69, 44, 3, 1], ['c1b_tourist1', 66, 46, 1, 1], ['c1b_tourist2', 67, 46, 1, 1], ['c1b_guide', 61, 49, 1, 1],

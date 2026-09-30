@@ -12,6 +12,38 @@ Other docs:
 
 ---
 
+## POKE-STYLE P0.29 — 2026-09-30 — (branch `poke-style`) Following Samy through Mit Rahina (Chapter 1-B, step 3)
+- **Beat 3, the stealth tutorial** (from the bible): Samy rode down to Mit Rahina after the
+  round. His red motorbike is outside the garage; he's at the café, on the phone. Come
+  near and he gets up and walks: down the market lane, a stop at the spice stall, past the
+  tuk-tuk, and into the museum garden. At three corners he stops and looks back.
+- **How the tail plays:**
+  - where Samy is looking is a cone on the ground: yellow, red while he can see you. When
+    he stops to look back it's longer and wider
+  - market stalls, carts, the tuk-tuk and buildings block his view (the cone stops at
+    them), and standing close to other people hides you in the crowd
+  - the meter over his head fills while he sees you, faster the closer you are, and also
+    if you walk right on his heels or run near him
+  - fall more than twelve tiles behind for a few seconds and you lose him
+  - seen: he gives you an orange ("You like oranges too?") and goes back to the café.
+    Lost: he's back at the café ten minutes later. Walk away and come back to try again
+  - the compass points at Samy all the way
+- **The meeting:** by the alabaster sphinx, a young man leaning on a black scooter with a
+  Cairo plate: black tracksuit, trainers so white they hurt. Get within earshot without
+  either of them seeing you (the sphinx is good cover) and listen. Samy calls him Karim.
+  Karim pays him in an envelope and gives the order: "Out of your locker, into the service
+  room. My man comes after midnight." Samy mentions the Director's black car on Tuesdays;
+  Karim's grandfather "thinks it's still 1950". You know the name from the police files:
+  **Karim el-Gebali**.
+- Then Karim rides off west toward the Cairo road and Samy goes back the long way. New
+  task: be at the Serapeum's service room tonight, first. That's beat 4, the Serapeum at
+  night, in the next update.
+- Tested: the tail start, being seen, being lost, trying again, the meeting, finishing,
+  and saving and loading. A bot following him along his path is seen at five tiles behind
+  and gets through at seven and a half or more, so it can be done without any cover, and
+  cover lets you follow closer. The audit is clean (187 scenes; Saqqara has 70 things, all
+  reachable), the playthroughs pass, and Giza's 33 views are identical.
+
 ## POKE-STYLE P0.28 — 2026-09-30 — (branch `poke-style`) Giza camp fixes: compass letters, building light, the survey map, Miriam's food, the radio, darts, the fence
 - **The compass** (bottom right) now has N, E, S and W on a brass bezel (north is up the
   screen), and the line above it gives the heading in words: "NE  16 m".

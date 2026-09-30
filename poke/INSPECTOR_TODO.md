@@ -64,7 +64,22 @@ Serapeum. At the Serapeum you find Samy's cigarettes by a service door that shou
 locked. **The seal minigame is reused** (`MINIS.seal` in `poke/minigames.js`), reworked for
 reading seals and **spotting a forged one**.
 
-## 3. Beat 3: follow Samy (the stealth tutorial)
+## 3. Beat 3: follow Samy (the stealth tutorial) — ✅ DONE in P0.29
+> Done in `poke/ch1b_tail.js`:
+> - Samy at the Mit Rahina café (his bike at the garage); come near and he sets off
+>   through the market to the museum garden, looking back at three corners and glancing
+>   round at the spice stall
+> - **view cones** on the ground (yellow; red while he sees you), cut short by stalls,
+>   carts, the tuk-tuk and buildings; standing among people hides you in the crowd
+> - a **suspicion meter** over his head: it fills while he sees you (faster up close), on
+>   his heels, and when you run near him. Full, or too far behind, and he goes back to the
+>   café to try again
+> - **the meeting** by the alabaster sphinx: get within earshot unseen and hear Karim
+>   el-Gebali pay Samy, and give the order for tonight (the locker, the service room, "my
+>   man comes after midnight")
+>
+> Beat 4 picks up from the `c1b_night` task.
+
 A daytime tail through Mit Rahina's market. Stay in sight but out of his line of view: the
 stalls, the tuk-tuk and the crowd are cover. He meets **Karim el-Gebali** (sharp trainers).
 A new mechanic: view cones for the people you're tailing.

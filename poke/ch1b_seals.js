@@ -149,7 +149,7 @@ scene('c1b_samy_round', {
             sflag('c1b_samy_bolted', true); taskDone('c1b_samy_watch');
             const m = Game.maps.ch1, s = m.ents.find(e => e.id === 'c1b_samy'), bk = m.ents.find(e => e.id === 'c1b_bike'); if (s) s.gone = true; if (bk) World.removeEnt(m, bk);
             storyNote('Samy Ragab', '"Cleopatra. Everybody smokes Cleopatra." He left on the motorbike for Mit Rahina, "my cousin\'s shop", the moment he saw the evidence bag.');
-            task('c1b_tail', 'Samy rode down to Mit Rahina. Follow him, without being seen. (The tail comes in the next update: beat 3.)');
+            task('c1b_tail', 'Samy rode down to Mit Rahina. Find him there and follow him, without being seen.');
         } }];
     },
 });

@@ -101,6 +101,7 @@ there are no image files.
 | `ch1b_scenes.js` | Chapter 1-B, the Inspector's opening at Saqqara (see `INSPECTOR_TODO.md`) |
 | `tracker.js` | The task tracker (the compass, T for an arrow) and the corner panel with water and food |
 | `ch1b_seals.js` | Chapter 1-B beat 2: the inspection round, the seal-check minigame, the forged seal and Samy's cigarettes |
+| `ch1b_tail.js` | Chapter 1-B beat 3: following Samy through Mit Rahina (view cones, cover, the crowd, the suspicion meter), and listening in on Karim el-Gebali |
 | `backgrounds.js` | The four backgrounds: skills, gear, papers, their paintings and opening cutscenes |
 | `intro.js` | The opening scenes, the background choice, male/female, the character creator, the name grid, your papers |
 | `game.js` | The loop: input, movement and collision, camera, drawing, day/night, doors, saving |
