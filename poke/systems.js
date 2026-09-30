@@ -158,19 +158,6 @@ scene('c1a_datepalm', {
         return c;
     },
 });
-// the mess tent: bread under a cloth, the tea urn
-STORY_SCRIPTS.c1m_mess_in = 'c1a_mess';
-scene('c1a_mess', {
-    speaker: 'System',
-    text: `The mess tent: an old army marquee, faded to the colour of the desert, open on the camp side. A long trestle table, two benches, a steel urn for tea water, a crate of bread under a cloth against the flies.\n\nSomebody has left a newspaper weighted down with a glass.`,
-    get choices() {
-        const c = [], fed = sflag('bread_at') != null && Story.s.clock - sflag('bread_at') < 120;
-        if (!fed) c.push({ text: 'Tear off some bread. (5 minutes)', onSelect: () => { sflag('bread_at', Story.s.clock); eat(30, 'Aish baladi, a day old'); clockAdvance(5); } });
-        c.push({ text: 'Water from the urn.', onSelect: () => { const r = refill(); drink(35, 'Water from the urn'); if (r) Notice.show(r.trim()); } });
-        c.push({ text: 'Move on.' });
-        return c;
-    },
-});
 // things in the bag you can use (SPACE on them in the BAG)
 const ITEM_USE = {
     Canteen: () => { const c = sflag('canteen') ?? 3; if (c <= 0) { Toast.show('The canteen is empty. Fill it at a well, the water jars or the barrels.'); return; } sflag('canteen', c - 1); drink(35, 'A swig from the canteen'); },

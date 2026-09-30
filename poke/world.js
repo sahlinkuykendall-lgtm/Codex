@@ -66,7 +66,7 @@ const World = {
         }
         const occ = new Set(), mark = (tx, ty, tw, th) => { for (let j = ty - 1; j <= ty + th; j++) for (let i = tx - 1; i <= tx + tw; i++) occ.add(i + ',' + j); };
         const DRAW_AS = { fl_ministry_post: 'ministry post', fl_digshed: 'dig shed clipboard', fl_toolshed: "sam's tool shed", fl_guard_booth: 'guard booth', d_gearstor: 'gear storage', fl_trailer: 'site trailer', fl_scaffold: 'scaffolding', fl_palm: 'palm tree', fl_cactus: 'palm tree', fl_boulder: 'big boulder', fl_ruins: null, fl_stake_sam: 'survey stake' };
-        const NO_SPRITE = { trench: 1, ow_oasis: 1, fl_cooking: 1, fl_crates: 1, perimeter: 1, fl_sand_east: 1, fl_stars: 1, fl_ruins: 1, c1m_mess_in: 1 };
+        const NO_SPRITE = { trench: 1, ow_oasis: 1, fl_cooking: 1, fl_crates: 1, perimeter: 1, fl_sand_east: 1, fl_stars: 1, fl_ruins: 1 };
         const OPEN = { dig_gate: 1, c1p_pavement: 1, d_gearstor: 1, c1p_cemetery: 1, ow_ruins: 1, c1p_ramp: 1 };
         const NIGHT_ONLY = { c1p_oldwoman: 1 }, HIDDEN = { c1a_lena: 1, c1a_lenaman1: 1, c1a_lenaman2: 1 };
         const PICKUP = /^(painted sherd|fossil)$/;
@@ -111,9 +111,11 @@ const World = {
             World.addEnt(map, { x: x0 * TILE, y: ty * TILE + 7, w, d: 18, spr: Object.assign(fit(st), { flat: true }) });
         }
         // doors on the front of the three buildings you can enter
-        for (const [id, frac, to] of L.doors) {
+        for (const [id, frac, to, name, dy] of L.doors) {
             const e = map.ents.find(q => q.id === id); if (!e) continue;
-            map.doors.push({ x: e.x + e.w * frac - 16, y: e.y + e.d - 8, w: 32, h: 14, to, label: byId[id === 'tent_bldg' ? 'tent_door' : id === 'dorm_bldg' ? 'dorm_door' : 'foreman_door'].label.replace(/^Enter /, '') });
+            const label = name || byId[id === 'tent_bldg' ? 'tent_door' : id === 'dorm_bldg' ? 'dorm_door' : 'foreman_door'].label.replace(/^Enter /, '');
+            map.doors.push({ x: e.x + e.w * frac - 16, y: e.y + (dy != null ? dy : e.d - 8), w: 32, h: 14, to, label });
+            if (name) e.noLook = true;                 // (what it said from outside, you read going in: ch1_rooms.js)
         }
         // trees
         L.trees.forEach(([tx, ty], i) => { const x = tx * TILE + 16, y = ty * TILE + 28; World.addEnt(map, { x, y, w: 0, d: 0, spr: palm('cp' + i), sortY: y }); World.addSolid(map, x - 4, y - 4, 8, 5); mark(tx, ty, 1, 1); });

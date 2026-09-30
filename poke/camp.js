@@ -33,6 +33,7 @@ function campLayout() {
     }
     for (let y = 0; y < H; y++) { const l = 3 + Math.round(R() * 1.5 + Math.sin(y * 0.3)), r = 3 + Math.round(R() * 1.5 + Math.cos(y * 0.27)); rect(0, y, l, 1, T.ROCK); rect(W - r, y, r, 1, T.ROCK); }
     rect(37, H - 6, 5, 6, T.SAND);                                              // the road out, south (closed)
+    rect(47, H - 4, 4, 1, T.SAND);                                              // room to stand at the sheikh's tomb door
 
     // ---- yards: packed earth in front of the buildings, where camp life happens ----
     rect(3, 25, 20, 8, T.YARD);                                                 // the workers' yard: fire, tables, darts
@@ -68,7 +69,7 @@ function campLayout() {
         // --- the director's camp: two tents facing a yard, the finds table in the middle of it ---
         ['tent_bldg', 30, 24, 7, 3], ['c1m_hanatent', 42, 22, 4, 4], ['d_gearstor', 42, 27, 5, 2], ['d_tarp', 47, 28, 3, 1],
         ['d_equiptbl', 33, 29, 4, 1], ['c1a_finds', 34, 29, 2, 1], ['c1a_hana', 35, 31, 1, 1], ['ow_detector', 37, 30, 1, 1], ['satphone', 46, 25, 1, 1],
-        ['c1m_mess', 22, 19, 6, 3], ['c1m_mess_in', 24, 22, 3, 1], ['c1m_kitchen', 27, 25, 2, 2], ['d_lantern1', 29, 27, 1, 1], ['d_lantern2', 37, 27, 1, 1],
+        ['c1m_mess', 22, 19, 6, 3], ['c1m_kitchen', 27, 25, 2, 2], ['d_lantern1', 29, 27, 1, 1], ['d_lantern2', 37, 27, 1, 1],
         ['c1a_lena', 33, 27, 1, 1], ['c1a_lenaman1', 29, 26, 1, 1], ['c1a_lenaman2', 38, 26, 1, 1],
         // --- the workers' camp: bunkhouse and office on the north of their yard ---
         ['dorm_bldg', 4, 22, 8, 3], ['foreman_bldg', 15, 22, 7, 3], ['water_barrels', 23, 23, 2, 2], ['d_antenna', 14, 23, 1, 1], ['d_dustbin', 23, 26, 1, 1],
@@ -124,8 +125,10 @@ function campLayout() {
         ['cemetery', "THE WORKERS' CEMETERY", 25, 50, 5], ['ruins', 'THE OLD VILLAGE', 22, 40, 4], ['shelter', 'BEDOUIN SHELTER', 69, 35, 5], ['tower', 'THE WATCHTOWER', 70, 10, 4],
         ['fossils', 'THE FOSSIL PAVEMENT', 53, 40, 3], ['wreck', 'THE WRECK', 9, 51, 4],
     ];
-    // the three doors: [building id, fraction along its front, the room]
-    const doors = [['tent_bldg', 0.5, 'INT_TENT'], ['dorm_bldg', 0.55, 'INT_DORM'], ['foreman_bldg', 0.6, 'INT_FOREMAN']];
+    // the doors: [building id, fraction along its front, the room, (its name), (how far down the footprint it is, if not the front)]
+    const doors = [['tent_bldg', 0.5, 'INT_TENT'], ['dorm_bldg', 0.55, 'INT_DORM'], ['foreman_bldg', 0.6, 'INT_FOREMAN'],
+        ['fl_guard_booth', 0.77, 'INT_BOOTH', 'Guard Booth'], ['fl_ministry_post', 0.7, 'INT_MINPOST', 'Old Ministry Post'], ['fl_trailer', 0.66, 'INT_TRAILER', 'Site Trailer'],
+        ['fl_digshed', 0.5, 'INT_DIGSHED', 'Dig Shed'], ['c1m_mess', 0.5, 'INT_MESS', 'Mess Tent'], ['c1m_hanatent', 0.5, 'INT_HANA', "Hana's Tent", 88], ['c1p_maqam', 0.5, 'INT_MAQAM', "Sheikh's Tomb"]];
     return { W, H, tile, get, things, scatter, trees, lamps, fences, planks, places, doors, spawn: [39, 42] };
 }
 

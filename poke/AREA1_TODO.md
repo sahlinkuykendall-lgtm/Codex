@@ -35,6 +35,10 @@ Rules:
   `ow_well` / `c1w_well2`), water jars (a zeer, drink 40) wherever people work, and one
   food source or more (a cooking pot, bread, a date palm with a 4-hour wait). Put them where
   the player's day takes them, not only at the edges.
+- **Every building you can see has an inside**, unless the story keeps you out (then the
+  door says why, like the dig shed before the gate opens, or the sealed find store). What it
+  says when examined is what you read the first time you go in (`ROOMS[key].enter`). The
+  things inside carry what used to happen at the door. See `poke/ch1_rooms.js`.
 - Test with the Playwright scripts in `tools/poke_checks/`: `poke_audit.js` (links, scenes, reachability),
   `poke_playthrough.js` (three full nights), `poke_look.js <older build>` (the pixel-for-pixel look check).
 

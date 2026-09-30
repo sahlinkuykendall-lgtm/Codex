@@ -82,7 +82,7 @@ there are no image files.
 | `people.js` | Characters built from parts; the creator's options; the cast |
 | `world.js` | Builds the camp from the layout: entities, collision, trees, plants, doors |
 | `worldmap.js` | The M map: the area, and Egypt with the chapter regions |
-| `interiors.js` | The three rooms and their furniture |
+| `interiors.js` | Rooms: the shell (floor and wall styles), the furniture, the first three rooms |
 | `ui.js` | Text box (with the choice box), place banner, title screen, pause menu |
 | `story.js` | The story engine: flags, affinity, reputation, money, items, tasks, notices, and the scene runner |
 | `detector.js` | Miriam's metal detector: the 40 buried finds, the signal and metal readout, digging |
@@ -91,6 +91,7 @@ there are no image files.
 | `minigames.js` | The five minigames: the sieve, mint tea, darts, Petamun's seal, the race |
 | `systems.js` | Skills and XP, thirst and hunger, injury, the phone (P), the camera (C), the bank ledger and messages |
 | `ch1_places.js` | The Osiris Shaft's three levels, the watchtower, the running supply train, Trench B's stake, the find store's seal |
+| `ch1_rooms.js` | Seven more rooms, with their furniture and scenes: the guard booth, the old Ministry post, Lindqvist's trailer, the dig shed, the mess tent, Hana's tent, the sheikh's tomb |
 | `ch1_scenes.js` | Chapter 1-A's story, ported from the 3D `ch1a_story.js`: every main beat, the midnight car, the exit choice and the chapter-end card |
 | `backgrounds.js` | The four backgrounds: skills, gear, papers, their paintings and opening cutscenes |
 | `intro.js` | The opening scenes, the background choice, male/female, the character creator, the name grid, your papers |

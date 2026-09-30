@@ -70,7 +70,7 @@ async function start(b, errs) {
     TT.go('c1a_saber'); TT.talk('c1a_saber'); TT.pick('know everything'); TT.pick('kettle'); TT.talk('ow_tea'); TT.pick('Pour'); TT.win({ ok: true, kind: 'perfect' }); TT.pick(0); TT.talk('c1a_saber'); TT.pick('proper'); TT.pick(0);
     TT.go('c1a_farouk'); TT.sim(40); TT.talk('c1a_farouk'); TT.pick('car'); TT.pick('Midnight'); TT.pick('mint tea'); TT.pick(0);
     TT.go('trench'); TT.sim(30); TT.talk('trench'); TT.pick('Dig'); TT.pick('Fold');
-    TT.go('fl_digshed'); TT.sim(30); TT.talk('fl_digshed'); TT.pick('Photograph');
+    TT.go('fl_digshed'); TT.sim(30); TT.room('INT_DIGSHED'); TT.talk('digshed_clip'); TT.pick('Photograph'); TT.out();
     TT.go('ow_sieve'); TT.sim(20); TT.talk('ow_sieve'); TT.pick('red stake'); TT.win({ ok: true, key: true, earned: 45, bagged: ['Pot sherd', 'Copper coin'] }); TT.pick(0);
     L.push('before midnight ' + JSON.stringify(TT.check()));
     // walk about until midnight comes by itself
@@ -133,7 +133,7 @@ async function start(b, errs) {
     TT.go('c1a_lindqvist'); TT.talk('c1a_lindqvist'); TT.pick('six thousand'); TT.pick('Pay the men'); TT.pick('Take the keys');
     pocket('Dates', 2, true); const h = Game.maps.ch1.ents.find(e => e.id === 'camp_dog'); Game.player.x = h.x + h.w / 2; Game.player.y = h.y + h.d + 14;
     TT.talk('camp_dog'); TT.pick('wake'); TT.pick(0); TT.talk('camp_dog'); TT.pick('date'); TT.pick(0); TT.talk('camp_dog'); TT.pick('date'); TT.pick(0);
-    TT.go('fl_digshed'); TT.sim(20); TT.talk('fl_digshed'); TT.pick('Photograph');
+    TT.go('fl_digshed'); TT.sim(20); TT.room('INT_DIGSHED'); TT.talk('digshed_clip'); TT.pick('Photograph'); TT.out();
     TT.go('ow_sieve'); TT.sim(20); TT.talk('ow_sieve'); TT.pick('red stake'); TT.win({ ok: true, key: true, earned: 0, bagged: [] }); TT.pick(0);
     const dog = Math.round(Math.hypot(Bosta.x - Game.player.x, Bosta.y - Game.player.y));
     Game.save(); Game.story = null; Game.load(); const dogAfter = sflag('dog_follow');

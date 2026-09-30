@@ -237,6 +237,8 @@ const Game = {
             this.player.x = room.spawn[0]; this.player.y = room.spawn[1]; this.player.dir = DIR.up;
             this.enter(room);
             storyOnEnter(d.to);
+            const def = ROOMS[d.to];                                   // the first time in: what the building is
+            if (def.enter && !sflag('in_' + d.to)) { sflag('in_' + d.to, true); Dlg.open(def.enter[0], def.enter[1]); }
         });
     },
     goOutside() {
@@ -260,7 +262,7 @@ const Game = {
         const px = p.x, py = p.y - 5;
         const dogT = Bosta.talkable();
         for (const e of dogT ? m.ents.concat([dogT]) : m.ents) {
-            if (!(e.say || scriptFor(e)) || e.gone || (e.nightOnly && !night)) continue;
+            if (!(e.say || scriptFor(e)) || e.gone || e.noLook || (e.nightOnly && !night)) continue;
             let rx, ry, rw, rh;
             if (e.person) { rx = e.x - 8; ry = e.y - 12; rw = 16; rh = 14; }
             else if (!e.w) { rx = e.x - 10; ry = e.y - 10; rw = 20; rh = 12; }

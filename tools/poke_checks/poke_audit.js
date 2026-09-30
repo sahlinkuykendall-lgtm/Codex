@@ -21,7 +21,7 @@ const LAUNCH = process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } :
   await p.waitForTimeout(900);
   const R = await p.evaluate(() => {
     Dlg.active = false; Game.raisLeaves();
-    const out = { missingNext: [], missingScript: [], throws: [], unreachable: [], lockedReach: [], car: null, scenes: Object.keys(STORY).length };
+    const out = { missingNext: [], missingScript: [], throws: [], unreachable: [], lockedReach: [], doorsUnreachable: [], rooms: [], car: null, scenes: Object.keys(STORY).length };
     // 1. every link points somewhere
     const choicesOf = sc => { try { return (typeof sc.choices === 'function' ? sc.choices() : sc.choices) || []; } catch (e) { return []; } };
     for (const [k, sc] of Object.entries(STORY)) for (const c of choicesOf(sc)) if (c.nextScene && !STORY[c.nextScene]) out.missingNext.push(k + ' → ' + c.nextScene);
@@ -48,6 +48,18 @@ const LAUNCH = process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } :
     sflag('gate_open', true); storySync();
     let seen = flood();
     for (const e of m.ents) if ((e.say || scriptFor(e)) && !e.gone && !e.nightOnly && !near(seen, e)) out.unreachable.push(e.id || e.label);
+    for (const d of m.doors) if (!near(seen, { x: d.x, y: d.y, w: d.w, d: d.h })) out.doorsUnreachable.push(d.to);
+    // every room builds; everything in it that says something has words or a scene; its exit mat is reachable from where you come in
+    for (const d of m.doors) {
+      try {
+        const r = buildRoom(d.to, window.POKE_MAP, [0, 0]), RS = 8, RW = Math.ceil(r.pw / RS), RH = Math.ceil(r.ph / RS), rs = new Uint8Array(RW * RH), q = [[Math.floor(r.spawn[0] / RS), Math.floor(r.spawn[1] / RS)]];
+        for (const e of r.ents) if ((e.label || e.script) && !(e.say || scriptFor(e))) out.rooms.push(d.to + ': ' + e.label + ' says nothing');
+        rs[q[0][1] * RW + q[0][0]] = 1; let n = 0;
+        while (q.length) { const [i, j] = q.pop(); n++; for (const [a, c] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const x = i + a, y = j + c; if (x < 0 || y < 0 || x >= RW || y >= RH || rs[y * RW + x]) continue; if (World.blocked(r, x * RS + 2, y * RS, 4, 4)) continue; rs[y * RW + x] = 1; q.push([x, y]); } }
+        if (n < 40) out.rooms.push(d.to + ': boxed in at the door');
+        for (const e of r.ents) if ((e.say || scriptFor(e)) && e.w) { let ok = false; for (let x = Math.floor((e.x - 16) / RS); x <= Math.floor((e.x + e.w + 16) / RS) && !ok; x++) for (let y = Math.floor((e.y - 8) / RS); y <= Math.floor((e.y + e.d + 22) / RS); y++) if (x >= 0 && y >= 0 && x < RW && y < RH && rs[y * RW + x]) { ok = true; break; } if (!ok) out.rooms.push(d.to + ': can\'t reach ' + e.label); }
+      } catch (err) { out.rooms.push(d.to + ': ' + err.message); }
+    }
     // with the gate still locked: the people who start the story must be reachable
     sflag('gate_open', false); storySync(); seen = flood();
     for (const id of ['tariq_talk', 'c1a_lindqvist', 'c1a_hana', 'c1a_farouk', 'tent_bldg', 'trench']) { const e = m.ents.find(q => q.id === id); if (e && !near(seen, e)) out.lockedReach.push(id); }

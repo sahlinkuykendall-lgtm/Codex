@@ -76,6 +76,22 @@ function roomShell(tw, th, style) {
         A.r(0, W, pw, ph - W, PAL.rock[2]);
         for (let y = W; y < ph; y += 24) { A.hl(0, y, pw, PAL.rock[3]); for (let x = ((y / 24) & 1) * 30; x < pw; x += 60) A.vl(x, y, 24, PAL.rock[3]); }
         for (let i = 0; i < 140; i++) A.px(Math.floor(hash2(i, 31) * pw), W + Math.floor(hash2(i, 32) * (ph - W)), i % 3 ? PAL.rock[3] : PAL.rock[1]);
+    } else if (style === 'concrete') {                 // a bare cement floor, cracked, sand blown in under the door
+        A.r(0, W, pw, ph - W, '#c2baac');
+        for (let y = W + 40; y < ph; y += 64) A.hl(0, y, pw, '#a8a092');
+        for (let i = 0; i < 8; i++) { const x = hash2(i, 51) * pw, y = W + hash2(i, 52) * (ph - W); A.line(x, y, x + 14 + hash2(i, 53) * 20, y + 6 + hash2(i, 54) * 12, '#9a9284'); }
+        for (let i = 0; i < 90; i++) A.px(Math.floor(hash2(i, 55) * pw), W + Math.floor(hash2(i, 56) * (ph - W)), i % 2 ? '#aca496' : '#d2cabc');
+        A.ell(pw >> 1, ph - 10, 70, 16, '#e0cc98'); A.ell((pw >> 1) - 10, ph - 12, 44, 9, '#ecd8a8'); A.ell(24, ph - 20, 26, 12, '#dcc890');
+    } else if (style === 'tin') {                      // packed earth, trodden hard, a few stones
+        A.r(0, W, pw, ph - W, '#c8a878');
+        for (let i = 0; i < 160; i++) A.px(Math.floor(hash2(i, 61) * pw), W + Math.floor(hash2(i, 62) * (ph - W)), i % 3 ? '#b09060' : '#dcc090');
+        for (let i = 0; i < 10; i++) { const x = hash2(i, 63) * pw, y = W + hash2(i, 64) * (ph - W); A.r(x, y, 3, 2, '#9a7a50'); A.hl(x, y, 3, '#e8d0a0'); }
+    } else if (style === 'trailer') {                  // a vinyl floor printed to look like wood, not fooling anybody
+        A.r(0, W, pw, ph - W, '#c89c6c');
+        for (let y = W; y < ph; y += 10) { A.hl(0, y, pw, '#a87c50'); for (let x = ((y / 10) & 1) * 30 + 8; x < pw; x += 60) A.vl(x, y, 10, '#a87c50'); }
+        A.r(0, W, pw, 2, '#8a6440');
+    } else if (style === 'maqam') {                    // old stone flags, worn smooth, under straw mats
+        for (let y = W; y < ph; y += 20) for (let x = -((y - W) / 20 & 1) * 16; x < pw; x += 32) { A.r(x, y, 32, 20, hash2(x, y) > 0.5 ? '#e4d8bc' : '#d8cab0'); A.hl(x, y, 32, '#f4ecd8'); A.vl(x, y, 20, '#c4b494'); }
     } else if (style === 'tent') {
         A.r(0, W, pw, ph - W, PAL.khaki[1]);
         for (let y = W; y < ph; y += 2) for (let x = (y & 2); x < pw; x += 4) A.px(x, y, PAL.khaki[2]);
@@ -98,6 +114,24 @@ function roomShell(tw, th, style) {
         for (let j = 6; j < W - 6; j += 9) A.hl(0, j + (j % 2), pw, PAL.rock[2]);
         for (let i = 0; i < 60; i++) { const x = Math.floor(hash2(i, 41) * pw), y = 4 + Math.floor(hash2(i, 42) * (W - 14)); A.line(x, y, x + 3, y + 2, PAL.rock[3]); }
         A.r(0, 0, pw, 5, PAL.rock[3]); A.r(0, W - 6, pw, 6, PAL.rock[3]); A.r(0, W - 6, pw, 1, PAL.rock[4]);
+    } else if (style === 'concrete') {                 // government green to shoulder height, cream above, peeling
+        A.r(0, 0, pw, W, '#e6dcc2'); A.r(0, 22, pw, W - 22, '#6e9a78'); A.hl(0, 22, pw, '#4e7a58'); A.hl(0, 23, pw, '#8eb898');
+        for (let i = 0; i < 9; i++) { const x = hash2(i, 71) * (pw - 20), y = 6 + hash2(i, 72) * (W - 16); A.r(x, y, 8 + hash2(i, 73) * 10, 4 + hash2(i, 74) * 4, '#b8b0a0'); }
+        for (let i = 0; i < 5; i++) A.soft(hash2(i, 75) * pw, 0, 3, 18 + hash2(i, 76) * 20, '#8a6a4a', 0.25);
+        A.r(0, 0, pw, 4, '#b8ae98'); A.r(0, W - 5, pw, 5, '#4e6a54');
+        const x = Math.round(pw * 0.72); A.r(x - 2, 10, 36, 28, '#8e8474'); A.r(x, 12, 32, 24, '#9ed2f4'); A.r(x, 24, 32, 12, '#e8cf8e'); for (let i = 3; i < 32; i += 5) A.vl(x + i, 11, 26, '#4a4e56'); A.hl(x, 23, 32, '#4a4e56');   // the one window, barred
+    } else if (style === 'tin') {                      // corrugated iron, rust, light through the nail holes
+        corrugated(A, 0, 0, pw, W, ['#b8c088', '#96a068', '#727c4c', '#4e5634']);
+        for (let i = 0; i < 12; i++) A.r(hash2(i, 81) * pw, 6 + hash2(i, 82) * (W - 16), 2, 4 + hash2(i, 83) * 8, '#b8683c');
+        for (let i = 0; i < 20; i++) A.px(hash2(i, 84) * pw, 4 + hash2(i, 85) * 6, '#fff4c8');
+        A.r(0, 0, pw, 4, '#4e5634'); A.r(0, W - 5, pw, 5, '#5a4630'); for (let x = 12; x < pw; x += 48) A.r(x, 0, 4, W, '#8e6a44');   // posts
+    } else if (style === 'trailer') {                  // white wall panels with seams, a curtained window
+        A.r(0, 0, pw, W, '#eef0f2'); for (let x = 0; x < pw; x += 32) { A.vl(x, 0, W, '#c8ced6'); A.vl(x + 1, 0, W, '#ffffff'); }
+        A.r(0, 0, pw, 5, '#c8ced6'); A.r(0, W - 6, pw, 6, '#a8b0ba'); A.hl(0, W - 6, pw, '#8a94a0');
+    } else if (style === 'maqam') {                    // whitewash, a green dado, a band of Qur'anic script painted round it
+        A.r(0, 0, pw, W, '#f6f4ec'); A.r(0, W - 20, pw, 20, '#3e8a58'); A.hl(0, W - 20, pw, '#2a6440'); A.hl(0, W - 19, pw, '#6cae7c');
+        A.r(0, 8, pw, 8, '#2a6440'); for (let x = 3; x < pw - 4; x += 7) { A.r(x, 10, 4, 1, '#f0c040'); A.px(x + 1, 12, '#f0c040'); A.vl(x + 5, 9, 4, '#f0c040'); }
+        A.r(0, 0, pw, 3, '#d8d4c8');
     } else if (style === 'tent') {
         A.r(0, 0, pw, W, PAL.canvas[1]); A.r(0, 0, pw, 10, PAL.canvas[2]); A.dith(0, 10, pw, 6, PAL.canvas[2], 0);
         for (let x = 30; x < pw; x += 60) { A.vl(x, 0, W, PAL.canvas[2]); A.vl(x + 1, 0, W, PAL.canvas[0]); }
@@ -122,7 +156,7 @@ function roomShell(tw, th, style) {
         for (let j = ph - E - 18; j < ph; j += 6) A.r(dx + 15, j, 14, 2, PAL.wood[1]);
         A.poly([[dx + 22, ph - E - 30], [dx + 16, ph - E - 24], [dx + 28, ph - E - 24]], PAL.gold[0]);   // up
     } else {
-        A.r(dx, ph - E, 44, E, style === 'tent' ? PAL.khaki[1] : style === 'planks' ? PAL.plank[1] : PAL.metal[1]);
+        A.r(dx, ph - E, 44, E, style === 'tent' ? PAL.khaki[1] : style === 'planks' || style === 'trailer' ? PAL.plank[1] : style === 'tin' ? '#c8a878' : style === 'concrete' ? '#c2baac' : style === 'maqam' ? '#e4d8bc' : PAL.metal[1]);
         A.r(dx + 4, ph - E - 12, 36, 16, PAL.red[2]); A.dith(dx + 4, ph - E - 12, 36, 16, PAL.red[3], 0); A.r(dx + 4, ph - E - 12, 36, 2, PAL.gold[1]); A.r(dx + 4, ph - E + 2, 36, 2, PAL.gold[1]);
         // an arrow on the mat: the way out
         A.poly([[dx + 22, ph - 3], [dx + 16, ph - 10], [dx + 28, ph - 10]], PAL.gold[0]);

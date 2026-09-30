@@ -12,6 +12,61 @@ Other docs:
 
 ---
 
+## POKE-STYLE P0.19 — 2026-09-30 — (branch `poke-style`) Seven buildings open up; the guard post, the trailer and the scaffold redrawn
+- **You can go inside seven more buildings.** The first time you step in, you read what the
+  building used to say when you examined it. What used to happen at the door now happens at
+  the thing inside it belongs to.
+  - **The guard booth:**
+    - Farouk's chair (nobody sits in it), his radio and thermos
+    - his Qur'an on its own shelf and an out-of-date calendar
+    - a kettle of his tea you can pour yourself (water +15)
+  - **The old Ministry post:**
+    - a dusty 1998 ticket book on the desk and a 1996 plateau map ("NOT ALL")
+    - Farouk's Friday galabeya on a hook and his camp bed ("never sleeps on duty")
+    - a fan that shouldn't still work
+  - **Lindqvist's trailer:**
+    - the rattling air conditioner and a laptop of red cells ("RING THE FOUNDATION")
+    - the unopened Ministry letters and photos of home
+    - a fridge with bottled water (water +35, fills the canteen)
+  - **The dig shed:** padlocked until the Rais opens the dig zone, and the door tells you
+    so. Inside are the tool rack, the sieves, the finds trays and rubber buckets, and
+    **Miriam's clipboard**. Trench B's clue is now photographed in here.
+  - **The mess tent:** the long table and benches, a four-day-old newspaper. The **bread**
+    (food +30, every 2 hours) and the **urn** (water +35) moved in here from the doorway.
+  - **Hana's tent:**
+    - her conservation table, the chemicals shelf and the first-aid tin
+    - a cot with hospital corners and her photos from other digs
+  - **The sheikh's tomb:**
+    - the cenotaph under its green cloth, inside a railing hung with wish rags
+    - **the lamp niche**, where you light a candle now
+    - a patch of rock in front of its door opened up so you can stand there
+
+  The find store stays sealed: the story opens it.
+- **Redrawn from outside:**
+  - **The old Ministry post** is now a real abandoned concrete hut instead of a white
+    cabin:
+    - render peeling to the breeze blocks, rust stains, one barred window, a rusty air
+      conditioner
+    - a green steel door under a slab porch, and a faded MINISTRY OF ANTIQUITIES sign
+    - a bench and sand drifted against the walls
+    - on the roof: a frayed flag, a guyed mast, the tank and dish, sandbags, a pigeon loft,
+      old tyres, a roof hatch, a broken chair, and a washing line with Farouk's galabeya
+  - **The guard booth** is a little whitewashed sentry box with a blue fascia:
+    - through its window: the chair, the radio, the thermos and the Qur'an
+    - basil in a tin, a lamp over the door, a plastic chair, a kettle on a gas ring
+  - **Lindqvist's trailer** is a ribbed aluminium caravan up on blocks:
+    - a window air conditioner, dripping
+    - a Swedish flag sticker on the door and the letters piled on the wooden steps
+    - a tow hitch, wheels, a solar panel, roof vents, a dish, and a cable to the generator
+  - **The trench scaffold** is a real tube-and-coupler tower:
+    - two bays and two lifts, braces, couplers, plank decks with toe boards, and a ladder
+    - a green shade cloth, hazard tape, and a gin wheel hauling a bucket
+    - sandbags on the base plates
+- **The audit now checks the rooms too:** every door can be reached, every room builds, and
+  everything in it that has a name has something to say. It's clean, with 134 scenes. The
+  three playthroughs pass (Trench B's clue is photographed in the shed now). The look check
+  shows only the views with these buildings.
+
 ## POKE-STYLE P0.18 — 2026-09-30 — (branch `poke-style`) The big boulder, the fossil pavement, water and food all over the camp
 - **The big boulder** is redrawn as it's described: a car-sized limestone block with its
   front cut flat. The quarrymen's row of wedge slots and the split that never ran true are

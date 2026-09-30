@@ -271,17 +271,144 @@ function cabin(w, d, stripe) {                   // a white site cabin with a co
     A.r(x + 4, wy + wallH, 7, 3, '#5a5048'); A.r(x + w - 11, wy + wallH, 7, 3, '#5a5048');                       // the blocks it stands on
     return st;
 }
-SPR_L['site trailer'] = (w, d) => fit(cabin(w, d, SHUTTER));
-SPR_L['ministry post'] = (w, d) => {
-    const st = cabin(w, d, ['#6a8ad0', '#2e4f9a', '#1f3a74']), { A } = st, fx = st.x + 6, fy = st.y - 30 - 24, rt = st.y - 30;
-    roofTank(A, st.x + 22, rt + 4); roofDish(A, st.x + Math.round(w * 0.55), rt + 8); roofAC(A, st.x + Math.round(w * 0.3), rt + Math.round(d * 0.5));
-    for (let i = 0; i < 5; i++) { A.ell(st.x + w - 30 + i * 5, rt + d - 10, 3, 2, '#c9b48e'); A.hl(st.x + w - 32 + i * 5, rt + d - 8, 5, '#8a7658'); }   // sandbags along the edge
-    A.r(st.x + Math.round(w * 0.78), rt - 16, 1, 22, '#5a6872'); A.px(st.x + Math.round(w * 0.78), rt - 17, '#d0402f');                              // a radio mast
-    A.r(fx, fy, 2, 26, '#86949e');                                                                                  // the flag: red, white, black
-    A.r(fx + 2, fy, 14, 3, '#d0402f'); A.r(fx + 2, fy + 3, 14, 3, '#ffffff'); A.r(fx + 2, fy + 6, 14, 3, '#20242c'); A.px(fx + 8, fy + 4, '#f0c040');
+// Lindqvist's site trailer: a ribbed aluminium caravan up on blocks, a window air conditioner
+// rattling and dripping, a Swedish flag sticker on the door, the Ministry's letters piled on the step.
+SPR_L['site trailer'] = (w, d) => {
+    const wallH = 38, st = stage(w, d, wallH + 12, 6), { A } = st, x = st.x, top = st.y - wallH;
+    const AL = ['#f4f6f8', '#dde2e7', '#b9c1ca', '#8c96a2', '#5e6874'], W2 = w - 2;
+    // the roof: a raised rim, seams, vents, a solar panel, a dish, dust
+    A.r(x + 1, top, W2, d, AL[1]); A.r(x + 4, top + 3, W2 - 6, d - 6, AL[2]); A.hl(x + 2, top, W2 - 2, '#ffffff'); A.vl(x + 1, top + 1, d - 2, AL[0]); A.vl(x + W2, top + 1, d - 2, AL[3]);
+    for (let i = 12; i < W2 - 6; i += 12) { A.vl(x + i, top + 3, d - 6, AL[3]); A.vl(x + i + 1, top + 3, d - 6, AL[1]); }
+    A.r(x + 14, top + 12, 34, 22, '#2e4a7a'); for (let i = 0; i < 34; i += 6) A.vl(x + 14 + i, top + 12, 22, '#5a7ab0'); A.hl(x + 14, top + 22, 34, '#5a7ab0'); A.hl(x + 14, top + 12, 34, '#9ab8e8'); A.r(x + 14, top + 34, 34, 2, AL[3]);   // a solar panel
+    for (const vx of [x + 62, x + 104]) { A.r(vx, top + 20, 14, 10, AL[0]); A.r(vx, top + 30, 14, 3, AL[3]); A.r(vx + 3, top + 23, 8, 4, AL[3]); }                                  // roof vents
+    roofDish(A, x + W2 - 26, top + 12);
+    for (const [sx, sy, r] of [[64, d - 18, 16], [80, d - 14, 10], [128, 52, 9]]) { A.ell(x + sx, top + sy, r, Math.round(r * 0.4), '#d2c6aa'); A.ell(x + sx - 2, top + sy - 1, Math.round(r * 0.6), 1, '#e2d8c0'); }   // blown sand
+    A.r(x + 1, top + d - 3, W2, 3, AL[3]);
+    // the front wall: ribbed siding, rounded ends, a blue stripe
+    const wy = top + d;
+    A.r(x + 1, wy, W2, wallH, AL[1]);
+    for (let j = wy + 2; j < wy + wallH - 4; j += 3) { A.hl(x + 1, j, W2, AL[0]); A.hl(x + 1, j + 1, W2, AL[2]); }
+    A.r(x + 1, wy + 15, W2, 5, SHUTTER[1]); A.hl(x + 1, wy + 15, W2, SHUTTER[0]); A.hl(x + 1, wy + 19, W2, SHUTTER[3]);
+    A.vl(x + 1, wy, wallH, '#ffffff'); A.r(x + W2 - 2, wy, 3, wallH, AL[3]);
+    A.r(x + 1, wy + wallH - 4, W2, 4, AL[3]); A.hl(x + 1, wy + wallH - 1, W2, AL[4]);
+    // under it: the dark gap, wheels on blocks, the tow hitch
+    A.r(x + 6, wy + wallH, W2 - 12, 4, '#3a3632');
+    for (const tx of [x + Math.round(W2 * 0.4), x + Math.round(W2 * 0.4) + 17]) { A.ell(tx, wy + wallH + 1, 7, 5, '#20242c'); A.ell(tx, wy + wallH + 1, 3, 2, '#86949e'); A.r(tx - 4, wy + wallH + 5, 9, 3, '#8a7a68'); }
+    A.poly([[x - 5, wy + wallH - 2], [x + 2, wy + wallH - 7], [x + 2, wy + wallH - 4], [x - 3, wy + wallH]], '#5e6874'); A.r(x - 7, wy + wallH - 2, 3, 6, '#3a3e48'); A.ell(x - 6, wy + wallH + 4, 2, 2, '#20242c');
+    // windows: one with the air conditioner, dripping; one with a curtain half drawn
+    const w1 = x + 14, w2 = x + W2 - 44;
+    win(A, w1, wy + 5, 26, 14, { frame: [AL[2], AL[3], AL[4], '#3a4250'] });
+    A.r(w1 + 4, wy + 12, 18, 12, '#e8ecef'); A.hl(w1 + 4, wy + 12, 18, '#ffffff'); A.r(w1 + 4, wy + 22, 18, 3, AL[3]);                                             // the AC box
+    for (let i = w1 + 6; i < w1 + 20; i += 2) A.vl(i, wy + 14, 6, AL[3]); A.soft(w1 + 12, wy + 25, 3, wallH - 29, '#5e6874', 0.35); A.px(w1 + 13, wy + wallH - 2, '#62b4ec');   // grille, a drip stain
+    win(A, w2, wy + 5, 24, 13, { lit: true, frame: [AL[2], AL[3], AL[4], '#3a4250'] });
+    // the door: a Swedish flag sticker; wooden steps, the Ministry's letters, unopened
+    const dx = x + Math.round(W2 * 0.62);
+    door(A, dx, wy + 6, 16, wallH - 8, AL, [AL[2], AL[3], AL[4], '#3a4250']);
+    A.r(dx + 4, wy + 11, 8, 6, '#2f5fae'); A.r(dx + 6, wy + 11, 2, 6, '#f0c040'); A.r(dx + 4, wy + 13, 8, 2, '#f0c040');
+    A.r(dx - 3, wy + wallH - 2, 22, 3, WOOD[1]); A.hl(dx - 3, wy + wallH - 2, 22, WOOD[0]); A.r(dx - 5, wy + wallH + 2, 26, 3, WOOD[1]); A.hl(dx - 5, wy + wallH + 2, 26, WOOD[0]); A.hl(dx - 5, wy + wallH + 5, 26, WOOD[3]);
+    for (let k = 0; k < 4; k++) { A.r(dx + 12 - k, wy + wallH - 5 - k * 2 + 6, 8, 2, k & 1 ? '#f4f0e4' : '#ffffff'); A.px(dx + 17 - k, wy + wallH - 5 - k * 2 + 6, '#d04838'); }
+    A.r(dx - 2, wy - 1, 20, 3, AL[3]); A.hl(dx - 2, wy - 1, 20, AL[0]);                                                                                            // a little drip rail over it
+    A.line(x + W2, wy + wallH - 6, x + W2 + 5, wy + wallH + 6, '#20242c');                                                                                          // the cable to the generator
     return fit(st);
 };
-SPR_L['guard booth'] = (w, d) => fit(cabin(w, d, ['#f08070', '#d0402f', '#a02c20']));
+// the old Ministry post: a concrete hut with one barred window, abandoned when the visitors' centre
+// was built. Render peeling to the breeze blocks, rust running from the rebar, a faded sign, sand drifted
+// against it, a slab porch on two posts over a green steel door. Farouk keeps his spare galabeya in it.
+SPR_L['ministry post'] = (w, d) => {
+    const wallH = 42, st = stage(w, d, wallH + 30, 4), { A } = st, x = st.x, top = st.y - wallH, R = rng('minpost');
+    const C = ['#ece6da', '#d6cebe', '#b8ae9c', '#8e8474', '#625a4e'];
+    roofFlat(A, x, top, w, d, C);
+    for (const cx of [x, x + w - 8]) { A.r(cx, top - 5, 8, 7, C[0]); A.hl(cx, top - 5, 8, '#ffffff'); A.vl(cx + 7, top - 5, 7, C[2]); for (let k = 0; k < 3; k++) A.vl(cx + 2 + k * 2, top - 12 + k, 8 - k, '#9a4a2c'); }   // corner piers, rebar
+    for (let i = 0; i < 9; i++) { const rx = x + 10 + R() * (w - 30), ry = top + 8 + R() * (d - 20); A.line(rx, ry, rx + 6 + R() * 10, ry + 2 + R() * 6, C[2]); }                    // cracks in the slab
+    A.soft(x + 6, top + d - 22, 46, 16, '#d8b878', 0.5); A.soft(x + 10, top + d - 16, 30, 10, '#d8b878', 0.5);                                                                      // sand on the roof
+    roofTank(A, x + 26, top + 6); roofDish(A, x + Math.round(w * 0.55), top + 10);
+    const lx = x + 70, ly = top + 18;                                                                                                                                               // a washing line: Farouk's spare galabeya, drying
+    A.r(lx, ly, 2, 22, '#86949e'); A.r(lx + 70, ly, 2, 22, '#86949e'); for (let i = 0; i < 70; i++) A.px(lx + 1 + i, ly + 1 + Math.round(Math.sin(i / 70 * Math.PI) * 3), '#5a6068');
+    A.poly([[lx + 22, ly + 4], [lx + 36, ly + 4], [lx + 38, ly + 24], [lx + 20, ly + 24]], '#f4f0e4'); A.r(lx + 17, ly + 5, 5, 8, '#f4f0e4'); A.r(lx + 36, ly + 5, 5, 8, '#f4f0e4'); A.vl(lx + 29, ly + 6, 16, '#d8d0bc'); A.hl(lx + 20, ly + 24, 19, '#c8bea8');
+    A.r(lx + 48, ly + 4, 9, 7, '#6a8ad0'); A.r(lx + 52, ly + 4, 8, 5, '#d04838');                                                                                                      // and a towel, and a scarf
+    for (let k = 0; k < 3; k++) { A.ell(x + w - 40, top + 26 - k * 4, 10, 4, '#2a2a2e'); A.ell(x + w - 40, top + 26 - k * 4, 5, 2, '#5a5a60'); }                                    // old tyres
+    const cx0 = x + 150, cy0 = top + 10;                                                                                                                                             // a pigeon loft, the way every Egyptian roof has one
+    A.r(cx0, cy0 + 6, 26, 20, WOOD[1]); A.poly([[cx0 - 2, cy0 + 7], [cx0 + 13, cy0], [cx0 + 28, cy0 + 7]], WOOD[3]); A.hl(cx0 - 2, cy0 + 7, 30, WOOD[0]);
+    for (let j = 0; j < 2; j++) for (let i = 0; i < 3; i++) { A.r(cx0 + 3 + i * 8, cy0 + 10 + j * 8, 4, 4, '#2a1c14'); }
+    A.r(cx0 + 4, cy0 - 3, 3, 2, '#c8ccd4'); A.px(cx0 + 7, cy0 - 3, '#9aa0b0'); A.r(cx0 + 18, cy0 + 1, 3, 2, '#e8eaf0');                                                             // pigeons on it
+    A.r(x + 104, top + 50, 20, 14, C[3]); A.r(x + 106, top + 52, 16, 10, '#5a5248'); A.hl(x + 104, top + 50, 20, C[0]); A.line(x + 106, top + 52, x + 121, top + 61, '#3a342e');   // the roof hatch
+    A.r(x + 132, top + 58, 8, 6, '#2f7a3a'); A.r(x + 132, top + 52, 8, 6, '#3e8a58'); A.vl(x + 131, top + 58, 8, '#2a6440'); A.vl(x + 140, top + 58, 8, '#2a6440');                     // a broken chair, of course
+    for (let i = 0; i < 6; i++) { A.ell(x + w - 46 + i * 6, top + d - 12, 4, 3, '#c9b48e'); A.hl(x + w - 49 + i * 6, top + d - 10, 7, '#8a7658'); }                               // sandbags
+    A.r(x + Math.round(w * 0.8), top - 22, 1, 30, '#5a6872'); A.line(x + Math.round(w * 0.8), top - 20, x + Math.round(w * 0.8) - 8, top + 6, '#5a6872'); A.px(x + Math.round(w * 0.8), top - 23, '#d0402f');   // a radio mast, guyed
+    const fx = x + 8, fy = top - 30;                                                                                                                                                // the flag, faded and frayed
+    A.r(fx, fy, 2, 34, '#86949e'); A.r(fx + 2, fy, 15, 3, '#c85a48'); A.r(fx + 2, fy + 3, 15, 3, '#f4efe4'); A.r(fx + 2, fy + 6, 15, 3, '#3a3a40'); A.px(fx + 9, fy + 4, '#d8a830');
+    A.px(fx + 17, fy + 2, '#c85a48'); A.px(fx + 17, fy + 7, '#3a3a40'); A.px(fx + 16, fy + 8, '#3a3a40');   // frayed ends
+    // the front wall: cement render over breeze block, stained and peeling
+    const wy = top + d;
+    A.r(x, wy, w, wallH, C[1]);
+    for (let i = 0; i < 5; i++) {                                                                                                                                                   // render fallen away: the blocks show
+        const px = x + 8 + Math.round(R() * (w - 50)), py = wy + 6 + Math.round(R() * (wallH - 18)), bw = 14 + Math.round(R() * 14), bh = 7 + Math.round(R() * 5);
+        A.r(px, py, bw, bh, '#a8a296'); for (let j = 0; j < bh; j += 4) { A.hl(px, py + j, bw, '#8a8478'); for (let k = (j / 4 & 1) * 5; k < bw; k += 10) A.vl(px + k, py + j, 4, '#8a8478'); } A.hl(px, py - 1, bw, '#f4f0e6');
+    }
+    for (let i = 0; i < 7; i++) { const sx = x + 6 + Math.round(R() * (w - 12)); A.soft(sx, wy + 2, 2 + Math.round(R() * 2), 8 + R() * 18, '#8a5a3a', 0.28); }                        // rust and rain stains
+    A.r(x, wy, w, 4, C[3]); A.hl(x, wy + 4, w, C[2]);
+    A.r(x, wy + wallH - 8, w, 8, C[2]); A.hl(x, wy + wallH - 8, w, C[3]); A.hl(x, wy + wallH - 1, w, C[4]);                                                                            // a plinth
+    // one window, barred, a rusty air conditioner under it
+    const wx = x + Math.round(w * 0.1);
+    A.r(wx - 3, wy + 8, 34, 22, C[3]); A.r(wx, wy + 10, 28, 18, '#2c3440'); A.r(wx, wy + 10, 28, 6, '#46505e'); A.line(wx + 2, wy + 26, wx + 10, wy + 11, '#6a7888');
+    for (let i = 3; i < 28; i += 5) A.vl(wx + i, wy + 9, 20, '#5a6068'); A.hl(wx, wy + 18, 28, '#5a6068'); A.r(wx - 4, wy + 30, 36, 2, C[0]); A.hl(wx - 4, wy + 32, 36, C[4]);
+    A.r(wx + 34, wy + 20, 18, 12, '#c8c4b8'); A.r(wx + 34, wy + 20, 18, 2, '#e8e4d8'); for (let i = wx + 36; i < wx + 50; i += 2) A.vl(i, wy + 23, 7, '#8a8070'); A.soft(wx + 34, wy + 26, 18, 6, '#9a5a30', 0.4);
+    // the porch: a slab on two square posts, over the door
+    const dx = x + Math.round(w * 0.66), px0 = dx - 12, pw = 42;
+    A.soft(px0, wy, pw, 10, '#1a1410', 0.25);                                                                                                                                       // its shadow on the wall
+    door(A, dx, wy + 12, 18, wallH - 12, ['#6cae7c', '#3e8a58', '#2a6440', '#1a4028'], C);
+    for (const [a, b] of [[3, 16], [11, 24], [5, 30]]) { A.r(dx + a, wy + b, 3, 2, '#9a5a30'); A.px(dx + a + 3, wy + b, '#c07848'); }                                               // paint peeling to rust
+    A.r(dx + 12, wy + 22, 3, 5, '#c89020'); A.px(dx + 12, wy + 22, '#ffe890');                                                                                                         // a padlock, hanging open
+    A.r(px0, wy + 2, pw, 6, C[0]); A.hl(px0, wy + 2, pw, '#ffffff'); A.hl(px0, wy + 7, pw, C[3]);
+    for (const qx of [px0 + 1, px0 + pw - 6]) { A.r(qx, wy + 8, 5, wallH - 6, C[0]); A.vl(qx, wy + 8, wallH - 6, '#ffffff'); A.vl(qx + 4, wy + 8, wallH - 6, C[3]); }
+    A.r(dx + 5, wy + 8, 8, 3, '#3a3e48'); A.r(dx + 6, wy + 11, 6, 2, '#ffe890');                                                                                                         // a lamp over the door
+    // the sign: MINISTRY OF ANTIQUITIES, in Arabic and English, sun-faded, one screw gone
+    const sx = x + Math.round(w * 0.36), sy = wy + 9;
+    A.poly([[sx, sy], [sx + 48, sy], [sx + 48, sy + 16], [sx, sy + 14]], '#2e4f9a'); A.r(sx + 1, sy + 1, 46, 12, '#5a78b8');
+    A.r(sx + 4, sy + 3, 20, 1, '#f4efe4'); A.r(sx + 6, sy + 2, 1, 3, '#f4efe4'); A.r(sx + 14, sy + 2, 1, 3, '#f4efe4'); A.r(sx + 28, sy + 3, 16, 1, '#f4efe4');                      // Arabic, a flourish
+    A.r(sx + 4, sy + 8, 40, 1, '#dfe6ea'); A.r(sx + 4, sy + 10, 28, 1, '#dfe6ea'); A.px(sx + 2, sy + 2, '#c8d4dc'); A.px(sx + 46, sy + 13, '#c8d4dc');
+    // a bench by the wall; sand drifted against the wall
+    const bx = x + w - 40;
+    A.r(bx, wy + wallH - 12, 28, 3, WOOD[0]); A.hl(bx, wy + wallH - 10, 28, WOOD[3]); A.r(bx + 2, wy + wallH - 9, 2, 8, WOOD[3]); A.r(bx + 24, wy + wallH - 9, 2, 8, WOOD[3]);
+    for (const [ax, aw] of [[x - 2, 34], [x + w - 30, 34], [wx + 40, 20]]) { A.ell(ax + (aw >> 1), wy + wallH - 1, aw >> 1, 4, '#ecd698'); A.hl(ax + 4, wy + wallH - 4, aw - 8, '#f6e6b4'); }
+    A.line(x + w - 2, wy + 4, x + w + 3, wy + 16, '#20242c');                                                                                                                         // a cable off to nowhere
+    return fit(st, { light: { x: dx - x - (w >> 1) + 9, y: -wallH + 14, r: 56, c: '#ffe0a0' } });
+};
+// the guard booth: a little whitewashed sentry box with windows all round, so whoever's on duty sees
+// every road. Through the glass: Farouk's chair, his radio, his thermos. A tin of basil on the sill.
+SPR_L['guard booth'] = (w, d) => {
+    const H = 38, bd = 26, st = stage(w, d, 30, 4), { A } = st, x = st.x + 8, bw = w - 16, base = st.y + d - 5, wy = base - H, top = wy - 6 - bd;
+    // the roof slab, overhanging, a blue fascia; a loudspeaker, a lamp, a jerrycan on it
+    A.r(x - 5, top - 2, bw + 10, bd + 4, WHITEWASH[1]); A.r(x - 1, top + 2, bw + 2, bd - 4, WHITEWASH[2]); A.hl(x - 5, top - 2, bw + 10, '#ffffff'); A.vl(x + bw + 4, top - 2, bd + 4, WHITEWASH[3]);
+    A.r(x - 5, top + bd + 2, bw + 10, 4, SHUTTER[1]); A.hl(x - 5, top + bd + 2, bw + 10, SHUTTER[0]); A.hl(x - 5, top + bd + 5, bw + 10, SHUTTER[3]);
+    A.r(x + 12, top + 6, 3, 10, '#5a6872'); A.poly([[x + 7, top + 2], [x + 19, top + 2], [x + 17, top + 8], [x + 9, top + 8]], '#c2c9d2'); A.hl(x + 7, top + 2, 12, '#ffffff'); A.r(x + 11, top + 3, 4, 3, '#5a6872');
+    A.r(x + bw - 20, top + 8, 12, 12, '#6a7440'); A.hl(x + bw - 20, top + 8, 12, '#8a9458'); A.r(x + bw - 17, top + 5, 4, 3, '#4c5630'); A.line(x + bw - 19, top + 11, x + bw - 10, top + 18, '#4c5630');
+    // the walls
+    A.r(x, wy, bw, H, WHITEWASH[0]); A.vl(x + bw - 1, wy, H, WHITEWASH[2]); A.r(x, wy, bw, 2, WHITEWASH[3]); A.soft(x, wy + 2, bw, 4, '#3a2a1c', 0.12);
+    // the window band: dim inside, warm lamplight, his things
+    const gy = wy + 6, gh = 17, gw = bw - 30;
+    A.r(x + 3, gy - 1, gw + 2, gh + 2, SHUTTER[3]); A.r(x + 4, gy, gw, gh, '#f5c870'); A.r(x + 4, gy + 9, gw, gh - 9, '#e0a050'); A.r(x + 4, gy, gw, 2, '#ffe8a8');
+    A.r(x + 8, gy + 5, 10, 12, '#8e5e32'); A.r(x + 8, gy + 5, 10, 2, '#b8844c'); A.r(x + 9, gy + 8, 8, 1, '#6e4424');                                                              // the chair back
+    A.r(x + 22, gy + 9, 12, 7, '#3a3e48'); A.r(x + 23, gy + 10, 5, 4, '#1c1e24'); A.r(x + 29, gy + 10, 4, 2, '#f0c040'); A.r(x + 29, gy + 13, 4, 1, '#9aa4ae'); A.line(x + 33, gy + 9, x + 38, gy + 2, '#9aa4ae');   // the transistor radio
+    A.r(x + 39, gy + 6, 4, 10, '#9aa4ae'); A.r(x + 39, gy + 6, 4, 2, '#d04838'); A.vl(x + 39, gy + 8, 8, '#dfe6ea');                                                               // the thermos
+    A.r(x + 46, gy + 10, 7, 6, '#2f7a3a'); A.hl(x + 46, gy + 10, 7, '#58a848'); A.px(x + 49, gy + 12, '#f0c040');                                                                  // the Qur'an in its cloth cover
+    A.r(x + 5, gy + 2, 8, 2, '#d04838'); A.r(x + 5, gy + 4, 8, 1, '#ffffff');                                                                                                          // a calendar, a year out of date
+    for (const vx of [x + 20, x + 37]) A.vl(vx, gy, gh, SHUTTER[3]);
+    A.r(x + 2, gy + gh + 1, gw + 4, 2, WHITEWASH[1]); A.hl(x + 2, gy + gh + 3, gw + 4, WHITEWASH[3]);
+    A.r(x + 44, gy + gh - 4, 6, 5, '#9aa4ae'); A.hl(x + 44, gy + gh - 4, 6, '#dfe6ea'); A.ell(x + 47, gy + gh - 6, 4, 3, '#58a848'); A.px(x + 45, gy + gh - 8, '#8cd060'); A.px(x + 49, gy + gh - 7, '#8cd060');   // basil in a tin
+    // the door: blue, a little window, a lamp over it
+    const dx = x + bw - 22;
+    door(A, dx, wy + 5, 15, H - 5, SHUTTER, WHITEWASH);
+    A.r(dx + 4, wy + 8, 7, 6, '#f5c870'); A.hl(dx + 4, wy + 8, 7, '#ffe8a8');
+    A.r(x, base - 9, dx - x - 2, 4, SHUTTER[1]); A.hl(x, base - 9, dx - x - 2, SHUTTER[0]); A.r(x + 6, base - 8, 14, 2, '#ffffff'); A.r(x + 24, base - 8, 8, 2, '#ffffff');   // a blue band, a painted number
+    A.r(x, base - 2, bw, 2, WHITEWASH[3]);
+    A.r(dx + 4, wy + 1, 7, 3, '#3a3e48'); A.r(dx + 5, wy + 4, 5, 1, '#ffe890');
+    A.r(dx - 2, base, 19, 3, '#c9b48e'); A.hl(dx - 2, base + 2, 19, '#8a7658');                                                                                                       // a stone step
+    // outside: a plastic chair, a kettle on a little gas ring
+    A.r(x - 8, base - 12, 7, 7, '#f4f4f0'); A.r(x - 8, base - 17, 7, 5, '#e8e8e2'); A.hl(x - 8, base - 17, 7, '#ffffff'); A.vl(x - 8, base - 5, 5, '#c8c8c0'); A.vl(x - 2, base - 5, 5, '#c8c8c0');
+    A.r(x + bw + 1, base - 5, 7, 5, '#3a3e48'); A.ell(x + bw + 4, base - 8, 4, 3, '#9aa4ae'); A.px(x + bw + 3, base - 10, '#dfe6ea'); A.line(x + bw + 7, base - 9, x + bw + 9, base - 11, '#9aa4ae');
+    return fit(st, { solid: [6, d - 42, w - 12, 38], light: { x: dx - st.x - (w >> 1) + 8, y: -H + 2, r: 50, c: '#ffe0a0' } });
+};
 SPR_L['gear storage'] = (w, d) => {              // an open canopy, striped, over stacked crates
     const st = stage(w, d, 30), { A } = st, x = st.x, top = st.y - 30;
     for (const px of [x + 1, x + w - 4]) { A.r(px, top + d, 3, 30, WOOD[2]); A.vl(px, top + d, 30, WOOD[0]); }
@@ -651,14 +778,48 @@ SPR_L['work lamp'] = (w, d) => {                                   // a floodlig
 SPR_L['radio antenna'] = (w, d) => { const st = propStage(w, d, 16, 50), { A } = st, cx = st.x + 7; A.r(cx, st.y, 1, 48, PAL.metal[2]); for (let j = 6; j < 40; j += 8) A.hl(cx - 4 + (j >> 3), st.y + j, 9 - (j >> 2), PAL.metal[1]); A.line(cx, st.y + 12, cx - 6, st.y + 48, PAL.metal[3]); A.line(cx, st.y + 12, cx + 7, st.y + 48, PAL.metal[3]); A.px(cx, st.y, PAL.red[1]); return propFit(st, w, d); };
 SPR_L['road closed'] = (w, d) => { const st = propStage(w, d, 30, 22), { A } = st; A.r(st.x + 2, st.y + 8, 2, 13, PAL.wood[2]); A.r(st.x + 24, st.y + 8, 2, 13, PAL.wood[2]); A.r(st.x, st.y + 2, 28, 8, PAL.white[0]); for (let i = 0; i < 28; i += 8) A.poly([[st.x + i, st.y + 10], [st.x + i + 4, st.y + 10], [st.x + i + 8, st.y + 2], [st.x + i + 4, st.y + 2]], PAL.red[1]); return propFit(st, w, d, { solid: [w / 2 - 14, d - 6, 28, 6] }); };
 SPR_L['camp gate post'] = (w, d) => { const st = propStage(w, d, 12, 40), { A } = st; A.r(st.x + 2, st.y + 2, 6, 37, PAL.wood[1]); A.r(st.x + 2, st.y + 2, 2, 37, PAL.wood[0]); A.r(st.x + 1, st.y, 8, 3, PAL.wood[2]); A.r(st.x + 2, st.y + 10, 6, 2, PAL.metal[3]); return propFit(st, w, d); };
-SPR_L['scaffolding'] = SPR.d_scaff = (w, d) => Object.assign(scaffold(w, d), { noShadow: true });
-function scaffold(w, d) {
-    const st = stage(w, d, 40), { A } = st, x = st.x, top = st.y - 38;
-    for (let i = 0; i <= w - 2; i += Math.max(16, Math.round((w - 2) / 3))) A.r(x + i, top, 2, 38 + d, PAL.metal[2]);
-    for (const y of [top + 4, top + 22]) { A.r(x, y, w, 2, PAL.metal[3]); A.r(x, y + 2, w, 4, PAL.plank[1]); A.r(x, y + 5, w, 1, PAL.plank[2]); }
-    A.line(x, top + 8, x + w - 2, top + 22, PAL.metal[3]); A.line(x + w - 2, top + 26, x, top + 38 + d, PAL.metal[3]);
-    return fit(st);
-}
+// The scaffold tower by the trench: steel tubes and couplers, two bays and two lifts, cross-braced,
+// plank decks with toe boards, a ladder up through them, a shade cloth on top, and a gin wheel on a
+// pole to haul buckets up out of the trench. Base plates on sole boards, a sandbag on each.
+SPR_L['scaffolding'] = SPR.d_scaff = (w, d) => {
+    const L = 62, H = 64, st = stage(w, d, H + 14, 16), { A } = st, x = st.x + ((w - L) >> 1) - 4, gy = st.y + d - 6, back = 14;
+    const T = ['#dfe6ea', '#9aa4ae', '#6a7480', '#3e4650'], CPL = '#2a2e36';
+    const tube = (x0, y0, x1, y1) => { A.line(x0, y0, x1, y1, T[2]); A.line(x0 - (y1 !== y0 ? 1 : 0), y0 - (y1 === y0 ? 1 : 0), x1 - (y1 !== y0 ? 1 : 0), y1 - (y1 === y0 ? 1 : 0), T[0]); };
+    const lifts = [gy - 30, gy - 58], cols = [0, 30, 60];
+    // the back frame first (up and to the right: depth)
+    for (const c of cols) tube(x + c + 4, gy - back, x + c + 4, gy - back - H + 6);
+    for (const ly of lifts) tube(x + 4, ly - back, x + 64, ly - back);
+    for (const c of cols) for (const ly of lifts) tube(x + c, ly, x + c + 4, ly - back);                                                                                              // transoms
+    // the decks: planks, toe boards
+    for (const ly of lifts) {
+        A.poly([[x, ly], [x + 60, ly], [x + 64, ly - back], [x + 4, ly - back]], '#c89a5c');
+        for (let i = 3; i < back; i += 4) A.line(x + i * 4 / back * 1, ly - i, x + 60 + i * 4 / back, ly - i, '#9a6c3c');
+        A.hl(x + 4, ly - back, 60, '#e8c080'); A.r(x, ly, 61, 4, '#a8783c'); A.hl(x, ly, 61, '#d8a868'); A.hl(x, ly + 3, 61, '#6e4a24');
+    }
+    // the ladder, up through the decks
+    const lx = x + 38;
+    for (const r of [lx, lx + 9]) A.r(r, lifts[1] - 8, 2, gy - lifts[1] + 7, WOOD[1]);
+    for (let j = lifts[1] - 4; j < gy; j += 5) A.r(lx + 2, j, 7, 1, WOOD[0]);
+    // the front standards and ledgers, braces, couplers
+    for (const c of cols) { A.r(x + c - 1, gy - H, 3, H + 1, T[1]); A.vl(x + c - 1, gy - H, H + 1, T[0]); A.vl(x + c + 1, gy - H, H + 1, T[3]); }
+    for (const ly of lifts.concat([gy - 16, gy - 44])) { A.r(x - 1, ly - 1, 63, 2, T[1]); A.hl(x - 1, ly - 1, 63, T[0]); }
+    A.line(x + 1, gy - 2, x + 29, lifts[0] + 2, T[2]); A.line(x + 31, lifts[0] - 2, x + 59, lifts[1] + 2, T[2]); A.line(x + 2, gy - 2, x + 30, lifts[0] + 2, T[0]); A.line(x + 32, lifts[0] - 2, x + 60, lifts[1] + 2, T[0]);
+    for (const c of cols) for (const ly of lifts.concat([gy - 16, gy - 44])) { A.r(x + c - 2, ly - 2, 4, 4, CPL); A.px(x + c - 1, ly - 2, T[1]); }
+    // guard rail on top, the shade cloth, hazard tape
+    A.r(x - 1, lifts[1] - 12, 63, 2, T[1]); A.hl(x - 1, lifts[1] - 12, 63, T[0]);
+    A.poly([[x - 2, lifts[1] - 20], [x + 62, lifts[1] - 20], [x + 66, lifts[1] - 20 - back], [x + 2, lifts[1] - 20 - back]], '#2f8a5a'); A.hl(x - 2, lifts[1] - 20, 64, '#1f6a40');
+    for (let i = 0; i < 64; i += 6) A.poly([[x - 2 + i, lifts[1] - 20], [x + 4 + i, lifts[1] - 20], [x + 1 + i, lifts[1] - 16]], '#1f6a40');
+    for (let i = 0; i < 60; i += 6) { A.r(x + i, lifts[0] - 10, 3, 2, '#d04838'); A.r(x + i + 3, lifts[0] - 10, 3, 2, '#ffffff'); }
+    // the gin wheel on its pole, a rope, a bucket halfway up
+    const gx = x + 62;
+    A.line(x + 60, lifts[1] - 8, gx + 10, lifts[1] - 18, T[1]); A.ell(gx + 10, lifts[1] - 16, 3, 3, T[3]); A.px(gx + 10, lifts[1] - 16, T[0]);
+    A.vl(gx + 12, lifts[1] - 16, 38, '#c8b888'); A.r(gx + 8, lifts[1] + 22, 8, 7, '#9aa4ae'); A.hl(gx + 8, lifts[1] + 22, 8, '#dfe6ea'); A.ell(gx + 12, lifts[1] + 22, 4, 1, '#5a6272');
+    // base plates on sole boards, sandbags
+    for (const c of cols) { A.r(x + c - 5, gy, 11, 3, WOOD[1]); A.hl(x + c - 5, gy, 11, WOOD[0]); A.r(x + c - 2, gy - 1, 5, 2, T[3]); }
+    for (const c of [0, 60]) { A.ell(x + c + 4, gy - 1, 5, 3, '#c9b48e'); A.hl(x + c + 1, gy + 1, 7, '#8a7658'); }
+    A.r(x + 12, gy - 6, 10, 6, '#58a848'); A.hl(x + 12, gy - 6, 10, '#8cd060'); A.ell(x + 17, gy - 6, 5, 2, '#c89a5c');                                                                // a bucket of spoil at its foot
+    return fit(st, { solid: [4, d - 12, w - 8, 10] });
+};
 SPR_L['cooking table'] = SPR_L['equipment table'] = (w, d) => {   // a long trestle table, things on it
     const L = Math.max(30, w), st = stage(L, 14, 12), { A } = st, x = st.x, top = st.y - 8;
     A.r(x, top, L, 11, '#e0b478'); for (let i = 0; i < L; i += 16) { A.vl(x + i, top, 11, '#c89a5c'); A.vl(x + i + 1, top, 11, '#f0cc90'); } A.hl(x, top, L, '#fff0d0');   // the top, planked
