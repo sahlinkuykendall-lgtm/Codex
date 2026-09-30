@@ -162,7 +162,7 @@ const Detector = {
             const near = 1 - d / this.R, face = d < 20 ? 1 : (dx * fx + dy * fy) / d;       // loudest straight ahead
             const v = near * near * (0.45 + 0.55 * Math.max(0, face)) * (1 - s.depth * 0.025);
             if (v > best) { best = v; bt = s; }
-            if (d < 15) this.pin = s;
+            if (d < 15) { this.pin = s; if (!sflag('dig_told')) { sflag('dig_told', true); Notice.show('Right under your feet. Press SPACE to dig.'); } }
         }
         if (this.pin) { bt = this.pin; best = 1; }
         this.sig = best; this.target = bt;
@@ -239,7 +239,7 @@ const Detector = {
         for (let i = 0; i < 8; i++) { const on = i < n, c = i < 4 ? '#60e060' : i < 6 ? '#e8d040' : '#f05030'; A.r(x + 9 + i * 7, y + 22 - i * 1.5, 5, 6 + i * 1.5, on ? c : '#2c3c2c'); }
         const t = this.target, lcd = '#90f090';
         if (this.dig) Txt.draw(g, 'DIGGING…', rx, y + 9, { col: lcd, align: 'right' });
-        else if (this.pin) { if ((Game.time * 3 | 0) % 2 === 0) Txt.draw(g, 'DIG HERE', rx, y + 9, { col: '#f07060', align: 'right' }); }
+        else if (this.pin) { if ((Game.time * 3 | 0) % 2 === 0) Txt.draw(g, 'SPACE: DIG', rx, y + 9, { col: '#f07060', align: 'right' }); }
         else Txt.draw(g, this.sig > 0.02 ? 'SIGNAL' : 'QUIET', rx, y + 9, { col: this.sig > 0.02 ? lcd : '#4c7a4c', align: 'right' });
         if (t && this.sig > 0.4) { Txt.draw(g, t.metal, x + 9, y + 29, { col: lcd }); Txt.draw(g, t.depth + ' in deep', rx, y + 29, { col: lcd, align: 'right' }); }
         else { Txt.draw(g, 'Q: off', x + 9, y + 29, { col: '#4c7a4c' }); Txt.draw(g, this.left().length + ' left', rx, y + 29, { col: '#4c7a4c', align: 'right' }); }
@@ -257,13 +257,13 @@ function dugHoleSprite() {
 STORY_SCRIPTS.ow_detector = () => hasItem('Metal detector') ? null : 'c1a_detector';
 scene('c1a_detector', {
     speaker: 'System',
-    text: `A metal detector leaning on a crate, tape round the handle, "M.H." scratched into the housing. Miriam's. The battery light still comes on.\n\nSwitched on, it ticks faster near anything buried, and its little screen reads the metal: iron, foil, tin, brass, coin, silver. Miriam, the Rais says, buried things.`,
+    text: `A metal detector leaning on a crate, tape round the handle, "M.H." scratched into the housing. Miriam's. The battery light still comes on.\n\nSwitched on, it ticks faster near anything buried, and its little screen reads the metal: iron, foil, tin, brass, coin, silver. Miriam, the Rais says, buried things.\n\n(Q switches it on and off. Walk slowly: the bars climb as you get close. When the screen flashes DIG HERE, stop and press SPACE to dig: five minutes on your knees with a trowel.)`,
     choices: [
         { text: 'Take it.', onSelect: () => {
             pocket('Metal detector');
             const e = Game.maps.ch1.ents.find(q => q.id === 'ow_detector'); if (e) { World.removeEnt(Game.maps.ch1, e); Game.taken[e.id] = 1; }
             task('detector', 'Sweep the camp with Miriam\'s detector (Q). Some of what\'s buried is hers.');
-            Toast.show('Metal detector: press Q to switch it on', 4.5);
+            Toast.show('Metal detector: Q switches it on. On DIG HERE, press SPACE to dig.', 6);
         } },
         { text: 'Leave it.' },
     ],

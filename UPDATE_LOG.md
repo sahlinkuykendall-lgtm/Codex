@@ -12,6 +12,23 @@ Other docs:
 
 ---
 
+## POKE-STYLE P0.25 — 2026-09-30 — (branch `poke-style`) The game explains digging, and what water and food do
+- **Digging with the detector:**
+  - when you pick it up, the text and the toast now say how it works: Q switches it on,
+    walk slowly, and when the screen says DIG HERE, press SPACE to dig (five minutes)
+  - the readout says **SPACE: DIG** instead of just DIG HERE
+  - the first time you're standing right on something, a notice says "Right under your
+    feet. Press SPACE to dig."
+- **Water and food, explained:**
+  - the first time either drops to half, a short scene explains it: they run down as time
+    passes, the bars are in the corner and blink red below a fifth, and at nothing you
+    can't run (walking is fine). It lists where to drink and eat in the area you're in:
+    Giza or Saqqara. It shows once per game.
+  - the cook at the workers' cooking table gives the same advice the first time you visit
+    ("A man who runs dry out here can't run at all")
+  - at Saqqara, the café owner gives it too
+- The audit and the three playthroughs are clean.
+
 ## POKE-STYLE P0.24 — 2026-09-30 — (branch `poke-style`) Area 1 fixes: a task tracker, needs on screen, the tea game redrawn, darts, lamps, the oasis
 - **A task tracker** (`poke/tracker.js`):
   - a compass in the bottom-right corner points to the task you're tracking, with the

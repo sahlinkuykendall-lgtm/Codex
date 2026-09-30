@@ -177,7 +177,7 @@ const LINES_1B = {
     c1b_digman2: ['Workman', '"The Rais is in a mood. Ask about the wedding and he\'ll be in a better one."'],
     c1b_cameleer: ['Camel Man', 'The camel man sees your ID and his smile gets bigger, not smaller. "Inspector! My camel, very licensed. Very. The licence is at home, with my other camel."'],
     c1b_tpolice: ['Tourist Policeman', 'A tourist policeman in summer white, sunglasses, sweating. "Forty people from Lyon and one from Belgium who wants to climb the pyramid. Every day, one wants to climb the pyramid."'],
-    c1b_cafeowner: ['Café Owner', '"Inspector! Sit, sit. Tea? Ful? The ta\'ameya is fresh, the oil is only yesterday\'s." He wipes a table that did not need it.'],
+    c1b_cafeowner: ['Café Owner', '"Inspector! Sit, sit. Tea? Ful? The ta\'ameya is fresh, the oil is only yesterday\'s." He wipes a table that did not need it.\n\n"And drink, eh? In this heat a man who forgets to drink or eat can\'t even run from his wife. The well is free, my ful is not."'],
     c1b_baker: ['The Baker', 'The baker, floury to the elbows, doesn\'t stop slapping dough onto the paddle. "Fresh in two minutes. Everything is fresh in two minutes."'],
     c1b_fruitseller: ['Fruit Seller', '"Oranges from Menoufia, sweet like honey. For the Ministry, a Ministry price." He means double.'],
     c1b_spiceseller: ['Spice Seller', '"Karkadeh for the heat, cumin for the stomach, and for your mother, I have something for the knees." She is already wrapping it.'],

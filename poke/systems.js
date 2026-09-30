@@ -91,6 +91,21 @@ const NEED_DRAIN = { water: 0.11, food: 0.06 };        // per story minute
         if (f0 > 0 && n.food <= 0) Notice.show('Starving. You can\'t run until you eat.');
     };
 })();
+// the first time water or food drops to half, someone tells you what they do (once a game)
+const NEEDS_WHERE = {
+    archaeologist: 'Water: the well at the oasis, the water barrels, the jars by the sieve, the trench and the guard post, the sabil at the tomb, the mess tent urn, and your canteen (in the bag, three swigs; it refills at any of them). Food: the cooking table in the workers\' camp, bread in the mess tent, dates from the palms.',
+    inspector: 'Water: the village well, the water jars at the inspectorate, the Teti dig and the Serapeum, the cooler inside, and your canteen (in the bag, three swigs; it refills at any of them). Food: bread at the bakery, ful and ta\'ameya at the café, oranges from the fruit stall.',
+};
+function needsTutorial() {
+    if (Dlg.active || sflag('needs_told')) return;
+    const n = needs(); if (n.water >= 50 && n.food >= 50) return;
+    sflag('needs_told', true); startDialogue('needs_tut');
+}
+scene('needs_tut', {
+    speaker: 'System',
+    text: () => `Your mouth is dry and your stomach is starting to complain.\n\nWater and food run down as time passes: the two bars in the corner of the screen. Below a fifth they blink red. At nothing, you can't run until you've drunk or eaten. Walking is fine, it just takes longer.\n\n` + (NEEDS_WHERE[Game.player.bg] || NEEDS_WHERE.archaeologist),
+    choices: [{ text: 'Noted.' }],
+});
 function drink(amount, why) { const n = needs(); n.water = Math.min(100, n.water + amount); if (why) Toast.show(why + '   Water ' + Math.round(n.water) + '%'); }
 function eat(amount, why) { const n = needs(); n.food = Math.min(100, n.food + amount); if (why) Toast.show(why + '   Food ' + Math.round(n.food) + '%'); }
 function canRun() { const n = needs(); return !sflag('injured') && n.water > 0 && n.food > 0; }
@@ -115,11 +130,12 @@ scene('c1a_cooking', {
     speaker: 'System',
     text: () => sflag('ate_at') != null && Story.s.clock - sflag('ate_at') < 180
         ? `The cook sees you coming and laughs. "Again? You ate an hour ago. Come back later, habibi."`
-        : `The cooking table: a gas ring, a vast pot of lentils, a crate of tomatoes, bread wrapped in cloth. The cook waves a ladle at you like a threat and a promise.\n\n"Sit. Eat. Nobody on this site goes hungry. Not even the Swiss."`,
+        : `The cooking table: a gas ring, a vast pot of lentils, a crate of tomatoes, bread wrapped in cloth. The cook waves a ladle at you like a threat and a promise.\n\n"Sit. Eat. Nobody on this site goes hungry. Not even the Swiss."` + (sflag('cook_told') ? '' : (`\n\nHe points the ladle at you. "And drink, Doctor. Water before you're thirsty, food before you're hungry. A man who runs dry out here can't run at all: he walks, slowly, like my uncle. The barrels, the well, the jars, they're all for you."`)),
     get choices() {
         const c = [];
         if (!(sflag('ate_at') != null && Story.s.clock - sflag('ate_at') < 180)) c.push({ text: 'Eat a bowl of lentils with bread. (15 minutes)', onSelect: () => { sflag('ate_at', Story.s.clock); eat(65, 'Lentils and bread'); rel('workmen', 2, true); clockAdvance(15); } });
         c.push({ text: 'Move on.' });
+        c.forEach(ch => { const f = ch.onSelect; ch.onSelect = () => { sflag('cook_told', true); if (f) f(); }; });   // (he gives his advice once)
         return c;
     },
 });

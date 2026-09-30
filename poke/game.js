@@ -187,6 +187,7 @@ const Game = {
         if (Dlg.active) { Dlg.update(dt, I); return; }
         if (this.fade) return;
         clockTick(dt);                                     // story time passes only while you're free to walk about
+        needsTutorial();                                   // (once: what water and food do, poke/systems.js)
         area().frame(dt);                                  // the story's timed events, and the world matching the story
         const gz = area().giza;
         if (I.menu) { Menu.toggle(); return; }
