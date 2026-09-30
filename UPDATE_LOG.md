@@ -12,6 +12,47 @@ Other docs:
 
 ---
 
+## POKE-STYLE P0.33 — 2026-09-30 — (branch `poke-style`) Samy's panic: the standoff in the galleries (Chapter 1-B, step 6); softer fields
+- **Beat 6, Samy's panic** (from the bible). Karim's man opened the cooler bag and found a
+  brick. A while after the black car has gone, your phone buzzes: the old ghaffir. "Samy
+  is here. He came past me like a mad dog and went down into the galleries with a torch
+  and a knife. My son is hiding in the pump room. Please come."
+- **At the gate** the old ghaffir offers you the vet's dart pistol the Ministry gave them
+  for rabid dogs, one dart ("For dogs. Samy is a kind of dog tonight"). Take it or not.
+- **In the galleries** Samy is tearing the chambers apart, his torch jerking about (its
+  cone on the floor, as before). The night ghaffir is crouched behind the pump room's
+  bench, shaking. Let Samy find you and it's a standoff. Get right up behind him first and
+  you grab his wrist and the knife goes skidding under a sarcophagus.
+- **The standoff:**
+  - talk him down ("Put the knife down, Samy. Nobody gets hurt tonight"), and he confesses
+    everything: Karim el-Gebali paid him twenty thousand pounds, three days ago, the night
+    Dr. Hale brought it in, to take it out before the Colonel came for it. Vasse wanted it
+    the proper way, with papers; Karim meant to sell it to Vasse the other way, for ten
+    times as much. "Fathi knows nothing. Fathi knows only how not to know." If you bagged
+    his cigarettes, you can show him you already know
+  - push him ("you're finished") and he comes at you: dart him, get a sarcophagus between
+    you and talk, or run
+  - dart him: he sits down against the granite "like a man lowering himself into a hot
+    bath", and snores
+  - run: up the steps, the old ghaffir locks the gate behind you; by morning Samy is gone
+- **Then the choice:**
+  - **expose him to Fathi:** Fathi arrives in a coat over his pyjamas and suspends him in
+    about four seconds. "And the... item?" You say Karim's man took it. Samy looks at your
+    jacket and says nothing. "Then it's Karim's problem. And the Colonel's. Not ours."
+    (`ch1b_samy_exposed` ★: Karim's crews will be Cold to you in Ch2)
+  - **let him flee** to his cousin in Alexandria: "If you ever need anything. Anything. I
+    owe you." (`ch1b_samy_informant`: a small informant in Ch2)
+  - either way, nobody learns you have the Codex
+- Next task: somewhere quiet, look at the Codex properly. That's beat 7, Miriam's note and
+  the way out, the last step of the opening, in the next update.
+- **The fields are softer on the eye.** The crops were drawn as bright and dark stripes
+  every four pixels, which shimmered. Now each field is one flat colour (clover green,
+  wheat gold, onion green) with faint rows and a few tufts.
+- Tested: every branch of the standoff (talk and expose, dart and let go, from behind with
+  the cigarettes and let go, no dart then run), and saving and loading after each. The
+  audit is clean (220 scenes), the playthroughs and the earlier Inspector flows pass, and
+  Giza's 33 views are identical.
+
 ## POKE-STYLE P0.32 — 2026-09-30 — (branch `poke-style`) The black car: Colonel Radwan and the empty box (Chapter 1-B, step 5)
 - **Beat 5, the staged arrival** (from the bible). "A black car comes for the Director on
   Tuesdays," Umm Sabry said, and it's Tuesday. Coming up out of the Serapeum with the

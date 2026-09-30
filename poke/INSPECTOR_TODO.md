@@ -125,7 +125,23 @@ Umm Sabry warned that "a black car comes for Fathi on Tuesdays." Headlights at t
 box. Nobody knows yet that you have the real thing. (A timed event, like Giza's midnight
 car.)
 
-## 6. Beat 6: Samy's panic
+## 6. Beat 6: Samy's panic — ✅ DONE in P0.33
+> Done in `poke/ch1b_panic.js`:
+> - a while after the black car, a message from the old ghaffir: Samy is in the galleries
+>   with a torch and a knife; the night ghaffir is hiding in the pump room
+> - at the gate, the vet's dart pistol (Ministry issue, for rabid dogs, one dart): take it
+>   or not
+> - in the galleries Samy tears the chambers apart, his torch a jerking cone. If he finds
+>   you it's a standoff; get right up behind him first and you take the knife
+> - **talk** (he confesses: Karim paid him twenty thousand to take it before Radwan came
+>   for it; Vasse wanted it the proper way; Karim meant to sell it to Vasse for ten times
+>   as much; "Fathi knows only how not to know"), with an extra line if you bagged his
+>   cigarettes; **dart** him; or **run**. Push him ("you're finished") and he lunges
+> - then **expose him to Fathi** (`ch1b_samy_exposed` ★; Fathi thinks Karim's man has the
+>   Codex) or **let him flee** (`ch1b_samy_informant`: he owes you). Running leaves him
+>   gone by morning. `ch1b_samy_fate` = exposed / fled / ran
+> - nobody learns you have the Codex
+
 Samy comes looking for the Codex with a torch and a knife: a standoff in the galleries.
 - **Talk him down:** he confesses. Karim paid him, Vasse wanted it, Karim was going to sell it.
 - **Tranquilize him**, or **run**.

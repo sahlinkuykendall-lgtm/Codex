@@ -236,13 +236,14 @@ const CampGround = {
                 if (h > 0.4) { A.ell(x + 9, y + 9, 3, 3, '#c4b088'); A.ell(x + 9, y + 9, 1, 1, C.stone[0]); }         // a nummulite
             } else if (t === T.FIELD) {
                 // crops in rows: clover, wheat or onions by the field (a field is a 6×5 patch of tiles), a ridge of earth at its edge
-                const fk = hash2(Math.floor(tx / 6) * 3 + 1, Math.floor(ty / 5) * 7 + 2), P = fk < 0.45 ? ['#6cbc4c', '#4e9a3a', '#8cd060'] : fk < 0.75 ? ['#d8c060', '#b8a040', '#f0dc88'] : ['#5aa048', '#3e7e34', '#a8d878'];
-                A.r(x, y, TILE, TILE, '#7a5a38');
-                for (let k = 1; k < TILE; k += 4) { A.r(x, y + k, TILE, 2, P[0]); A.hl(x, y + k, TILE, P[2]); A.hl(x, y + k + 2, TILE, '#5e4428'); }
-                for (let k = 0; k < 5; k++) A.px(x + Math.floor(hash2(tx * 5 + k, ty) * 30), y + 1 + Math.floor(hash2(ty * 5 + k, tx) * 7) * 4, P[1]);
-                if (n(0, -1) !== T.FIELD) A.r(x, y, TILE, 2, '#9a7a50');
-                if (n(-1, 0) !== T.FIELD) A.r(x, y, 2, TILE, '#9a7a50');
-                if ((tx % 6 === 0) && n(-1, 0) === T.FIELD) A.vl(x, y, TILE, '#6a4c30');                                       // the ridge between two fields
+                // (soft on the eye: one flat colour per crop, faint rows every 8 px, a few tufts; no bright-dark stripes)
+                const fk = hash2(Math.floor(tx / 6) * 3 + 1, Math.floor(ty / 5) * 7 + 2), P = fk < 0.45 ? ['#66b24a', '#5ca444', '#7ec65e', '#509640'] : fk < 0.75 ? ['#d2ba5e', '#c6ae54', '#e4d07e', '#b29c46'] : ['#5aa24c', '#519646', '#74b862', '#468a3e'];
+                A.r(x, y, TILE, TILE, P[0]);
+                for (let k = 3; k < TILE; k += 8) A.hl(x, y + k, TILE, P[1]);
+                for (let k = 0; k < 6; k++) { const px = x + 2 + Math.floor(hash2(tx * 5 + k, ty) * 27), py = y + 1 + Math.floor(hash2(ty * 5 + k, tx) * 4) * 8; A.px(px, py, P[2]); A.px(px + 1, py + 1, P[3]); A.px(px - 1, py + 1, P[3]); }
+                if (n(0, -1) !== T.FIELD) A.r(x, y, TILE, 2, '#a88a60');
+                if (n(-1, 0) !== T.FIELD) A.r(x, y, 2, TILE, '#a88a60');
+                if ((tx % 6 === 0) && n(-1, 0) === T.FIELD) A.r(x, y, 2, TILE, '#8e7250');                                       // the ridge between two fields
             } else if (t === T.ROAD) {
                 // an asphalt road, grey and patched, crumbling to sand at its edges
                 A.r(x, y, TILE, TILE, '#77726c');
