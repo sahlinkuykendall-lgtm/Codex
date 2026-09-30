@@ -12,6 +12,40 @@ Other docs:
 
 ---
 
+## POKE-STYLE P0.30 — 2026-09-30 — (branch `poke-style`) Saqqara's buildings fixed, and Mit Rahina comes alive
+- **The village houses are rebuilt.** They were mostly roof with a thin strip of wall, and
+  windows were drawn over doors, and the painted Hajj murals over shutters. Now each is
+  two storeys on a shorter roof, and the front is laid out on a grid of slots: one door
+  (with a lamp over it, a house number and sometimes a potted plant), shuttered windows
+  upstairs, a balcony with basil in one, barred windows downstairs, and the Hajj mural
+  (the Kaaba, a plane, a ship, a line of green writing) in a slot of its own. Nothing
+  overlaps. Brick-in-concrete-frame houses and pastel ones alternate, and the roofs differ:
+  a stair-head, washing, a pigeon loft, an old chair and sacks.
+- **The garage:** the flat red car shape is gone. Inside the dark bay there's an old red
+  Fiat seen from the front with its bonnet propped up (headlamps, grille, chrome bumper,
+  number plate, the engine), a pegboard of tools and a work lamp; a tyre sign above, old
+  tyres and a drum on the roof, a jerrycan and an oil drum outside.
+- **The mosque's minaret:** a square base, an octagonal shaft in two stages, two balconies
+  on carved brackets, loudspeakers, a green cap and the crescent (it looked like a ladder).
+- **The inspectorate** had the same problems: the Ministry sign was drawn over two
+  windows, the chairs over a barred window, the notice board clipped another, and an air
+  conditioner hung across the floor line. Its front is now on the same slot grid: the
+  sign (with a proper eagle) across the middle upstairs, the porch and door below it, the
+  notice board and the chairs in slots of their own. A street lamp that stood inside the
+  building's footprint is out in the yard.
+- **More life around town** (new, all nameless locals):
+  - wires and a bare bulb across the lane by the café; paper bunting over the market
+  - a **ful cart** (a ful sandwich, 2 EGP), a **sugarcane juice** stand (3 EGP), and
+    **qullas**, clay water jars outside a house (free): more food and water
+  - a butane cart, hens pecking (two flocks), a ginger cat asleep, a bicycle with a basket
+    of bread, crates of tomatoes and onions, kilims airing on a line
+  - two old men at dominoes on a bench by the well, and two boys with a football who run
+    about ("Ahly or Zamalek?")
+  - out in the fields: two pigeon towers, a water buffalo with an egret on its back, goats
+- The mechanic stands in front of his garage now (he was standing on a house's roof).
+- The audit is clean (194 scenes; Saqqara has 92 things, all reachable), the playthroughs
+  and the tail tests pass, and Giza's 33 views are identical.
+
 ## POKE-STYLE P0.29 — 2026-09-30 — (branch `poke-style`) Following Samy through Mit Rahina (Chapter 1-B, step 3)
 - **Beat 3, the stealth tutorial** (from the bible): Samy rode down to Mit Rahina after the
   round. His red motorbike is outside the garage; he's at the café, on the phone. Come

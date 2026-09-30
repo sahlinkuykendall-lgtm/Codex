@@ -10,33 +10,49 @@
 // ground floor, a flag on the roof and air conditioners dripping down the front. A blue Ministry sign
 // over the door, a porch, a notice board, two plastic chairs where the tea is drunk.
 SPR_L['inspectorate'] = (w, d) => {
-    const wallH = 58, st = stage(w, d, wallH + 26), { A } = st, x = st.x, top = st.y - wallH, R = rng('office');
+    // the front is a grid of slots (32 px each): the door and porch in the middle one, the sign over the three
+    // middle slots upstairs, windows in the rest; the notice board and the chairs have slots of their own
+    const WH = 70, rd = d - 30, lift = WH - 30, st = stage(w, d, lift + 26), { A } = st, x = st.x, top = st.y - lift;
     const WW = ['#f6eed8', '#e6dcc0', '#cabc9c', '#a89878'];
-    roofFlat(A, x, top, w, d, WW);
-    roofTank(A, x + 20, top + 6); roofTank(A, x + 44, top + 8); roofDish(A, x + Math.round(w * 0.62), top + 12); roofAC(A, x + Math.round(w * 0.45), top + 30); roofAC(A, x + w - 40, top + 40);
+    roofFlat(A, x, top, w, rd, WW);
+    roofTank(A, x + 20, top + 6); roofTank(A, x + 44, top + 8); roofDish(A, x + Math.round(w * 0.62), top + 10); roofAC(A, x + Math.round(w * 0.45), top + 26); roofAC(A, x + w - 40, top + 34);
     for (const cx of [x + 2, x + w - 6]) for (let k = 0; k < 3; k++) A.vl(cx + k, top - 9 - k, 7 + k, '#9a4a2c');
     const fx = x + w - 24, fy = top - 22; A.r(fx, fy, 2, 30, '#86949e'); A.r(fx + 2, fy, 14, 3, '#d0402f'); A.r(fx + 2, fy + 3, 14, 3, '#ffffff'); A.r(fx + 2, fy + 6, 14, 3, '#20242c'); A.px(fx + 8, fy + 4, '#f0c040');
-    A.r(x + 90, top + 44, 20, 10, '#c8c0a8'); for (let i = 0; i < 4; i++) A.r(x + 92 + i * 4, top + 40 - (i & 1) * 2, 3, 6, '#e8e4d8');   // old chairs stacked up here
-    const wy = top + d;
-    plaster(A, x, wy, w, wallH, WW, 'insp');
-    A.hl(x, wy + 28, w, WW[2]); A.hl(x, wy + 29, w, '#ffffff');                                                                      // the floor line between the storeys
-    const dx = x + Math.round(w / 2) - 9;
-    for (const f of [0.1, 0.24, 0.38, 0.62, 0.76, 0.9]) {                                                                                // upstairs: shuttered windows
-        const wx = x + Math.round(w * f) - 7; win(A, wx, wy + 8, 14, 12, { frame: WW, shutters: SHUTTER, lit: f === 0.24 });
-        if (f === 0.62 || f === 0.1) { roofAC(A, wx - 1, wy + 21); A.soft(wx + 6, wy + 35, 2, 20, '#5a6068', 0.3); }
+    A.r(x + 90, top + 40, 20, 10, '#c8c0a8'); for (let i = 0; i < 4; i++) A.r(x + 92 + i * 4, top + 36 - (i & 1) * 2, 3, 6, '#e8e4d8');   // old chairs stacked up here
+    const wy = top + rd;
+    A.r(x, wy, w, WH, WW[0]); const RR = rng('insp'); for (let k = 0; k < 5; k++) A.r(x + 4 + RR() * (w - 24) | 0, wy + 8 + RR() * (WH - 22) | 0, 8 + RR() * 10 | 0, 3, WW[1]);
+    A.r(x, wy, w, 4, WW[3]); A.hl(x, wy + 4, w, WW[2]);                                                                               // the eave
+    A.r(x, wy + 33, w, 4, WW[1]); A.hl(x, wy + 33, w, '#ffffff'); A.hl(x, wy + 36, w, WW[3]);                                          // the floor ledge
+    A.r(x, wy + WH - 7, w, 7, WW[1]); A.hl(x, wy + WH - 7, w, WW[2]); A.hl(x, wy + WH - 1, w, WW[3]);                                  // the plinth
+    const n = Math.round(w / 32), sw = w / n, mid = n >> 1, cx = i => Math.round(x + sw * (i + 0.5));
+    for (let i = 0; i < n; i++) {
+        const c = cx(i);
+        // upstairs
+        if (Math.abs(i - mid) > 1) {
+            if (i === n - 1) { roofAC(A, c - 8, wy + 13); A.soft(c, wy + 28, 2, 6, '#5a6068', 0.3); }                                 // an air conditioner where a window was, dripping
+            else win(A, c - 7, wy + 11, 14, 12, { frame: WW, shutters: SHUTTER, lit: i === 1 });
+        }
+        // downstairs
+        if (i === mid) continue;
+        if (i === mid - 1) { const bx = c - 7; A.r(bx, wy + 42, 14, 16, '#8e5e32'); A.r(bx + 1, wy + 43, 12, 14, '#d8b888'); for (const [a, b] of [[1, 2], [6, 4], [2, 9], [7, 10]]) A.r(bx + 1 + a, wy + 43 + b, 4, 3, '#ffffff'); A.px(bx + 3, wy + 44, '#d04838'); continue; }   // the notice board
+        if (i === mid + 1) { for (const ch of [c - 10, c + 2]) { A.r(ch, wy + WH - 14, 8, 7, '#f4f4f0'); A.r(ch, wy + WH - 19, 8, 5, '#e8e8e2'); A.vl(ch, wy + WH - 7, 5, '#c8c8c0'); A.vl(ch + 7, wy + WH - 7, 5, '#c8c8c0'); } A.r(c - 2, wy + WH - 11, 4, 3, '#f0e8d8'); continue; }   // two plastic chairs, a tea glass
+        const bx = c - 8; A.r(bx - 2, wy + 42, 20, 16, WW[3]); A.r(bx, wy + 44, 16, 12, '#2c3440'); A.r(bx, wy + 44, 16, 4, '#46505e');   // a barred window
+        for (let k = 2; k < 16; k += 4) A.vl(bx + k, wy + 43, 14, '#5a6068'); A.r(bx - 3, wy + 56, 22, 2, WW[0]);
     }
-    for (const f of [0.12, 0.3, 0.7, 0.88]) {                                                                                          // downstairs: barred windows
-        const wx = x + Math.round(w * f) - 8; A.r(wx - 2, wy + 35, 20, 16, WW[3]); A.r(wx, wy + 37, 16, 12, '#2c3440'); A.r(wx, wy + 37, 16, 4, '#46505e');
-        for (let i = 2; i < 16; i += 4) A.vl(wx + i, wy + 36, 14, '#5a6068'); A.r(wx - 3, wy + 49, 22, 2, WW[0]);
-    }
-    A.r(dx - 16, wy + 30, 50, 4, WW[0]); A.hl(dx - 16, wy + 30, 50, '#ffffff'); A.hl(dx - 16, wy + 33, 50, WW[3]);                   // the porch slab
-    for (const px of [dx - 15, dx + 30]) { A.r(px, wy + 34, 3, wallH - 34, WW[0]); A.vl(px + 2, wy + 34, wallH - 34, WW[3]); }
-    door(A, dx, wy + 36, 18, wallH - 36, ['#6a9ad8', '#3a6ab0', '#284c88', '#1a3060'], WW);
-    A.r(dx - 20, wy + 14, 58, 14, '#2c5490'); A.r(dx - 19, wy + 15, 56, 12, '#3a6ab0');                                             // the sign: the Ministry's eagle, Arabic, English
-    A.r(dx - 16, wy + 17, 8, 8, '#f0c040'); A.px(dx - 13, wy + 18, '#2c5490'); A.r(dx - 5, wy + 18, 38, 1, '#ffffff'); A.r(dx - 3, wy + 17, 1, 3, '#ffffff'); A.r(dx + 12, wy + 17, 1, 3, '#ffffff'); A.r(dx - 5, wy + 22, 30, 1, '#dfe6ea'); A.r(dx - 5, wy + 24, 22, 1, '#dfe6ea');
-    A.r(x + Math.round(w * 0.46) - 30, wy + 37, 12, 14, '#8e5e32'); A.r(x + Math.round(w * 0.46) - 29, wy + 38, 10, 12, '#d8b888'); for (const [a, b] of [[1, 2], [5, 4], [2, 8]]) A.r(x + Math.round(w * 0.46) - 29 + a, wy + 38 + b, 4, 3, '#ffffff');   // the notice board
-    for (const cx of [dx + 40, dx + 50]) { A.r(cx, wy + wallH - 12, 8, 7, '#f4f4f0'); A.r(cx, wy + wallH - 17, 8, 5, '#e8e8e2'); A.vl(cx, wy + wallH - 5, 5, '#c8c8c0'); A.vl(cx + 7, wy + wallH - 5, 5, '#c8c8c0'); }   // two plastic chairs
-    A.r(dx - 4, wy + wallH, 26, 3, '#c9b48e'); A.hl(dx - 4, wy + wallH + 2, 26, '#8a7658');
+    // the sign across the middle, upstairs: the Ministry's eagle, Arabic, English
+    const sx = cx(mid - 1) - 12, sw2 = cx(mid + 1) + 12 - sx;
+    A.r(sx, wy + 9, sw2, 20, '#2c5490'); A.r(sx + 1, wy + 10, sw2 - 2, 18, '#3a6ab0'); A.hl(sx + 1, wy + 10, sw2 - 2, '#5a8ad0');
+    const ex = sx + 11, ey = wy + 18, GO = '#f0c040', GD = '#c89020';                                                                     // the eagle of Saladin, wings spread
+    A.poly([[ex - 7, ey - 5], [ex - 1, ey - 1], [ex - 1, ey + 2], [ex - 6, ey]], GO); A.poly([[ex + 7, ey - 5], [ex + 1, ey - 1], [ex + 1, ey + 2], [ex + 6, ey]], GO);
+    A.r(ex - 2, ey - 3, 4, 8, GO); A.r(ex - 1, ey - 6, 2, 3, GO); A.px(ex, ey - 6, GD); A.r(ex - 2, ey + 1, 4, 3, GD); A.poly([[ex - 3, ey + 5], [ex + 3, ey + 5], [ex, ey + 7]], GO);
+    A.r(sx + 22, wy + 13, sw2 - 30, 2, '#ffffff'); for (let k = 0; k < 6; k++) A.r(sx + 24 + k * 9, wy + 12, 1, 3, '#ffffff');
+    A.r(sx + 22, wy + 19, sw2 - 40, 1, '#dfe6ea'); A.r(sx + 22, wy + 23, sw2 - 52, 1, '#dfe6ea');
+    // the door, under a porch on two pillars
+    const dc = cx(mid), dx = dc - 9;
+    A.r(dc - 16, wy + 37, 32, 4, WW[0]); A.hl(dc - 16, wy + 37, 32, '#ffffff'); A.hl(dc - 16, wy + 40, 32, WW[3]);
+    for (const px of [dc - 15, dc + 12]) { A.r(px, wy + 41, 3, WH - 48, WW[0]); A.vl(px + 2, wy + 41, WH - 48, WW[3]); }
+    door(A, dx, wy + WH - 29, 18, 29, ['#6a9ad8', '#3a6ab0', '#284c88', '#1a3060'], WW);
+    A.r(dx - 4, wy + WH, 26, 3, '#c9b48e'); A.hl(dx - 4, wy + WH + 2, 26, '#8a7658');
     return fit(st, { light: { x: 0, y: -24, r: 60, far: 120, c: '#ffe0a0' } });
 };
 // a whitewashed compound wall with a blue band along its top (runs either way)
@@ -254,31 +270,67 @@ SPR_L['sealed tomb'] = (w, d) => {                                 // a doorway 
 // the roof always busy: rebar left for the next floor, a water tank, a dish, washing, a pigeon loft.
 // Some have the pilgrimage painted on the front: the Kaaba, a plane, a ship.
 SPR_L['village house'] = (w, d, o) => {
-    const R = rng(o.id), kind = Math.floor(R() * 3), wallH = 40 + Math.floor(R() * 2) * 12, st = stage(w, d, wallH + 18), { A } = st, x = st.x, top = st.y - wallH;
+    // two storeys on a short roof; the front is laid out on a grid of slots (one door, windows, maybe a
+    // balcony or the Hajj mural), so nothing is ever drawn over anything else
+    const num = +(String(o.id).match(/\d+$/) || [1])[0], R = rng(o.id), kind = [1, 0, 1, 1, 1, 0, 1, 1][(num - 1) % 8], WH = 66, rd = d - 28, lift = WH - 28, st = stage(w, d, lift + 18), { A } = st, x = st.x, top = st.y - lift;
     const PASTEL = [['#f4c8c0', '#e0a8a0', '#c08880', '#9a6860'], ['#c8dcec', '#a8c0d8', '#88a0b8', '#687e96'], ['#f4e0a8', '#e0c888', '#c0a868', '#9a8448'], ['#cce4c0', '#acc8a0', '#8ca880', '#6a8660']];
-    const P = kind === 0 ? ['#d88a60', '#b8643c', '#94502e', '#6e3a20'] : PASTEL[Math.floor(R() * 4)];
-    roofFlat(A, x, top, w, d, kind === 0 ? ['#c8c4bc', '#aeaaa2', '#94908a', '#6e6a64'] : [P[0], P[1], P[2], P[3]]);
-    if (R() < 0.8) roofTank(A, x + 6 + Math.floor(R() * (w - 30)), top + 4);
-    if (R() < 0.6) roofDish(A, x + w - 20, top + 8);
-    if (R() < 0.5) { for (let i = 0; i < w - 20; i++) A.px(x + 10 + i, top + 20 + Math.round(Math.sin(i / (w - 20) * Math.PI) * 2), '#5a6068'); for (let k = 0; k < 4; k++) A.r(x + 16 + k * ((w - 30) >> 2), top + 21, 6, 8, ['#ffffff', '#d04838', '#3a70c8', '#f0c040'][k]); }
-    else if (R() < 0.5) { A.r(x + 8, top + d - 30, 22, 18, WOOD[1]); A.poly([[x + 6, top + d - 29], [x + 19, top + d - 36], [x + 32, top + d - 29]], WOOD[3]); for (let i = 0; i < 3; i++) A.r(x + 11 + i * 6, top + d - 24, 3, 3, '#2a1c14'); }
-    for (const cx of [x + 1, x + w - 5]) for (let k = 0; k < 3; k++) A.vl(cx + k, top - 8 - k, 7 + k, '#9a4a2c');
-    const wy = top + d;
-    if (kind === 0) {                                                                                           // red brick in a concrete frame
-        A.r(x, wy, w, wallH, P[1]); for (let j = wy + 3; j < wy + wallH; j += 4) { A.hl(x, j, w, P[2]); for (let i = ((j >> 2) & 1) * 5; i < w; i += 10) A.vl(x + i, j, 4, P[2]); }
-        for (const px of [0, w >> 1, w - 5]) { A.r(x + px, wy, 5, wallH, '#b8b4ac'); A.vl(x + px, wy, wallH, '#d8d4cc'); }
-        for (let j = wy; j < wy + wallH; j += 26) { A.r(x, j, w, 4, '#b8b4ac'); A.hl(x, j, w, '#d8d4cc'); }
-    } else { plaster(A, x, wy, w, wallH, [P[0], P[1], P[2], P[3]], o.id); }
-    const DOOR = [['#58a6e6', '#2e7cc4', '#2466a8', '#1a4a80'], ['#6cbc4c', '#3e8a30', '#2a6420', '#1a4414'], ['#f07860', '#d04838', '#a03028', '#70201c']][Math.floor(R() * 3)];
-    const dx = x + 8 + Math.floor(R() * (w - 34));
-    door(A, dx, wy + wallH - 26, 16, 26, DOOR, kind === 0 ? ['#d8d4cc', '#b8b4ac', '#94908a', '#6e6a64'] : P);
-    for (let wx = x + 6; wx < x + w - 14; wx += 24) if (Math.abs(wx - dx) > 18) win(A, wx, wy + 8, 12, 10, { frame: ['#d8d4cc', '#b8b4ac', '#94908a', '#6e6a64'], shutters: DOOR, lit: R() < 0.3 });
-    if (wallH > 45) for (let wx = x + 10; wx < x + w - 14; wx += 26) win(A, wx, wy + wallH - 22, 12, 10, { frame: ['#d8d4cc', '#b8b4ac', '#94908a', '#6e6a64'], shutters: DOOR });
-    if (kind !== 0 && R() < 0.6) {                                                                              // the Hajj painted beside the door: the Kaaba, a plane
-        const hx = dx + 20 > x + w - 24 ? dx - 26 : dx + 20; A.r(hx, wy + wallH - 22, 10, 10, '#20242c'); A.hl(hx, wy + wallH - 19, 10, '#f0c040');
-        A.poly([[hx + 12, wy + wallH - 14], [hx + 22, wy + wallH - 16], [hx + 23, wy + wallH - 15], [hx + 13, wy + wallH - 12]], '#ffffff'); A.px(hx + 17, wy + wallH - 17, '#ffffff');
-    }
-    A.r(dx - 2, wy + wallH, 20, 3, '#c9b48e'); A.hl(dx - 2, wy + wallH + 2, 20, '#8a7658');
+    const P = kind === 0 ? ['#d88a60', '#b8643c', '#94502e', '#6e3a20'] : PASTEL[[0, 0, 2, 1, 3, 0, 2, 1][(num - 1) % 8]];
+    const CON = ['#dcd8d0', '#bcb8b0', '#9a968e', '#74706a'], FR = kind === 0 ? CON : [shade(P[0], 0.4), P[0], P[2], P[3]];
+    const DOOR = [['#58a6e6', '#2e7cc4', '#2466a8', '#1a4a80'], ['#6cbc4c', '#3e8a30', '#2a6420', '#1a4414'], ['#f07860', '#d04838', '#a03028', '#70201c']][num % 3];
+    // the roof: always busy
+    roofFlat(A, x, top, w, rd, kind === 0 ? ['#c8c4bc', '#aeaaa2', '#94908a', '#6e6a64'] : [P[0], P[1], P[2], P[3]]);
+    for (const cx of [x + 1, x + w - 5]) for (let k = 0; k < 3; k++) A.vl(cx + k, top - 9 - k, 8 + k, '#9a4a2c');                         // rebar, for the floor they'll add one day
+    const stair = num % 2 === 1, sx = stair ? x + w - 30 : 0;
+    if (stair) { A.r(sx, top + 6, 22, 20, CON[1]); A.r(sx, top + 6, 22, 3, CON[0]); A.vl(sx + 21, top + 6, 20, CON[3]); A.r(sx + 6, top + 13, 9, 13, DOOR[2]); A.vl(sx + 6, top + 13, 13, DOOR[1]); }   // the stair-head, its door
+    const tx = x + 8 + Math.floor(R() * Math.max(1, (stair ? w - 60 : w - 34))); roofTank(A, tx, top + 3);
+    if (R() < 0.7) roofDish(A, stair ? x + 8 : x + w - 20, top + rd - 22);
+    const busy = [0.2, 0.6, 0.9, 0.7, 0.3, 0.6, 0.95, 0.5][(num - 1) % 8];
+    if (busy < 0.45) {                                                                                                                     // the washing
+        const lx0 = x + 10, lx1 = x + w - (stair ? 36 : 12), ly = top + rd - 30;
+        for (let i = lx0; i <= lx1; i++) A.px(i, ly + Math.round(Math.sin((i - lx0) / (lx1 - lx0) * Math.PI) * 2), '#5a6068');
+        const n = Math.max(2, Math.floor((lx1 - lx0) / 12)); for (let k = 0; k < n; k++) { const cx = lx0 + 4 + k * ((lx1 - lx0 - 8) / n) | 0, c = ['#ffffff', '#d04838', '#3a70c8', '#f0c040', '#58a848'][k % 5]; A.r(cx, ly + 2, 6, 7, c); A.hl(cx, ly + 8, 6, shade(c, -0.3)); }
+    } else if (busy < 0.8) {                                                                                                               // a pigeon loft of palm ribs and old tins
+        const px = x + 10, py = top + rd - 34; A.r(px, py + 6, 24, 18, WOOD[1]); A.poly([[px - 2, py + 7], [px + 12, py - 2], [px + 26, py + 7]], WOOD[3]); A.hl(px - 1, py + 6, 26, WOOD[0]);
+        for (let i = 0; i < 3; i++) for (let j = 0; j < 2; j++) A.ell(px + 5 + i * 7, py + 12 + j * 7, 2, 2, '#2a1c14');
+        A.px(px + 3, py - 1, '#e8e8f0'); A.px(px + 4, py - 1, '#9aa4ae'); A.px(px + 20, py + 1, '#e8e8f0');                              // pigeons on the ridge
+    } else { A.r(x + 12, top + rd - 26, 12, 9, '#8e5e32'); A.r(x + 12, top + rd - 30, 12, 4, '#b8844c'); A.r(x + 28, top + rd - 22, 10, 6, '#c8b488'); A.r(x + 29, top + rd - 26, 3, 4, '#c8b488'); }   // an old chair, sacks
+    // the front
+    const wy = top + rd;
+    if (kind === 0) {                                                                                                                      // red brick in a concrete frame
+        A.r(x, wy, w, WH, P[1]); for (let j = wy + 3; j < wy + WH; j += 4) { A.hl(x, j, w, P[2]); for (let i = ((j >> 2) & 1) * 5; i < w; i += 10) A.vl(x + i, j, 4, P[2]); }
+    } else { A.r(x, wy, w, WH, P[0]); const RR = rng('vh' + o.id); for (let k = 0; k < 4; k++) A.r(x + 4 + RR() * (w - 20) | 0, wy + 8 + RR() * (WH - 20) | 0, 6 + RR() * 8 | 0, 3, P[1]); }
+    A.r(x, wy, w, 4, FR[2]); A.hl(x, wy + 4, w, FR[3]);                                                                                   // the eave
+    A.r(x, wy + 31, w, 4, FR[1]); A.hl(x, wy + 31, w, FR[0]); A.hl(x, wy + 34, w, FR[3]);                                                 // the floor ledge
+    A.r(x, wy + WH - 6, w, 6, kind === 0 ? CON[1] : P[1]); A.hl(x, wy + WH - 6, w, kind === 0 ? CON[0] : P[2]); A.hl(x, wy + WH - 1, w, P[3]);   // the plinth
+    const n = Math.max(2, Math.floor(w / 32)), sw = w / n, cxs = [...Array(n)].map((_, i) => Math.round(x + sw * (i + 0.5)));
+    if (kind === 0) for (let i = 0; i <= n; i++) { const px = Math.min(x + w - 4, Math.max(x, Math.round(x + sw * i) - 2)); A.r(px, wy, 4, WH - 6, CON[1]); A.vl(px, wy, WH - 6, CON[0]); A.vl(px + 3, wy, WH - 6, CON[2]); }
+    const shut = kind !== 0 ? DOOR : null;
+    const di = Math.floor(R() * n), balc = n >= 3 && R() < 0.5 ? (di + 1 + Math.floor(R() * (n - 1))) % n : -1, mural = kind !== 0 && R() < 0.65 ? (di + (di < n - 1 ? 1 : -1)) : -1;
+    cxs.forEach((cx, i) => {
+        // upstairs
+        if (i === balc) {                                                                                                                  // a balcony: a glass door, a rail, a pot of basil
+            A.r(cx - 6, wy + 8, 12, 20, '#6aa6de'); A.r(cx - 6, wy + 8, 12, 9, '#9ed2f4'); A.vl(cx, wy + 8, 20, FR[2]); A.r(cx - 8, wy + 6, 16, 2, FR[3]);
+            A.r(cx - 12, wy + 27, 24, 3, FR[1]); A.hl(cx - 12, wy + 27, 24, FR[0]); for (let k = -11; k <= 11; k += 3) A.vl(cx + k, wy + 20, 7, '#3e4650'); A.hl(cx - 12, wy + 20, 24, '#3e4650');
+            A.r(cx + 6, wy + 22, 4, 5, '#b8643c'); A.ell(cx + 8, wy + 20, 3, 3, '#58a848'); A.px(cx + 7, wy + 19, '#8ad070');
+        } else win(A, cx - 6, wy + 11, 12, 11, { frame: FR, shutters: shut, lit: R() < 0.25 });
+        // downstairs
+        if (i === di) {
+            door(A, cx - 8, wy + WH - 32, 16, 26, DOOR, FR);
+            A.r(cx - 2, wy + WH - 38, 5, 3, '#3e4650'); A.r(cx - 1, wy + WH - 35, 3, 2, '#fff4c0');                                          // a lamp over the door
+            A.r(cx - 12, wy + WH - 30, 3, 4, '#f4f4f0'); A.px(cx - 11, wy + WH - 29, '#3a70c8');                                             // the house number
+            if (R() < 0.6) { A.r(cx + 10, wy + WH - 11, 5, 5, '#b8643c'); A.hl(cx + 10, wy + WH - 11, 5, '#d88a60'); A.ell(cx + 12, wy + WH - 13, 3, 3, '#3e8a30'); A.px(cx + 11, wy + WH - 15, '#78c050'); }   // a potted plant
+        } else if (i === mural) {                                                                                                           // the Hajj painted on the wall: the Kaaba, a plane, a ship
+            const mx = cx - 12, my = wy + 38;
+            A.r(mx + 1, my + 6, 9, 9, '#20242c'); A.hl(mx + 1, my + 9, 9, '#f0c040'); A.r(mx + 3, my + 11, 2, 4, '#c89020');
+            A.poly([[mx + 12, my + 6], [mx + 22, my + 3], [mx + 23, my + 4], [mx + 14, my + 8]], '#ffffff'); A.poly([[mx + 16, my + 5], [mx + 18, my + 1], [mx + 19, my + 2], [mx + 18, my + 6]], '#ffffff');
+            A.poly([[mx + 12, my + 13], [mx + 23, my + 13], [mx + 21, my + 16], [mx + 14, my + 16]], '#3a70c8'); A.vl(mx + 17, my + 9, 4, '#20242c'); A.poly([[mx + 17, my + 9], [mx + 21, my + 12], [mx + 17, my + 12]], '#ffffff');
+            for (let k = 0; k < 5; k++) A.r(mx + 1 + k * 5, my + 19, 3, 1, '#2e7a58');                                                      // a line of green writing
+        } else {                                                                                                                           // a window with a grille
+            const wx = cx - 7, wyy = wy + 41; A.r(wx - 2, wyy - 2, 18, 16, FR[3]); A.r(wx, wyy, 14, 12, '#2c3440'); A.r(wx, wyy, 14, 5, '#46505e');
+            for (let k = 2; k < 14; k += 4) A.vl(wx + k, wyy, 12, '#7a848e'); A.hl(wx, wyy + 6, 14, '#7a848e'); A.r(wx - 3, wyy + 12, 20, 2, FR[0]);
+        }
+    });
+    A.r(cxs[di] - 10, wy + WH, 20, 3, '#c9b48e'); A.hl(cxs[di] - 10, wy + WH + 2, 20, '#8a7658');                                          // the step
     return fit(st);
 };
 SPR_L['mosque'] = (w, d) => {                                      // the village mosque: cream walls, arched windows, a green dome, a minaret with a balcony and a crescent
@@ -293,14 +345,22 @@ SPR_L['mosque'] = (w, d) => {                                      // the villag
     A.r(x, wy, w - 34, wallH, WW[1]); A.r(x, wy, w - 34, 3, WW[3]); A.hl(x, wy + wallH - 1, w - 34, WW[3]);
     for (let i = 0; i < w - 34; i += 6) A.poly([[x + i, wy + 3], [x + i + 6, wy + 3], [x + i + 3, wy + 7]], i % 12 ? GR[1] : WW[2]);   // a crenellated band
     for (let i = 0; i < 3; i++) { const ax = x + 10 + i * Math.round((w - 60) / 2); A.ell(ax + 6, wy + 16, 6, 5, WW[3]); A.r(ax, wy + 16, 12, 16, WW[3]); A.ell(ax + 6, wy + 17, 5, 4, i === 1 ? '#3a2418' : '#88b8d8'); A.r(ax + 1, wy + 17, 10, 15, i === 1 ? '#3a2418' : '#88b8d8'); if (i !== 1) { A.vl(ax + 6, wy + 14, 18, WW[3]); A.hl(ax + 1, wy + 24, 10, WW[3]); } }
-    // the minaret
-    const mx = x + w - 30, mt = top - 60;
-    A.r(mx, mt + 30, 24, wallH + d + 30, WW[1]); A.vl(mx, mt + 30, wallH + d + 30, WW[0]); A.vl(mx + 23, mt + 30, wallH + d + 30, WW[3]);
-    for (let j = mt + 44; j < top + d + wallH; j += 22) { A.r(mx + 8, j, 8, 10, '#3a2418'); A.ell(mx + 12, j, 4, 3, '#3a2418'); }
-    A.r(mx - 4, mt + 26, 32, 5, WW[0]); A.hl(mx - 4, mt + 30, 32, WW[3]); for (let i = 0; i < 32; i += 4) A.vl(mx - 4 + i, mt + 20, 6, WW[2]); A.r(mx - 4, mt + 19, 32, 2, WW[0]);   // the balcony
-    A.r(mx + 4, mt + 6, 16, 14, WW[1]); A.vl(mx + 19, mt + 6, 14, WW[3]); A.poly([[mx + 4, mt + 6], [mx + 20, mt + 6], [mx + 12, mt - 10]], GR[1]); A.poly([[mx + 12, mt - 10], [mx + 20, mt + 6], [mx + 15, mt + 6]], GR[2]);
-    A.vl(mx + 12, mt - 18, 8, '#c89020'); A.ell(mx + 13, mt - 20, 3, 3, '#f0c040'); A.ell(mx + 14, mt - 21, 2, 2, WW[1]);
-    A.r(mx + 1, mt + 32, 5, 4, '#9aa4ae'); A.r(mx + 18, mt + 32, 5, 4, '#9aa4ae');                                // loudspeakers
+    // the minaret: a square base, an octagonal shaft in two stages with a balcony on carved brackets
+    // between them, a smaller balcony, a green cap and the crescent
+    const mx = x + w - 30, mc = mx + 12, base = top + d + wallH, mt = top - 60;
+    A.r(mc - 11, base - 60, 22, 60, WW[1]); A.vl(mc - 11, base - 60, 60, WW[0]); A.r(mc + 7, base - 60, 4, 60, WW[2]); A.vl(mc + 10, base - 60, 60, WW[3]);   // the square base
+    A.r(mc - 12, base - 62, 24, 3, WW[0]); A.hl(mc - 12, base - 60, 24, WW[3]);
+    A.r(mc - 3, base - 40, 6, 12, '#3a2418'); A.ell(mc, base - 40, 3, 3, '#3a2418');                                                          // a door-sized arch, high up
+    const shaft = (y0, y1, hw) => { A.r(mc - hw, y0, hw * 2, y1 - y0, WW[1]); A.vl(mc - hw, y0, y1 - y0, WW[0]); A.r(mc - hw + 1, y0, 2, y1 - y0, '#fffaf0'); A.r(mc + hw - 4, y0, 3, y1 - y0, WW[2]); A.vl(mc + hw - 1, y0, y1 - y0, WW[3]); for (let j = y0 + 6; j < y1; j += 7) A.hl(mc - hw + 1, j, hw * 2 - 2, WW[2]); };
+    const balcony = (y, hw) => { for (let i = -hw; i < hw; i += 3) A.poly([[mc + i, y + 4], [mc + i + 3, y + 4], [mc + i + 1, y + 8]], WW[2]); A.r(mc - hw - 1, y, hw * 2 + 2, 4, WW[0]); A.hl(mc - hw - 1, y, hw * 2 + 2, '#ffffff'); A.hl(mc - hw - 1, y + 3, hw * 2 + 2, WW[3]); for (let i = -hw; i <= hw; i += 3) A.vl(mc + i, y - 5, 5, WW[2]); A.hl(mc - hw - 1, y - 6, hw * 2 + 2, WW[0]); };
+    shaft(mt + 36, base - 62, 8);                                                                                                            // the lower shaft
+    A.r(mc - 1, mt + 52, 2, 6, '#3a2418'); A.r(mc - 1, mt + 70, 2, 6, '#3a2418');                                                             // slit windows
+    balcony(mt + 30, 11);
+    A.r(mc - 7, mt + 36, 3, 3, '#9aa4ae'); A.r(mc + 4, mt + 36, 3, 3, '#9aa4ae');                                                             // the loudspeakers
+    shaft(mt + 8, mt + 24, 6); balcony(mt + 4, 8);
+    A.r(mc - 5, mt - 4, 10, 8, WW[1]); A.vl(mc + 4, mt - 4, 8, WW[3]);                                                                        // the lantern
+    A.ell(mc, mt - 7, 6, 5, PAL.line); A.ell(mc, mt - 7, 5, 4, GR[1]); A.ell(mc - 2, mt - 9, 2, 2, GR[0]); A.poly([[mc - 3, mt - 10], [mc + 3, mt - 10], [mc, mt - 18]], GR[1]);   // the green cap
+    A.vl(mc, mt - 25, 8, '#c89020'); A.ell(mc + 1, mt - 27, 3, 3, '#f0c040'); A.ell(mc + 2, mt - 28, 2, 2, WW[1]);                           // the crescent
     const dx = x + Math.round((w - 34) / 2) - 10;
     A.r(dx - 3, wy + wallH, 26, 3, '#dcd0b8'); A.hl(dx - 3, wy + wallH + 2, 26, '#a89878');
     for (let i = 0; i < 5; i++) A.r(dx - 16 + i * 5, wy + wallH - 3, 4, 3, ['#6a4028', '#20242c', '#8a5a3a', '#3a3e48', '#6a4028'][i]);   // shoes left at the door
@@ -369,17 +429,41 @@ SPR_L['market stall'] = (w, d, o) => {                             // a wooden s
     else { for (let i = 0; i < 6; i++) { const c = ['#d04838', '#3a70c8', '#f0c040', '#2e7a58', '#8a4a9a', '#f4efe4'][i]; A.r(x + 8 + i * 13, y + 13, 9, 14, c); A.vl(x + 8 + i * 13, y + 13, 14, shade(c, 0.25)); A.vl(x + 16 + i * 13, y + 13, 14, shade(c, -0.3)); } }
     return propFit(st, w, d, { solid: [w / 2 - 44, d - 12, 88, 12] });
 };
-SPR_L['garage'] = (w, d) => {                                      // the mechanic's: the shutter rolled up, a car's nose in the dark, tyres stacked, oil drums, a hand-painted sign
-    const wallH = 36, st = stage(w, d, wallH + 10, 6), { A } = st, x = st.x, top = st.y - wallH;
-    roofFlat(A, x, top, w, d - 12, ['#c8c4bc', '#aeaaa2', '#94908a', '#6e6a64']);
-    const wy = top + d - 12;
-    corrugated(A, x, wy, w, wallH, ['#b8c0c8', '#9aa4ae', '#748490', '#4c5a66']);
-    A.r(x + 12, wy + 10, w - 24, wallH - 10, '#141418'); A.r(x + 12, wy + 6, w - 24, 5, '#86949e'); for (let i = x + 14; i < x + w - 14; i += 3) A.vl(i, wy + 6, 5, '#5a6272');
-    A.r(x + 22, wy + 22, 40, 14, '#c83828'); A.r(x + 26, wy + 18, 30, 6, '#a02828'); A.r(x + 28, wy + 19, 26, 4, '#28384a'); A.r(x + 24, wy + 28, 6, 3, '#ffe890'); A.r(x + 54, wy + 28, 6, 3, '#ffe890');   // a car's nose
-    A.r(x + 4, wy - 2, w - 8, 8, '#f0c040'); A.r(x + 8, wy, 20, 1, '#20242c'); A.r(x + 34, wy, 16, 1, '#20242c'); A.r(x + 8, wy + 3, 30, 1, '#20242c');
-    for (let k = 0; k < 4; k++) { A.ell(x + w - 8, wy + wallH - 3 - k * 4, 7, 3, '#20242c'); A.ell(x + w - 8, wy + wallH - 3 - k * 4, 3, 1, '#5a5a60'); }
-    drum(A, x - 2, wy + wallH - 20, [PAL.blue[1], PAL.blue[2], PAL.blue[3]]);
-    A.r(x + 30, wy + wallH, 20, 3, '#1a1a1e'); A.soft(x + 20, wy + wallH + 1, 40, 4, '#000000', 0.25);                                          // an oil stain
+SPR_L['garage'] = (w, d) => {                                      // the mechanic's: the shutter rolled up; inside, an old Fiat facing out with its bonnet up, a pegboard of tools, a work lamp
+    const WH = 50, rd = d - 26, lift = WH - 26, st = stage(w, d, lift + 14, 6), { A } = st, x = st.x, top = st.y - lift, R = rng('garage');
+    roofFlat(A, x, top, w, rd, ['#c8c4bc', '#aeaaa2', '#94908a', '#6e6a64']);
+    for (let k = 0; k < 3; k++) { A.ell(x + 20 + k * 7, top + 20 - k * 3, 8, 3, '#20242c'); A.ell(x + 20 + k * 7, top + 20 - k * 3, 4, 1, '#4a4a50'); }   // old tyres on the roof
+    A.r(x + w - 34, top + 12, 18, 10, '#3a70c8'); A.r(x + w - 34, top + 12, 18, 2, '#5a90e0'); A.r(x + w - 34, top + 22, 18, 3, '#285496');         // a blue drum
+    const wy = top + rd;
+    corrugated(A, x, wy, w, WH, ['#b8c0c8', '#9aa4ae', '#748490', '#4c5a66']);
+    // the sign: yellow, a tyre, hand-lettered
+    A.r(x + 4, wy + 2, w - 8, 10, '#f0c040'); A.hl(x + 4, wy + 2, w - 8, '#ffe070'); A.hl(x + 4, wy + 11, w - 8, '#b88a18');
+    A.ell(x + 12, wy + 7, 4, 4, '#20242c'); A.ell(x + 12, wy + 7, 2, 2, '#f0c040'); for (const [a, b] of [[20, 26], [30, 44], [48, 60], [64, 70]]) { A.r(x + a, wy + 5, b - a, 2, '#20242c'); A.px(x + a + 2, wy + 8, '#20242c'); }
+    A.r(x + w - 30, wy + 4, 22, 6, '#d04838'); A.r(x + w - 28, wy + 6, 18, 2, '#ffffff');
+    // the bay: dark, the shutter rolled up at the top
+    const bx = x + 10, bw = w - 20, by = wy + 14, bh = WH - 14;
+    A.r(bx, by, bw, bh, '#16161a'); A.r(bx, by, bw, 5, '#86949e'); for (let i = bx + 2; i < bx + bw - 2; i += 3) A.vl(i, by, 5, '#5a6272'); A.hl(bx, by + 5, bw, '#2a2a30');
+    A.r(bx + 4, by + 8, 22, 14, '#3a3226'); for (let i = 0; i < 5; i++) for (let j = 0; j < 3; j++) A.px(bx + 6 + i * 4, by + 10 + j * 4, '#5a4c38');       // the pegboard
+    A.r(bx + 7, by + 11, 2, 7, '#a8b0b8'); A.r(bx + 12, by + 10, 5, 2, '#a8b0b8'); A.r(bx + 14, by + 12, 1, 6, '#a8b0b8'); A.r(bx + 19, by + 11, 4, 3, '#d04838'); A.r(bx + 20, by + 14, 1, 5, '#a8b0b8');
+    A.r(bx + bw - 22, by + 8, 1, 6, '#5a6272'); A.r(bx + bw - 25, by + 14, 7, 3, '#e0c060'); A.soft(bx + bw - 22, by + 22, 16, 12, '#fff0b0', 0.12);            // the work lamp on its flex
+    // the car, facing out: an old red Fiat 128, bonnet up
+    const cx = bx + (bw >> 1) + 2, cb = by + bh;                                                                                                    // centre, and the ground line
+    A.r(cx - 24, cb - 3, 48, 3, '#0c0c0e');                                                                                                         // its shadow
+    A.r(cx - 23, cb - 7, 7, 6, '#101012'); A.r(cx + 16, cb - 7, 7, 6, '#101012'); A.hl(cx - 22, cb - 6, 5, '#3a3a40'); A.hl(cx + 17, cb - 6, 5, '#3a3a40');   // the tyres
+    A.r(cx - 24, cb - 17, 48, 11, '#c83828'); A.hl(cx - 24, cb - 17, 48, '#f06850'); A.r(cx - 24, cb - 9, 48, 2, '#8a2018');                          // the body
+    A.r(cx - 25, cb - 10, 50, 3, '#c8ccd0'); A.hl(cx - 25, cb - 10, 50, '#f0f4f8'); A.hl(cx - 25, cb - 8, 50, '#6a7078');                              // the chrome bumper
+    A.r(cx - 5, cb - 9, 10, 4, '#f4f4f0'); A.hl(cx - 4, cb - 7, 8, '#2a4ca0');                                                                       // the number plate
+    A.r(cx - 8, cb - 15, 16, 4, '#202226'); for (let i = -7; i < 8; i += 2) A.vl(cx + i, cb - 15, 4, '#8a9098'); A.hl(cx - 8, cb - 15, 16, '#c8ccd0');   // the grille
+    for (const s2 of [-1, 1]) { const hx = cx + s2 * 15 - 3; A.r(hx, cb - 15, 7, 5, '#d8dce0'); A.r(hx + 1, cb - 14, 5, 3, '#fff4c0'); A.px(hx + 1, cb - 14, '#ffffff'); A.r(cx + s2 * 21 - 1, cb - 14, 3, 3, '#f09020'); }   // headlamps, indicators
+    A.r(cx - 20, cb - 22, 40, 5, '#3a3e46'); for (let i = -17; i < 18; i += 6) A.r(cx + i, cb - 21, 4, 3, '#5a6068'); A.r(cx - 6, cb - 22, 12, 3, '#8a9098');   // the engine, under the bonnet
+    A.poly([[cx - 21, cb - 22], [cx + 21, cb - 22], [cx + 18, cb - 36], [cx - 18, cb - 36]], '#a82c20'); A.poly([[cx - 18, cb - 34], [cx + 18, cb - 34], [cx + 17, cb - 36], [cx - 17, cb - 36]], '#e05848');   // the bonnet, propped up
+    A.poly([[cx - 18, cb - 30], [cx + 18, cb - 30], [cx + 20, cb - 24], [cx - 20, cb - 24]], '#7a1c14'); A.line(cx + 12, cb - 22, cx + 14, cb - 34, '#c8ccd0');   // its underside, the prop
+    for (const s2 of [-1, 1]) A.r(cx + s2 * 26 - 1, cb - 20, 3, 3, '#20242c');                                                                     // the wing mirrors
+    // outside: tyres stacked, an oil drum, a jerrycan, the oil stain
+    for (let k = 0; k < 4; k++) { A.ell(x + w - 6, wy + WH - 3 - k * 4, 7, 3, '#20242c'); A.ell(x + w - 6, wy + WH - 3 - k * 4, 3, 1, '#5a5a60'); }
+    drum(A, x - 3, wy + WH - 20, [PAL.blue[1], PAL.blue[2], PAL.blue[3]]);
+    A.r(x + 3, wy + WH - 8, 6, 8, '#d04838'); A.r(x + 4, wy + WH - 10, 3, 2, '#a02828');
+    A.soft(cx - 12, wy + WH + 1, 30, 4, '#000000', 0.3);
     return fit(st);
 };
 SPR_L['tuk-tuk'] = (w, d) => {                                     // a tuk-tuk: red, a black canopy, fringe and stickers, the driver's seat empty for once

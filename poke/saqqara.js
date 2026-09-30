@@ -84,15 +84,20 @@ function saqqaraLayout() {
         ['c1b_cafeowner', 57, 26, 1, 1], ['c1b_baker', 68, 26, 1, 1],
         // --- the market, the garage ---
         ['c1b_stall_fruit', 59, 31, 3, 1], ['c1b_stall_cloth', 59, 35, 3, 1], ['c1b_stall_spice', 66, 31, 3, 1], ['c1b_stall_veg', 66, 35, 3, 1],
-        ['c1b_fruitseller', 60, 33, 1, 1], ['c1b_spiceseller', 67, 33, 1, 1], ['c1b_garage', 70, 31, 4, 3], ['c1b_mechanic', 71, 35, 1, 1], ['c1b_bike_mr', 69, 33, 1, 1], ['c1b_tuktuk', 66, 38, 2, 1],
+        ['c1b_fruitseller', 60, 33, 1, 1], ['c1b_spiceseller', 67, 33, 1, 1], ['c1b_garage', 70, 31, 4, 3], ['c1b_mechanic', 71, 34, 1, 1], ['c1b_bike_mr', 69, 33, 1, 1], ['c1b_tuktuk', 66, 38, 2, 1],
         ['c1b_house5', 54, 31, 4, 3], ['c1b_house6', 54, 36, 4, 3], ['c1b_house7', 70, 37, 4, 3], ['c1b_donkey', 49, 30, 3, 1],
+        // --- street life (poke/ch1b_town.js): wires and bunting over the lane, food and water, animals, people ---
+        ['c1b_wires1', 60, 21, 8, 1], ['c1b_bunting', 58, 37, 8, 1], ['c1b_fulcart', 69, 20, 2, 1], ['c1b_juice', 53, 19, 2, 2], ['c1b_qulla', 74, 19, 1, 1], ['c1b_butane', 53, 27, 2, 1],
+        ['c1b_chickens1', 61, 19, 1, 1], ['c1b_chickens2', 69, 39, 1, 1], ['c1b_cat', 74, 26, 1, 1], ['c1b_bicycle', 69, 36, 1, 1], ['c1b_crates', 58, 33, 1, 1], ['c1b_rugs', 50, 38, 3, 1],
+        ['c1b_bench', 60, 26, 2, 1], ['c1b_oldman1', 60, 27, 1, 1], ['c1b_oldman2', 62, 26, 1, 1], ['c1b_kid1', 60, 39, 1, 1], ['c1b_kid2', 62, 40, 1, 1], ['c1b_ball', 61, 39, 1, 1],
+        ['c1b_dovecote1', 50, 15, 2, 2], ['c1b_dovecote2', 70, 9, 2, 2], ['c1b_buffalo', 57, 10, 2, 1], ['c1b_goats', 52, 45, 1, 1],
         // --- the museum garden: the colossus, the alabaster sphinx ---
         ['c1b_colossus', 57, 44, 8, 4], ['c1b_sphinx', 67, 48, 4, 2], ['c1b_kiosk', 57, 50, 2, 1], ['c1b_statues', 69, 44, 3, 1], ['c1b_tourist1', 66, 46, 1, 1], ['c1b_tourist2', 67, 46, 1, 1], ['c1b_guide', 61, 49, 1, 1],
     ];
     const scatter = {};
     const trees = [[48, 7], [50, 8], [48, 10], [49, 13], [54, 7], [57, 8], [60, 7], [64, 9], [68, 8], [72, 7], [48, 18], [50, 21], [48, 24], [49, 33], [48, 38], [50, 41], [48, 44], [50, 51], [53, 50],
         [58, 52], [63, 51], [72, 51], [74, 45], [56, 20], [62, 20], [73, 26], [52, 36], [65, 40], [60, 40], [73, 42], [51, 26], [73, 11], [58, 12], [66, 11], [42, 13], [27, 38], [39, 38]];
-    const lamps = [[42, 27], [36, 20], [58, 27], [66, 27], [72, 30], [62, 30], [62, 43]];
+    const lamps = [[42, 27], [36, 24], [58, 27], [66, 27], [72, 30], [62, 30], [62, 43]];
     const places = [
         ['office', 'THE INSPECTORATE', 38, 21, 6], ['pyramid', 'THE STEP PYRAMID', 19, 22, 9], ['serapeum', 'THE SERAPEUM', 8, 9, 5], ['teti', 'THE TETI DIG', 28, 10, 6],
         ['coach', 'THE COACH PARK', 37, 33, 5], ['mastabas', 'THE MASTABA FIELD', 24, 45, 8], ['village', 'MIT RAHINA', 62, 22, 8], ['market', 'THE MARKET', 63, 33, 5],

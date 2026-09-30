@@ -82,6 +82,8 @@ const World = {
                 const cx = x + w / 2, cy = y + d - 4;
                 Object.assign(e, { x: cx, y: cy, w: 0, d: 0, person: { sheet: personSheet(LOOKS[CAST[id]]), dir: 0, frame: 0 }, sortY: cy, nightOnly: !!NIGHT_ONLY[id] });
                 if (id === 'c1p_oldwoman') e.light = { x: 6, y: -14, r: 60, c: '#ffd080' };
+                if (o.wander) e.wander = { home: [cx, cy], r: o.wander, t: 1 + (tx % 3) };            // (children at play: they drift about)
+                if (o.dir != null) e.person.dir = o.dir;
                 if (hidden) { e.gone = true; e.lenaEvent = true; }
                 World.addEnt(map, e); map.people.push(e); return;
             }
