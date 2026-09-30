@@ -14,7 +14,9 @@ const UI = { ink: '#30302c', dim: '#70707c', gold: '#c89020', paper: '#f8f8f0' }
 const Dlg = {
     active: false, pages: [], page: 0, shown: 0, speaker: '', onDone: null, t: 0,
     LINES: 3,
-    open(speaker, text, onDone) {
+    choices: null, csel: 0, ct: 0,     // a choice box (2–4 answers) after the last page; onDone gets the index
+    open(speaker, text, onDone, choices) {
+        this.choices = choices && choices.length ? choices : null; this.csel = 0; this.ct = 0;
         const maxW = Game.VW - 44;
         const lines = Txt.wrap(text, maxW);
         this.pages = [];
@@ -37,6 +39,20 @@ const Dlg = {
         const speed = [28, 55, 110, 9999][Game.set.textSpeed];
         const before = Math.floor(this.shown);
         if (this.shown < this.len()) { this.shown = Math.min(this.len(), this.shown + dt * speed); if (Math.floor(this.shown) > before && Math.floor(this.shown) % 3 === 0) Sfx.tick(); }
+        if (this.choosing()) {
+            const n = this.choices.length;
+            this.ct += dt;
+            if (I.up) { this.csel = (this.csel + n - 1) % n; Sfx.move(); }
+            if (I.down) { this.csel = (this.csel + 1) % n; Sfx.move(); }
+            if (this.ct < 0.25) return;                         // a moment before it takes an answer, so mashing through text doesn't pick one
+            if (I.ok || I.back) {
+                const i = I.ok ? this.csel : n - 1;              // back picks the last answer (the "leave it" one)
+                I.ok ? Sfx.ok() : Sfx.back();
+                this.active = false; this.choices = null;
+                const cb = this.onDone; this.onDone = null; if (cb) cb(i);
+            }
+            return;
+        }
         if (I.ok || I.back) {
             if (this.shown < this.len()) this.shown = this.len();
             else if (this.page < this.pages.length - 1) { this.page++; this.shown = 0; Sfx.move(); }
@@ -56,10 +72,30 @@ const Dlg = {
             const s = ln.slice(0, Math.max(0, left)); left -= ln.length;
             Txt.draw(g, s, x + 12, y + 8 + i * 13, { col: UI.ink, shadow: '#d0d0c8' });
         });
-        if (this.shown >= this.len() && (this.t * 2.5 | 0) % 2 === 0) {
+        if (this.choosing()) this.drawChoices(g, y);
+        else if (this.shown >= this.len() && (this.t * 2.5 | 0) % 2 === 0) {
             const A = pa(g), ax = x + w - 18, ay = y + h - 13;
             A.poly([[ax, ay], [ax + 8, ay], [ax + 4, ay + 5]], '#d04838');
         }
+    },
+    choosing() { return this.choices && this.page === this.pages.length - 1 && this.shown >= this.len(); },
+    // the answers, in a window stacked on the right above the text box; long ones wrap
+    drawChoices(g, boxY) {
+        const A = pa(g), VW = Game.VW, maxW = Math.min(VW - 60, Math.max(200, Math.round(VW * 0.62)));
+        const rows = this.choices.map(c => Txt.wrap(c, maxW));
+        const w = Math.min(VW - 12, Math.max(...rows.map(r => Math.max(...r.map(l => Txt.width(l))))) + 34);
+        const h = 12 + rows.reduce((s, r) => s + r.length * 12 + 4, 0);
+        const x = VW - w - 6, overTab = this.speaker && x < 14 + Txt.width(this.speaker) + 16 + 4;
+        const y = Math.max(4, boxY - h - (overTab ? 15 : 2));             // clear of the name tab
+        frame(g, x, y, w, h);
+        let yy = y + 7;
+        rows.forEach((r, i) => {
+            const on = i === this.csel, rh = r.length * 12;
+            if (on) A.r(x + 6, yy - 2, w - 12, rh + 3, '#d8ecff');
+            r.forEach((ln, j) => Txt.draw(g, ln, x + 22, yy + j * 12, { col: on ? UI.ink : UI.dim }));
+            if (on) A.poly([[x + 10, yy + 2], [x + 10, yy + 10], [x + 15, yy + 6]], '#d04838');
+            yy += rh + 4;
+        });
     },
 };
 
@@ -171,7 +207,7 @@ const Title = {
             Txt.draw(g, str, bx + 26, by + 8 + i * 15, { col: i === this.sel ? UI.ink : UI.dim });
             if (i === this.sel) A.poly([[bx + 13, by + 10 + i * 15], [bx + 13, by + 18 + i * 15], [bx + 18, by + 14 + i * 15]], '#d04838');
         });
-        Txt.draw(g, 'POKE-STYLE BUILD  P0.6', VW - 6, VH - 14, { col: '#8898d0', align: 'right' });
+        Txt.draw(g, 'POKE-STYLE BUILD  P0.7', VW - 6, VH - 14, { col: '#8898d0', align: 'right' });
         Txt.draw(g, '▲▼ choose    SPACE select', 6, VH - 14, { col: '#8898d0' });
     },
 };
@@ -179,7 +215,7 @@ const Title = {
 // ---- THE PAUSE MENU ----
 const Menu = {
     open: false, page: 'main', sel: 0, sub: 0, fromTitle: false, saved: 0,
-    MAIN: ['MAP', 'JOURNAL', 'BAG', 'SETTINGS', 'SAVE', 'TITLE SCREEN', 'CLOSE'],
+    MAIN: ['MAP', 'TASKS', 'JOURNAL', 'BAG', 'SETTINGS', 'SAVE', 'TITLE SCREEN', 'CLOSE'],
     SETTINGS: [
         { key: 'textSpeed', label: 'Text speed', opts: ['Slow', 'Normal', 'Fast', 'Instant'] },
         { key: 'time', label: 'Time of day', opts: ['Dawn', 'Day', 'Dusk', 'Night', 'Moving clock'] },
@@ -187,6 +223,7 @@ const Menu = {
         { key: 'zoom', label: 'Zoom', opts: ['Auto', 'Far', 'Near'] },
         { key: 'volume', label: 'Sound', opts: ['Off', 'Low', 'Normal', 'Loud'] },
         { key: 'names', label: 'Name tags', opts: ['Off', 'When near'] },
+        { key: 'notices', label: 'Choice notices', opts: ['Off', 'On'] },
     ],
     toggle() { this.open = !this.open; this.page = 'main'; this.sel = 0; this.fromTitle = false; Sfx.move(); },
     update(dt, I) {
@@ -212,7 +249,7 @@ const Menu = {
             if (I.right || I.ok) { Game.setFromIndex(row.key, (cur + 1) % n); Sfx.tick(); }
             if (I.back || I.menu) { Sfx.back(); Game.saveSettings(); if (this.fromTitle) { this.open = false; this.fromTitle = false; } else this.page = 'main'; }
         } else {
-            const n = P === 'journal' ? Game.journal.length : P === 'bag' ? Game.bagList().length : 0;
+            const n = P === 'journal' ? Game.journal.length : P === 'bag' ? Game.bagList().length : P === 'tasks' ? Story.s.tasks.length : 0;
             if (n) { if (I.up) { this.sub = (this.sub + n - 1) % n; Sfx.move(); } if (I.down) { this.sub = (this.sub + 1) % n; Sfx.move(); } }
             if (I.back || I.menu) { Sfx.back(); this.page = 'main'; }
         }
@@ -233,14 +270,15 @@ const Menu = {
                 if (on) A.poly([[x + 10, yy + 2], [x + 10, yy + 10], [x + 15, yy + 6]], '#d04838');
             });
             // your permit card: who, where, when
-            frame(g, 6, 6, 214, 78, { band: '#e0a030', hi: '#ffe090' });
+            frame(g, 6, 6, 214, 92, { band: '#e0a030', hi: '#ffe090' });
             A.r(14, 14, 44, 62, '#38404c'); A.r(16, 16, 40, 58, '#b8d4f0'); A.r(16, 56, 40, 18, '#ecd698');
             if (Game.player.sheet) g.drawImage(Game.player.sheet.frames[0][[1, 0, 2, 0][(Game.time * 4 | 0) % 4]], 20, 32);
             Txt.draw(g, bgOf(Game.player.bg).title(Game.player.name || '—'), 66, 14, { col: UI.ink });
             let where = Game.placeName().replace(/^THE /, ''); while (Txt.width(where) > 138 && where.length > 4) where = where.slice(0, -1);
             Txt.draw(g, where, 66, 29, { col: UI.dim });
             Txt.draw(g, Game.clockText(), 66, 43, { col: UI.dim });
-            Txt.draw(g, 'Finds ' + Game.findCount() + '    Places ' + Object.keys(Game.seen).length + '/' + Game.maps.ch1.places.length, 66, 57, { col: UI.dim });
+            Txt.draw(g, money().toLocaleString('en') + ' EGP', 66, 57, { col: '#3a7a30' });
+            Txt.draw(g, 'Finds ' + Game.findCount() + '    Places ' + Object.keys(Game.seen).length + '/' + Game.maps.ch1.places.length, 66, 71, { col: UI.dim });
             if (this.saved > 0) { frame(g, (VW >> 1) - 60, VH - 40, 120, 24, { band: '#58a848', hi: '#b8f0a0' }); Txt.draw(g, 'Game saved.', VW >> 1, VH - 34, { align: 'center', col: UI.ink }); }
             return;
         }
@@ -259,7 +297,7 @@ const Menu = {
                 const v = row.opts[Game.setIndex(row.key)];
                 Txt.draw(g, (on ? '◄ ' : '') + v + (on ? ' ►' : ''), VW - 26, y, { col: on ? '#3058a0' : UI.dim, align: 'right' });
             });
-            const HELP = { textSpeed: 'How fast the words appear in the text box.', time: 'The light. "Moving clock" runs a whole day in twelve minutes; lamps come on at dusk.', run: 'Run without holding SHIFT (hold it to walk instead).', zoom: 'How much of the map fits on screen.', volume: 'The blips and chimes.', names: 'The name that floats over what you are facing.' };
+            const HELP = { textSpeed: 'How fast the words appear in the text box.', time: 'The light. "Moving clock" runs a whole day in twelve minutes; lamps come on at dusk.', run: 'Run without holding SHIFT (hold it to walk instead).', zoom: 'How much of the map fits on screen.', volume: 'The blips and chimes.', names: 'The name that floats over what you are facing.', notices: 'A quiet line in the corner when someone will remember what you did. It never says how.' };
             const hy = 44 + this.SETTINGS.length * 18;
             A.r(14, hy - 6, VW - 28, 1, '#c8d0d8');
             Txt.wrap(HELP[this.SETTINGS[this.sub].key], VW - 60).forEach((ln, i) => Txt.draw(g, ln, 24, hy + i * 12, { col: '#3058a0' }));
@@ -268,7 +306,20 @@ const Menu = {
                 [['WASD / arrows', 'Walk'], ['SHIFT', 'Run'], ['SPACE / ENTER / Z', 'Look, talk, next'], ['M', 'Map (M again: all of Egypt)'], ['ESC', 'This menu, or back'], ['Walk up to a door', 'Go inside']].forEach(([k2, v2], i) => { Txt.draw(g, k2, 24, hy + 50 + i * 13, { col: UI.ink }); Txt.draw(g, v2, 150, hy + 50 + i * 13, { col: UI.dim }); });
             }
             Txt.draw(g, '▲▼ choose   ◄► change', 24, VH - 28, { col: UI.dim });
-                } else if (this.page === 'journal' || this.page === 'bag') {
+        } else if (this.page === 'tasks') {
+            const T = Story.s.tasks;
+            if (!T.length) Txt.draw(g, 'Nothing to do yet. Talk to people.', 24, 40, { col: UI.dim });
+            let y = 34;
+            const top = Math.max(0, this.sub - 3);
+            for (let i = top; i < T.length && y < VH - 30; i++) {
+                const t = T[i], on = i === this.sub, lines = Txt.wrap(t.text, VW - 70);
+                if (on) A.r(14, y - 2, VW - 28, lines.length * 12 + 3, '#d8ecff');
+                A.r(22, y + 1, 9, 9, UI.ink); A.r(23, y + 2, 7, 7, t.done ? '#b8f0a0' : '#f8f8f0');
+                if (t.done) { A.line(24, y + 5, 26, y + 7, '#3a7a30'); A.line(26, y + 7, 29, y + 3, '#3a7a30'); }
+                lines.forEach((ln, j) => Txt.draw(g, ln, 38, y + j * 12, { col: t.done ? '#9aa0a8' : on ? UI.ink : UI.dim }));
+                y += lines.length * 12 + 5;
+            }
+        } else if (this.page === 'journal' || this.page === 'bag') {
             const list = this.page === 'journal' ? Game.journal.map(j => [j.label, j.text]) : Game.bagList();
             if (!list.length) Txt.draw(g, this.page === 'journal' ? 'Nothing written yet. Look at things: it all goes in here.' : 'Empty.', 24, 40, { col: UI.dim });
             else {

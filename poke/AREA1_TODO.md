@@ -31,7 +31,13 @@ Rules:
 
 ---
 
-## 1. Story engine (do this first; everything else needs it)
+## 1. Story engine (do this first; everything else needs it) — ✅ DONE in P0.7
+> Done: `poke/story.js` (the engine) and `poke/ch1_scenes.js` (the scenes). Scenes use
+> the 3D format (`scene(key, { speaker, text, choices })`), and `STORY_SCRIPTS[id]` points
+> an entity at one. Ported so far: the arrival (beat 1) and Hana with her sherd quest.
+> When porting, swap `gameState.funds` for `money()`/`storyPay()` and `gameState.inventory`
+> for `hasItem()`/`pocket()`/`dropItem()`.
+
 Add a `poke/story.js` that holds `Game.story`:
 - the flags
 - `rel_*` affinity and `rep_*` reputation

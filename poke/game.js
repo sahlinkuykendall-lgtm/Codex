@@ -11,10 +11,10 @@
 const Game = {
     VW: 480, VH: 270, scale: 3,
     state: 'boot',
-    set: { textSpeed: 1, time: 1, run: 0, zoom: 0, volIdx: 2, volume: 1, names: 1 },
+    set: { textSpeed: 1, time: 1, run: 0, zoom: 0, volIdx: 2, volume: 1, names: 1, notices: 1 },
     player: { x: 0, y: 0, dir: 0, frame: 0, anim: 0, name: '', gender: 'm', choices: null, bg: 'archaeologist', egyptian: false, sheet: null },
     maps: {}, map: null,
-    journal: [], bag: {}, seen: {}, taken: {},
+    journal: [], bag: {}, seen: {}, taken: {}, story: null,
     time: 0, hour: 9, fade: null, hintT: 0, bumpT: 0,
     keys: {}, I: {},
     SAVE: 'codexPoke_save_v1', SET: 'codexPoke_settings_v1',
@@ -34,7 +34,7 @@ const Game = {
     hasSave() { try { return !!localStorage.getItem(this.SAVE); } catch (e) { return false; } },
     save() {
         const p = this.player, out = this.outdoorPos();
-        const data = { v: 1, name: p.name, gender: p.gender, choices: p.choices, bg: p.bg, egyptian: p.egyptian, x: out[0], y: out[1], dir: p.dir, journal: this.journal, bag: this.bag, seen: this.seen, taken: this.taken, hour: this.hour };
+        const data = { v: 2, story: this.story, name: p.name, gender: p.gender, choices: p.choices, bg: p.bg, egyptian: p.egyptian, x: out[0], y: out[1], dir: p.dir, journal: this.journal, bag: this.bag, seen: this.seen, taken: this.taken, hour: this.hour };
         try { localStorage.setItem(this.SAVE, JSON.stringify(data)); } catch (e) { }
     },
     load() {
@@ -44,6 +44,7 @@ const Game = {
         this.resetWorld();
         Object.assign(this.player, { name: d.name, gender: d.gender, choices: d.choices || null, bg: d.bg || 'archaeologist', egyptian: !!d.egyptian, x: d.x, y: d.y, dir: d.dir || 0 });
         this.journal = d.journal || []; this.bag = d.bag || {}; this.seen = d.seen || {}; this.taken = d.taken || {};
+        this.story = Story.restore(d.story);
         if (this.set.time === 4 && d.hour != null) this.hour = d.hour;
         for (const e of this.maps.ch1.ents) if (e.id && this.taken[e.id]) World.removeEnt(this.maps.ch1, e);
         this.enter(this.maps.ch1);
@@ -55,6 +56,7 @@ const Game = {
         this.maps = { ch1: World.buildCamp(this.camp, window.POKE_MAP) };
         this._mm = null;
         this.journal = []; this.bag = { 'Field journal': 1, 'Letter of appointment': 1 }; this.seen = {}; this.taken = {};
+        this.story = Story.fresh(this.player.bg);
     },
     newGame() {
         this.resetWorld();
@@ -62,13 +64,16 @@ const Game = {
         p.x = m.spawn[0]; p.y = m.spawn[1]; p.dir = DIR.up;
         this.enter(m);
         this.state = 'play'; this.hintT = 0;
-        // the Rais comes to meet you with a lantern, says his piece, and walks back to the fire
+        // the Rais comes to meet you with a lantern, says his piece (poke/ch1_scenes.js), and walks back to the fire
         const rais = World.addEnt(m, { x: p.x, y: p.y - 34, w: 0, d: 0, label: 'Rais Abdallah', person: { sheet: personSheet(LOOKS.rais), dir: DIR.down, frame: 0 }, sortY: p.y - 34, light: { x: 6, y: -12, r: 64, c: '#ffd080' } });
         m.people.push(rais);
-        setTimeout(() => Dlg.open('Rais Abdallah', '"Doctor ' + (p.name || '') + '. I am Abdallah, the Rais. Welcome to Giza."\n\n"Doctor Miriam did not leave for family reasons. She left her tea on the table and her boots by the door. Twenty years I know her. She does not go anywhere without her boots."\n\n"Doctor Lindqvist, the deputy, he will tell you about family. Hana will tell you about the finds. I will tell you the truth, when you ask me for it."\n\n"Also: the men are owed eleven days of wages. Come to the fire when you have seen your tent. It is the big one, behind me."', () => {
-            rais.walkTo = [p.x - 420, p.y - 60]; rais.ghost = true;
-            this.note('What to do', 'Look around Miriam\'s tent (north of where you arrived). Meet Dr. Lindqvist at the site trailer (east) and Hana (by the tent). Talk to the Rais about the wages at the workers\' fire (west).');
-        }), 700);
+        this.arrivalRais = rais;
+        setTimeout(() => startDialogue('scene1_start'), 700);
+    },
+    // the end of the arrival: the Rais walks off to the fire
+    raisLeaves() {
+        const r = this.arrivalRais, p = this.player; if (!r) return;
+        r.walkTo = [p.x - 420, p.y - 60]; r.ghost = true; this.arrivalRais = null;
     },
     enter(map) {
         this.map = map;
@@ -86,7 +91,8 @@ const Game = {
     },
     bagList() {
         const DESC = { 'Field journal': 'Your field journal. Everything you look at goes into it (JOURNAL, in the menu).', 'Letter of appointment': 'The Ministry\'s letter: you are acting director of the Giza Western Field concession, effective immediately.', 'Painted sherd': 'Painted pottery sherds from the surface. Late Period, mostly. Hana will want to see them.', 'Fossil': 'Nummulites: coin-shaped fossils from the limestone the pyramids are built of. Herodotus thought they were the builders\' lentils.' };
-        return Object.keys(this.bag).map(k => [k + (this.bag[k] > 1 ? '  ×' + this.bag[k] : ''), DESC[k] || '']);
+        const key = k => ITEM_INFO[k] && ITEM_INFO[k].key ? 1 : 0;
+        return Object.keys(this.bag).sort((a, b) => key(b) - key(a)).map(k => [(key(k) ? '★ ' : '') + k + (this.bag[k] > 1 ? '  ×' + this.bag[k] : ''), DESC[k] || (ITEM_INFO[k] && ITEM_INFO[k].desc) || '']);
     },
     findCount() { return (this.bag['Painted sherd'] || 0) + (this.bag['Fossil'] || 0); },
     outdoorPos() { return this.map && !this.map.outdoor && this.map.back ? this.map.back : [this.player.x, this.player.y]; },
@@ -206,6 +212,7 @@ const Game = {
             room.back = back;
             this.player.x = room.spawn[0]; this.player.y = room.spawn[1]; this.player.dir = DIR.up;
             this.enter(room);
+            storyOnEnter(d.to);
         });
     },
     goOutside() {
@@ -222,7 +229,7 @@ const Game = {
         let best = null, bd = 22;
         const px = p.x, py = p.y - 5;
         for (const e of m.ents) {
-            if (!e.say || e.gone || (e.nightOnly && !night)) continue;
+            if (!(e.say || scriptFor(e)) || e.gone || (e.nightOnly && !night)) continue;
             let rx, ry, rw, rh;
             if (e.person) { rx = e.x - 8; ry = e.y - 12; rw = 16; rh = 14; }
             else if (!e.w) { rx = e.x - 10; ry = e.y - 10; rw = 20; rh = 12; }
@@ -242,6 +249,8 @@ const Game = {
         const p = this.player;
         if (e.person) { const dx = p.x - e.x, dy = p.y - e.y; e.person.dir = Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? DIR.left : DIR.right) : (dy < 0 ? DIR.up : DIR.down); e.person.frame = 0; }
         Sfx.ok();
+        const sc = scriptFor(e);
+        if (sc) return startDialogue(sc);                   // a scripted conversation (poke/ch1_scenes.js)
         const [speaker, text] = e.say;
         Dlg.open(speaker, text, () => {
             this.note(e.label || speaker, text, e.id);
@@ -362,6 +371,7 @@ const Game = {
         }
         Banner.draw(g);
         Toast.draw(g, 1 / 60);
+        Notice.draw(g, 1 / 60);
         if (this.hintT < 14 && !Dlg.active) Txt.draw(g, 'MOVE: WASD / arrows    RUN: Shift    LOOK / TALK: Space    MAP: M    MENU: Esc', VW >> 1, VH - 14, { col: '#ffffff', shadow: '#30302c', align: 'center' });
         if (Dlg.active) Dlg.draw(g);
     },

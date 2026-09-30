@@ -12,6 +12,33 @@ Other docs:
 
 ---
 
+## POKE-STYLE P0.7 — 2026-09-30 — (branch `poke-style`) The story engine (Area 1, step 1)
+- **The story now has state.** A new `poke/story.js` keeps the story in `Game.story`, and it
+  saves and loads with the game:
+  - flags
+  - affinity with people (`rel`) and reputation with factions (`rep`)
+  - money: 8,000 EGP for the Archaeologist, and each background's own amount
+  - tasks
+  - the story clock (it's stored now; step 2 makes it run)
+  - Key items go in the bag, marked with a ★ and listed first.
+- **Choice boxes.** After the last page of text, a DS-style box of answers opens on the
+  right, above the text box. ▲▼ picks an answer and SPACE chooses it. ESC picks the last
+  answer, which is usually "leave". There's a short pause before it takes an answer, so
+  mashing through the text can't pick one by accident.
+- **Scripted conversations.** People and things can run a scene (lines, choices, flag
+  changes) instead of their single line. Scenes use the same format as the 3D build's
+  `ch1a_story.js`, so the rest of Chapter 1-A can be ported almost as it is. The new
+  `poke/ch1_scenes.js` holds them.
+- **Ported so far:**
+  - **The arrival.** The Rais's full conversation at the gate, with its choices.
+    It leaves you four tasks.
+  - **Hana.** Her whole conversation, and her side quest: bring her three painted sherds.
+    She gives you the conservation wax.
+- **"… will remember that."** A quiet notice in the top right when a choice matters to
+  someone. It never says how. You can turn it off in Settings ("Choice notices").
+- **TASKS** in the menu: open tasks first, finished ones ticked off below them.
+- **The permit card** in the menu shows your money.
+
 ## POKE-STYLE P0.6 — 2026-09-30 — (branch `poke-style`) Four backgrounds, each with its own opening
 - **Who are you?** After the story so far, you now pick one of the four backgrounds from the
   bible (`story/01_CHARACTERS.md`).
