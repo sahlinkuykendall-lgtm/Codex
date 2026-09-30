@@ -94,7 +94,16 @@ const World = {
         };
         for (const [id, tx, ty, tw, th] of L.things) place(id, tx, ty, tw, th);
         for (const pre in L.scatter) L.scatter[pre].forEach(([tx, ty], i) => place(pre + i, tx, ty, 1, 1));
-        L.lamps.forEach(([tx, ty], i) => place('ow_pathlamp' + i, tx, ty, 1, 1));
+        // lamps keep to the kerb: a lamp whose spot is taken moves along until it's free
+        L.lamps.forEach(([tx, ty], i) => { let y = ty; while (occ.has(tx + ',' + y) && y < ty + 4) y++; place('ow_pathlamp' + i, tx, y, 1, 1); });
+        // the chain-link fence round the dig zone, and planks across the trench
+        for (const [x0, x1, ty] of L.fences) { const w = (x1 - x0) * TILE; World.addEnt(map, { x: x0 * TILE, y: ty * TILE + 12, w, d: 4, spr: fenceH(w, 'northFence'), sortY: ty * TILE + 16 }); World.addSolid(map, x0 * TILE, ty * TILE + 10, w, 8); }
+        for (const [x0, x1, ty] of L.planks) {
+            const w = (x1 - x0 + 1) * TILE, st = stage(w, 18, 0), A = st.A;
+            A.r(st.x, st.y, w, 18, '#c89a5c'); for (let i = 0; i < w; i += 9) { A.vl(st.x + i, st.y, 18, '#9a6c3c'); A.vl(st.x + i + 1, st.y, 18, '#e0b478'); }
+            A.hl(st.x, st.y, w, '#f0cc90'); A.r(st.x, st.y + 16, w, 2, '#7a5430');
+            World.addEnt(map, { x: x0 * TILE, y: ty * TILE + 7, w, d: 18, spr: Object.assign(fit(st), { flat: true }) });
+        }
         // doors on the front of the three buildings you can enter
         for (const [id, frac, to] of L.doors) {
             const e = map.ents.find(q => q.id === id); if (!e) continue;

@@ -324,7 +324,7 @@ const Game = {
             if (!e.w) { const r = Math.min(16, Math.max(5, sp.c.width * 0.3)); A.ell(Math.round(e.x - cx + 2), Math.round(e.y - cy), r, Math.max(2, Math.round(r * 0.32)), g.fillStyle); continue; }
             // sized from the drawing itself (a footprint can be bigger than what's drawn on it)
             const left = Math.round(e.x + sp.ox - cx), bottom = Math.round(e.y + sp.oy + sp.c.height - cy) - 2, cw = sp.c.width;
-            if (cw > 60 && cw >= e.w - 6) { g.fillRect(left + 4, bottom - 1, cw - 4, 4); g.fillRect(left + cw - 1, bottom - Math.min(e.d, 30), 3, Math.min(e.d, 30)); }   // buildings: along the foot and down the east side
+            if (cw > 60 && cw >= e.w - 6) { g.fillRect(left + 4, bottom - 1, cw - 4, 4); if (!sp.footShadow) g.fillRect(left + cw - 1, bottom - Math.min(e.d, 30), 3, Math.min(e.d, 30)); }   // buildings: along the foot and down the east side
             else A.ell(left + (cw >> 1) + 2, bottom, Math.max(4, Math.round(cw * 0.42)), Math.max(2, Math.min(5, Math.round(cw * 0.12))), g.fillStyle);
         }
         for (const e of vis) {

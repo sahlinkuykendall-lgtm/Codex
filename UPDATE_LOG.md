@@ -12,6 +12,31 @@ Other docs:
 
 ---
 
+## POKE-STYLE P0.5 — 2026-09-30 — (branch `poke-style`) Layout audit, solid props, a real trench
+- **A layout audit of the whole camp.** Nothing stands on a road any more (except the dig
+  gate and the roadblock, which are meant to), nothing overlaps, and everything you can
+  look at can be reached.
+  - The workers' camp, the director's camp, the guard post and the booth each sit in a
+    yard of trodden sand with footprints, so each area reads as a place.
+  - The roads are straight, with clean corners.
+  - Buildings and props that sat on a road or in the rock were moved to where they make
+    sense: the dormitory, the guard booth and Farouk's radio, the antenna, the dartboard,
+    the military crates, a rock pile.
+  - The wadi moved east, out of the way. A fence runs along the dig zone, with a gap for
+    the gate. Planks cross Trench A.
+  - Lamps step aside when something already stands on their spot.
+- **Every main prop is redrawn solid and crisp:** a lit top, a shaded front and a dark side.
+  - Crates have battens and a brace. Barrels and drums have lit sides, rolling hoops, a lid
+    with a rim and bung, and a round end when lying down.
+  - Sandbags come in two tied courses. Rocks have a lit crown and a crack.
+  - Lamps have a stone foot and a glowing lantern.
+  - The long tables are planked, with bowls, bread, tea glasses and greens on them.
+  - The generator has vents, a panel with lights and an exhaust. The well has its frame,
+    its bucket and water far down. The wheelbarrow is full of spoil with a shovel in it,
+    and the vegetable crates are heaped.
+- **Trench A** has a dug floor with clods, and the excavators' string grid pegged across it.
+- Long tables cast a shadow at their feet, not a wall down one side.
+
 ## POKE-STYLE P0.4 — 2026-09-30 — (branch `poke-style`) A fresh camp, crisp art, real cars, the M map
 - **The camp is laid out fresh, like a DS town:** a compact tile map with straight roads
   between the areas.

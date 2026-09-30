@@ -19,15 +19,17 @@ there are no image files.
 ## What's in it
 
 - **A fresh camp, laid out like a DS town** (`poke/camp.js`): a 78×58 tile map, compact,
-  with straight roads between the areas. The director's camp is in the middle, the workers' camp
+  with straight roads between the areas, and a yard of trodden sand for each camp. It has been
+  audited so that nothing stands on a road, nothing overlaps and everything can be reached. The director's camp is in the middle, the workers' camp
   to the west, the dig zone under the escarpment to the north (the Osiris Shaft and the sealed
   door are cut into its cliff), trench A to the east, the guard post on the road in, the oasis,
   the supply line, the cemetery, the sheikh's tomb and more. It has a rock plateau all round.
   Every person and thing from the 3D chapter is here, and what each says comes from the 3D
   story (`tools/export_poke_map.js` → `poke/map_ch1.js`, looked up by id).
 - **The look:** crisp and solid, with flat colours and hard edges. Things look 3D because the
-  light is consistent: lit tops, shaded sides, a contact shadow under each thing. Buildings
-  and vehicles each have their own character.
+  light is consistent: lit tops, shaded sides, a contact shadow under each thing. Buildings,
+  vehicles and props (crates, barrels, the generator, the well, the wheelbarrow) each have
+  their own character.
 - **The M map:** your area with the places you've found; M again zooms out to Egypt, with
   every chapter region from the bible, locked until the story takes you there, each with a teaser.
 - **The opening** (from the story bible): Alexandria in 391 AD with the Serapeum burning,

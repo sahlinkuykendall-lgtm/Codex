@@ -475,13 +475,18 @@ SPR.carts = (w, d) => {
 };
 
 // ---- PROPS ----
+// A wooden crate, three faces: the lid in the light, the front in half shade, a
+// sliver of the east side in shadow; a frame of battens and a brace across.
 function crateAt(A, x, y, s, kind) {
-    const P = kind === 1 ? PAL.plank : PAL.wood, h = Math.round(s * 0.55), t = Math.round(s * 0.5);
-    A.r(x, y, s, t, P[0]); A.r(x, y, s, 1, PAL.canvas[0]); A.r(x + 1, y + 1, s - 2, t - 2, kind === 1 ? PAL.plank[0] : PAL.plank[1]);
-    for (let i = 3; i < s; i += 4) A.vl(x + i, y + 1, t - 2, P[1]);
-    A.r(x, y + t, s, h, P[1]); A.r(x, y + t, s, 1, P[2]); A.r(x, y + t + h - 1, s, 1, P[2]);
-    A.vl(x, y + t, h, P[2]); A.vl(x + s - 1, y + t, h, P[2]);
-    A.line(x + 1, y + t + 1, x + s - 2, y + t + h - 2, P[2]);
+    const P = kind === 1 ? ['#f0cc90', '#d8aa68', '#b08048', '#7a5430'] : ['#dcae74', '#b8844c', '#8e5e32', '#5e3c20'];
+    const t = Math.round(s * 0.42), h = Math.round(s * 0.6), side = 3;
+    A.r(x, y, s - side, t, P[0]); for (let i = 4; i < s - side; i += 5) A.vl(x + i, y + 1, t - 2, P[1]); A.hl(x, y, s - side, '#fff0d0');   // the lid, planked
+    A.poly([[x + s - side, y], [x + s, y + side], [x + s, y + t + h], [x + s - side, y + t + h - side + 3]], P[2]);                          // the east side
+    A.r(x, y + t, s - side, h, P[1]);                                                                                                        // the front
+    A.r(x, y + t, s - side, 2, P[2]); A.r(x, y + t + h - 2, s - side, 2, P[2]); A.r(x, y + t, 2, h, P[2]); A.r(x + s - side - 2, y + t, 2, h, P[2]);   // battens
+    A.line(x + 2, y + t + h - 3, x + s - side - 3, y + t + 2, P[2]); A.line(x + 2, y + t + h - 4, x + s - side - 4, y + t + 2, P[0]);          // the brace
+    for (const [nx, ny] of [[1, 1], [s - side - 2, 1], [1, h - 2], [s - side - 2, h - 2]]) A.px(x + nx, y + t + ny, P[3]);
+    A.hl(x, y + t + h, s - side + 1, P[3]);
 }
 function propStage(w, d, cw, ch) { const st = stage(cw, ch, 0); st.fw = w; st.fd = d; return st; }
 function propFit(st, w, d, extra) { return Object.assign({ c: outline(st.c), ox: Math.round((w - st.c.width) / 2), oy: Math.round(d - st.c.height + 1) }, extra || {}); }
@@ -493,27 +498,48 @@ function crates(w, d, seed) {
 SPR_L['crates'] = (w, d, o) => crates(w, d, o.id);
 SPR_L['sorted crates'] = () => null;                           // (it sits on the same spot as the crates)
 SPR_L['tarped supplies'] = (w, d) => { const st = propStage(w, d, 36, 26), { A } = st; A.ell(st.x + 18, st.y + 14, 17, 10, PAL.olive[1]); A.ell(st.x + 15, st.y + 10, 11, 5, PAL.olive[0]); A.r(st.x + 2, st.y + 20, 32, 3, PAL.olive[3]); A.line(st.x + 4, st.y + 12, st.x + 30, st.y + 18, PAL.canvas[3]); return propFit(st, w, d, { solid: [w / 2 - 16, d - 16, 32, 14] }); };
+// An oil drum (or a plastic water drum): a cylinder lit from the left, two hoops, a lid
+// with its rim and bung. Lying down, it shows its round end.
 function drum(A, x, y, P3, lying) {
-    if (lying) { A.r(x, y + 3, 20, 11, P3[1]); A.r(x, y + 3, 20, 3, P3[0]); A.r(x, y + 11, 20, 3, P3[2]); A.ell(x, y + 8, 2, 5, P3[2]); A.ell(x + 20, y + 8, 2, 5, P3[0]); A.vl(x + 7, y + 3, 11, P3[2]); A.vl(x + 13, y + 3, 11, P3[2]); return; }
-    A.r(x, y + 3, 12, 15, P3[1]); A.ell(x + 6, y + 18, 6, 2, P3[2]); A.ell(x + 6, y + 3, 6, 2, P3[0]); A.ell(x + 6, y + 3, 4, 1, P3[1]);
-    A.hl(x, y + 8, 12, P3[2]); A.hl(x, y + 13, 12, P3[2]); A.vl(x + 1, y + 4, 13, P3[0]); A.vl(x + 10, y + 5, 13, P3[2]);
+    const L = shade(P3[0], 0.3), M = P3[0], D = P3[1], DD = P3[2] || shade(P3[1], -0.4);
+    if (lying) {
+        A.r(x + 3, y + 3, 18, 12, M); A.r(x + 3, y + 3, 18, 3, L); A.r(x + 3, y + 12, 18, 3, D); A.hl(x + 3, y + 14, 18, DD);
+        for (const hx of [x + 8, x + 15]) { A.vl(hx, y + 3, 12, D); A.vl(hx + 1, y + 3, 12, L); }
+        A.ell(x + 21, y + 9, 3, 6, D); A.ell(x + 21, y + 9, 2, 4, M); A.px(x + 21, y + 7, DD);                                               // the end, facing east
+        return;
+    }
+    const w = 12, h = 16, top = y + 2;
+    A.r(x, top + 2, w, h, M); A.r(x + 1, top + 2, 3, h, L); A.r(x + w - 3, top + 2, 3, h, D); A.vl(x + w - 1, top + 2, h, DD);             // lit left, shadowed right
+    for (const hy of [top + 6, top + 12]) { A.hl(x, hy, w, D); A.hl(x, hy + 1, w, L); }                                                   // rolling hoops
+    A.ell(x + 6, top + h + 2, 6, 2, DD); A.r(x, top + h, w, 2, D);
+    A.ell(x + 6, top + 2, 6, 2, shade(M, 0.1)); A.ell(x + 6, top + 2, 4, 1, D); A.px(x + 8, top + 1, DD); A.px(x + 3, top + 1, '#ffffff');   // the lid
 }
 SPR_L['water barrels'] = (w, d) => { const st = propStage(w, d, 50, 36), { A } = st; for (const i of [0, 1, 2]) drum(A, st.x + 2 + i * 15, st.y, PAL.blue); drum(A, st.x + 12, st.y + 18, PAL.blue, true); A.r(st.x + 10, st.y + 32, 4, 3, PAL.wood[2]); A.r(st.x + 30, st.y + 32, 4, 3, PAL.wood[2]); A.r(st.x + 33, st.y + 25, 3, 2, PAL.metal[1]); return propFit(st, w, d, { solid: [w / 2 - 24, d - 22, 48, 20] }); };
 SPR_L['fuel drums'] = (w, d) => { const st = propStage(w, d, 50, 34), { A } = st; drum(A, st.x + 2, st.y, PAL.red); drum(A, st.x + 17, st.y + 2, PAL.dark); drum(A, st.x + 32, st.y, PAL.red); drum(A, st.x + 14, st.y + 18, PAL.blue, true); return propFit(st, w, d, { solid: [w / 2 - 24, d - 20, 48, 18] }); };
 SPR_L['oil drum'] = (w, d) => { const st = propStage(w, d, 14, 22), { A } = st; drum(A, st.x, st.y, [PAL.brick[1], PAL.red[3], PAL.dark[1]]); return propFit(st, w, d, { solid: [w / 2 - 6, d - 8, 12, 8] }); };
-SPR_L['sandbags'] = (w, d) => { const n = Math.max(2, Math.round(w / 14)), st = propStage(w, d, n * 13 + 2, 22), { A } = st; for (let r = 0; r < 2; r++) for (let i = 0; i < n - r; i++) { const x = st.x + i * 13 + r * 6, y = st.y + 10 - r * 8; A.ell(x + 6, y + 5, 6, 4, PAL.canvas[2]); A.ell(x + 5, y + 4, 4, 2, PAL.canvas[1]); A.px(x + 11, y + 5, PAL.canvas[3]); } return propFit(st, w, d, { solid: [0, d - 12, w, 12] }); };
+SPR_L['sandbags'] = (w, d) => {                  // a low wall of sandbags, two courses, each bag tied off
+    const n = Math.max(2, Math.round(w / 14)), st = propStage(w, d, n * 13 + 4, 22), { A } = st;
+    for (let r = 0; r < 2; r++) for (let i = 0; i < n - r; i++) {
+        const x = st.x + i * 13 + r * 6, y = st.y + 10 - r * 8;
+        A.r(x + 1, y + 1, 12, 8, '#b8a070'); A.r(x, y + 2, 14, 6, '#b8a070'); A.r(x + 1, y + 1, 12, 3, '#e0cc98'); A.hl(x + 2, y + 1, 9, '#f4e4b8');
+        A.r(x + 1, y + 7, 12, 2, '#8e7a50'); A.vl(x + 11, y + 2, 5, '#8e7a50'); A.px(x + 12, y + 3, '#6e5e3c');
+    }
+    return propFit(st, w, d, { solid: [0, d - 12, w, 12] });
+};
 SPR_L['tool box'] = (w, d) => { const st = propStage(w, d, 18, 14), { A } = st; A.r(st.x, st.y + 2, 16, 5, PAL.red[0]); A.r(st.x, st.y + 7, 16, 7, PAL.red[1]); A.r(st.x, st.y + 7, 16, 1, PAL.red[3]); A.r(st.x + 5, st.y, 6, 2, PAL.metal[2]); A.r(st.x + 7, st.y + 9, 2, 2, PAL.gold[1]); return propFit(st, w, d); };
 SPR_L['tin bucket'] = (w, d) => { const st = propStage(w, d, 12, 14), { A } = st; A.poly([[st.x + 1, st.y + 3], [st.x + 10, st.y + 3], [st.x + 9, st.y + 13], [st.x + 2, st.y + 13]], PAL.metal[1]); A.ell(st.x + 5, st.y + 3, 5, 2, PAL.metal[3]); A.ell(st.x + 5, st.y + 3, 3, 1, PAL.blue[2]); A.vl(st.x + 2, st.y + 5, 8, PAL.metal[0]); return propFit(st, w, d); };
 SPR_L['rope coil'] = (w, d) => { const st = propStage(w, d, 18, 12), { A } = st; A.ell(st.x + 8, st.y + 6, 8, 5, PAL.canvas[2]); A.ell(st.x + 8, st.y + 5, 6, 3, PAL.canvas[1]); A.ell(st.x + 8, st.y + 5, 3, 1, PAL.canvas[3]); return propFit(st, w, d, { flat: true }); };
 SPR_L['rock pile'] = (w, d, o) => rocks(w, d, o.id, 3);
 SPR_L['boulder'] = (w, d, o) => rocks(w, d, o.id, 1, 14);
 SPR_L['big boulder'] = (w, d, o) => rocks(w, d, o.id, 1, 22);
+// A rock: a rounded lump, lit on its upper left, a flat shadowed underside, one crack
 function rockAt(A, cx, cy, r, R) {
-    const ry = Math.round(r * 0.72);
-    A.ell(cx, cy, r, ry, PAL.rock[2]); A.ell(cx - Math.round(r * 0.2), cy - Math.round(ry * 0.3), Math.round(r * 0.7), Math.round(ry * 0.6), PAL.rock[1]);
-    A.ell(cx - Math.round(r * 0.35), cy - Math.round(ry * 0.5), Math.round(r * 0.35), Math.round(ry * 0.3), PAL.rock[0]);
-    A.r(cx - r + 2, cy + ry - 2, r * 2 - 4, 2, PAL.rock[3]);
-    if (r > 8) A.line(cx + 1, cy - 2, cx + Math.round(r * 0.5), cy + Math.round(ry * 0.6), PAL.rock[3]);
+    const ry = Math.round(r * 0.75);
+    A.ell(cx, cy, r, ry, '#9a8466'); A.ell(cx - 1, cy - 1, r - 1, ry - 1, '#b8a282');
+    A.ell(cx - Math.round(r * 0.25), cy - Math.round(ry * 0.3), Math.round(r * 0.6), Math.round(ry * 0.55), '#d2bc98');
+    A.ell(cx - Math.round(r * 0.4), cy - Math.round(ry * 0.5), Math.max(1, Math.round(r * 0.25)), Math.max(1, Math.round(ry * 0.2)), '#ecdcbc');
+    A.r(cx - r + 2, cy + ry - 2, r * 2 - 3, 2, '#7a6650');
+    if (r > 7) { A.line(cx + 1, cy - 1, cx + Math.round(r * 0.45), cy + Math.round(ry * 0.6), '#8a7456'); A.line(cx + 2, cy - 1, cx + Math.round(r * 0.45) + 1, cy + Math.round(ry * 0.6), '#c8b290'); }
 }
 function rocks(w, d, seed, n, r0) {
     const R = rng(seed), r = r0 || 9, cw = n > 1 ? 44 : r * 2 + 4, ch = n > 1 ? 28 : Math.round(r * 1.5) + 4, st = propStage(w, d, cw, ch), { A } = st;
@@ -537,10 +563,14 @@ SPR_L['spoil mound'] = SPR.ow_spoil = (w, d, o) => {
     return Object.assign(fit(st), { c: st.c });                    // no outline: it's a heap of the ground itself
 };
 SPR_L['survey stake'] = SPR_L["sam's survey stake"] = (w, d) => { const st = propStage(w, d, 8, 18), { A } = st; A.r(st.x + 2, st.y + 3, 2, 14, PAL.plank[0]); A.r(st.x + 2, st.y, 2, 5, PAL.red[1]); A.r(st.x + 4, st.y + 1, 3, 3, PAL.red[0]); return propFit(st, w, d); };
+// A lamp on a post: a stone foot, a post lit on one side, a lantern with glass that glows
 function lampPost(w, d, tall, col) {
-    const h = tall ? 34 : 22, st = propStage(w, d, 14, h + 2), { A } = st, cx = st.x + 5;
-    A.r(cx, st.y + 6, 2, h - 6, PAL.wood[2]); A.r(cx - 2, st.y + h - 2, 6, 2, PAL.wood[3]);
-    A.r(cx - 2, st.y + 1, 6, 7, PAL.gold[0]); A.r(cx - 3, st.y, 8, 2, PAL.dark[1]); A.r(cx - 2, st.y + 8, 6, 1, PAL.dark[1]); A.px(cx, st.y + 4, PAL.white[0]);
+    const h = tall ? 34 : 24, st = propStage(w, d, 14, h + 2), { A } = st, cx = st.x + 5;
+    A.r(cx - 2, st.y + h - 3, 7, 3, '#a8927a'); A.hl(cx - 2, st.y + h - 3, 7, '#d4c0a0');
+    A.r(cx, st.y + 8, 3, h - 10, '#6e4424'); A.vl(cx, st.y + 8, h - 10, '#a8703c');
+    A.r(cx - 3, st.y, 9, 2, '#3a3e48'); A.px(cx + 1, st.y - 1, '#3a3e48');
+    A.r(cx - 2, st.y + 2, 7, 6, '#ffe890'); A.r(cx - 2, st.y + 2, 2, 6, '#fff8d8'); A.r(cx + 3, st.y + 2, 2, 6, '#f0c040');
+    A.r(cx - 3, st.y + 8, 9, 1, '#3a3e48'); A.vl(cx - 3, st.y + 2, 6, '#3a3e48'); A.vl(cx + 5, st.y + 2, 6, '#3a3e48');
     return propFit(st, w, d, { light: { x: 0, y: -h + 6, r: tall ? 70 : 52, c: col || '#ffd890' } });
 }
 SPR_L['path lamp'] = (w, d) => lampPost(w, d, false);
@@ -562,17 +592,33 @@ function scaffold(w, d) {
     A.line(x, top + 8, x + w - 2, top + 22, PAL.metal[3]); A.line(x + w - 2, top + 26, x, top + 38 + d, PAL.metal[3]);
     return fit(st);
 }
-SPR_L['cooking table'] = SPR_L['equipment table'] = (w, d) => {
+SPR_L['cooking table'] = SPR_L['equipment table'] = (w, d) => {   // a long trestle table, things on it
     const L = Math.max(30, w), st = stage(L, 14, 12), { A } = st, x = st.x, top = st.y - 8;
-    A.r(x, top, L, 12, PAL.plank[0]); for (let i = 0; i < L; i += 14) A.vl(x + i, top, 12, PAL.plank[1]); A.r(x, top + 12, L, 3, PAL.plank[2]);
-    for (const lx of [x + 2, x + L - 4]) A.r(lx, top + 15, 2, 8, PAL.wood[3]);
-    // things on it
+    A.r(x, top, L, 11, '#e0b478'); for (let i = 0; i < L; i += 16) { A.vl(x + i, top, 11, '#c89a5c'); A.vl(x + i + 1, top, 11, '#f0cc90'); } A.hl(x, top, L, '#fff0d0');   // the top, planked
+    A.r(x, top + 11, L, 4, '#a8783c'); A.hl(x, top + 14, L, '#6e4a24');                                                                    // the apron
+    for (const lx of [x + 3, x + L - 6]) { A.r(lx, top + 15, 3, 8, '#8e5e32'); A.vl(lx, top + 15, 8, '#b8844c'); }
     const R = rng('tbl' + w);
-    for (let i = 8; i < L - 10; i += 16) { const k = R(); if (k < 0.3) { A.ell(x + i + 3, top + 5, 4, 2, PAL.metal[1]); A.ell(x + i + 3, top + 4, 2, 1, PAL.metal[3]); } else if (k < 0.6) A.r(x + i, top + 3, 7, 5, PAL.white[0]); else if (k < 0.8) { A.r(x + i, top + 2, 4, 6, PAL.brick[1]); A.r(x + i, top + 2, 4, 1, PAL.brick[3]); } }
-    return Object.assign(fit(st), { oy: Math.round(d - st.c.height + 1) });
+    for (let i = 8; i < L - 12; i += 17) {
+        const k = R(), bx = x + i;
+        if (k < 0.3) { A.ell(bx + 4, top + 5, 5, 2, '#9aa4ae'); A.ell(bx + 4, top + 4, 4, 1, '#e6ecf0'); A.px(bx + 2, top + 4, '#ffffff'); }                       // a metal bowl
+        else if (k < 0.55) { A.ell(bx + 4, top + 5, 5, 3, '#c89058'); A.ell(bx + 3, top + 4, 3, 1, '#e8b878'); }                                              // bread
+        else if (k < 0.8) { A.r(bx + 1, top + 2, 3, 5, '#ffffff'); A.r(bx + 5, top + 3, 3, 4, '#ffffff'); A.px(bx + 2, top + 5, '#c84830'); A.px(bx + 6, top + 5, '#c84830'); }   // tea glasses
+        else { A.ell(bx + 4, top + 4, 4, 3, '#58a848'); A.ell(bx + 3, top + 3, 2, 1, '#8cd060'); A.ell(bx + 9, top + 5, 2, 2, '#d04838'); }                  // greens, a tomato
+    }
+    return Object.assign(fit(st), { oy: Math.round(d - st.c.height + 1), footShadow: true });
 };
 SPR.fl_cooking = () => null;                                       // (same spot as the long cooking table)
-SPR.generator = (w, d) => { const st = propStage(w, d, 34, 26), { A } = st; A.r(st.x, st.y + 2, 32, 10, PAL.gold[1]); A.r(st.x, st.y + 12, 32, 10, PAL.gold[2]); A.r(st.x, st.y + 12, 32, 1, PAL.gold[3]); for (let i = 3; i < 16; i += 3) A.vl(st.x + i, st.y + 14, 6, PAL.dark[2]); A.r(st.x + 20, st.y + 14, 8, 5, PAL.dark[2]); A.r(st.x + 24, st.y - 0, 3, 5, PAL.dark[1]); A.r(st.x + 2, st.y + 22, 4, 2, PAL.dark[3]); A.r(st.x + 26, st.y + 22, 4, 2, PAL.dark[3]); return propFit(st, w, d, { solid: [w / 2 - 16, d - 14, 32, 14] }); };
+SPR.generator = (w, d) => {                     // a diesel generator on a skid: top, front panel, vents, exhaust
+    const st = propStage(w, d, 36, 28), { A } = st, x = st.x, y = st.y + 4;
+    A.r(x, y, 32, 8, '#ffd868'); A.hl(x, y, 32, '#fff4b0'); A.r(x + 4, y + 2, 10, 4, '#e8b030');                                             // the top, a hatch
+    A.poly([[x + 32, y], [x + 35, y + 3], [x + 35, y + 20], [x + 32, y + 18]], '#a87818');
+    A.r(x, y + 8, 32, 12, '#e8b030'); A.hl(x, y + 8, 32, '#ffd868');
+    for (let i = 3; i < 17; i += 3) { A.vl(x + i, y + 10, 8, '#8a6010'); A.vl(x + i + 1, y + 10, 8, '#ffd868'); }                            // vents
+    A.r(x + 20, y + 10, 9, 6, '#3a3e48'); A.r(x + 21, y + 11, 3, 2, '#58c070'); A.r(x + 25, y + 11, 3, 2, '#d04838');                        // the panel, its lights
+    A.r(x + 26, y - 5, 3, 6, '#3a3e48'); A.hl(x + 26, y - 5, 3, '#5a6272');                                                                    // exhaust
+    A.r(x - 1, y + 20, 34, 3, '#5a5048'); A.hl(x - 1, y + 20, 34, '#8a8078');                                                                  // the skid
+    return propFit(st, w, d, { solid: [w / 2 - 16, d - 14, 32, 14] });
+};
 SPR.satphone = (w, d) => { const st = propStage(w, d, 22, 26), { A } = st; A.ell(st.x + 10, st.y + 8, 9, 7, PAL.white[1]); A.ell(st.x + 9, st.y + 7, 6, 4, PAL.white[0]); A.line(st.x + 10, st.y + 8, st.x + 16, st.y + 2, PAL.metal[3]); A.r(st.x + 9, st.y + 14, 2, 8, PAL.metal[2]); A.r(st.x + 4, st.y + 22, 12, 3, PAL.dark[1]); return propFit(st, w, d); };
 SPR.sams_gear = (w, d) => { const st = propStage(w, d, 30, 18), { A } = st; A.ell(st.x + 14, st.y + 12, 14, 5, PAL.sand[3]); A.r(st.x + 6, st.y + 4, 12, 9, PAL.olive[1]); A.r(st.x + 6, st.y + 4, 12, 2, PAL.olive[0]); A.r(st.x + 18, st.y + 7, 8, 2, PAL.wood[1]); A.ell(st.x + 12, st.y + 14, 12, 3, PAL.sand[1]); return propFit(st, w, d); };
 // the brazier: a fire basket on legs, the tea kettle beside it — animated
@@ -599,7 +645,17 @@ SPR.camp_radio = (w, d) => radioOn(w, d);
 SPR.c1m_farouk_radio = (w, d) => radioOn(w, d, true);
 SPR.ow_sieve = (w, d) => { const st = propStage(w, d, 30, 24), { A } = st; A.line(st.x + 2, st.y + 8, st.x, st.y + 22, PAL.wood[2]); A.line(st.x + 26, st.y + 8, st.x + 28, st.y + 22, PAL.wood[2]); A.r(st.x + 2, st.y + 4, 25, 8, PAL.plank[1]); A.r(st.x + 4, st.y + 5, 21, 6, PAL.metal[3]); A.dith(st.x + 4, st.y + 5, 21, 6, PAL.sand[2], 0); A.ell(st.x + 14, st.y + 20, 8, 3, PAL.sand[3]); return propFit(st, w, d, { solid: [w / 2 - 12, d - 8, 24, 8] }); };
 SPR.ow_detector = (w, d) => { const st = propStage(w, d, 16, 26), { A } = st; A.line(st.x + 11, st.y + 1, st.x + 5, st.y + 20, PAL.metal[2]); A.ell(st.x + 5, st.y + 22, 5, 2, PAL.dark[2]); A.r(st.x + 9, st.y + 2, 5, 4, PAL.gold[1]); return propFit(st, w, d); };
-SPR.ow_well = (w, d) => { const st = propStage(w, d, 40, 44), { A } = st, cx = st.x + 19; A.r(st.x + 3, st.y + 4, 2, 30, PAL.wood[2]); A.r(st.x + 33, st.y + 4, 2, 30, PAL.wood[2]); A.r(st.x + 1, st.y + 2, 36, 3, PAL.wood[1]); A.r(cx, st.y + 5, 1, 12, PAL.canvas[3]); A.r(cx - 2, st.y + 16, 5, 5, PAL.metal[2]); A.ell(cx, st.y + 28, 14, 7, PAL.rock[1]); A.ell(cx, st.y + 27, 10, 4, PAL.dark[3]); A.ell(cx, st.y + 28, 7, 2, PAL.blue[3]); A.r(cx - 14, st.y + 28, 29, 10, PAL.rock[2]); A.ell(cx, st.y + 38, 14, 4, PAL.rock[3]); for (let i = -12; i < 14; i += 6) A.vl(cx + i, st.y + 30, 8, PAL.rock[3]); return propFit(st, w, d, { solid: [w / 2 - 16, d - 16, 32, 14] }); };
+SPR.ow_well = (w, d) => {                         // the old well: a stone drum, a wooden frame, a bucket on its rope
+    const st = propStage(w, d, 40, 44), { A } = st, cx = st.x + 19, ry = st.y + 26;
+    A.r(st.x + 3, st.y + 4, 3, 30, '#8e5e32'); A.vl(st.x + 3, st.y + 4, 30, '#b8844c'); A.r(st.x + 33, st.y + 4, 3, 30, '#8e5e32'); A.vl(st.x + 33, st.y + 4, 30, '#b8844c');
+    A.r(st.x + 1, st.y + 2, 37, 4, '#b8844c'); A.hl(st.x + 1, st.y + 2, 37, '#e0b478'); A.hl(st.x + 1, st.y + 5, 37, '#6e4424');
+    A.vl(cx, st.y + 6, 10, '#c8b888'); A.r(cx - 3, st.y + 15, 7, 6, '#9aa4ae'); A.hl(cx - 3, st.y + 15, 7, '#dfe6ea'); A.vl(cx + 3, st.y + 15, 6, '#6a7480');
+    A.r(cx - 15, ry, 31, 12, '#b8a282'); for (let i = -15; i < 16; i += 7) A.vl(cx + i + ((i / 7) & 1) * 3, ry, 12, '#8a7456'); A.hl(cx - 15, ry + 6, 31, '#8a7456');   // the stone drum
+    A.r(cx - 15, ry, 4, 12, '#d2bc98'); A.r(cx + 12, ry, 4, 12, '#7a6650');
+    A.ell(cx, ry, 16, 6, '#d2bc98'); A.ell(cx, ry, 12, 4, '#3a2c20'); A.ell(cx, ry + 1, 8, 2, '#3a7cc4'); A.px(cx - 3, ry, '#9ed2f4');       // the rim, the water far down
+    A.hl(cx - 15, ry + 11, 31, '#6e5a44');
+    return propFit(st, w, d, { solid: [w / 2 - 16, d - 16, 32, 14] });
+};
 SPR.ow_lookout = (w, d) => { const st = propStage(w, d, 22, 28), { A } = st, R = rng('cairn'); for (let j = 0; j < 5; j++) { const ww = 18 - j * 3; A.ell(st.x + 10, st.y + 24 - j * 5, ww >> 1, 3, PAL.rock[j & 1 ? 1 : 2]); A.ell(st.x + 9, st.y + 23 - j * 5, (ww >> 1) - 2, 1, PAL.rock[0]); } return propFit(st, w, d, { solid: [w / 2 - 9, d - 8, 18, 8] }); };
 SPR.ow_bones = (w, d) => { const st = propStage(w, d, 40, 20), { A } = st; for (let i = 0; i < 6; i++) { A.line(st.x + 8 + i * 4, st.y + 14, st.x + 9 + i * 4, st.y + 5, PAL.white[1]); A.line(st.x + 9 + i * 4, st.y + 5, st.x + 12 + i * 4, st.y + 4, PAL.white[1]); } A.r(st.x + 6, st.y + 14, 26, 2, PAL.white[0]); A.ell(st.x + 35, st.y + 11, 4, 3, PAL.white[0]); A.px(st.x + 36, st.y + 10, PAL.dark[3]); return propFit(st, w, d, { flat: true }); };
 SPR.ow_oasis = () => null;                                           // the pool is painted into the ground; its palms are trees
@@ -617,8 +673,26 @@ SPR_L['driftwood'] = (w, d) => { const st = propStage(w, d, 30, 10), { A } = st;
 SPR.c1a_finds = (w, d) => { const st = propStage(w, d, 30, 14), { A } = st; A.r(st.x + 2, st.y + 6, 24, 6, PAL.white[0]); A.r(st.x + 5, st.y + 1, 4, 8, PAL.rock[0]); A.r(st.x + 5, st.y + 1, 4, 3, PAL.dark[2]); A.r(st.x + 13, st.y + 8, 6, 2, PAL.wood[1]); A.ell(st.x + 22, st.y + 8, 3, 2, PAL.brick[2]); return Object.assign(propFit(st, w, d), { oy: Math.round(d - 30) }); };
 SPR.c1m_kitchen = (w, d) => { const st = propStage(w, d, 60, 36), { A } = st; A.r(st.x + 6, st.y + 14, 48, 20, PAL.red[2]); A.dith(st.x + 6, st.y + 14, 48, 20, PAL.red[3], 0); for (let j = 17; j < 34; j += 6) A.r(st.x + 6, st.y + j, 48, 1, PAL.gold[1]); A.r(st.x + 6, st.y + 14, 48, 1, PAL.blue[2]); A.r(st.x + 10, st.y + 4, 16, 6, PAL.olive[1]); A.r(st.x + 10, st.y + 4, 16, 2, PAL.dark[2]); A.r(st.x + 11, st.y + 10, 1, 9, PAL.metal[2]); A.r(st.x + 24, st.y + 10, 1, 9, PAL.metal[2]); drum(A, st.x + 30, st.y + 8, PAL.blue); A.r(st.x + 40, st.y + 18, 14, 5, PAL.white[0]); A.r(st.x + 40, st.y + 23, 14, 6, PAL.red[1]); A.r(st.x + 14, st.y + 24, 3, 3, PAL.white[0]); A.r(st.x + 19, st.y + 25, 3, 3, PAL.white[0]); return propFit(st, w, d, { solid: [w / 2 - 22, d - 18, 50, 12] }); };
 SPR.c1m_toolrack = (w, d) => { const st = propStage(w, d, 64, 40), { A } = st; A.r(st.x + 2, st.y + 4, 3, 34, PAL.wood[2]); A.r(st.x + 58, st.y + 4, 3, 34, PAL.wood[2]); A.r(st.x, st.y + 8, 63, 3, PAL.wood[1]); for (let i = 0; i < 5; i++) { const x = st.x + 9 + i * 10; A.line(x + 2, st.y + 5, x, st.y + 36, PAL.plank[0]); if (i % 2) { A.r(x - 3, st.y + 4, 9, 2, PAL.metal[3]); } else { A.poly([[x - 2, st.y + 30], [x + 3, st.y + 30], [x + 2, st.y + 38], [x - 1, st.y + 38]], PAL.metal[1]); } } crateAt(A, st.x + 44, st.y + 22, 14, 1); return propFit(st, w, d, { solid: [w / 2 - 30, d - 10, 60, 10] }); };
-SPR.c1m_trenchkit = (w, d) => { const st = propStage(w, d, 44, 28), { A } = st; A.poly([[st.x + 6, st.y + 8], [st.x + 30, st.y + 8], [st.x + 26, st.y + 18], [st.x + 10, st.y + 18]], PAL.metal[2]); A.r(st.x + 6, st.y + 7, 25, 2, PAL.metal[0]); A.ell(st.x + 18, st.y + 9, 9, 2, PAL.sand[3]); A.line(st.x + 28, st.y + 14, st.x + 42, st.y + 10, PAL.wood[1]); A.ell(st.x + 10, st.y + 22, 4, 4, PAL.dark[3]); A.px(st.x + 10, st.y + 22, PAL.metal[1]); A.r(st.x + 26, st.y + 18, 2, 7, PAL.metal[3]); return propFit(st, w, d, { solid: [w / 2 - 16, d - 10, 32, 10] }); };
-SPR_L['vegetable crates'] = (w, d, o) => { const st = propStage(w, d, 38, 26), { A } = st, cols = [PAL.red[1], PAL.gold[1], PAL.green[1]]; [[2, 12], [20, 14], [10, 2]].forEach(([x, y], i) => { A.r(st.x + x, st.y + y, 16, 5, PAL.plank[2]); for (let k = 1; k < 15; k += 3) A.ell(st.x + x + k + 1, st.y + y + 2, 1, 1, cols[(i + (o.id.endsWith('2') ? 1 : 0)) % 3]); A.r(st.x + x, st.y + y + 5, 16, 6, PAL.plank[1]); A.hl(st.x + x, st.y + y + 8, 16, PAL.plank[2]); }); return propFit(st, w, d, { solid: [w / 2 - 18, d - 12, 36, 12] }); };
+SPR.c1m_trenchkit = (w, d) => {                  // a wheelbarrow of spoil, a shovel stuck in it, a bucket
+    const st = propStage(w, d, 46, 30), { A } = st, x = st.x, y = st.y + 4;
+    A.line(x + 26, y + 14, x + 43, y + 9, '#8e5e32'); A.line(x + 26, y + 15, x + 43, y + 10, '#b8844c');                                       // the handles
+    A.poly([[x + 4, y + 6], [x + 30, y + 6], [x + 26, y + 18], [x + 9, y + 18]], '#58a848'); A.poly([[x + 4, y + 6], [x + 30, y + 6], [x + 29, y + 9], [x + 6, y + 9]], '#8cd060');   // the green tray
+    A.ell(x + 17, y + 6, 12, 3, '#c89a5c'); A.ell(x + 15, y + 5, 8, 2, '#e8c490');                                                            // spoil heaped in it
+    A.line(x + 20, y - 4, x + 18, y + 6, '#b8844c'); A.r(x + 17, y - 6, 5, 3, '#9aa4ae');                                                      // a shovel handle, sticking up
+    A.ell(x + 9, y + 21, 4, 4, '#1a1c22'); A.ell(x + 9, y + 21, 2, 2, '#9aa4ae'); A.r(x + 25, y + 17, 2, 7, '#5a6272');                          // wheel, leg
+    A.r(x + 34, y + 12, 8, 9, '#9aa4ae'); A.vl(x + 34, y + 12, 9, '#dfe6ea'); A.ell(x + 38, y + 12, 4, 1, '#5a6272');                              // bucket
+    return propFit(st, w, d, { solid: [w / 2 - 16, d - 10, 32, 10] });
+};
+SPR_L['vegetable crates'] = (w, d, o) => {       // three slatted crates of vegetables, one stacked
+    const st = propStage(w, d, 40, 28), { A } = st, VEG = [['#e05838', '#ff9070'], ['#f0b030', '#ffe070'], ['#58a848', '#8cd060'], ['#8a4a9a', '#b070c0']];
+    [[2, 13], [20, 15], [11, 3]].forEach(([dx, dy], i) => {
+        const x = st.x + dx, y = st.y + dy, [vc, vl] = VEG[(i + (o.id.endsWith('2') ? 2 : 0)) % 4];
+        for (let k = 0; k < 6; k++) { const vx = x + 2 + (k % 3) * 5, vy = y + (k > 2 ? 2 : 0); A.ell(vx + 2, vy + 2, 2, 2, vc); A.px(vx + 1, vy + 1, vl); }   // the vegetables, heaped
+        A.r(x, y + 4, 16, 7, '#d8aa68'); A.hl(x, y + 4, 16, '#f0cc90'); A.hl(x, y + 7, 16, '#b08048'); A.hl(x, y + 10, 16, '#8e5e32');              // the slats
+        A.vl(x, y + 4, 7, '#b08048'); A.vl(x + 15, y + 4, 7, '#8e5e32');
+    });
+    return propFit(st, w, d, { solid: [w / 2 - 18, d - 12, 36, 12] });
+};
 SPR.c1c_milcrates = (w, d) => { const st = propStage(w, d, 34, 26), { A } = st; for (const [x, y] of [[0, 12], [16, 14], [6, 2]]) { A.r(st.x + x, st.y + y, 16, 5, PAL.olive[1]); A.r(st.x + x, st.y + y + 5, 16, 7, PAL.olive[2]); A.r(st.x + x, st.y + y + 5, 16, 1, PAL.olive[3]); A.r(st.x + x + 6, st.y + y + 7, 4, 2, PAL.gold[1]); } return propFit(st, w, d, { solid: [w / 2 - 16, d - 12, 32, 12] }); };
 // the dig zone gate: two chain-link leaves, a red sign
 // the dig zone gate, standing open: a leaf swung back on each post, the warning sign beside it
