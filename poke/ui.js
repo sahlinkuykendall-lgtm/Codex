@@ -1,0 +1,301 @@
+// ============================================================
+// THE CODEX OF GIZA — POKE STYLE: SCREENS AND MENUS (poke/ui.js)
+//   Dlg    — the text box: name tab, typewriter, pages, ▼
+//   Title  — the title screen (pyramids at night) and its menu
+//   (the opening and the character creator are in intro.js)
+//   Menu   — the pause menu: map, journal, bag, settings, save
+//   Banner — the wooden place-name plaque
+// All drawn on the game canvas in the same pixel style.
+// ============================================================
+
+const UI = { ink: '#30302c', dim: '#70707c', gold: '#c89020', paper: '#f8f8f0' };
+
+// ---- THE TEXT BOX ----
+const Dlg = {
+    active: false, pages: [], page: 0, shown: 0, speaker: '', onDone: null, t: 0,
+    LINES: 3,
+    open(speaker, text, onDone) {
+        const maxW = Game.VW - 44;
+        const lines = Txt.wrap(text, maxW);
+        this.pages = [];
+        let cur = [];
+        for (const ln of lines) {
+            if (ln === '') { if (cur.length) { this.pages.push(cur); cur = []; } continue; }
+            cur.push(ln);
+            if (cur.length === this.LINES) { this.pages.push(cur); cur = []; }
+        }
+        if (cur.length) this.pages.push(cur);
+        if (!this.pages.length) this.pages = [['…']];
+        this.page = 0; this.shown = 0; this.t = 0;
+        this.speaker = speaker && speaker !== 'System' ? speaker : '';
+        this.onDone = onDone || null;
+        this.active = true;
+    },
+    len() { return this.pages[this.page].join('').length; },
+    update(dt, I) {
+        this.t += dt;
+        const speed = [28, 55, 110, 9999][Game.set.textSpeed];
+        const before = Math.floor(this.shown);
+        if (this.shown < this.len()) { this.shown = Math.min(this.len(), this.shown + dt * speed); if (Math.floor(this.shown) > before && Math.floor(this.shown) % 3 === 0) Sfx.tick(); }
+        if (I.ok || I.back) {
+            if (this.shown < this.len()) this.shown = this.len();
+            else if (this.page < this.pages.length - 1) { this.page++; this.shown = 0; Sfx.move(); }
+            else { this.active = false; Sfx.move(); const cb = this.onDone; this.onDone = null; if (cb) cb(); }
+        }
+    },
+    draw(g) {
+        const VW = Game.VW, VH = Game.VH, h = 18 + this.LINES * 13, x = 6, y = VH - h - 5, w = VW - 12;
+        frame(g, x, y, w, h);
+        if (this.speaker) {
+            const tw = Txt.width(this.speaker) + 16;
+            frame(g, x + 8, y - 13, tw, 18, { band: '#e0a030', hi: '#ffe090' });
+            Txt.draw(g, this.speaker, x + 16, y - 11, { col: UI.ink });
+        }
+        let left = Math.floor(this.shown);
+        this.pages[this.page].forEach((ln, i) => {
+            const s = ln.slice(0, Math.max(0, left)); left -= ln.length;
+            Txt.draw(g, s, x + 12, y + 8 + i * 13, { col: UI.ink, shadow: '#d0d0c8' });
+        });
+        if (this.shown >= this.len() && (this.t * 2.5 | 0) % 2 === 0) {
+            const A = pa(g), ax = x + w - 18, ay = y + h - 13;
+            A.poly([[ax, ay], [ax + 8, ay], [ax + 4, ay + 5]], '#d04838');
+        }
+    },
+};
+
+// ---- PLACE NAMES ----
+const Banner = {
+    text: '', t: 99,
+    show(name) { this.text = name; this.t = 0; },
+    update(dt) { this.t += dt; },
+    draw(g) {
+        if (this.t > 3.4 || !this.text) return;
+        const w = Txt.width(this.text) + 22, slide = this.t < 0.3 ? this.t / 0.3 : this.t > 3 ? (3.4 - this.t) / 0.4 : 1;
+        const y = Math.round(-26 + 32 * slide);
+        plaque(g, 8, y, w, 20);
+        Txt.draw(g, this.text, 19, y + 4, { col: '#fff4d0', shadow: PAL.wood[3] });
+    },
+};
+
+// a small popup line at the top ("Got a painted sherd!")
+const Toast = {
+    text: '', t: 99,
+    show(s) { this.text = s; this.t = 0; },
+    draw(g, dt) {
+        this.t += dt;
+        if (this.t > 2.6 || !this.text) return;
+        const w = Txt.width(this.text) + 24, x = (Game.VW - w) >> 1;
+        frame(g, x, 30, w, 22, { band: '#58a848', hi: '#b8f0a0' });
+        Txt.draw(g, this.text, x + 12, 35, { col: UI.ink });
+    },
+};
+
+// ---- THE TITLE SCREEN ----
+// the night sky over the pyramids, used by the title and the intro
+function drawNightScene(g, t, dim) {
+    const VW = Game.VW, VH = Game.VH, A = pa(g);
+    const sky = ['#101838', '#182450', '#243470', '#384888', '#5060a0', '#7878b0', '#a890b0', '#d8a090'];
+    const hz = Math.round(VH * 0.66);
+    for (let i = 0; i < sky.length; i++) {
+        const y0 = Math.round(hz * i / sky.length), y1 = Math.round(hz * (i + 1) / sky.length);
+        A.r(0, y0, VW, y1 - y0, sky[i]);
+        if (i < sky.length - 1) A.dith(0, y1 - 4, VW, 4, sky[i + 1], i);
+    }
+    for (let i = 0; i < 90; i++) {                                // stars, a few twinkling
+        const x = Math.floor(hash2(i, 1) * VW), y = Math.floor(hash2(i, 2) * hz * 0.75), tw = hash2(i, 3);
+        if (tw > 0.8 && Math.sin(t * 2 + i) > 0.4) { A.px(x, y, '#ffffff'); A.px(x - 1, y, '#a8b8e8'); A.px(x + 1, y, '#a8b8e8'); A.px(x, y - 1, '#a8b8e8'); A.px(x, y + 1, '#a8b8e8'); }
+        else A.px(x, y, tw > 0.5 ? '#e8f0ff' : '#8898d0');
+    }
+    A.ell(Math.round(VW * 0.82), Math.round(VH * 0.16), 11, 11, '#fff8d8'); A.ell(Math.round(VW * 0.82) - 4, Math.round(VH * 0.16) - 3, 3, 2, '#e8dcb0'); A.ell(Math.round(VW * 0.82) + 4, Math.round(VH * 0.16) + 4, 2, 2, '#e8dcb0');
+    // the three pyramids: a moonlit face and a dark one each
+    const pyr = (cx, base, h, w) => {
+        A.poly([[cx - w, base], [cx, base - h], [cx + w * 0.3, base]], '#6878a8');
+        A.poly([[cx + w * 0.3, base], [cx, base - h], [cx + w, base]], '#384070');
+        for (let j = 6; j < h; j += 7) A.hl(Math.round(cx - w * (1 - j / h) + 2), base - j, Math.round(w * 0.5 * (1 - j / h)), '#7c8cb8');
+    };
+    pyr(VW * 0.24, hz + 4, VH * 0.26, VW * 0.15); pyr(VW * 0.5, hz + 6, VH * 0.36, VW * 0.2); pyr(VW * 0.76, hz + 4, VH * 0.2, VW * 0.12);
+    // dunes in front, and the camp's lights far off
+    A.r(0, hz, VW, VH - hz, '#34406c');
+    for (let x = 0; x < VW; x++) { const y = hz + 6 + Math.round(Math.sin(x * 0.021 + 1) * 5 + Math.sin(x * 0.007) * 9); A.r(x, y, 1, VH - y, '#283458'); const y2 = hz + 30 + Math.round(Math.sin(x * 0.013 + 4) * 8 + Math.sin(x * 0.05) * 2); A.r(x, y2, 1, VH - y2, '#1c2442'); }
+    for (let i = 0; i < 7; i++) { const x = Math.round(VW * 0.3 + i * 13 + hash2(i, 9) * 8), y = hz + 16 + Math.round(hash2(i, 8) * 6); A.px(x, y, Math.sin(t * 3 + i * 2) > -0.6 ? '#ffd070' : '#c08030'); A.px(x, y + 1, '#806038'); }
+    const P = Title.palm || (Title.palm = palm('title'));
+    g.globalAlpha = 1; g.drawImage(Title.dark(P.c), 14, VH - 92); g.drawImage(Title.dark(palm('title2').c), VW - 84, VH - 80);
+    if (dim) { g.fillStyle = 'rgba(8,10,28,' + dim + ')'; g.fillRect(0, 0, VW, VH); }
+}
+
+const Title = {
+    sel: 0, t: 0, darkC: new Map(),
+    dark(c) {                                                       // a silhouette of a sprite
+        let d = this.darkC.get(c);
+        if (d) return d;
+        const [cv, g] = mk(c.width, c.height);
+        g.drawImage(c, 0, 0); g.globalCompositeOperation = 'source-in'; g.fillStyle = '#10142c'; g.fillRect(0, 0, c.width, c.height);
+        this.darkC.set(c, cv);
+        return cv;
+    },
+    items() { return (Game.hasSave() ? ['CONTINUE'] : []).concat(['NEW GAME', 'SETTINGS']); },
+    update(dt, I) {
+        this.t += dt;
+        const it = this.items();
+        if (I.up) { this.sel = (this.sel + it.length - 1) % it.length; Sfx.move(); }
+        if (I.down) { this.sel = (this.sel + 1) % it.length; Sfx.move(); }
+        if (I.ok) {
+            Sfx.ok();
+            const k = it[this.sel];
+            if (k === 'CONTINUE') Game.fadeTo(() => Game.load());
+            else if (k === 'NEW GAME') Game.fadeTo(() => { Game.state = 'intro'; Intro.start(); });
+            else { Menu.open = true; Menu.page = 'settings'; Menu.fromTitle = true; Menu.sel = 0; }
+        }
+    },
+    draw(g) {
+        const VW = Game.VW, VH = Game.VH, A = pa(g);
+        drawNightScene(g, this.t);
+        // a shooting star, now and then
+        const st = (this.t % 9) / 0.6;
+        if (st < 1) { const sx = VW * 0.72 - st * 110, sy = VH * 0.08 + st * 46; A.line(sx, sy, sx + 12, sy - 5, '#ffffff'); A.line(sx + 12, sy - 5, sx + 26, sy - 11, '#8898d0'); }
+        // the winged sun, the name in gold, a frieze beneath it
+        const k = VW >= 560 ? 2 : 1, ty = Math.round(VH * 0.1 + Math.sin(this.t * 1.2) * 2);
+        wingedSun(g, VW >> 1, ty + 4, 34 * k);
+        const logo = (str, y, col) => {
+            const sh = Txt.make(str, '#4c2404', Txt.BIG), c = Txt.make(str, col, Txt.BIG), x = (VW - c.width * k) >> 1;
+            for (const [dx, dy] of [[k, k], [k, 0], [0, k], [-k, 0], [0, -k], [k * 2, k * 2]]) bigSprite(g, sh, x + dx, y + dy, k);
+            bigSprite(g, c, x, y, k);
+        };
+        logo('THE CODEX', ty + 12, '#ffe890'); logo('OF GIZA', ty + 12 + 23 * k, '#f0c040');
+        const fy = ty + 14 + 50 * k;
+        frieze(g, (VW >> 1) - 98, fy, 196);
+        Txt.draw(g, 'The last library of Egypt is still out there.', VW >> 1, fy + 21, { col: '#e8dcff', shadow: '#182450', align: 'center' });
+        const it = this.items(), bw = 116, bx = (VW - bw) >> 1, by = Math.min(VH - 36 - it.length * 15, Math.max(fy + 42, Math.round(VH * 0.66)));
+        frame(g, bx, by, bw, 14 + it.length * 15, { band: '#e0a030', hi: '#ffe090' });
+        it.forEach((str, i) => {
+            Txt.draw(g, str, bx + 26, by + 8 + i * 15, { col: i === this.sel ? UI.ink : UI.dim });
+            if (i === this.sel) A.poly([[bx + 13, by + 10 + i * 15], [bx + 13, by + 18 + i * 15], [bx + 18, by + 14 + i * 15]], '#d04838');
+        });
+        Txt.draw(g, 'POKE-STYLE BUILD  P0.2', VW - 6, VH - 14, { col: '#8898d0', align: 'right' });
+        Txt.draw(g, '▲▼ choose    SPACE select', 6, VH - 14, { col: '#8898d0' });
+    },
+};
+
+// ---- THE PAUSE MENU ----
+const Menu = {
+    open: false, page: 'main', sel: 0, sub: 0, fromTitle: false, saved: 0,
+    MAIN: ['MAP', 'JOURNAL', 'BAG', 'SETTINGS', 'SAVE', 'TITLE SCREEN', 'CLOSE'],
+    SETTINGS: [
+        { key: 'textSpeed', label: 'Text speed', opts: ['Slow', 'Normal', 'Fast', 'Instant'] },
+        { key: 'time', label: 'Time of day', opts: ['Dawn', 'Day', 'Dusk', 'Night', 'Moving clock'] },
+        { key: 'run', label: 'Always run', opts: ['Off', 'On'] },
+        { key: 'zoom', label: 'Zoom', opts: ['Auto', 'Far', 'Near'] },
+        { key: 'volume', label: 'Sound', opts: ['Off', 'Low', 'Normal', 'Loud'] },
+        { key: 'names', label: 'Name tags', opts: ['Off', 'When near'] },
+    ],
+    toggle() { this.open = !this.open; this.page = 'main'; this.sel = 0; this.fromTitle = false; Sfx.move(); },
+    update(dt, I) {
+        const P = this.page;
+        if (P === 'main') {
+            if (I.up) { this.sel = (this.sel + this.MAIN.length - 1) % this.MAIN.length; Sfx.move(); }
+            if (I.down) { this.sel = (this.sel + 1) % this.MAIN.length; Sfx.move(); }
+            if (I.back || I.menu) { this.open = false; Sfx.back(); return; }
+            if (I.ok) {
+                const k = this.MAIN[this.sel]; Sfx.ok();
+                if (k === 'CLOSE') this.open = false;
+                else if (k === 'SAVE') { Game.save(); this.saved = 2.2; Sfx.save(); }
+                else if (k === 'TITLE SCREEN') { this.open = false; Game.fadeTo(() => { Game.state = 'title'; Title.sel = 0; }); }
+                else { this.page = k.toLowerCase(); this.sub = 0; }
+            }
+        } else if (P === 'settings') {
+            const S = this.SETTINGS;
+            if (I.up) { this.sub = (this.sub + S.length - 1) % S.length; Sfx.move(); }
+            if (I.down) { this.sub = (this.sub + 1) % S.length; Sfx.move(); }
+            const row = S[this.sub], n = row.opts.length, cur = Game.setIndex(row.key);
+            if (I.left) { Game.setFromIndex(row.key, (cur + n - 1) % n); Sfx.tick(); }
+            if (I.right || I.ok) { Game.setFromIndex(row.key, (cur + 1) % n); Sfx.tick(); }
+            if (I.back || I.menu) { Sfx.back(); Game.saveSettings(); if (this.fromTitle) { this.open = false; this.fromTitle = false; } else this.page = 'main'; }
+        } else {
+            const n = P === 'journal' ? Game.journal.length : P === 'bag' ? Game.bagList().length : 0;
+            if (n) { if (I.up) { this.sub = (this.sub + n - 1) % n; Sfx.move(); } if (I.down) { this.sub = (this.sub + 1) % n; Sfx.move(); } }
+            if (I.back || I.menu || (I.ok && P === 'map')) { Sfx.back(); this.page = 'main'; }
+        }
+        this.saved -= dt;
+    },
+    draw(g) {
+        const VW = Game.VW, A = pa(g);
+        let VH = Game.VH;
+        if (this.page === 'main') {
+            g.fillStyle = 'rgba(16,12,28,0.22)'; g.fillRect(0, 0, VW, VH);
+            const w = 142, x = VW - w - 6, y = 6, h = 14 + this.MAIN.length * 16;
+            frame(g, x, y, w, h);
+            this.MAIN.forEach((str, i) => {
+                const on = i === this.sel, yy = y + 8 + i * 16;
+                if (on) A.r(x + 6, yy - 3, w - 12, 15, '#d8ecff');
+                ICONS[str](A, x + 22, yy + 1);
+                Txt.draw(g, str, x + 38, yy, { col: on ? UI.ink : UI.dim });
+                if (on) A.poly([[x + 10, yy + 2], [x + 10, yy + 10], [x + 15, yy + 6]], '#d04838');
+            });
+            // your permit card: who, where, when
+            frame(g, 6, 6, 214, 78, { band: '#e0a030', hi: '#ffe090' });
+            A.r(14, 14, 44, 62, '#38404c'); A.r(16, 16, 40, 58, '#b8d4f0'); A.r(16, 56, 40, 18, '#ecd698');
+            if (Game.player.sheet) g.drawImage(Game.player.sheet.frames[0][[1, 0, 2, 0][(Game.time * 4 | 0) % 4]], 20, 32);
+            Txt.draw(g, 'Dr. ' + (Game.player.name || '—'), 66, 14, { col: UI.ink });
+            let where = Game.placeName().replace(/^THE /, ''); while (Txt.width(where) > 138 && where.length > 4) where = where.slice(0, -1);
+            Txt.draw(g, where, 66, 29, { col: UI.dim });
+            Txt.draw(g, Game.clockText(), 66, 43, { col: UI.dim });
+            Txt.draw(g, 'Finds ' + Game.findCount() + '    Places ' + Object.keys(Game.seen).length + '/' + Game.maps.ch1.places.length, 66, 57, { col: UI.dim });
+            if (this.saved > 0) { frame(g, (VW >> 1) - 60, VH - 40, 120, 24, { band: '#58a848', hi: '#b8f0a0' }); Txt.draw(g, 'Game saved.', VW >> 1, VH - 34, { align: 'center', col: UI.ink }); }
+            return;
+        }
+        g.fillStyle = '#101838'; g.fillRect(0, 0, VW, VH);
+        frame(g, 6, 6, VW - 12, VH - 12);
+        Txt.draw(g, this.page.toUpperCase(), 18, 12, { col: UI.gold });
+        Txt.draw(g, 'ESC: back', VW - 18, 12, { col: UI.dim, align: 'right' });
+        frieze(g, 12, 25, VW - 24);
+        // (everything below sits under the frieze)
+        g.save(); g.translate(0, 14); VH -= 14;
+        if (this.page === 'settings') {
+            this.SETTINGS.forEach((row, i) => {
+                const y = 36 + i * 18, on = i === this.sub;
+                if (on) A.r(14, y - 3, VW - 28, 16, '#d8ecff');
+                Txt.draw(g, row.label, 24, y, { col: on ? UI.ink : UI.dim });
+                const v = row.opts[Game.setIndex(row.key)];
+                Txt.draw(g, (on ? '◄ ' : '') + v + (on ? ' ►' : ''), VW - 26, y, { col: on ? '#3058a0' : UI.dim, align: 'right' });
+            });
+            const HELP = { textSpeed: 'How fast the words appear in the text box.', time: 'The light. "Moving clock" runs a whole day in twelve minutes; lamps come on at dusk.', run: 'Run without holding SHIFT (hold it to walk instead).', zoom: 'How much of the map fits on screen.', volume: 'The blips and chimes.', names: 'The name that floats over what you are facing.' };
+            const hy = 44 + this.SETTINGS.length * 18;
+            A.r(14, hy - 6, VW - 28, 1, '#c8d0d8');
+            Txt.wrap(HELP[this.SETTINGS[this.sub].key], VW - 60).forEach((ln, i) => Txt.draw(g, ln, 24, hy + i * 12, { col: '#3058a0' }));
+            if (VH - hy > 120) {
+                Txt.draw(g, 'CONTROLS', 24, hy + 34, { col: UI.gold });
+                [['WASD / arrows', 'Walk'], ['SHIFT', 'Run'], ['SPACE / ENTER / Z', 'Look, talk, next'], ['ESC / M', 'This menu, or back'], ['Walk up to a door', 'Go inside']].forEach(([k2, v2], i) => { Txt.draw(g, k2, 24, hy + 50 + i * 13, { col: UI.ink }); Txt.draw(g, v2, 150, hy + 50 + i * 13, { col: UI.dim }); });
+            }
+            Txt.draw(g, '▲▼ choose   ◄► change', 24, VH - 28, { col: UI.dim });
+        } else if (this.page === 'map') {
+            const mm = Game.miniMap(), sc = Math.max(1, Math.floor(Math.min((VW - 170) / mm.width, (VH - 50) / mm.height))) || 1;
+            const mx = 18, my = 34;
+            A.r(mx - 2, my - 2, mm.width * sc + 4, mm.height * sc + 4, '#c89020'); A.r(mx - 1, my - 1, mm.width * sc + 2, mm.height * sc + 2, '#38404c');
+            g.drawImage(mm, mx, my, mm.width * sc, mm.height * sc);
+            const out = Game.outdoorPos(), k = sc / TILE;
+            Game.maps.ch1.places.forEach(p => { if (Game.seen[p.id]) { A.r(mx + p.x * k - 1, my + p.y * k - 1, 3, 3, '#38404c'); A.px(mx + p.x * k, my + p.y * k, '#ffe890'); } });
+            if ((Game.time * 3 | 0) % 2) { A.r(mx + out[0] * k - 2, my + out[1] * k - 2, 5, 5, '#ffffff'); A.r(mx + out[0] * k - 1, my + out[1] * k - 1, 3, 3, '#d04838'); }
+            const lx = mx + mm.width * sc + 14;
+            Txt.draw(g, 'PLACES FOUND', lx, 34, { col: UI.gold });
+            const found = Game.maps.ch1.places.filter(p => Game.seen[p.id]);
+            found.slice(0, Math.floor((VH - 84) / 12)).forEach((p, i) => Txt.draw(g, p.name.replace(/^THE /, '').slice(0, 22), lx, 48 + i * 12, { col: UI.ink }));
+            Txt.draw(g, found.length + ' of ' + Game.maps.ch1.places.length, lx, VH - 28, { col: UI.dim });
+        } else if (this.page === 'journal' || this.page === 'bag') {
+            const list = this.page === 'journal' ? Game.journal.map(j => [j.label, j.text]) : Game.bagList();
+            if (!list.length) Txt.draw(g, this.page === 'journal' ? 'Nothing written yet. Look at things: it all goes in here.' : 'Empty.', 24, 40, { col: UI.dim });
+            else {
+                const rows = Math.floor((VH - 56) / 13), top = Math.max(0, Math.min(this.sub - (rows >> 1), list.length - rows));
+                const lw = Math.min(170, Math.round(VW * 0.36));
+                for (let i = 0; i < rows && top + i < list.length; i++) {
+                    const on = top + i === this.sub, y = 34 + i * 13;
+                    if (on) A.r(14, y - 2, lw, 13, '#d8ecff');
+                    let str = list[top + i][0]; while (Txt.width(str) > lw - 14 && str.length > 4) str = str.slice(0, -2);
+                    Txt.draw(g, str, 20, y, { col: on ? UI.ink : UI.dim });
+                }
+                A.r(lw + 20, 32, 1, VH - 50, '#c8d0d8');
+                Txt.wrap(list[this.sub][1], VW - lw - 50).slice(0, Math.floor((VH - 56) / 12)).forEach((ln, i) => Txt.draw(g, ln, lw + 28, 34 + i * 12, { col: UI.ink }));
+            }
+        }
+        g.restore();
+    },
+};

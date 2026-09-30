@@ -12,6 +12,37 @@ Other docs:
 
 ---
 
+## POKE-STYLE P0.2 — 2026-09-30 — (branch `poke-style`) Chapter 1 as a DS Pokémon-style game
+This lives on its own branch and doesn't change the 3D game (still V4.1.6). Open
+`poke.html` to play it; `poke/README.md` has the details.
+- **The whole Chapter 1 map in 32×32 pixel art,** three-quarter top-down, with free
+  movement in any direction. The layout is exported from the 3D build, so every building,
+  prop, road, the rail loop and the 19 named places are where they are in 3D.
+  - Everything is drawn in code: sand and dunes, roads, the trench, the oasis, the cliffs,
+    tents, huts, trucks, the train, palms, people, and the interiors.
+- **Pokémon conventions:**
+  - A rock-plateau border around the map.
+  - Walk up into a door to enter; a mat at the bottom of each room takes you out.
+  - SPACE to look at things and talk.
+  - A place-name plaque appears when you arrive somewhere.
+  - A pause menu with a map, journal, bag, settings and save.
+- **Interiors:** Miriam's tent, the dormitory and the site office, fully furnished, with
+  new things to examine (her tea tray, her boots, the work table, the safe).
+- **The opening:** five illustrated scenes of the backstory from the story bible, to hook
+  new players:
+  - Alexandria in 391 AD, the Serapeum burning
+  - Petamun's seven Houses on a map of Egypt
+  - Miriam finding the Codex
+  - the black car four nights ago
+  - the Ministry's letter
+- **Character creation:** male or female, then 11 categories with 10–13 options each
+  (skin, hair, hair colour, headwear, face, top and colour, bottoms and colour, shoes,
+  accessory), many Egyptian: nemes, kohl eyes, broad collar, kalasiris, shendyt kilt,
+  sidelock of youth. There's also a DS-style name grid and your finished permit.
+- **Day and night:** dawn, day, dusk, night or a moving clock, with lamps and fires lighting
+  the dark.
+- New tool: `tools/export_poke_map.js`.
+
 ## V4.1.6 — 2026-09-30 — Narration: the text boxes read aloud, with a voice for every character
 - **Text boxes are now read aloud** using the voices built into your browser, so there's
   nothing to download.
