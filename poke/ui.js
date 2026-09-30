@@ -265,7 +265,7 @@ const Title = {
             Txt.draw(g, str, bx + 26, by + 8 + i * 15, { col: i === this.sel ? UI.ink : UI.dim });
             if (i === this.sel) A.poly([[bx + 13, by + 10 + i * 15], [bx + 13, by + 18 + i * 15], [bx + 18, by + 14 + i * 15]], '#d04838');
         });
-        Txt.draw(g, 'POKE-STYLE BUILD  P0.13', VW - 6, VH - 14, { col: '#8898d0', align: 'right' });
+        Txt.draw(g, 'POKE-STYLE BUILD  P0.14', VW - 6, VH - 14, { col: '#8898d0', align: 'right' });
         Txt.draw(g, '▲▼ choose    SPACE select', 6, VH - 14, { col: '#8898d0' });
     },
 };
@@ -309,6 +309,7 @@ const Menu = {
         } else {
             const n = P === 'journal' ? Game.journal.length : P === 'bag' ? Game.bagList().length : P === 'tasks' ? Story.s.tasks.length : 0;
             if (n) { if (I.up) { this.sub = (this.sub + n - 1) % n; Sfx.move(); } if (I.down) { this.sub = (this.sub + 1) % n; Sfx.move(); } }
+            if (P === 'bag' && I.ok) { const it = Game.bagList()[this.sub]; if (it && it[2] && ITEM_USE[it[2]]) { ITEM_USE[it[2]](); Sfx.ok(); this.sub = Math.min(this.sub, Game.bagList().length - 1); } }
             if (I.back || I.menu) { Sfx.back(); this.page = 'main'; }
         }
         this.saved -= dt;
@@ -334,8 +335,9 @@ const Menu = {
             Txt.draw(g, bgOf(Game.player.bg).title(Game.player.name || '—'), 66, 14, { col: UI.ink });
             let where = Game.placeName().replace(/^THE /, ''); while (Txt.width(where) > 138 && where.length > 4) where = where.slice(0, -1);
             Txt.draw(g, where, 66, 29, { col: UI.dim });
-            Txt.draw(g, Game.clockText(), 66, 43, { col: UI.dim });
-            Txt.draw(g, money().toLocaleString('en') + ' EGP', 66, 57, { col: '#3a7a30' });
+            Txt.draw(g, Game.clockText() + (sflag('injured') ? '  LIMPING' : ''), 66, 43, { col: sflag('injured') ? '#b03828' : UI.dim });
+            const nd = needs(), mw = Txt.draw(g, money().toLocaleString('en') + ' EGP', 66, 57, { col: '#3a7a30' });
+            Txt.draw(g, 'W' + Math.round(nd.water) + '% F' + Math.round(nd.food) + '%', 66 + mw + 8, 57, { col: nd.water <= 20 || nd.food <= 20 ? '#b03828' : '#3058a0' });
             Txt.draw(g, 'Finds ' + Game.findCount() + '    Places ' + Object.keys(Game.seen).length + '/' + Game.maps.ch1.places.length, 66, 71, { col: UI.dim });
             if (this.saved > 0) { frame(g, (VW >> 1) - 60, VH - 40, 120, 24, { band: '#58a848', hi: '#b8f0a0' }); Txt.draw(g, 'Game saved.', VW >> 1, VH - 34, { align: 'center', col: UI.ink }); }
             return;
@@ -366,7 +368,7 @@ const Menu = {
             Txt.wrap(HELP[this.SETTINGS[this.sub].key], VW - 60).forEach((ln, i) => Txt.draw(g, ln, 24, hy + i * 12, { col: '#3058a0' }));
             if (VH - hy > 120) {
                 Txt.draw(g, 'CONTROLS', 24, hy + 34, { col: UI.gold });
-                [['WASD / arrows', 'Walk'], ['SHIFT', 'Run'], ['SPACE / ENTER / Z', 'Look, talk, next'], ['M', 'Map (M again: all of Egypt)'], ['Q', 'Metal detector on / off'], ['ESC', 'This menu, or back'], ['Walk up to a door', 'Go inside']].forEach(([k2, v2], i) => { Txt.draw(g, k2, 24, hy + 50 + i * 13, { col: UI.ink }); Txt.draw(g, v2, 150, hy + 50 + i * 13, { col: UI.dim }); });
+                [['WASD / arrows', 'Walk'], ['SHIFT', 'Run'], ['SPACE / ENTER / Z', 'Look, talk, next'], ['M', 'Map (M again: all of Egypt)'], ['Q', 'Metal detector on / off'], ['P', 'Your phone'], ['C', 'Photograph what you face'], ['ESC', 'This menu, or back'], ['Walk up to a door', 'Go inside']].forEach(([k2, v2], i) => { Txt.draw(g, k2, 24, hy + 50 + i * 13, { col: UI.ink }); Txt.draw(g, v2, 150, hy + 50 + i * 13, { col: UI.dim }); });
             }
             Txt.draw(g, '▲▼ choose   ◄► change', 24, VH - 28, { col: UI.dim });
         } else if (this.page === 'tasks') {

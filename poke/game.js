@@ -71,6 +71,7 @@ const Game = {
         this.enter(m);
         if (this.set.time === 5) this.hour = storyHour();
         Detector.sync(); storySync();                    // (buried spots first: they must not see the parked car)
+        systemsNewGame();
         this.state = 'play'; this.hintT = 0;
         // the Rais comes to meet you with a lantern, says his piece (poke/ch1_scenes.js), and walks back to the fire
         const rais = World.addEnt(m, { x: p.x, y: p.y - 34, w: 0, d: 0, label: 'Rais Abdallah', person: { sheet: personSheet(LOOKS.rais), dir: DIR.down, frame: 0 }, sortY: p.y - 34, light: { x: 6, y: -12, r: 64, c: '#ffd080' } });
@@ -101,7 +102,7 @@ const Game = {
         const DESC = { 'Field journal': 'Your field journal. Everything you look at goes into it (JOURNAL, in the menu).', 'Letter of appointment': 'The Ministry\'s letter: you are acting director of the Giza Western Field concession, effective immediately.', 'Painted sherd': 'Painted pottery sherds from the surface. Late Period, mostly. Hana will want to see them.', 'Fossil': 'Nummulites: coin-shaped fossils from the limestone the pyramids are built of. Herodotus thought they were the builders\' lentils.' };
         const key = k => ITEM_INFO[k] && ITEM_INFO[k].key ? 1 : 0;
         const watch = ['Watch   ' + clockStr(), 'Your watch. It is ' + this.clockText().replace('  ', ', ') + '.' + (this.story && !sflag('ch1_complete') ? (Story.s.clock < 24 * 60 ? ' Midnight in ' + (l => (l >= 60 ? Math.floor(l / 60) + ' h ' : '') + Math.ceil(l % 60) + ' min.')(24 * 60 - Story.s.clock) : ' The night ends at 04:40.') : '')];
-        return [watch].concat(Object.keys(this.bag).sort((a, b) => key(b) - key(a)).map(k => [(key(k) ? '★ ' : '') + k + (this.bag[k] > 1 ? '  ×' + this.bag[k] : ''), DESC[k] || (ITEM_INFO[k] && ITEM_INFO[k].desc) || '']));
+        return [watch].concat(Object.keys(this.bag).sort((a, b) => key(b) - key(a)).map(k => [(key(k) ? '★ ' : '') + k + (k === 'Canteen' ? '  (' + (sflag('canteen') ?? 3) + '/3)' : this.bag[k] > 1 ? '  ×' + this.bag[k] : ''), (DESC[k] || (ITEM_INFO[k] && ITEM_INFO[k].desc) || '') + (ITEM_USE[k] && k !== 'Canteen' ? '  (SPACE: use it.)' : ''), k]));
     },
     findCount() { return (this.bag['Painted sherd'] || 0) + (this.bag['Fossil'] || 0); },
     outdoorPos() { return this.map && !this.map.outdoor && this.map.back ? this.map.back : [this.player.x, this.player.y]; },
@@ -170,6 +171,7 @@ const Game = {
         if (Mini.cur) { if (!this.fade) Mini.update(dt, I, this.keys); return; }
         if (WorldMap.open) { WorldMap.update(dt, I); return; }
         if (Menu.open) { Menu.update(dt, I); return; }
+        if (Phone.open) { Phone.update(dt, I); return; }
         if (this.state === 'title') { if (!this.fade) Title.update(dt, I); return; }
         if (this.state === 'intro') { if (!this.fade) Intro.update(dt, I); return; }
         if (this.state !== 'play') return;
@@ -186,10 +188,12 @@ const Game = {
         if (I.map) { WorldMap.show(0); return; }
         if (Detector.dig) { Detector.update(dt); return; }            // kneeling, digging
         if (I.tool && Detector.toggle()) return;
+        if (I.phone) { Phone.toggle(); return; }
         this.movePlayer(dt);
         Detector.update(dt);
         Bosta.update(dt);
         this.target = this.findTarget();
+        if (I.cam) takePhoto();
         if (I.ok && Detector.on && Detector.pin) Detector.startDig();
         else if (I.ok && this.target) this.examine(this.target);
         // walked into a named place for the first time?
@@ -211,7 +215,7 @@ const Game = {
         if (vx && !vy) p.dir = vx < 0 ? DIR.left : DIR.right;
         else if (vy && !vx) p.dir = vy < 0 ? DIR.up : DIR.down;
         else if (!((p.dir === DIR.left && vx < 0) || (p.dir === DIR.right && vx > 0) || (p.dir === DIR.up && vy < 0) || (p.dir === DIR.down && vy > 0))) p.dir = vx < 0 ? DIR.left : DIR.right;
-        const run = (k.run ? 1 : 0) ^ this.set.run, speed = run ? 168 : 96, n = Math.hypot(vx, vy);
+        const run = (k.run ? 1 : 0) ^ this.set.run, speed = moveSpeed(run), n = Math.hypot(vx, vy);   // (limping, or parched or starving: no running)
         const dx = vx / n * speed * dt, dy = vy / n * speed * dt;
         let moved = false;
         if (dx && !this.solidAt(p.x + dx, p.y)) { p.x += dx; moved = true; }
@@ -322,6 +326,8 @@ const Game = {
         else if (this.state === 'play') this.drawWorld(g);
         else { g.fillStyle = '#101838'; g.fillRect(0, 0, VW, VH); Txt.draw(g, 'Drawing the desert…', VW >> 1, VH >> 1, { col: '#ffe890', align: 'center' }); }
         if (Mini.cur) Mini.draw(g);
+        if (Phone.open) Phone.draw(g);
+        Camera.draw(g, 1 / 60);
         if (Menu.open) Menu.draw(g);
         if (WorldMap.open) WorldMap.draw(g);
         if (EndCard.open) EndCard.draw(g);
@@ -433,6 +439,8 @@ const Game = {
             if (k === 'Escape' || k === 'Tab') { this.I.menu = true; e.preventDefault(); }
             if (k === 'm') this.I.map = true;
             if (k === 'q') this.I.tool = true;
+            if (k === 'p') this.I.phone = true;
+            if (k === 'c') this.I.cam = true;
         });
         window.addEventListener('keyup', e => { const k = e.key.length === 1 ? e.key.toLowerCase() : e.key; if (MAPK[k]) this.keys[MAPK[k]] = false; });
         window.addEventListener('blur', () => { this.keys = {}; });

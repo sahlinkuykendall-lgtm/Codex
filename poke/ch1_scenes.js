@@ -93,7 +93,7 @@ scene('c1a_hana', {
                 startDialogue('c1a_hana_done');
             } });
         }
-        if (sflag('injured') && !sflag('patched')) c.push({ text: '"Could you look at this cut?"', nextScene: 'c1a_hana_aid' });
+        if (sflag('injured')) c.push({ text: '"Hana, have you got a first-aid kit?"', nextScene: 'c1a_hana_aid' });
         if (hasItem('Faience amulet (Eye of Horus)')) c.push({ text: 'Show her the Eye of Horus from the looters\' pit.', nextScene: 'c1a_hana_amulet' });
         c.push({ text: '"Goodnight, Hana."', onSelect: c1aMetHana });
         return c;
@@ -137,7 +137,7 @@ function c1aWaitChoices() {
     return c;
 }
 // the screen goes dark, the clock jumps, the screen comes back
-function c1aRest(mins, then) { Game.fadeTo(() => { clockAdvance(mins); if (Game.set.time === 5) Game.hour = storyHour(); if (then) startDialogue(then); }); }
+function c1aRest(mins, then) { Game.fadeTo(() => { clockAdvance(mins); healInjury('rest took the worst of it'); if (Game.set.time === 5) Game.hour = storyHour(); if (then) startDialogue(then); }); }
 scene('rest_brazier', {
     speaker: 'System',
     text: () => `The workers' fire. Somebody has left a plastic chair for you. The coals tick; the men talk about football and the price of onions. It is ${clockStr()}.` +
@@ -240,7 +240,7 @@ scene('c1a_rais', {
         if (sflag('gate_open')) c.push({ text: '"Tell me about the trenches."', nextScene: 'c1a_rais_trenches' });
         if (!sflag('mina')) c.push({ text: '"You look like a man with two worries, not one."', nextScene: 'c1a_mina' });
         else if (sflag('mina') === 'open') c.push({ text: '"About Mina\'s debt."', nextScene: 'c1a_mina_resolve' });
-        if (sflag('injured') && !sflag('patched')) c.push({ text: '"Is there a first-aid kit?"', nextScene: 'c1a_rais_aid' });
+        if (sflag('injured')) c.push({ text: '"Is there a first-aid kit?"', nextScene: 'c1a_rais_aid' });
         c.push({ text: 'Drink your tea. "Later, Rais."' });
         return c;
     },
@@ -526,7 +526,7 @@ scene('c1a_sieve', {
     },
 });
 // what the register pays for a heap's finds (Hana's valuation: +20%)
-function c1aSievePay(r) { if (r.earned) storyPay(Math.round(r.earned * (sflag('hana_valuation') ? 1.2 : 1)), 'Sieve finds' + (sflag('hana_valuation') ? ' (Hana\'s valuation)' : '')); }
+function c1aSievePay(r) { if (r.bagged) skillXP('excavation', r.bagged.length * 10); if (r.earned) storyPay(Math.round(r.earned * (sflag('hana_valuation') ? 1.2 : 1)), 'Sieve finds' + (sflag('hana_valuation') ? ' (Hana\'s valuation)' : '')); }
 scene('c1a_sieve_key', {
     speaker: 'System',
     text: `A small brass key on a cardboard tag, green with earth. MAG. Magazine. The find store. Miriam put it in the ground, the only place she trusted.`,
@@ -607,7 +607,7 @@ scene('puzzle_start_glyph_lock', {
         return [
             { text: 'Wake the seal. (minigame)', onSelect: () => { if (!sflag('seal_pos')) c1aSealShuffle(); playMinigame('seal', {}, r => {
                 if (r.ok) startDialogue('puzzle_glyph_solved');
-                else if (r.dart) { c1aSealShuffle(); sflag('injured', 'dart'); startDialogue('puzzle_glyph_fail'); }
+                else if (r.dart) { c1aSealShuffle(); setInjured('dart'); startDialogue('puzzle_glyph_fail'); }
             }); } },
             { text: 'Leave it, as she asked.' },
         ];
@@ -628,7 +628,7 @@ scene('puzzle_glyph_fail', {
     choices: [{ text: 'Step back and breathe.', onSelect: () => storyNote('The old seal', 'A wrong stone fires a cedar dart. It grazed your leg. Hana has a first-aid kit.') }],
 });
 // Hana patches the dart graze
-scene('c1a_hana_aid', { speaker: 'Hana', text: `She has you sit on a crate under the lamp and cleans the cut with a professional's lack of sympathy.\n\n"Cedar. Old cedar." She holds up the splinter she's pulled out, interested despite herself. "Where on earth did you get shot with an antique?"`, choices: [{ text: '"Long story."', onSelect: () => sflag('patched', true) }] });
+scene('c1a_hana_aid', { speaker: 'Hana', text: `She has you sit on a crate under the lamp and cleans the cut with a professional's lack of sympathy.\n\n"Cedar. Old cedar." She holds up the splinter she's pulled out, interested despite herself. "Where on earth did you get shot with an antique?"`, choices: [{ text: '"Long story."', onSelect: () => { healInjury('Hana cleaned and bound it'); rel('hana', 4, true); } }] });
 
 // ============================================================
 // THE MIDNIGHT CAR (beat 5)
@@ -688,6 +688,7 @@ scene('c1a_lena_slip', {
 function c1aKnockedOut() {
     sflag('lena_knocked', true);
     if (hasItem("Miriam's notebook page")) { dropItem("Miriam's notebook page"); sflag('lena_has_page', true); }
+    setInjured('head');
     c1aLenaLeave(false);
     Game.fadeTo(() => {
         const m = Game.maps.ch1, f = m.ents.find(e => e.id === 'rest_brazier'), p = Game.player;

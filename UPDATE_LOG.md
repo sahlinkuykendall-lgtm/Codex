@@ -12,6 +12,46 @@ Other docs:
 
 ---
 
+## POKE-STYLE P0.14 — 2026-09-30 — (branch `poke-style`) The phone, skills, needs, injury and the camera (Area 1, step 6)
+- **Skills and XP** (`poke/systems.js`), from `story/06_SYSTEMS.md`:
+  - Fifteen skills, levels 0–5 (100, 250, 450, 700 and 1,000 XP). Each background starts
+    with its own levels; the Archaeologist has Excavation 3, Hieroglyphs 2, and Greek,
+    Coptic, Photography and First aid 1.
+  - **You learn by doing.** Excavation comes from digging, the sieve, the detector and the
+    sherds. Coptic from reading the red stake; Hieroglyphs and Greek from the seal and the
+    Codex; Photography from photos; Stealth from listening unseen; First aid from being
+    patched up; Riding from the race. A little Egyptian Arabic comes from every real
+    conversation with someone who speaks it.
+  - A notice when a skill goes up.
+- **Thirst and hunger** drain slowly with the story clock and are never deadly. At empty you
+  can't run until you drink or eat.
+  - To drink: the well at the oasis, the water barrels, tea, your **canteen** (three swigs;
+    refill it at the well or the barrels).
+  - To eat: lentils at the cooking table (once every three hours), dates.
+  - Water and food show on the menu card and the phone, with a notice when you're thirsty
+    or hungry.
+- **Using things in the bag:** SPACE on the canteen, dates, the thermos of karkadeh or a
+  glass of mint tea.
+- **Injury:** the seal's dart, or a knock on the head behind Miriam's tent, and you limp:
+  slower, and no running. Hana patches you up, or resting takes the worst of it. The menu
+  card says LIMPING.
+- **The phone (P):** ◄► switches app, ▲▼ scrolls.
+  - MAP: open tasks, and the places you've found, with distances.
+  - MESSAGES: the department's advance at 20:30, and "Go to bed, Doctor. She would want you
+    to." from an unknown number at midnight.
+  - CONTACTS: everyone you've met and how they feel about you. Once you have Miriam's spare
+    phone you can call "A.S." from here.
+  - BANK: your balance and a ledger of every payment.
+  - SKILLS: dots and XP bars.
+  - NOTES: the journal.
+  - PHOTOS: your gallery.
+- **The camera (C):** photograph whatever you're facing (with a flash). New subjects train
+  Photography: the mason's marks, the false door, the red stake, the seal and more.
+  Photographing the midnight visitors is the evidence scene. The old woman won't be
+  photographed.
+- The camp's 33 views are pixel-identical to P0.13. The story, side quests and minigames
+  still play through.
+
 ## POKE-STYLE P0.13 — 2026-09-30 — (branch `poke-style`) The minigames (Area 1, step 5)
 - **Five minigames in the pixel style** (`poke/minigames.js`), in place of the stand-ins:
   - **The sieve:** press ◄ and ► in turn to shake the heap. The earth drains through the

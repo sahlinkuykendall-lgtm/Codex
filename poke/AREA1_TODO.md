@@ -144,7 +144,11 @@ tints (`Game.hour`, `light()`), so tie them to the story clock.
 - **Glyph seal:** press the stones in order.
 - **The race** with Hagg Sayed (simple).
 
-## 6. Systems
+## 6. Systems — ✅ DONE in P0.14
+> Done in `poke/systems.js`: skills/XP (`skillXP`, `skillLevel`, `afterChoice` hooks), needs (`drink`, `eat`,
+> `canRun`), injury (`setInjured`, `healInjury`), the phone (`Phone`, P), the camera (`takePhoto`, C), the
+> ledger and messages. The detector was done in P0.10.
+
 Build each of these into the poke UI:
 - **The phone** (P):
   - map

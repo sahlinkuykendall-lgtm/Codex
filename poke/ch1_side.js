@@ -26,7 +26,7 @@ Object.assign(ITEM_INFO, {
 function storyPickup(kind) {
     const count = pre => Object.keys(Game.taken).filter(k => k.startsWith(pre)).length;
     if (kind === 'Painted sherd') {
-        const n = count('ow_sherd');
+        const n = count('ow_sherd'); skillXP('excavation', 6);
         if (sflag('hana_q') === 'open' && hasItem('Painted sherd', 3) && !sflag('sherd_hint')) { sflag('sherd_hint', true); storyNotice('That\'s three. Hana wanted three.'); }
         if (n >= 8 && !sflag('sherd_set')) {
             sflag('sherd_set', true);
@@ -164,6 +164,7 @@ function c1aPourTea() {
     playMinigame('tea', {}, r => {
         if (r.left) return;
         clockAdvance(5);
+        if (r.kind !== 'over') drink(r.ok ? 18 : 10);                  // you drink what you poured
         if (!r.ok) return;                                             // (the minigame already said how it went)
         if (!hasItem('Mint Tea')) pocket('Mint Tea', 1, true);
         if (sflag('saber') === 'pour') { sflag('saber', 'poured'); Dlg.open('System', 'You pour from as high as you dare. The tea lands with a hiss and a proper head of foam.\n\nAcross the fire, Saber has stopped pretending not to watch. He nods. Go and talk to him.'); }

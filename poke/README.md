@@ -14,6 +14,8 @@ there are no image files.
 | SPACE / ENTER / Z | Look at what you're facing, talk, next page |
 | M | The map: your area; M again zooms out to all of Egypt |
 | Q | Metal detector on / off (once you've taken it from beside Hana's table) |
+| P | Your phone: map and tasks, messages, contacts and calls, bank, skills, notes, photos |
+| C | Photograph what you're facing |
 | ESC | The menu (Map, Journal, Bag, Settings, Save, Title) · back |
 | Walk up into a door | Go inside (Miriam's tent, the dormitory, the site office) |
 
@@ -87,6 +89,7 @@ there are no image files.
 | `ch1_side.js` | The eleven side quests (the race, darts, Saber's tea, the 1926 truck, the supply line, Amira's call, the fossils, the old woman, the looters' pit) |
 | `bosta.js` | Bosta the camp dog: her sprites, following you, tricks, barking at the midnight car |
 | `minigames.js` | The five minigames: the sieve, mint tea, darts, Petamun's seal, the race |
+| `systems.js` | Skills and XP, thirst and hunger, injury, the phone (P), the camera (C), the bank ledger and messages |
 | `ch1_scenes.js` | Chapter 1-A's story, ported from the 3D `ch1a_story.js`: every main beat, the midnight car, the exit choice and the chapter-end card |
 | `backgrounds.js` | The four backgrounds: skills, gear, papers, their paintings and opening cutscenes |
 | `intro.js` | The opening scenes, the background choice, male/female, the character creator, the name grid, your papers |
@@ -97,7 +100,7 @@ To re-export the map after changing the 3D layout, run
 
 ## Not in it yet
 
-- The phone, skills and XP, thirst and hunger, the camera, injury (step 6). The main story plays from the gate to the chapter-end card. See `AREA1_TODO.md`.
+- A few things on the map (the moving supply train, the shaft's interior, the watchtower), and the secrets (steps 7–8). The main story plays from the gate to the chapter-end card. See `AREA1_TODO.md`.
 - The minigames (sieve, tea, darts), the supply train moving, and the midnight event.
 - The Inspector's, Fixer's and Journalist's starting areas (their cutscenes are in).
 - Other chapters.

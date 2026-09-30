@@ -197,7 +197,7 @@ const Detector = {
             else Toast.show('Junk. It goes in the spoil bucket.');
             const n = this.spots.filter(q => sflag('dug_' + q.id)).length;
             Game.note('Detector finds', 'Dug ' + n + ' of the ' + this.spots.length + ' things the detector can hear round the camp.', 'detector_finds');
-            if (!junk) Sfx.get();
+            if (!junk) { Sfx.get(); skillXP('excavation', 12); }
         });
     },
 
