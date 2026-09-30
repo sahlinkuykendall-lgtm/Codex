@@ -110,14 +110,18 @@ function campLayout() {
     const scatter = { ow_sherd: [[28, 12], [48, 18], [60, 38], [11, 40], [34, 52], [55, 14], [21, 20], [72, 44]], c1p_fossil: [[52, 39], [54, 40], [53, 41], [55, 39], [51, 41]],
         ow_cache: [[31, 9], [47, 11], [10, 47], [26, 53], [61, 49], [72, 13], [16, 20], [53, 31], [6, 47], [44, 43], [72, 38], [36, 36], [25, 10], [57, 29], [9, 37], [29, 43]] };
     // trees: the palms of the oasis and along the roads
-    const trees = [[3, 11], [12, 12], [3, 17], [7, 10], [9, 20], [4, 20], [15, 14], [2, 24], [26, 34], [29, 16], [36, 40], [44, 40], [10, 46], [61, 35], [73, 40], [63, 53], [30, 37], [18, 53], [23, 30], [49, 26]];
+    const trees = [[3, 11], [12, 12], [3, 17], [7, 10], [9, 20], [4, 20], [15, 14], [2, 24],
+        [5, 11], [10, 11], [4, 12], [11, 17], [6, 18], [13, 13],                                                          // more palms round the oasis
+        [15, 8], [16, 9], [15, 10], [16, 12], [15, 16], [16, 17], [14, 7],                                               // a grove from the cliff to the fence: no way round into the dig zone
+        [26, 34], [29, 16], [36, 40], [44, 40], [10, 46], [61, 35], [73, 40], [63, 53], [30, 37], [18, 53], [23, 30], [49, 26]];
     // lamps along the roads, on the kerbs
     // lamps: exactly eight tiles apart, always on the same side: the west kerb of the main road,
     // the north kerb of the roads off it (placed where they're listed: nothing nudges them)
     const lamps = [[38, 21], [38, 29], [38, 37], [38, 45], [38, 53],           // the main road
         [30, 33], [22, 33], [14, 33],                                          // west to the workers' camp
         [47, 36], [55, 36], [63, 36],                                          // east, past the fossil pavement, to the trench path
-        [47, 45]];                                                             // to the guard post
+        [47, 45],                                                              // to the guard post
+        [12, 42], [20, 46]];                                                   // the footpath south to the rail halt, and on to the cemetery
     // the fence round the dig zone: [x0, x1, y], the gate between the runs
     const fences = [[15, 36, 18], [42, 63, 18]];
     // planks across the trench: [x0, x1, y]
@@ -132,7 +136,9 @@ function campLayout() {
     const doors = [['tent_bldg', 0.5, 'INT_TENT'], ['dorm_bldg', 0.55, 'INT_DORM'], ['foreman_bldg', 0.6, 'INT_FOREMAN'],
         ['fl_guard_booth', 0.77, 'INT_BOOTH', 'Guard Booth'], ['fl_ministry_post', 0.7, 'INT_MINPOST', 'Old Ministry Post'], ['fl_trailer', 0.66, 'INT_TRAILER', 'Site Trailer'],
         ['fl_digshed', 0.5, 'INT_DIGSHED', 'Dig Shed'], ['c1m_mess', 0.5, 'INT_MESS', 'Mess Tent'], ['c1m_hanatent', 0.5, 'INT_HANA', "Hana's Tent", 88], ['c1p_maqam', 0.5, 'INT_MAQAM', "Sheikh's Tomb"]];
-    return { W, H, tile, get, things, scatter, trees, lamps, fences, planks, places, doors, spawn: [39, 42] };
+    // solid ground nobody can see: behind the grove between the cliff and the fence's west end
+    const blocks = [[15, 7, 1, 12]];
+    return { W, H, tile, get, things, scatter, trees, lamps, fences, planks, places, doors, blocks, spawn: [39, 42] };
 }
 
 // ============================================================

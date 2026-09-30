@@ -207,7 +207,7 @@ const ROOMS = {
     INT_TENT: { name: "MIRIAM'S TENT", tw: 13, th: 9, style: 'tent', build({ map, A, put, wall, pw, ph, W }) {
         WALLART.photos(A, pw - 82, 14); wall(pw - 84, 46, 'tent_photos');
         WALLART.lantern(A, (pw >> 1) + 44, 16); map.ents.push({ x: (pw >> 1) + 44, y: W, w: 0, d: 0, sortY: 0, light: { x: 0, y: -30, r: 120, c: '#ffd890' } });
-        WALLART.map(A, 70, 12); wall(68, 48, null, { label: 'Survey Map', say: ['System', 'Miriam\'s survey map of the concession, pinned to the canvas. Three trenches in red pencil: A, B, C. Beside C she has written one Coptic word, and underlined it twice.'] });
+        WALLART.map(A, 70, 12); wall(68, 48, null, { label: 'Survey Map', picture: surveyMapArt, say: ['System', 'Miriam\'s survey map of the concession, pinned to the canvas. Three trenches in red pencil: A, B, C. Beside C she has written one Coptic word, and underlined it twice.'] });
         WALLART.flap(A, 136, 16); WALLART.hooks(A, pw - 150, 18);
         put((pw >> 1) - 62, W + 60, FURN.rug(124, 78, PAL.red));
         put((pw >> 1) - 38, W + 4, FURN.desk(76, true), 'tent_codex');

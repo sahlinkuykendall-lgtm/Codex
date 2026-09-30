@@ -117,6 +117,7 @@ const World = {
             map.doors.push({ x: e.x + e.w * frac - 16, y: e.y + (dy != null ? dy : e.d - 8), w: 32, h: 14, to, label });
             if (name) e.noLook = true;                 // (what it said from outside, you read going in: ch1_rooms.js)
         }
+        for (const [bx, by, bw, bh] of L.blocks || []) World.addSolid(map, bx * TILE, by * TILE, bw * TILE, bh * TILE);   // (walls of trees: no gaps between the trunks)
         // trees
         L.trees.forEach(([tx, ty], i) => { const x = tx * TILE + 16, y = ty * TILE + 28; World.addEnt(map, { x, y, w: 0, d: 0, spr: palm('cp' + i), sortY: y }); World.addSolid(map, x - 4, y - 4, 8, 5); mark(tx, ty, 1, 1); });
         // the camel, couched beside the Bedouin tent

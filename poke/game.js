@@ -173,6 +173,7 @@ const Game = {
         if (EndCard.open) { if (!this.fade) EndCard.update(dt, I); return; }
         if (Mini.cur) { if (!this.fade) Mini.update(dt, I, this.keys); return; }
         if (WorldMap.open) { WorldMap.update(dt, I); return; }
+        if (Picture.open) { Picture.update(dt, I); return; }
         if (Menu.open) { Menu.update(dt, I); return; }
         if (Phone.open) { Phone.update(dt, I); return; }
         if (this.state === 'title') { if (!this.fade) Title.update(dt, I); return; }
@@ -181,7 +182,7 @@ const Game = {
         if (this.set.time === 4 && !Dlg.active) this.hour = (this.hour + dt / 30) % 24;       // a day in twelve minutes
         else if (this.set.time === 5) this.hour = storyHour();                                 // the light follows the story clock
         Banner.update(dt);
-        this.hintT += dt;
+        this.hintT += dt; Tracker.flashT = Math.max(0, Tracker.flashT - dt);
         this.updatePeople(dt);
         if (Dlg.active) { Dlg.update(dt, I); return; }
         if (this.fade) return;
@@ -193,6 +194,7 @@ const Game = {
         if (gz && Detector.dig) { Detector.update(dt); return; }      // kneeling, digging
         if (gz && I.tool && Detector.toggle()) return;
         if (I.phone) { Phone.toggle(); return; }
+        if (I.track) Tracker.flash();                      // T: which way is the tracked task? (poke/tracker.js)
         this.movePlayer(dt);
         if (gz) { Detector.update(dt); Bosta.update(dt); }
         this.target = this.findTarget();
@@ -287,6 +289,7 @@ const Game = {
         Sfx.ok();
         const sc = scriptFor(e);
         this.talkId = e.id;                                 // (so a scene shared by several things knows which one)
+        if (e.picture && !e.pictureShown) { e.pictureShown = true; return Picture.show(e.picture, () => { this.examine(e); e.pictureShown = false; }); }   // (a map on the wall: shown big first)
         if (sc) return startDialogue(sc);                   // a scripted conversation (poke/ch1_scenes.js)
         const [speaker, text] = e.say;
         Dlg.open(speaker, text, () => {
@@ -338,6 +341,7 @@ const Game = {
         else if (this.state === 'play') this.drawWorld(g);
         else { g.fillStyle = '#101838'; g.fillRect(0, 0, VW, VH); Txt.draw(g, 'Drawing the desert…', VW >> 1, VH >> 1, { col: '#ffe890', align: 'center' }); }
         if (Mini.cur) Mini.draw(g);
+        if (Picture.open) Picture.draw(g);
         if (Phone.open) Phone.draw(g);
         Camera.draw(g, 1 / 60);
         if (Menu.open) Menu.draw(g);
@@ -388,7 +392,7 @@ const Game = {
             } else {
                 const sp = e.spr, c = sp.frames ? sp.frames[Math.floor(this.time * sp.fps) % sp.frames.length] : sp.c;
                 g.drawImage(c, Math.round(e.x + sp.ox - cx), Math.round(e.y + sp.oy - cy));
-                if (sp.sparkle && (this.time * 1.4 + e.x * 0.37) % 2.2 < 0.35) { const sx = Math.round(e.x + e.w / 2 - cx), sy = Math.round(e.y - 4 - cy); A.r(sx - 2, sy, 5, 1, '#ffffff'); A.r(sx, sy - 2, 1, 5, '#ffffff'); }
+                if (sp.sparkle && (this.time * 1.4 + e.x * 0.37) % 2.2 < 0.35) { const sx = Math.round(e.x + sp.ox + sp.c.width * 0.55 - cx), sy = Math.round(e.y + sp.oy + sp.c.height * 0.35 - cy); A.r(sx - 2, sy, 5, 1, '#ffffff'); A.r(sx, sy - 2, 1, 5, '#ffffff'); }   // (the glint sits on the find itself)
             }
         }
         // the light of the hour, and lamps once it's dark
@@ -421,6 +425,7 @@ const Game = {
         Toast.draw(g, 1 / 60);
         Notice.draw(g, 1 / 60);
         if (area().giza) Detector.drawHud(g);
+        Hud.draw(g);                                       // water, food, and the compass to the tracked task
         if (this.hintT < 14 && !Dlg.active) Txt.draw(g, 'MOVE: WASD / arrows    RUN: Shift    LOOK / TALK: Space    MAP: M    MENU: Esc', VW >> 1, VH - 14, { col: '#ffffff', shadow: '#30302c', align: 'center' });
         if (Dlg.active) Dlg.draw(g);
     },
@@ -455,6 +460,7 @@ const Game = {
             if (k === 'q') this.I.tool = true;
             if (k === 'p') this.I.phone = true;
             if (k === 'c') this.I.cam = true;
+            if (k === 't') this.I.track = true;
         });
         window.addEventListener('keyup', e => { const k = e.key.length === 1 ? e.key.toLowerCase() : e.key; if (MAPK[k]) this.keys[MAPK[k]] = false; });
         window.addEventListener('blur', () => { this.keys = {}; });

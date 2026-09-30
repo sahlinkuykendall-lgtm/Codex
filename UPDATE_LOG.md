@@ -12,6 +12,47 @@ Other docs:
 
 ---
 
+## POKE-STYLE P0.24 — 2026-09-30 — (branch `poke-style`) Area 1 fixes: a task tracker, needs on screen, the tea game redrawn, darts, lamps, the oasis
+- **A task tracker** (`poke/tracker.js`):
+  - a compass in the bottom-right corner points to the task you're tracking, with the
+    distance above it (indoors it points to the door)
+  - it tracks your newest task until you pick another: in **TASKS** (Esc), SPACE on a task
+    tracks it, marked TRACKING
+  - **T** flashes a big arrow over your head for three seconds, pointing the way
+  - every Giza task has a destination, and it follows where the task has got to (Saber's
+    kettle, then the burn bin; the nearest sherd, then Hana)
+- **Water and food on the main screen:** two bars beside the compass, a drop and a loaf.
+  Each blinks red below 20%.
+- **The survey map in Miriam's tent** opens full screen when you look at it: the concession
+  with the escarpment, the Osiris Shaft, the causeway, the fence, and trenches A, B and C in
+  red pencil, with the Coptic ⲡⲏⲓ beside C underlined twice. SPACE puts it down, then her
+  note appears as before. (Any wall picture can do this now.)
+- **The tea minigame is redrawn;** the mechanics are unchanged:
+  - the workers' fire at night, with coals glowing in the corner and stars overhead
+  - a brass tray with two glasses already poured, a sugar bowl and a bunch of mint
+  - a clear tea glass with a gold rim, the tea darker at the bottom, foam, bubbles, mint,
+    steam, and gold lines to pour between
+  - a blackened teapot in a hand, tipping as you pour a thick amber stream from high or low
+  - the gauges in a brass frame
+- **Darts no longer throws by itself** when you start again. The SPACE press that chose
+  "play" was being read as a throw. Every minigame now waits for you to let go of SPACE
+  first.
+- **The painted sherds** stand up out of the sand at a tilt, heaped round their foot, and
+  the glint now shines on the find itself (for fossils too). Before, it glinted at the top
+  of the tile.
+- **The lamps:**
+  - the brightness is back to how it was
+  - the four camp lanterns (two in each camp) used the same sprite as the street lamps, so
+    they looked like lamps put in odd places; they're hurricane lamps on crooked wooden
+    poles now, with a flickering light
+  - two more street lamps on the footpath south, on the same kerb rule
+- **The oasis:**
+  - six more palms round the pool
+  - a grove of palms from the cliff down to the fence's west end, with a solid line behind
+    them, so you can't walk round the fence into the dig zone that way any more
+- The audit and the three playthroughs are clean. The look check shows every view
+  different now, because the new corner panel is on screen.
+
 ## POKE-STYLE P0.23 — 2026-09-30 — (branch `poke-style`) The Inspector's opening begins: Saqqara (Chapter 1-B, step 1)
 - **The Inspector is playable.** Pick the Inspector and their three intro scenes play (the
   ledger, the Director's office, Saqqara). Then you arrive at the inspectorate at 08:30 on

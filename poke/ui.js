@@ -265,7 +265,7 @@ const Title = {
             Txt.draw(g, str, bx + 26, by + 8 + i * 15, { col: i === this.sel ? UI.ink : UI.dim });
             if (i === this.sel) A.poly([[bx + 13, by + 10 + i * 15], [bx + 13, by + 18 + i * 15], [bx + 18, by + 14 + i * 15]], '#d04838');
         });
-        Txt.draw(g, 'POKE-STYLE BUILD  P0.23', VW - 6, VH - 14, { col: '#8898d0', align: 'right' });
+        Txt.draw(g, 'POKE-STYLE BUILD  P0.24', VW - 6, VH - 14, { col: '#8898d0', align: 'right' });
         Txt.draw(g, '▲▼ choose    SPACE select', 6, VH - 14, { col: '#8898d0' });
     },
 };
@@ -310,6 +310,7 @@ const Menu = {
         } else {
             const n = P === 'journal' ? Game.journal.length : P === 'bag' ? Game.bagList().length : P === 'tasks' ? Story.s.tasks.length : 0;
             if (n) { if (I.up) { this.sub = (this.sub + n - 1) % n; Sfx.move(); } if (I.down) { this.sub = (this.sub + 1) % n; Sfx.move(); } }
+            if (P === 'tasks' && I.ok) { const t = Story.s.tasks[this.sub]; if (t && !t.done) { Tracker.set(t.id); Toast.show('Tracking: ' + t.text.slice(0, 40) + (t.text.length > 40 ? '…' : '')); } }
             if (P === 'bag' && I.ok) { const it = Game.bagList()[this.sub]; if (it && it[2] && ITEM_USE[it[2]]) { ITEM_USE[it[2]](); Sfx.ok(); this.sub = Math.min(this.sub, Game.bagList().length - 1); } }
             if (I.back || I.menu) { Sfx.back(); this.page = 'main'; }
         }
@@ -369,18 +370,20 @@ const Menu = {
             Txt.wrap(HELP[this.SETTINGS[this.sub].key], VW - 60).forEach((ln, i) => Txt.draw(g, ln, 24, hy + i * 12, { col: '#3058a0' }));
             if (VH - hy > 120) {
                 Txt.draw(g, 'CONTROLS', 24, hy + 34, { col: UI.gold });
-                [['WASD / arrows', 'Walk'], ['SHIFT', 'Run'], ['SPACE / ENTER / Z', 'Look, talk, next'], ['M', 'Map (M again: all of Egypt)'], ['Q', 'Metal detector on / off'], ['P', 'Your phone'], ['C', 'Photograph what you face'], ['ESC', 'This menu, or back'], ['Walk up to a door', 'Go inside']].forEach(([k2, v2], i) => { Txt.draw(g, k2, 24, hy + 50 + i * 13, { col: UI.ink }); Txt.draw(g, v2, 150, hy + 50 + i * 13, { col: UI.dim }); });
+                [['WASD / arrows', 'Walk'], ['SHIFT', 'Run'], ['SPACE / ENTER / Z', 'Look, talk, next'], ['M', 'Map (M again: all of Egypt)'], ['Q', 'Metal detector on / off'], ['P', 'Your phone'], ['C', 'Photograph what you face'], ['T', 'Which way to the tracked task'], ['ESC', 'This menu, or back'], ['Walk up to a door', 'Go inside']].forEach(([k2, v2], i) => { Txt.draw(g, k2, 24, hy + 50 + i * 13, { col: UI.ink }); Txt.draw(g, v2, 150, hy + 50 + i * 13, { col: UI.dim }); });
             }
             Txt.draw(g, '▲▼ choose   ◄► change', 24, VH - 28, { col: UI.dim });
         } else if (this.page === 'tasks') {
             const T = Story.s.tasks;
             if (!T.length) Txt.draw(g, 'Nothing to do yet. Talk to people.', 24, 40, { col: UI.dim });
+            Txt.draw(g, 'SPACE: track this one (the compass in the corner points the way, T flashes an arrow)', 24, VH - 28, { col: UI.dim });
             let y = 34;
             const top = Math.max(0, this.sub - 3);
             for (let i = top; i < T.length && y < VH - 30; i++) {
                 const t = T[i], on = i === this.sub, lines = Txt.wrap(t.text, VW - 70);
                 if (on) A.r(14, y - 2, VW - 28, lines.length * 12 + 3, '#d8ecff');
                 A.r(22, y + 1, 9, 9, UI.ink); A.r(23, y + 2, 7, 7, t.done ? '#b8f0a0' : '#f8f8f0');
+                if (t.id === Tracker.id) { A.poly([[VW - 30, y + 1], [VW - 24, y + 5], [VW - 30, y + 9]], '#d04838'); Txt.draw(g, 'TRACKING', VW - 34, y, { col: '#d04838', align: 'right' }); }
                 if (t.done) { A.line(24, y + 5, 26, y + 7, '#3a7a30'); A.line(26, y + 7, 29, y + 3, '#3a7a30'); }
                 lines.forEach((ln, j) => Txt.draw(g, ln, 38, y + j * 12, { col: t.done ? '#9aa0a8' : on ? UI.ink : UI.dim }));
                 y += lines.length * 12 + 5;
@@ -409,3 +412,46 @@ const Menu = {
         g.restore();
     },
 };
+
+// ---- A PICTURE, SHOWN BIG (a map on a wall, a photograph, a page) ----
+// Picture.show(art, then): art(g, A, w, h) draws at its own size (Picture.W × Picture.H); it's
+// scaled up by whole pixels to fill the screen. SPACE or ESC puts it down, then `then` runs.
+const Picture = {
+    open: false, W: 200, H: 130, art: null, then: null, t: 0, cache: null,
+    show(art, then) { this.art = art; this.then = then; this.open = true; this.t = 0; this.cache = null; Sfx.ok(); },
+    update(dt, I) { this.t += dt; if (this.t > 0.3 && (I.ok || I.back || I.menu)) { this.open = false; Sfx.back(); const cb = this.then; this.then = null; if (cb) cb(); } },
+    draw(g) {
+        if (!this.open) return;
+        const VW = Game.VW, VH = Game.VH;
+        if (!this.cache) { const [c, cg] = mk(this.W, this.H); cg.imageSmoothingEnabled = false; this.art(cg, pa(cg), this.W, this.H); this.cache = c; }
+        g.fillStyle = 'rgba(10,8,16,0.78)'; g.fillRect(0, 0, VW, VH);
+        const k = Math.max(1, Math.min(Math.floor((VW - 20) / this.W), Math.floor((VH - 40) / this.H))), w = this.W * k, h = this.H * k, x = (VW - w) >> 1, y = Math.max(6, (VH - h - 20) >> 1);
+        const grow = Math.min(1, this.t / 0.18), gw = Math.round(w * (0.6 + 0.4 * grow)), gh = Math.round(h * (0.6 + 0.4 * grow));
+        g.fillStyle = '#1c1410'; g.fillRect(((VW - gw) >> 1) + 3, y + ((h - gh) >> 1) + 3, gw, gh);
+        g.imageSmoothingEnabled = false; g.drawImage(this.cache, (VW - gw) >> 1, y + ((h - gh) >> 1), gw, gh);
+        Txt.draw(g, 'SPACE: put it down', VW >> 1, Math.min(VH - 14, y + h + 6), { col: '#e8dcff', align: 'center', shadow: '#1c1410' });
+    },
+};
+// Miriam's survey map of the concession (the wall of her tent)
+function surveyMapArt(g, A, W, H) {
+    A.r(0, 0, W, H, '#8e6a44'); A.r(2, 2, W - 4, H - 4, '#f0e4c4'); A.r(2, 2, W - 4, 1, '#fffaf0');
+    for (let x = 12; x < W - 4; x += 12) A.vl(x, 3, H - 6, '#dcd4c0'); for (let y = 12; y < H - 4; y += 12) A.hl(3, y, W - 6, '#dcd4c0');   // the grid
+    const X = tx => Math.round(8 + tx * 2.35), Y = ty => Math.round(10 + ty * 1.95);
+    for (let x = 4; x < W - 4; x++) { const y = Y(7) + Math.round(Math.sin(x * 0.2) * 1.5); A.px(x, y, '#8a6a40'); if (x % 3 === 0) A.vl(x, y - 4, 4, '#b89868'); }   // the escarpment, hatched
+    for (const [k, off] of [[0.09, 16], [0.07, 30]]) for (let x = 4; x < W - 4; x++) A.px(x, Y(7) + off + Math.round(Math.sin(x * k + off) * 3), '#c8a878');   // contours
+    A.r(X(38), Y(5), 4, 4, '#20242c'); Txt.draw(g, 'OSIRIS', X(38) - 16, Y(5) - 10, { col: '#20242c' });                        // the shaft, a black square
+    for (let y = Y(8); y < H - 6; y += 3) A.px(X(39) + 2, y, '#8a7a60');                                                        // the causeway, dotted
+    A.r(X(17), Y(10), X(22) - X(17), 6, '#b8a888'); A.r(X(52), Y(10), X(57) - X(52), 6, '#b8a888'); A.r(X(3), Y(22), X(11) - X(3), 5, '#b8a888'); A.r(X(30), Y(24), X(37) - X(30), 5, '#b8a888');   // sheds, the camp
+    A.hl(X(15), Y(18), X(63) - X(15), '#9aa4ae');                                                                               // the fence
+    const trench = (tx, ty, tw, th, l) => { const x0 = X(tx), y0 = Y(ty), x1 = X(tx + tw), y1 = Y(ty + th); A.hl(x0, y0, x1 - x0, '#c83828'); A.hl(x0, y1, x1 - x0, '#c83828'); A.vl(x0, y0, y1 - y0, '#c83828'); A.vl(x1, y0, y1 - y0 + 1, '#c83828'); A.px(x0 - 1, y0 + 1, '#c83828'); Txt.draw(g, l, x1 + 3, y0 - 2, { col: '#c83828' }); };
+    trench(66, 16, 4, 12, 'A'); trench(48, 13, 5, 4, 'B'); trench(33, 14, 4, 3, 'C');
+    const cx = X(33) - 4, cy = Y(20) + 2;                                                                                       // beside C, a Coptic word: ⲡⲏⲓ, underlined twice
+    A.hl(cx, cy, 5, '#3a2a1c'); A.vl(cx + 1, cy, 6, '#3a2a1c'); A.vl(cx + 4, cy, 6, '#3a2a1c');
+    A.vl(cx + 8, cy, 6, '#3a2a1c'); A.vl(cx + 12, cy, 6, '#3a2a1c'); A.hl(cx + 8, cy + 3, 5, '#3a2a1c'); A.hl(cx + 7, cy, 2, '#3a2a1c'); A.hl(cx + 11, cy, 2, '#3a2a1c');
+    A.vl(cx + 16, cy + 1, 5, '#3a2a1c'); A.px(cx + 16, cy - 1, '#3a2a1c');
+    A.hl(cx - 1, cy + 8, 19, '#3a2a1c'); A.hl(cx, cy + 10, 17, '#3a2a1c');
+    Txt.draw(g, 'GIZA W. FIELD', 8, H - 16, { col: '#5a4428' });
+    A.poly([[W - 14, 8], [W - 10, 18], [W - 14, 15], [W - 18, 18]], '#3a2a1c'); Txt.draw(g, 'N', W - 17, 19, { col: '#3a2a1c' });
+    A.r(W - 44, H - 10, 30, 2, '#3a2a1c'); A.r(W - 44, H - 10, 10, 2, '#f0e4c4'); A.vl(W - 44, H - 12, 5, '#3a2a1c'); A.vl(W - 14, H - 12, 5, '#3a2a1c');
+    A.r(4, 3, 6, 5, '#d04838'); A.r(W - 10, 3, 6, 5, '#3a70c8'); A.r(4, H - 8, 6, 5, '#f0c040'); A.r(W - 10, H - 8, 6, 5, '#58a848');   // the pins
+}

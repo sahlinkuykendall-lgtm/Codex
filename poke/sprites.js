@@ -793,10 +793,19 @@ function lampPost(w, d, tall, col) {
     A.r(cx - 3, st.y, 9, 2, '#3a3e48'); A.px(cx + 1, st.y - 1, '#3a3e48');
     A.r(cx - 2, st.y + 2, 7, 6, '#ffe890'); A.r(cx - 2, st.y + 2, 2, 6, '#fff8d8'); A.r(cx + 3, st.y + 2, 2, 6, '#f0c040');
     A.r(cx - 3, st.y + 8, 9, 1, '#3a3e48'); A.vl(cx - 3, st.y + 2, 6, '#3a3e48'); A.vl(cx + 5, st.y + 2, 6, '#3a3e48');
-    return propFit(st, w, d, { light: { x: 0, y: -h + 6, r: tall ? 70 : 52, far: tall ? 190 : 150, c: col || '#ffd890' } });   // (far: a dim glow well past the bright pool)
+    return propFit(st, w, d, { light: { x: 0, y: -h + 6, r: tall ? 70 : 52, c: col || '#ffd890' } });
 }
 SPR_L['path lamp'] = (w, d) => lampPost(w, d, false);
-SPR_L['lantern'] = (w, d) => lampPost(w, d, false);
+SPR_L['lantern'] = (w, d) => {                     // a camp lantern: a hurricane lamp hung from a crooked wooden pole (not a street lamp)
+    const st = propStage(w, d, 20, 38), { A } = st, x = st.x + 4, y = st.y;
+    A.r(x - 3, y + 34, 8, 3, '#8a7658'); A.hl(x - 3, y + 34, 8, '#c9b48e');                                                        // stones round its foot
+    A.r(x, y + 4, 3, 32, '#8e5e32'); A.vl(x, y + 4, 32, '#b8844c'); A.px(x + 1, y + 14, '#6e4424'); A.px(x + 2, y + 24, '#6e4424');
+    A.line(x + 1, y + 4, x + 6, y + 1, '#8e5e32'); A.line(x + 6, y + 1, x + 11, y + 2, '#8e5e32'); A.line(x + 1, y + 5, x + 6, y + 2, '#b8844c');   // the crook
+    A.vl(x + 11, y + 3, 3, '#3a3e48');
+    A.r(x + 8, y + 6, 7, 2, '#3a3e48'); A.r(x + 8, y + 8, 7, 8, '#ffd878'); A.r(x + 9, y + 9, 2, 6, '#fff4c8'); A.r(x + 13, y + 9, 2, 6, '#f0b040');   // the glass, the flame's glow
+    A.vl(x + 8, y + 8, 8, '#3a3e48'); A.vl(x + 14, y + 8, 8, '#3a3e48'); A.r(x + 7, y + 16, 9, 2, '#3a3e48'); A.px(x + 11, y + 11, '#ff9030');
+    return propFit(st, w, d, { light: { x: 7, y: -26, r: 52, c: '#ffd070', flicker: true } });
+};
 SPR_L['work lamp'] = (w, d) => {                                   // a floodlight on a tripod
     const st = propStage(w, d, 18, 34), { A } = st, cx = st.x + 8;
     A.line(cx, st.y + 10, cx - 6, st.y + 32, PAL.metal[3]); A.line(cx, st.y + 10, cx + 6, st.y + 32, PAL.metal[3]); A.r(cx, st.y + 10, 1, 20, PAL.metal[2]);
@@ -1011,14 +1020,17 @@ SPR.c1p_pavement = (w, d) => {
     return { c, ox: -X, oy: -Y, flat: true };
 };
 function smallFind(col) { return (w, d) => { const st = propStage(w, d, 10, 8), { A } = st; A.ell(st.x + 4, st.y + 4, 4, 2, col[1]); A.px(st.x + 3, st.y + 3, col[0]); A.px(st.x + 6, st.y + 5, col[2]); return Object.assign(propFit(st, w, d, { flat: true }), { sparkle: true }); }; }
-SPR_L['painted sherd'] = (w, d) => {                  // a curved shard of a painted pot: terracotta, a band of red ochre, a black line, a pale broken edge
-    const st = propStage(w, d, 14, 11), { A } = st, x = st.x, y = st.y;
-    A.poly([[x + 1, y + 4], [x + 6, y], [x + 12, y + 2], [x + 13, y + 7], [x + 8, y + 10], [x + 2, y + 9]], '#c87a4a');
-    A.poly([[x + 2, y + 4], [x + 6, y + 1], [x + 11, y + 3], [x + 8, y + 4], [x + 4, y + 5]], '#e09a64');                   // the curve catching the light
-    A.line(x + 2, y + 6, x + 12, y + 5, '#b83a24'); A.line(x + 2, y + 7, x + 12, y + 6, '#b83a24');                        // the red ochre band
-    A.line(x + 3, y + 8, x + 11, y + 8, '#2a1c18');                                                                           // the black line
-    A.px(x + 6, y, '#f4d8b0'); A.px(x + 12, y + 2, '#f4d8b0'); A.px(x + 13, y + 6, '#f4d8b0'); A.px(x + 1, y + 4, '#f4d8b0');   // the broken edge, paler
-    return Object.assign(propFit(st, w, d, { flat: true }), { sparkle: true });
+SPR_L['painted sherd'] = (w, d) => {                  // a curved shard of a painted pot, standing up out of the sand at a tilt: terracotta, a band of red ochre, a black line, a pale broken edge
+    const st = propStage(w, d, 18, 18), { A } = st, x = st.x, y = st.y;
+    A.ell(x + 9, y + 15, 8, 3, '#c8a868'); A.ell(x + 9, y + 14, 6, 2, '#e8d098');                                                   // the sand heaped round its foot, its shadow
+    A.poly([[x + 3, y + 14], [x + 5, y + 4], [x + 10, y], [x + 15, y + 3], [x + 14, y + 14]], '#a85e34');                          // the shard, edge-on at the back
+    A.poly([[x + 4, y + 14], [x + 6, y + 5], [x + 10, y + 1], [x + 13, y + 4], [x + 12, y + 14]], '#c87a4a');
+    A.poly([[x + 6, y + 6], [x + 10, y + 2], [x + 11, y + 5], [x + 7, y + 9]], '#e8a270');                                          // the curve catching the light
+    A.line(x + 5, y + 9, x + 12, y + 8, '#b83a24'); A.line(x + 5, y + 10, x + 12, y + 9, '#b83a24');                               // the red ochre band
+    A.line(x + 5, y + 12, x + 12, y + 12, '#2a1c18');                                                                                // the black line
+    A.px(x + 10, y, '#f8dcb4'); A.px(x + 13, y + 4, '#f8dcb4'); A.px(x + 5, y + 5, '#f8dcb4'); A.px(x + 11, y + 1, '#fff0d8');      // the broken edge, paler
+    A.hl(x + 3, y + 14, 12, '#d8bc80');
+    return Object.assign(propFit(st, w, d), { sparkle: true });
 };
 SPR_L['fossil'] = (w, d) => {                         // a loose fossil: a little ammonite, glinting
     const st = propStage(w, d, 12, 10), { A } = st, x = st.x + 5, y = st.y + 5;

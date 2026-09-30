@@ -21,12 +21,13 @@ const Mini = {
     open(kind, opts, done) {
         const G = MINIS[kind];
         if (!G) { done(Object.assign({ ok: true }, opts)); return; }
-        this.cur = Object.assign({ kind, opts: opts || {}, done, t: 0, result: null, endT: 0, act: false }, G.start(opts || {}));
+        this.cur = Object.assign({ kind, opts: opts || {}, done, t: 0, result: null, endT: 0, act: false, lock: true }, G.start(opts || {}));   // (lock: until SPACE is let go, so the key that chose 'play' doesn't throw, pour or dig)
         this.G = G; Sfx.ok();
     },
     update(dt, I, keys) {
         const S = this.cur; if (!S) return;
         S.t += dt;
+        if (S.lock) { if (keys.act || S.t < 0.25) { S.act = !!keys.act; return; } S.lock = false; S.act = false; }
         const held = !!keys.act, pressed = held && !S.act, released = !held && S.act; S.act = held;
         if (S.result) {                                               // the result card: SPACE to go on
             S.endT += dt;
@@ -181,33 +182,69 @@ MINIS.tea = {
         if (kind) { kind === 'perfect' ? Sfx.save() : Sfx.back(); Mini.finish({ ok: kind === 'perfect', kind }, LINES[kind], kind === 'perfect' ? 'A PERFECT GLASS' : kind === 'over' ? 'SPILLED' : 'NOT QUITE'); }
     },
     draw(S, g, A, VW, VH) {
-        const cx = VW >> 1, base = Math.min(VH - 70, 190);
-        // the tray, the glass, the tea and its foam
-        A.ell(cx, base + 4, 44, 7, PAL.line); A.ell(cx, base + 3, 43, 6, PAL.gold[2]); A.ell(cx - 4, base + 2, 34, 4, PAL.gold[1]);
-        const gw = 20, gh = 44, gx = cx - (gw >> 1), gy = base - gh;
-        A.r(gx - 1, gy, gw + 2, gh + 1, PAL.line); A.r(gx, gy, gw, gh, '#c8dcec');
-        const lvl = Math.min(1.05, S.level), th = Math.round(gh * lvl);
-        A.r(gx, gy + gh - th, gw, th, '#b8601c'); A.r(gx, gy + gh - th, 3, th, '#d8883c');
-        const fh = Math.round(S.foam * 7 * Math.min(1, lvl * 3));
-        if (fh > 0 && th > 2) { A.r(gx, gy + gh - th - fh, gw, fh, '#f0dcb0'); A.r(gx, gy + gh - th - fh, gw, 1, '#fff4d8'); }
-        A.r(gx - 3, gy + Math.round(gh * (1 - 0.78)), 3, 1, '#f0c040'); A.r(gx + gw, gy + Math.round(gh * (1 - 0.78)), 3, 1, '#f0c040');
-        A.r(gx - 3, gy + Math.round(gh * (1 - 0.94)), 3, 1, '#f0c040'); A.r(gx + gw, gy + Math.round(gh * (1 - 0.94)), 3, 1, '#f0c040');
-        A.r(gx + gw - 4, gy + 2, 2, gh - 6, '#ffffff');
-        // the kettle, high or low, and the stream
-        const ky = gy - 16 - Math.round(S.h * 70), kx = cx - 44;
-        A.ell(kx, ky, 13, 11, PAL.line); A.ell(kx, ky, 12, 10, PAL.metal[1]); A.ell(kx - 3, ky - 3, 6, 4, PAL.metal[0]); A.r(kx - 4, ky - 14, 8, 4, PAL.metal[2]);
-        A.line(kx + 10, ky - 2, kx + 22, ky - 8 + (S.pouring ? 6 : 0), PAL.line); A.line(kx + 10, ky - 1, kx + 22, ky - 7 + (S.pouring ? 6 : 0), PAL.metal[2]);
-        if (S.pouring) { const sx = kx + 22, top = gy + gh - th - fh; for (let y = ky - 2; y < top; y++) A.px(Math.round(sx + (cx - sx) * (y - ky) / Math.max(1, top - ky) + Math.sin(y * 0.7 + S.t * 30) * 0.6), y, (y + (S.t * 40 | 0)) % 3 ? '#c86c24' : '#e89040'); }
-        for (const d of S.drops) A.r(Math.round(cx + d.x), Math.round(gy + gh - th + d.y), 2, 2, '#c86c24');
-        // gauges
-        const bx = cx + 40, bw = Math.min(170, VW - bx - 12);
-        if (bw > 100) {
-            miniBar(g, A, bx, gy - 20, bw, 'GLASS', S.level, [0.78, 0.94]);
-            miniBar(g, A, bx, gy - 4, bw, 'FOAM', S.foam, [0.5, 1]);
-            miniBar(g, A, bx, gy + 12, bw, 'HEIGHT', S.h, null, S.h > 0.85);
+        const cx = VW >> 1, base = Math.min(VH - 60, 200), t = S.t;
+        // the night behind, the workers' fire glowing off to the left, the table under the tray
+        A.r(0, 0, VW, VH, '#141a34'); for (let i = 0; i < 40; i++) A.px(Math.floor(hash2(i, 3) * VW), Math.floor(hash2(3, i) * (base - 60)), i % 5 ? '#3a4470' : '#c8d0f0');
+        const ty = base - 14;
+        A.r(0, ty, VW, VH - ty, '#6e4424'); for (let y = ty; y < VH; y += 9) { A.hl(0, y, VW, '#8e5e32'); A.hl(0, y + 8, VW, '#4a2c16'); }
+        for (let k = 0; k < 4; k++) A.soft(0, ty - 30 + k * 10, 140 - k * 20, VH - ty + 30, '#ff9a40', 0.06);
+        const fx = 34, fy = VH - 30;                                                          // the brazier's coals, in the corner
+        A.ell(fx, fy + 10, 40, 16, '#1c1410'); for (let i = 0; i < 16; i++) { const a = i / 16 * Math.PI * 2, r = 10 + (i % 3) * 8; A.ell(fx + Math.cos(a) * r, fy + Math.sin(a) * r * 0.4, 5, 3, (i + Math.floor(t * 6)) % 3 ? '#c03010' : '#ffb040'); }
+        for (let i = 0; i < 3; i++) { const fl = Math.sin(t * 9 + i * 2) * 3; A.poly([[fx - 12 + i * 10, fy - 2], [fx - 6 + i * 10, fy - 2], [fx - 9 + i * 10 + fl, fy - 20 - (i === 1 ? 8 : 0)]], i === 1 ? '#ffe070' : '#ff9030'); }
+        // the brass tray: rim, engraving, a shine
+        const trx = Math.min(110, (VW >> 1) - 20);
+        A.ell(cx, base + 6, trx + 2, 19, PAL.line); A.ell(cx, base + 5, trx, 17, '#a87818'); A.ell(cx, base + 3, trx - 6, 13, '#d8a830'); A.ell(cx - 10, base + 1, trx - 30, 7, '#f0c850');
+        for (let i = 0; i < 28; i++) { const a = i / 28 * Math.PI * 2; A.px(Math.round(cx + Math.cos(a) * (trx - 12)), Math.round(base + 3 + Math.sin(a) * 9), '#a87818'); }
+        A.line(cx - trx + 20, base - 4, cx - 30, base - 8, '#fff0b0');
+        // on the tray: two glasses already poured, the sugar bowl, a bunch of mint
+        for (const [ox, lv] of [[-70, 0.8], [-50, 0.85]]) { const gx = cx + ox; A.r(gx - 6, base - 22, 12, 22, PAL.line); A.r(gx - 5, base - 21, 10, 21, '#c8dcec'); A.r(gx - 5, base - 21 + Math.round(21 * (1 - lv)), 10, Math.round(21 * lv), '#b8601c'); A.r(gx - 5, base - 21 + Math.round(21 * (1 - lv)), 10, 2, '#f0dcb0'); A.vl(gx + 2, base - 19, 16, '#ffffff'); }
+        const sbx = cx + 62; A.ell(sbx, base - 6, 13, 9, PAL.line); A.ell(sbx, base - 7, 12, 8, '#e8ecf0'); A.ell(sbx, base - 11, 10, 3, '#ffffff'); for (let i = 0; i < 6; i++) A.px(sbx - 6 + i * 2, base - 12 + (i & 1), '#f4f4f0'); A.line(sbx + 4, base - 13, sbx + 14, base - 24, '#9aa4ae');
+        for (let i = 0; i < 5; i++) { const lx = cx + 80 + i * 3, ly = base - 2 - (i % 2) * 3; A.line(lx, ly, lx - 4 + i * 2, ly - 12, '#2f7a3a'); A.ell(lx - 4 + i * 2, ly - 13, 3, 2, i & 1 ? '#58a848' : '#78c050'); }
+        // the glass: a small straight tea glass, slightly flared, thick-bottomed, clear; the tea, its foam, a sprig of mint
+        const gh = 64, gy = base - gh, lvl = Math.min(1.05, S.level), th = Math.round(gh * lvl), fh = Math.round(S.foam * 9 * Math.min(1, lvl * 3));
+        const half = yy => 11 + Math.round(yy / gh * 4);                                                                                   // flaring toward the rim (yy from the bottom)
+        for (let yy = 0; yy <= gh; yy++) {
+            const w = half(yy), y = base - yy;
+            A.px(cx - w - 1, y, '#20283c'); A.px(cx + w, y, '#20283c');                                                                       // the outline
+            if (yy < 5) { A.r(cx - w, y, 2 * w, 1, yy < 1 ? '#9ab4c8' : '#c8dcec'); continue; }                                               // the thick glass base
+            if (yy < th) { const dk = 1 - yy / Math.max(1, th); A.r(cx - w, y, 2 * w, 1, dk > 0.6 ? '#8e3e10' : dk > 0.25 ? '#b0561a' : '#c86c24'); }   // the tea, darker at the bottom
+            else if (yy < th + fh && th > 2) A.r(cx - w, y, 2 * w, 1, (yy + Math.floor(t * 4)) % 3 ? '#f0dcb0' : '#fff4d8');                  // the foam
+            else A.soft(cx - w, y, 2 * w, 1, '#dcecff', 0.16);                                                                                 // empty glass: you see through it
+            A.px(cx - w, y, '#eef6ff'); A.px(cx - w + 1, y, yy < th ? '#e89048' : '#b8d0e8'); A.px(cx + w - 1, y, '#7890a8');                // the glass walls: lit left, shaded right
+            if (yy > th + fh && yy % 3 === 0) A.px(cx - w + 4, y, '#ffffff');                                                                 // a highlight streak
         }
-        const say = S.pouring ? (S.h > 0.85 ? 'Too high: it\'s splashing!' : S.h > 0.45 ? 'The foam is rising.' : 'Pour from higher for foam.') : 'Hold SPACE to pour. Stop at the gold line.';
-        Txt.draw(g, say, cx, 34, { col: S.pouring && S.h > 0.85 ? '#f07060' : '#e8dcff', align: 'center' });
+        A.r(cx - half(gh) - 1, base - gh - 1, 2 * half(gh) + 2, 2, '#f0c040'); A.hl(cx - half(gh), base - gh - 1, 2 * half(gh), '#fff0a0');   // the gold rim
+        A.r(cx - 12, base + 1, 24, 2, '#20283c');
+        for (const f of [0.78, 0.94]) { const yy = Math.round(gh * f), w = half(yy); A.r(cx - w - 7, base - yy, 5, 1, '#f0c040'); A.r(cx + w + 2, base - yy, 5, 1, '#f0c040'); A.px(cx - w - 8, base - yy, '#fff4b0'); }   // the gold lines: pour to here
+        for (let i = 0; i < 4 && th > 10; i++) { const by = base - 5 - Math.round((t * 20 + i * 13) % Math.max(1, th - 8)); A.px(cx - 6 + i * 4, by, '#e8a060'); }                  // bubbles rising
+        const mx = cx + half(gh) - 5; A.line(mx, base - Math.max(8, th), mx + 7, base - gh - 16, '#2f7a3a'); A.ell(mx + 8, base - gh - 17, 4, 3, '#58a848'); A.ell(mx + 4, base - gh - 10, 3, 2, '#78c050'); A.px(mx + 7, base - gh - 18, '#a8e070');
+        if (th > 10 && !S.pouring) for (let i = 0; i < 3; i++) { const sx = cx - 6 + i * 6 + Math.round(Math.sin(t * 2 + i) * 2), sy = base - gh - 10 - ((t * 14 + i * 9) % 26); A.px(sx, sy, 'rgba(255,255,255,0.4)'); A.px(sx + 1, sy - 1, 'rgba(255,255,255,0.3)'); }
+        // the teapot, in a hand: blackened aluminium, a long curved spout; higher or lower; tipping when you pour
+        const ky = gy - 22 - Math.round(S.h * 74), kx = cx - 58, tip = S.pouring ? 1 : 0;
+        A.poly([[kx - 60, ky - 44], [kx - 46, ky - 50], [kx - 16, ky - 20], [kx - 26, ky - 14]], '#3e6ab0'); A.line(kx - 58, ky - 45, kx - 24, ky - 16, '#5a88d0');   // a sleeve, from the upper left
+        A.ell(kx - 16, ky - 15, 6, 5, PAL.skin[2]); A.ell(kx - 17, ky - 16, 3, 2, PAL.skin[1]); A.px(kx - 12, ky - 12, PAL.skin[3]);                                      // the hand round the handle
+        A.line(kx - 13, ky - 18, kx - 14, ky - 6, '#2a2c34'); A.line(kx - 12, ky - 18, kx - 13, ky - 6, '#2a2c34'); A.line(kx - 14, ky - 6, kx - 8, ky + 2, '#2a2c34');                   // the handle
+        A.ell(kx, ky, 17, 15, PAL.line); A.ell(kx, ky, 16, 14, '#6a7480'); A.ell(kx - 4, ky - 4, 9, 7, '#9aa4ae'); A.ell(kx - 7, ky - 7, 3, 2, '#dfe6ea'); A.ell(kx + 4, ky + 5, 10, 6, '#4a525c');
+        A.r(kx - 8, ky - 17, 16, 4, '#4a525c'); A.r(kx - 2, ky - 21, 4, 4, '#2a2c34');
+        const sp = [[kx + 14, ky + 2], [kx + 22, ky - 4 + tip * 4], [kx + 30, ky - 8 + tip * 10], [kx + 36, ky - 8 + tip * 16]];
+        for (let i = 0; i + 1 < sp.length; i++) { A.line(sp[i][0], sp[i][1], sp[i + 1][0], sp[i + 1][1], PAL.line); A.line(sp[i][0], sp[i][1] - 1, sp[i + 1][0], sp[i + 1][1] - 1, '#6a7480'); }
+        const [sx0, sy0] = sp[sp.length - 1];
+        if (S.pouring) {                                                                                                                             // the stream: an arc, falling into the glass
+            const top = base - th - fh;
+            for (let y = sy0; y < top; y++) { const k = (y - sy0) / Math.max(1, top - sy0), x = Math.round(sx0 + (cx - sx0) * Math.sqrt(k) + Math.sin(y * 0.7 + t * 30) * 0.6); A.px(x - 1, y, '#e88a3c'); A.px(x, y, (y + (t * 40 | 0)) % 3 ? '#c86c24' : '#f8b060'); A.px(x + 1, y, '#a85418'); }
+            if (S.h > 0.45) for (let i = 0; i < 3; i++) A.px(cx - 4 + ((t * 50 + i * 7) % 9), top - 1 - (i & 1), '#fff4d8');
+        }
+        for (const d of S.drops) A.r(Math.round(cx + d.x), Math.round(base - th + d.y), 2, 2, '#c86c24');
+        // the gauges, in brass frames
+        const bx = Math.min(cx + 104, VW - 130), bw = Math.min(120, VW - bx - 10);
+        if (bw > 70) {
+            A.r(bx - 6, gy - 30, bw + 12, 58, '#3a2410'); A.r(bx - 5, gy - 29, bw + 10, 56, '#a87818'); A.r(bx - 3, gy - 27, bw + 6, 52, '#2a1c10');
+            miniBar(g, A, bx, gy - 22, bw, 'GLASS', S.level, [0.78, 0.94]);
+            miniBar(g, A, bx, gy - 6, bw, 'FOAM', S.foam, [0.5, 1]);
+            miniBar(g, A, bx, gy + 10, bw, 'HEIGHT', S.h, null, S.h > 0.85);
+        }
+        const say = S.pouring ? (S.h > 0.85 ? 'Too high: it\'s splashing!' : S.h > 0.45 ? 'The foam is rising.' : 'Pour from higher for foam.') : 'Hold SPACE to pour. Stop between the gold lines.';
+        Txt.draw(g, say, cx, 30, { col: S.pouring && S.h > 0.85 ? '#f07060' : '#f4e4c0', align: 'center', shadow: '#1c1410' });
     },
 };
 
