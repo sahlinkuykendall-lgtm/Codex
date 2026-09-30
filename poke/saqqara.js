@@ -28,7 +28,7 @@ function saqqaraLayout() {
     // ---- the desert: rock all round its edge ----
     for (let x = 0; x < 47; x++) {
         let top = 5 + Math.round(Math.sin(x * 0.35) + R() * 1.2);
-        if (x >= 3 && x <= 12) top = 7;                                              // the cliff the Serapeum is cut into
+        if (x >= 3 && x <= 15) top = 7;                                              // the cliff the Serapeum (and its service door) is cut into
         if (x >= 20 && x <= 29) top = 5;                                             // room round the Teti pyramid
         const bot = 3 + Math.round(R() * 1.5 + Math.sin(x * 0.25));
         rect(x, 0, 1, top, T.ROCK); rect(x, H - bot, 1, bot, T.ROCK);
@@ -55,7 +55,7 @@ function saqqaraLayout() {
     // ---- the museum garden ----
     rect(56, 43, 19, 10, T.YARD); set(63, 42, T.PATH); set(64, 42, T.PATH);
     // ---- yards: the inspectorate's, the coach park, the Serapeum's forecourt, the dig ----
-    rect(35, 18, 8, 7, T.YARD); rect(33, 31, 9, 5, T.YARD); rect(4, 7, 9, 3, T.YARD);
+    rect(35, 18, 8, 7, T.YARD); rect(33, 31, 9, 5, T.YARD); rect(4, 7, 12, 3, T.YARD);
     rect(29, 7, 5, 3, T.DIG);
     // ---- the Step Pyramid's court: paving before the pyramid ----
     rect(13, 22, 12, 2, T.STONE);
@@ -72,7 +72,7 @@ function saqqaraLayout() {
         // --- the coach park, the camel men ---
         ['c1b_bus', 34, 31, 4, 2], ['c1b_souvenirs', 39, 32, 2, 1], ['c1b_camel1', 36, 34, 1, 1], ['c1b_camel2', 40, 35, 1, 1], ['c1b_cameleer', 38, 34, 1, 1], ['c1b_tpolice', 41, 34, 1, 1],
         // --- the Serapeum ---
-        ['c1b_serapeum', 6, 6, 3, 1], ['c1b_ghafhut', 11, 8, 2, 2], ['c1b_ghaffir', 10, 10, 1, 1], ['c1w_zeer_ser', 13, 10, 1, 1],
+        ['c1b_serapeum', 6, 6, 3, 1], ['c1b_servicedoor', 14, 6, 1, 1], ['c1b_cigs', 15, 8, 1, 1], ['c1b_kagemni', 38, 10, 4, 2], ['c1b_ghafhut', 11, 8, 2, 2], ['c1b_ghaffir', 10, 10, 1, 1], ['c1w_zeer_ser', 13, 10, 1, 1],
         // --- the Teti pyramid and the dig ---
         ['c1b_teti', 21, 6, 6, 4], ['c1b_tetispoil', 30, 11, 3, 2], ['c1b_tetisieve', 34, 11, 1, 1], ['c1b_gad', 31, 13, 1, 1], ['c1b_digman1', 29, 10, 1, 1], ['c1b_digman2', 33, 8, 1, 1], ['c1w_zeer_teti', 35, 13, 1, 1],
         // --- the mastaba field ---

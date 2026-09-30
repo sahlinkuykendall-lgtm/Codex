@@ -100,6 +100,7 @@ there are no image files.
 | `areas.js` | Which place each background opens in: the map, the objects, the start time, the story hooks |
 | `ch1b_scenes.js` | Chapter 1-B, the Inspector's opening at Saqqara (see `INSPECTOR_TODO.md`) |
 | `tracker.js` | The task tracker (the compass, T for an arrow) and the corner panel with water and food |
+| `ch1b_seals.js` | Chapter 1-B beat 2: the inspection round, the seal-check minigame, the forged seal and Samy's cigarettes |
 | `backgrounds.js` | The four backgrounds: skills, gear, papers, their paintings and opening cutscenes |
 | `intro.js` | The opening scenes, the background choice, male/female, the character creator, the name grid, your papers |
 | `game.js` | The loop: input, movement and collision, camera, drawing, day/night, doors, saving |

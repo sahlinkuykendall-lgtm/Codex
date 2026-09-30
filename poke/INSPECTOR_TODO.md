@@ -44,7 +44,21 @@ Giza's.
 > - the Inspector is playable from the intro, with the bible's Investigation skill added
 >   to the skills
 
-## 2. Beat 2: the inspection round (the job tutorial)
+## 2. Beat 2: the inspection round (the job tutorial) — ✅ DONE in P0.27
+> Done in `poke/ch1b_seals.js`:
+> - **the seal check minigame**: the register's stamp beside the clay on the door; mark
+>   what's wrong (eight ring signs, the emblem, three digits), then sign. Old clay is worn,
+>   not forged.
+> - **three sealed doors on the map**: the South Tomb's stairway, the Mastaba of Kagemni
+>   (Teti cemetery), and a service door in the cliff by the Serapeum; the last one is
+>   forged (a ring sign and the last digit, the clay still damp)
+> - **Samy's Cleopatra cigarettes** by the service door
+> - lines for the ghaffir (a motorbike with no light last night), Fathi ("in triplicate",
+>   "go home early") and Samy (who rides off to Mit Rahina)
+> - the compass leads round the beat
+>
+> Beat 3 (the tail) picks up from the `c1b_tail` task.
+
 Check three tomb seals on your beat: the Step Pyramid complex, the Teti cemetery, and the
 Serapeum. At the Serapeum you find Samy's cigarettes by a service door that should be
 locked. **The seal minigame is reused** (`MINIS.seal` in `poke/minigames.js`), reworked for

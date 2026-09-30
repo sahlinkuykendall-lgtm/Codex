@@ -12,6 +12,40 @@ Other docs:
 
 ---
 
+## POKE-STYLE P0.27 — 2026-09-30 — (branch `poke-style`) The Inspector's round: three tomb seals, one forged (Chapter 1-B, step 2)
+- **Beat 2, the inspection round** (the job tutorial, from the bible). After the Director,
+  check the three tomb seals on your beat; the compass leads you round:
+  - **the South Tomb** in the Step Pyramid complex: a barrier and a rope seal across its
+    stairway
+  - **the Mastaba of Kagemni** in the Teti cemetery (a new tomb on the map, north of the
+    inspectorate), sealed since spring, its clay old and crumbling
+  - **the Serapeum's service door**, a steel door in the cliff beside the steps, the
+    engineers' way down to the pumps, that nobody should use
+- **The seal check** (the seal minigame reworked for inspectors):
+  - the stamp from the register on the left, in blue ink; the clay seal on the door on the
+    right
+  - move part by part (◄►) through the eight signs round the ring, the emblem and the
+    three digits of the number; the same part is highlighted on both sides
+  - SPACE marks a part that's wrong on the door; then sign SEAL INTACT or SEAL FORGED
+  - wear and cracks in old clay aren't forgery (Kagemni's teaches that)
+  - a wrong call can be tried again: it tells you whether you marked something the
+    register agrees with, or signed past a difference
+- **The service door is forged:** the sixth sign and the last digit are wrong (114 in the
+  register, 117 on the door), and the clay is still damp. Beside it, trodden into the
+  sand: four fresh **Cleopatra cigarette ends** and a crushed packet. That's Samy's brand,
+  and he always crushes the packet.
+- **The people:**
+  - the ghaffir heard a motorbike come up the road last night with its light off
+  - Samy, shown the evidence bag: "Everybody smokes Cleopatra." He rides off to Mit
+    Rahina and his motorbike is gone from the yard
+  - Fathi: "Write it up. In triplicate. File it. Today is Tuesday, Inspector. Go home
+    early."
+- **Next:** the new task is to follow Samy to Mit Rahina. That's beat 3, the tail, in the
+  next update.
+- Saved games keep all of it. The audit is clean (178 scenes; Saqqara has 69 things to
+  look at, all reachable). Giza's look check is 33 of 33 identical, and its playthroughs
+  are clean.
+
 ## POKE-STYLE P0.26 — 2026-09-30 — (branch `poke-style`) A leftover from the old story removed
 - **The half-buried transit level** by Lindqvist's trailer said it belonged to "Sam Okafor,
   your dead research partner", left there 14 months ago. That's text from the old 3D story:
