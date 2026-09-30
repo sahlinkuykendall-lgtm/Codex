@@ -23,6 +23,11 @@ state and dialogue logic into `poke/`, replacing the 3D calls with the poke UI (
 
 Rules:
 - Crisp pixel art only: no blur, gradients or smoothing.
+- **Keep Area 1's look exactly as it is (P0.6).** The map, the layout, the art, the people
+  and the interiors are finished and approved. Story work adds conversations and systems on
+  top; it doesn't move, redraw or restyle what's there. New things from step 7 go on free
+  ground in the same style. Before each commit, render the camp at every place (day and
+  night) and the three rooms, and compare them pixel for pixel with the previous commit.
 - Each update gets a POKE-STYLE P0.x entry in `UPDATE_LOG.md` and a bump of the title
   version in `poke/ui.js`.
 - Commit and push `poke-style` after each step.
