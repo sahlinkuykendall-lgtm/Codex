@@ -49,29 +49,33 @@ const Hud = {
     // the corner: water and food, and the compass
     draw(g) {
         if (Dlg.active || Game.state !== 'play') return;
-        const A = pa(g), VW = Game.VW, VH = Game.VH, n = needs(), w = 112, h = 38, x = VW - w - 6, y = VH - h - 6;
+        const A = pa(g), VW = Game.VW, VH = Game.VH, n = needs(), w = 116, h = 46, x = VW - w - 6, y = VH - h - 6;
         A.r(x + 1, y, w - 2, h, PAL.line); A.r(x, y + 1, w, h - 2, PAL.line); A.r(x + 1, y + 1, w - 2, h - 2, '#f4ecd4'); A.r(x + 1, y + 1, w - 2, 2, '#fffaf0'); A.r(x + 1, y + h - 3, w - 2, 2, '#d8c8a0');
         const bar = (by, v, col, dark, icon) => {
             icon(x + 6, by); A.r(x + 16, by + 1, 50, 7, PAL.line); A.r(x + 17, by + 2, 48, 5, '#d8d0c0');
             const f = Math.round(48 * Math.max(0, Math.min(1, v / 100))); A.r(x + 17, by + 2, f, 5, v <= 20 && (Game.time * 3 | 0) % 2 ? '#f05030' : col); A.r(x + 17, by + 2, f, 1, '#ffffff'); A.r(x + 17, by + 6, f, 1, dark);
         };
-        bar(y + 7, n.water, '#4a98dc', '#2a6cb0', (ix, iy) => { A.poly([[ix + 3, iy], [ix + 6, iy + 5], [ix + 3, iy + 8], [ix, iy + 5]], '#3a7cc4'); A.px(ix + 2, iy + 4, '#bfe4f8'); });   // a drop
-        bar(y + 22, n.food, '#e0a030', '#b07818', (ix, iy) => { A.ell(ix + 3, iy + 4, 4, 3, '#c89058'); A.ell(ix + 2, iy + 3, 2, 1, '#f0c080'); });                                    // a loaf
-        // the compass: a brass ring, north at the top, the needle to the tracked task
-        const cx = x + w - 20, cy = y + h / 2, R = 14, t = Tracker.target();
-        A.ell(cx, cy, R + 1, R + 1, PAL.line); A.ell(cx, cy, R, R, '#c89020'); A.ell(cx, cy, R - 2, R - 2, '#fff8e8');
-        for (let k = 0; k < 8; k++) { const a = k / 8 * Math.PI * 2; A.px(Math.round(cx + Math.sin(a) * (R - 3)), Math.round(cy - Math.cos(a) * (R - 3)), k % 2 ? '#c8b890' : '#8a6a30'); }
-        A.px(cx, cy - R + 3, '#d04838');
+        bar(y + 10, n.water, '#4a98dc', '#2a6cb0', (ix, iy) => { A.poly([[ix + 3, iy], [ix + 6, iy + 5], [ix + 3, iy + 8], [ix, iy + 5]], '#3a7cc4'); A.px(ix + 2, iy + 4, '#bfe4f8'); });   // a drop
+        bar(y + 27, n.food, '#e0a030', '#b07818', (ix, iy) => { A.ell(ix + 3, iy + 4, 4, 3, '#c89058'); A.ell(ix + 2, iy + 3, 2, 1, '#f0c080'); });                                    // a loaf
+        // the compass: a brass bezel lettered N E S W (north is always up the screen), the needle to the tracked task
+        const cx = x + w - 23, cy = y + (h >> 1), R = 19, t = Tracker.target();
+        A.ell(cx, cy, R + 1, R + 1, PAL.line); A.ell(cx, cy, R, R, '#c89020'); A.ell(cx - 1, cy - 1, R - 2, R - 2, '#e0b040'); A.ell(cx, cy, R - 6, R - 6, '#7a5a18'); A.ell(cx, cy, R - 7, R - 7, '#fff8e8');
+        for (let k = 1; k < 8; k += 2) { const a = k / 8 * Math.PI * 2; A.px(Math.round(cx + Math.sin(a) * (R - 3)), Math.round(cy - Math.cos(a) * (R - 3)), '#7a5a18'); }
+        const LET = { N: ['101', '111', '111', '111', '101'], E: ['111', '100', '110', '100', '111'], S: ['111', '100', '111', '001', '111'], W: ['101', '101', '111', '111', '101'] };
+        const letter = (ch, lx, ly, col) => LET[ch].forEach((row, j) => { for (let i = 0; i < 3; i++) if (row[i] === '1') A.px(lx + i, ly + j, col); });
+        letter('N', cx - 1, cy - R + 1, '#b82818'); letter('S', cx - 1, cy + R - 6, '#3a2a10'); letter('E', cx + R - 5, cy - 2, '#3a2a10'); letter('W', cx - R + 2, cy - 2, '#3a2a10');
         if (t) {
             const p = Game.player, dx = t.x - p.x, dy = t.y - p.y, a = Math.atan2(dx, -dy), d = Math.hypot(dx, dy);
             if (d < 40 && !t.exit) { A.ell(cx, cy, 4, 4, '#58a848'); A.ell(cx, cy, 2, 2, '#b8f0a0'); }             // you're there
             else {
-                const tx = cx + Math.sin(a) * (R - 4), ty = cy - Math.cos(a) * (R - 4), bx = cx - Math.sin(a) * 5, by = cy + Math.cos(a) * 5, sx = Math.cos(a) * 3, sy = Math.sin(a) * 3;
+                const tx = cx + Math.sin(a) * (R - 8), ty = cy - Math.cos(a) * (R - 8), bx = cx - Math.sin(a) * 6, by = cy + Math.cos(a) * 6, sx = Math.cos(a) * 3, sy = Math.sin(a) * 3;
                 A.poly([[tx, ty], [cx + sx, cy + sy], [cx - sx, cy - sy]], '#d04838'); A.poly([[bx, by], [cx + sx, cy + sy], [cx - sx, cy - sy]], '#5a6272');
                 A.ell(cx, cy, 1, 1, PAL.line);
             }
-            const lab = t.exit ? 'the door' : (d / TILE < 1.5 ? 'here' : Math.round(d / TILE) + ' m');
-            Txt.draw(g, lab, cx, y - 12, { col: '#ffffff', shadow: '#30302c', align: 'center' });
+            // the heading in words, as a sailor would say it: N, NE, E …
+            const head = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'][Math.round(((a / (Math.PI * 2)) * 8 + 8)) % 8];
+            const lab = t.exit ? 'the door' : (d / TILE < 1.5 ? 'here' : head + '  ' + Math.round(d / TILE) + ' m');
+            Txt.draw(g, lab, Math.min(cx, VW - 6 - (Txt.width(lab) >> 1)), y - 13, { col: '#ffffff', shadow: '#30302c', align: 'center' });
         } else { A.ell(cx, cy, 2, 2, '#9a8a60'); }
         // T: the big arrow over your head
         if (Tracker.flashT > 0 && t) {

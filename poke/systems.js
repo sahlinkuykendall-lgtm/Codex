@@ -86,14 +86,14 @@ const NEED_DRAIN = { water: 0.11, food: 0.06 };        // per story minute
         const n = needs(), w0 = n.water, f0 = n.food;
         n.water = Math.max(0, n.water - NEED_DRAIN.water * mins); n.food = Math.max(0, n.food - NEED_DRAIN.food * mins);
         if (w0 > 20 && n.water <= 20) storyNotice('Thirsty. A well, the water jars, the barrels, your canteen (in the bag).');
-        if (f0 > 20 && n.food <= 20) storyNotice('Hungry. The cooking table, the mess tent, or dates.');
+        if (f0 > 20 && n.food <= 20) storyNotice(area().giza ? 'Hungry. The cooking table, the mess tent, Miriam\'s camp kitchen, or dates.' : 'Hungry. The bakery, the café, or the fruit stall.');
         if (w0 > 0 && n.water <= 0) Notice.show('Parched. You can\'t run until you drink.');
         if (f0 > 0 && n.food <= 0) Notice.show('Starving. You can\'t run until you eat.');
     };
 })();
 // the first time water or food drops to half, someone tells you what they do (once a game)
 const NEEDS_WHERE = {
-    archaeologist: 'Water: the well at the oasis, the water barrels, the jars by the sieve, the trench and the guard post, the sabil at the tomb, the mess tent urn, and your canteen (in the bag, three swigs; it refills at any of them). Food: the cooking table in the workers\' camp, bread in the mess tent, dates from the palms.',
+    archaeologist: 'Water: the well at the oasis, the water barrels, the jars by the sieve, the trench and the guard post, the sabil at the tomb, the mess tent urn, and your canteen (in the bag, three swigs; it refills at any of them). Food: the cooking table in the workers\' camp, bread in the mess tent, what Miriam left at her camp kitchen, dates from the palms.',
     inspector: 'Water: the village well, the water jars at the inspectorate, the Teti dig and the Serapeum, the cooler inside, and your canteen (in the bag, three swigs; it refills at any of them). Food: bread at the bakery, ful and ta\'ameya at the café, oranges from the fruit stall.',
 };
 function needsTutorial() {
@@ -172,6 +172,44 @@ scene('c1a_datepalm', {
         if (datesReady(id)) c.push({ text: 'Pick a handful. (5 minutes)', onSelect: () => { sflag('dates_' + id, Story.s.clock); pocket('Dates', 3); eat(10, 'A fresh date'); clockAdvance(5); } });
         c.push({ text: 'Move on.' });
         return c;
+    },
+});
+// Miriam's camp kitchen: what she left in the cooler and the tin box, enough for three meals
+STORY_SCRIPTS.c1m_kitchen = 'c1m_kitchen';
+const KITCHEN_MEALS = [
+    ['Warm a tin of ful on the stove and eat it with the flatbread. (15 minutes)', 'Ful and flatbread', 60, `The stove lights first time. Fava beans with cumin and a squeeze of the lemon she left in the cooler, scooped up with bread gone a little stiff. She ate like this every night, Hana says, alone, with the pyramids for company.`],
+    ['Cheese, olives and the last of the bread, from the cooler. (10 minutes)', 'Cheese and olives', 45, `The ice in the cooler melted days ago, but the white cheese is in brine and the olives don't care. On the lid, in marker: M's. HANDS OFF, LINDQVIST. You eat them anyway. She would have laughed.`],
+    ['A tin of halva and a handful of her biscuits. (5 minutes)', 'Halva and biscuits', 30, `Sesame halva, crumbly and far too sweet, from a tin with a picture of a camel on it. Under it, the biscuits, and under them a folded shopping list in her hand: bread, batteries, candles, plaster. Plaster, underlined.`],
+];
+scene('c1m_kitchen', {
+    speaker: 'System',
+    get text() {
+        const n = sflag('kitchen_ate') || 0;
+        return `Miriam's outdoor kitchen, on a kilim spread over the sand beside her tent: a two-burner camping stove on its stand, a blue gas bottle, a red cooler, a folding table. Two enamel mugs, washed and turned upside down against the sand.\n\nEverything in its place. She cooked out here rather than eat in the mess tent: the only quiet hour of her day.`
+            + (n >= KITCHEN_MEALS.length ? `\n\nThe cooler and the tin box are empty now. You ate what she left.` : n ? `\n\nThere's still some of her food in the cooler and the tin box.` : `\n\nIn the cooler and a tin box under the table, food she meant to come back for.`);
+    },
+    get choices() {
+        const n = sflag('kitchen_ate') || 0, c = [];
+        if (n < KITCHEN_MEALS.length) { const [t, why, amt, after] = KITCHEN_MEALS[n]; c.push({ text: t, onSelect: () => { sflag('kitchen_ate', n + 1); eat(amt, why); clockAdvance([15, 10, 5][n]); Dlg.open('System', after); } }); }
+        c.push({ text: 'Leave it.' });
+        return c;
+    },
+});
+// the workers' shortwave radio: turn it up, and for a minute the camp near it has other music (poke/music.js)
+STORY_SCRIPTS.camp_radio = 'fun_radio';
+const turnRadio = tune => { const e = Game.map.ents.find(q => q.id === Game.talkId); if (e) Music.playRadio(tune, e); if (!Game.set.music) Toast.show('(Music is off: Esc → SETTINGS → MUSIC)'); };
+scene('fun_radio', {
+    speaker: 'System',
+    text: () => Music.radio && Game.time < Music.radio.until
+        ? `The radio's going full blast. Somebody by the fire is conducting with a glass of tea.`
+        : `A battered shortwave radio, its aerial mended with wire. Umm Kulthum, live from 1967, singing the same line for the ninth time while an audience in Cairo loses its mind. Nobody would dream of changing the station.`,
+    get choices() {
+        if (Music.radio && Game.time < Music.radio.until) return [{ text: 'Leave it playing.' }];
+        return [
+            { text: 'Turn it up.', onSelect: () => { turnRadio('radio_tarab'); Dlg.open('System', `You turn the knob and the whole yard fills with her: the violins, the qanun, a voice that doesn't need the volume at all. Somebody by the fire says "Allah!" at the end of the line, the way the audience does.`); } },
+            { text: 'Turn the dial. Carefully.', onSelect: () => { turnRadio('radio_shaabi'); Dlg.open('System', `Static, a man reading the football results, static, and then a Saidi wedding band, drums and a mizmar screaming like a happy goose. From the fire, a groan. Then, one by one, clapping on the off-beat.`); } },
+            { text: 'Leave it.' },
+        ];
     },
 });
 // things in the bag you can use (SPACE on them in the BAG)

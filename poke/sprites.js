@@ -1030,7 +1030,8 @@ SPR_L['painted sherd'] = (w, d) => {                  // a curved shard of a pai
     A.line(x + 5, y + 12, x + 12, y + 12, '#2a1c18');                                                                                // the black line
     A.px(x + 10, y, '#f8dcb4'); A.px(x + 13, y + 4, '#f8dcb4'); A.px(x + 5, y + 5, '#f8dcb4'); A.px(x + 11, y + 1, '#fff0d8');      // the broken edge, paler
     A.hl(x + 3, y + 14, 12, '#d8bc80');
-    return Object.assign(propFit(st, w, d), { sparkle: true });
+    const S = propFit(st, w, d);                        // (the glint on the shard's top edge, where the light catches it)
+    return Object.assign(S, { sparkle: { big: true, x: (x + 11) / S.c.width, y: (y + 2) / S.c.height } });
 };
 SPR_L['fossil'] = (w, d) => {                         // a loose fossil: a little ammonite, glinting
     const st = propStage(w, d, 12, 10), { A } = st, x = st.x + 5, y = st.y + 5;
@@ -1320,6 +1321,14 @@ function fenceH(len, kind) {
     return Object.assign(fit(st), { thin: true });
 }
 function fenceV(len, kind) {
+    if (kind === 'chain') {                             // chain link seen almost edge-on: a narrow strip of diamond mesh, a post every tile, the top rail
+        const up = 20, st = stage(7, len, up), { A } = st, x = st.x, top = st.y - up;
+        A.g.fillStyle = 'rgba(200,212,220,0.22)'; A.g.fillRect(x, top + 2, 7, len + up - 3);
+        for (let j = 0; j < len + up - 3; j++) for (let i = 0; i < 7; i++) if ((i + j) % 5 === 0 || (j - i + 500) % 5 === 0) A.px(x + i, top + 2 + j, PAL.metal[2]);
+        A.r(x, top, 2, len, PAL.metal[1]); A.vl(x, top, len, PAL.metal[0]); A.vl(x + 6, top + up, len, PAL.metal[3]);    // the top rail, and the foot of the mesh
+        for (let j = 0; j <= len - 2; j += 32) { A.r(x + 1, top + j - 1, 3, up + 5, PAL.metal[2]); A.vl(x + 1, top + j - 1, up + 5, PAL.metal[0]); A.r(x + 1, top + j - 2, 3, 1, PAL.metal[0]); }
+        return Object.assign(fit(st), { thin: true });
+    }
     const up = kind === 'rope' ? 10 : kind === 'rail' ? 12 : 22, st = stage(4, len, up), { A } = st, x = st.x, top = st.y - up;
     const step = kind === 'rope' ? 22 : 20, col = kind === 'rope' ? PAL.canvas[2] : kind === 'rail' ? PAL.wood[1] : PAL.metal[2];
     A.r(x + 1, top + 4, 1, len, col); if (kind === 'rail') A.r(x + 1, top + 8, 1, len, PAL.wood[2]);

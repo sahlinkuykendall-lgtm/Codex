@@ -104,6 +104,12 @@ const World = {
         L.lamps.forEach(([tx, ty], i) => place('ow_pathlamp' + i, tx, ty, 1, 1));
         // the chain-link fence round the dig zone, and planks across the trench
         for (const [x0, x1, ty] of L.fences) { const w = (x1 - x0) * TILE; World.addEnt(map, { x: x0 * TILE, y: ty * TILE + 12, w, d: 4, spr: fenceH(w, 'northFence'), sortY: ty * TILE + 16 }); World.addSolid(map, x0 * TILE, ty * TILE + 10, w, 8); }
+        // runs of fence north to south: [tile x (the fence stands on its west edge), from y, to y]; a piece a tile long each, so they sort with you
+        for (const [tx, y0, y1] of L.fencesV || []) {
+            const x = tx * TILE - 2;
+            for (let ty = y0; ty < y1; ty++) World.addEnt(map, { x, y: ty * TILE, w: 4, d: TILE, spr: Object.assign(fenceV(TILE, 'chain'), { ox: -3, oy: -21 }), sortY: (ty + 1) * TILE });
+            World.addSolid(map, x - 2, y0 * TILE, 8, (y1 - y0) * TILE + 14);
+        }
         for (const [x0, x1, ty] of L.planks) {
             const w = (x1 - x0 + 1) * TILE, st = stage(w, 18, 0), A = st.A;
             A.r(st.x, st.y, w, 18, '#c89a5c'); for (let i = 0; i < w; i += 9) { A.vl(st.x + i, st.y, 18, '#9a6c3c'); A.vl(st.x + i + 1, st.y, 18, '#e0b478'); }
@@ -114,7 +120,7 @@ const World = {
         for (const [id, frac, to, name, dy] of L.doors) {
             const e = map.ents.find(q => q.id === id); if (!e) continue;
             const label = name || byId[id === 'tent_bldg' ? 'tent_door' : id === 'dorm_bldg' ? 'dorm_door' : 'foreman_door'].label.replace(/^Enter /, '');
-            map.doors.push({ x: e.x + e.w * frac - 16, y: e.y + (dy != null ? dy : e.d - 8), w: 32, h: 14, to, label });
+            map.doors.push({ x: e.x + e.w * frac - 16, y: e.y + (dy != null ? dy : e.d - 8), w: 32, h: 14, to, label, b: e });   // (b: the building, which glows at night)
             if (name) e.noLook = true;                 // (what it said from outside, you read going in: ch1_rooms.js)
         }
         for (const [bx, by, bw, bh] of L.blocks || []) World.addSolid(map, bx * TILE, by * TILE, bw * TILE, bh * TILE);   // (walls of trees: no gaps between the trunks)

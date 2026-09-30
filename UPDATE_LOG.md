@@ -12,6 +12,42 @@ Other docs:
 
 ---
 
+## POKE-STYLE P0.28 — 2026-09-30 — (branch `poke-style`) Giza camp fixes: compass letters, building light, the survey map, Miriam's food, the radio, darts, the fence
+- **The compass** (bottom right) now has N, E, S and W on a brass bezel (north is up the
+  screen), and the line above it gives the heading in words: "NE  16 m".
+- **Buildings glow at night**, differently from the lamps: a low, wide amber band along
+  the foot of the walls, the light of rooms, and a fan of light on the ground from each
+  door. The lamps keep their round pools.
+- **The survey map in Miriam's tent**, shown big, is redrawn at half as big again, traced
+  from the camp itself: the plateau's edge with hachures, the oasis, paths, palms, every
+  building, the fence and the gate, the rails, the cemetery and the old village; her
+  trenches in red pencil (A reopened, B backfilled, C with the Coptic word underlined
+  twice and an arrow to it); the Osiris Shaft circled with a question mark; a grid, a
+  title block (GIZA W. FIELD, DIR. M. HALE), a compass rose, a scale bar and a key.
+- **Miriam's camp kitchen:** you can eat what she left, three meals, one at a time (a tin
+  of ful warmed on her stove, cheese and olives from the cooler, halva and biscuits). The
+  last one has something under it: her shopping list, with *plaster* underlined.
+- **The shortwave radio** in the workers' camp: turn it up (Umm Kulthum, strings and a
+  qanun, in maqam Bayati with its quarter-tone), or turn the dial (a Saidi wedding band).
+  For a minute, near the radio, that's the music: tinny, through the radio's little
+  speaker, with a crackle of static, louder the closer you stand. Walk away and the camp's
+  own tune comes back.
+- **The painted sherds' sparkle** is a star now, swelling and fading with a halo, and a
+  pinprick of light between flashes. Glints draw after the night's darkness, so they show
+  at night too. (One sherd sat behind the Old Ministry Post where you couldn't see it; it's
+  moved into the open.)
+- **Darts are harder:** the blue ring (how far your hand sways) is bigger, it sways
+  faster, holding steady gives you less time, and the dart lands anywhere up to half the
+  ring off the crosshair.
+- **No way round the fence:** the gap was at the fence's east end, between the site
+  trailer and Trench A, then along the trench. A chain-link run now goes north from the
+  fence's end to the cliff (Trench A, the watchtower and the lookout stay outside). The
+  grove from the oasis to the fence has four more palms, so it looks as solid as it is.
+- The audit is clean (180 scenes, nothing reachable behind the locked gate), the three
+  playthroughs pass, and the look check shows only the intended changes in Giza's 33
+  views: the bigger compass box and its heading on every view, and the night glow, the
+  palms and the fence where they are.
+
 ## POKE-STYLE P0.27 — 2026-09-30 — (branch `poke-style`) The Inspector's round: three tomb seals, one forged (Chapter 1-B, step 2)
 - **Beat 2, the inspection round** (the job tutorial, from the bible). After the Director,
   check the three tomb seals on your beat; the compass leads you round:

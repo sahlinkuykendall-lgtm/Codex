@@ -59,7 +59,7 @@ const Game = {
         if (this.campFor !== A) { this.camp = A.layout(); this.campFor = A; }
         CampGround.init(this.camp);
         this.maps = { ch1: World.buildCamp(this.camp, A.objects()) };
-        this._mm = null;
+        this._mm = null; Music.radio = null;
         this.journal = []; this.bag = { 'Field journal': 1, 'Letter of appointment': 1 }; this.seen = {}; this.taken = {};
         this.story = Story.fresh(this.player.bg); this.lenaCar = null;
         Detector.spots = []; Detector.on = false; Detector.dig = null;
@@ -384,6 +384,7 @@ const Game = {
             if (cw > 60 && cw >= e.w - 6) { g.fillRect(left + 4, bottom - 1, cw - 4, 4); if (!sp.footShadow) g.fillRect(left + cw - 1, bottom - Math.min(e.d, 30), 3, Math.min(e.d, 30)); }   // buildings: along the foot and down the east side
             else A.ell(left + (cw >> 1) + 2, bottom, Math.max(4, Math.round(cw * 0.42)), Math.max(2, Math.min(5, Math.round(cw * 0.12))), g.fillStyle);
         }
+        const glints = [];
         for (const e of vis) {
             if (e.custom) { e.custom(g, cx, cy); continue; }
             if (e.person) {
@@ -393,7 +394,7 @@ const Game = {
             } else {
                 const sp = e.spr, c = sp.frames ? sp.frames[Math.floor(this.time * sp.fps) % sp.frames.length] : sp.c;
                 g.drawImage(c, Math.round(e.x + sp.ox - cx), Math.round(e.y + sp.oy - cy));
-                if (sp.sparkle && (this.time * 1.4 + e.x * 0.37) % 2.2 < 0.35) { const sx = Math.round(e.x + sp.ox + sp.c.width * 0.55 - cx), sy = Math.round(e.y + sp.oy + sp.c.height * 0.35 - cy); A.r(sx - 2, sy, 5, 1, '#ffffff'); A.r(sx, sy - 2, 1, 5, '#ffffff'); }   // (the glint sits on the find itself)
+                if (sp.sparkle) glints.push(e);              // (drawn after the light of the hour, so they show at night too)
             }
         }
         // the light of the hour, and lamps once it's dark
@@ -411,9 +412,33 @@ const Game = {
                     if (li.far) [[1, 0.06], [0.72, 0.08]].forEach(([k, al]) => TA.ell(x, y, Math.round(li.far * k * fl), Math.round(li.far * k * fl * 0.8), 'rgba(' + r + ',' + gg + ',' + b + ',' + (al * a).toFixed(3) + ')'));
                     [[1, 0.16], [0.7, 0.2], [0.42, 0.26], [0.2, 0.3]].forEach(([k, al]) => TA.ell(x, y, Math.round(li.r * k * fl), Math.round(li.r * k * fl * 0.8), 'rgba(' + r + ',' + gg + ',' + b + ',' + (al * a).toFixed(3) + ')'));
                 }
+                // buildings people live and work in: a low amber glow round the foot of the walls (not a lamp's
+                // round pool: wide and flat, the light of rooms), and a fan of light on the ground from each door
+                const glowed = new Set();
+                for (const d of m.doors) {
+                    const b = d.b; if (!b || b.gone || !b.spr) continue;
+                    const sp = b.spr, bw = sp.c.width, bx = Math.round(b.x + sp.ox - cx), by = Math.round(b.y + sp.oy + sp.c.height - cy), a = L.dark;
+                    if (bx > VW + 80 || bx + bw < -80 || by < -60 || by - sp.c.height > VH + 60) continue;
+                    if (!glowed.has(b)) { glowed.add(b); const mx = bx + (bw >> 1); [[1, 0.06], [0.82, 0.07], [0.62, 0.08]].forEach(([k, al]) => TA.ell(mx, by - 8, Math.round((bw / 2 + 26) * k), Math.round(34 * k), 'rgba(255,150,80,' + (al * a).toFixed(3) + ')')); }
+                    const dx = Math.round(d.x + d.w / 2 - cx), dy = Math.round(d.y + d.h - cy);
+                    [[1, 0.1], [0.66, 0.13], [0.36, 0.16]].forEach(([k, al]) => TA.poly([[dx - 9, dy - 5], [dx + 9, dy - 5], [dx + 9 + Math.round(20 * k), dy - 3 + Math.round(30 * k)], [dx - 9 - Math.round(20 * k), dy - 3 + Math.round(30 * k)]], 'rgba(255,214,150,' + (al * a).toFixed(3) + ')'));
+                }
                 if (m.dark) { const x = Math.round(p.x - cx), y = Math.round(p.y - 14 - cy); [[1, 0.18], [0.66, 0.24], [0.36, 0.3]].forEach(([k, al]) => TA.ell(x, y, Math.round(90 * k), Math.round(72 * k), 'rgba(255,220,160,' + al + ')')); }   // your torch
             }
             g.globalCompositeOperation = 'multiply'; g.drawImage(this.tintC, 0, 0); g.globalCompositeOperation = 'source-over';
+        }
+        // glints on small finds: a quick cross, or (sparkle.big) a star that swells and fades, with a halo
+        for (const e of glints) {
+            const sp = e.spr, S = sp.sparkle, sx = Math.round(e.x + sp.ox + sp.c.width * (S.x || 0.55) - cx), sy = Math.round(e.y + sp.oy + sp.c.height * (S.y || 0.35) - cy);
+            if (!S.big) { if ((this.time * 1.4 + e.x * 0.37) % 2.2 < 0.35) { A.r(sx - 2, sy, 5, 1, '#ffffff'); A.r(sx, sy - 2, 1, 5, '#ffffff'); } continue; }
+            const ph = (this.time + e.x * 0.13) % 1.6, k = ph < 0.6 ? Math.sin(ph / 0.6 * Math.PI) : 0;
+            if (k <= 0) { if ((this.time * 3 + e.y) % 1 < 0.5) A.px(sx, sy, '#fff8d0'); continue; }       // (between flashes: a pinprick of light)
+            const L = Math.round(2 + k * 6), D = Math.round(1 + k * 2);
+            A.ell(sx, sy, Math.round(3 + k * 4), Math.round(3 + k * 4), 'rgba(255,236,150,' + (0.3 * k).toFixed(2) + ')');
+            A.r(sx - L, sy, L * 2 + 1, 1, '#fff4c0'); A.r(sx, sy - L, 1, L * 2 + 1, '#fff4c0');
+            A.r(sx - L + 2, sy, L * 2 - 3, 1, '#ffffff'); A.r(sx, sy - L + 2, 1, L * 2 - 3, '#ffffff');
+            for (let i = 1; i <= D; i++) for (const [a, b] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) A.px(sx + a * i, sy + b * i, '#fff8d8');
+            A.r(sx - 1, sy - 1, 3, 3, '#ffffff');
         }
         if (m.outdoor && area().giza) Detector.drawWorld(g, cx, cy);
         // name tag over what you're facing, and the door you're near

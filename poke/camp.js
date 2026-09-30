@@ -95,7 +95,7 @@ function campLayout() {
         ['ow_oasis', 5, 12, 7, 6], ['ow_well', 13, 16, 2, 2], ['d_driftwood', 9, 20, 2, 1],
         ['ow_ruins', 20, 39, 6, 3], ['ow_ruin_note', 22, 43, 1, 1], ['fl_ruins', 19, 42, 1, 1], ['d_ruin1', 19, 38, 3, 1], ['d_ruin2', 26, 38, 1, 3], ['d_ruin3', 19, 43, 1, 1], ['d_ruin4', 25, 42, 2, 1], ['d_claypot', 18, 41, 1, 1], ['d_claypot2', 23, 37, 1, 1],
         ['c1p_cemetery', 22, 49, 7, 3], ['c1p_falsedoor', 25, 48, 1, 1], ['c1p_looterpit', 30, 52, 1, 1],
-        ['c1p_maqam', 47, 51, 3, 3], ['c1p_oldwoman', 46, 54, 1, 1], ['ow_shelter', 67, 34, 5, 2], ['c1p_tower', 70, 9, 2, 2], ['ow_lookout', 66, 11, 1, 1], ['d_bould2', 62, 12, 2, 1],
+        ['c1p_maqam', 47, 51, 3, 3], ['c1p_oldwoman', 46, 54, 1, 1], ['ow_shelter', 67, 34, 5, 2], ['c1p_tower', 70, 9, 2, 2], ['ow_lookout', 66, 11, 1, 1], ['d_bould2', 59, 12, 2, 1],
         ['ow_wreck', 8, 50, 3, 2], ['ow_bones', 62, 51, 2, 1], ['c1p_pavement', 51, 39, 5, 3], ['c1a_horses', 30, 45, 3, 1], ['c1a_sayed', 33, 47, 1, 1],
         ['fl_gate_post', 36, 52, 1, 1], ['fl_sand_east', 72, 30, 1, 1], ['fl_stars', 34, 38, 1, 1], ['fl_boulder', 58, 33, 2, 1], ['fl_cactus', 29, 20, 1, 1], ['fl_palm', 27, 31, 1, 1],
         ['d_cact1', 27, 38, 1, 1], ['d_cact2', 45, 42, 1, 1], ['d_cact3', 61, 30, 1, 1], ['d_cact4', 8, 39, 1, 1], ['d_cact5', 33, 50, 1, 1], ['d_cact6', 72, 47, 1, 1], ['d_cact7', 54, 27, 1, 1], ['d_cact8', 21, 18, 1, 1], ['d_cact9', 14, 51, 1, 1],
@@ -107,12 +107,12 @@ function campLayout() {
         ['c1f_datepalm', 12, 18, 1, 1], ['c1f_datepalm2', 28, 41, 1, 1],
     ];
     // the small finds scattered about (sherds, fossils, things half buried)
-    const scatter = { ow_sherd: [[28, 12], [48, 18], [60, 38], [11, 40], [34, 52], [55, 14], [21, 20], [72, 44]], c1p_fossil: [[52, 39], [54, 40], [53, 41], [55, 39], [51, 41]],
+    const scatter = { ow_sherd: [[28, 12], [48, 18], [63, 32], [11, 40], [34, 52], [55, 14], [21, 20], [72, 44]], c1p_fossil: [[52, 39], [54, 40], [53, 41], [55, 39], [51, 41]],
         ow_cache: [[31, 9], [47, 11], [10, 47], [26, 53], [61, 49], [72, 13], [16, 20], [53, 31], [6, 47], [44, 43], [72, 38], [36, 36], [25, 10], [57, 29], [9, 37], [29, 43]] };
     // trees: the palms of the oasis and along the roads
     const trees = [[3, 11], [12, 12], [3, 17], [7, 10], [9, 20], [4, 20], [15, 14], [2, 24],
         [5, 11], [10, 11], [4, 12], [11, 17], [6, 18], [13, 13],                                                          // more palms round the oasis
-        [15, 8], [16, 9], [15, 10], [16, 12], [15, 16], [16, 17], [14, 7],                                               // a grove from the cliff to the fence: no way round into the dig zone
+        [15, 8], [16, 9], [15, 10], [16, 12], [15, 16], [16, 17], [14, 7], [16, 11], [15, 12], [16, 13], [16, 15],        // a grove from the cliff to the fence: no way round into the dig zone
         [26, 34], [29, 16], [36, 40], [44, 40], [10, 46], [61, 35], [73, 40], [63, 53], [30, 37], [18, 53], [23, 30], [49, 26]];
     // lamps along the roads, on the kerbs
     // lamps: exactly eight tiles apart, always on the same side: the west kerb of the main road,
@@ -124,6 +124,8 @@ function campLayout() {
         [12, 42], [20, 46]];                                                   // the footpath south to the rail halt, and on to the cemetery
     // the fence round the dig zone: [x0, x1, y], the gate between the runs
     const fences = [[15, 36, 18], [42, 63, 18]];
+    // and north from its east end to the cliff, so the trailer and trench A are outside and there's no way round by the trench
+    const fencesV = [[63, 7, 18]];
     // planks across the trench: [x0, x1, y]
     const planks = [[66, 69, 19], [66, 69, 23], [66, 69, 26]];
     const places = [
@@ -138,7 +140,7 @@ function campLayout() {
         ['fl_digshed', 0.5, 'INT_DIGSHED', 'Dig Shed'], ['c1m_mess', 0.5, 'INT_MESS', 'Mess Tent'], ['c1m_hanatent', 0.5, 'INT_HANA', "Hana's Tent", 88], ['c1p_maqam', 0.5, 'INT_MAQAM', "Sheikh's Tomb"]];
     // solid ground nobody can see: behind the grove between the cliff and the fence's west end
     const blocks = [[15, 7, 1, 12]];
-    return { W, H, tile, get, things, scatter, trees, lamps, fences, planks, places, doors, blocks, spawn: [39, 42] };
+    return { W, H, tile, get, things, scatter, trees, lamps, fences, fencesV, planks, places, doors, blocks, spawn: [39, 42] };
 }
 
 // ============================================================

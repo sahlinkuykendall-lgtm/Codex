@@ -285,7 +285,7 @@ function dartBoard() {
 MINIS.darts = {
     title: 'CAMP DARTS', keys: '◄►▲▼ aim    hold SPACE: steady    let go: throw    ESC: leave',
     start(o) { return { ax: 0, ay: -52, steady: 0, holding: false, darts: [], score: 0, fly: null, best: o.best || 132, pop: null, sway: 0 }; },
-    sway(S) { const t = S.t, A = S.amp; return [(Math.sin(t * 1.9) * 0.6 + Math.sin(t * 3.7 + 1.3) * 0.4) * A, (Math.sin(t * 2.3 + 0.7) * 0.6 + Math.sin(t * 4.1 + 2.1) * 0.4) * A]; },
+    sway(S) { const t = S.t * 1.25, A = S.amp; return [(Math.sin(t * 1.9) * 0.6 + Math.sin(t * 3.7 + 1.3) * 0.4) * A, (Math.sin(t * 2.3 + 0.7) * 0.6 + Math.sin(t * 4.1 + 2.1) * 0.4) * A]; },
     update(S, dt, I, keys, pressed, released) {
         if (S.fly) {                                                 // a dart in the air
             S.fly.t += dt;
@@ -307,8 +307,9 @@ MINIS.darts = {
         // your hand sways; holding SPACE steadies it for a second or two, then your arm starts to shake
         if (keys.act) S.steady += dt;
         const st = S.steady;
-        if (!released) S.amp = !keys.act ? 13 : st < 1.1 ? 13 - st / 1.1 * 7.5 : st < 2.1 ? 5.5 : Math.min(22, 5.5 + (st - 2.1) * 14);   // (letting go throws with the steadiness you had)
-        if (released && st > 0.05) { const [sx, sy] = this.sway(S); S.fly = { t: 0, x: S.ax + sx + (Math.random() - 0.5) * 4, y: S.ay + sy + (Math.random() - 0.5) * 4 }; Sfx.tone(700, 0.05, 'square', 0.03, 300); }
+        if (!released) S.amp = !keys.act ? 19 : st < 1 ? 19 - st * 10 : st < 1.7 ? 9 : Math.min(30, 9 + (st - 1.7) * 18);   // (letting go throws with the steadiness you had)
+        // the dart goes near where the sway has the aim, but anywhere up to half the blue circle off it
+        if (released && st > 0.05) { const [sx, sy] = this.sway(S), a = Math.random() * Math.PI * 2, r = Math.sqrt(Math.random()) * S.amp * 0.55; S.fly = { t: 0, x: S.ax + sx + Math.cos(a) * r, y: S.ay + sy + Math.sin(a) * r }; Sfx.tone(700, 0.05, 'square', 0.03, 300); }
     },
     draw(S, g, A, VW, VH) {
         const cx = VW >> 1, cy = Math.min(VH >> 1, 128) + 6, b = dartBoard();
@@ -316,9 +317,9 @@ MINIS.darts = {
         for (const d of S.darts) { const x = Math.round(cx + d.x), y = Math.round(cy + d.y); A.line(x, y, x + 5, y + 7, PAL.line); A.line(x + 1, y, x + 5, y + 6, '#c8c8c8'); A.r(x + 4, y + 6, 3, 3, '#d04838'); }
         if (S.fly) { const k = S.fly.t / 0.22, x = Math.round(cx + S.fly.x + (1 - k) * 60), y = Math.round(cy + S.fly.y + (1 - k) * 90); A.line(x, y, x + 5, y + 7, '#c8c8c8'); A.r(x + 4, y + 6, 3, 3, '#d04838'); }
         else {                                                       // the aim, where the sway has it right now
-            const [sx, sy] = this.sway(S), x = Math.round(cx + S.ax + sx), y = Math.round(cy + S.ay + sy), col = S.steady > 2.1 ? '#f05030' : S.amp < 4 ? '#60f060' : '#ffffff';
+            const [sx, sy] = this.sway(S), x = Math.round(cx + S.ax + sx), y = Math.round(cy + S.ay + sy), col = S.steady > 1.7 ? '#f05030' : S.amp < 10 ? '#60f060' : '#ffffff';
             A.r(x - 6, y, 4, 1, col); A.r(x + 3, y, 4, 1, col); A.r(x, y - 6, 1, 4, col); A.r(x, y + 3, 1, 4, col); A.px(x, y, col);
-            const r = Math.round(S.amp); if (r > 2) for (let i = 0; i < 16; i++) { const a = i / 16 * Math.PI * 2; A.px(Math.round(cx + S.ax + Math.cos(a) * r), Math.round(cy + S.ay + Math.sin(a) * r), '#8898d0'); }
+            const r = Math.round(S.amp), nd = r * 7; if (r > 2) for (let i = 0; i < nd; i++) { const a = i / nd * Math.PI * 2, px = Math.round(cx + S.ax + Math.cos(a) * r), py = Math.round(cy + S.ay + Math.sin(a) * r); A.px(px + 1, py + 1, '#101838'); A.px(px, py, '#58b0ff'); }   // (how far your hand sways: the blue ring)
         }
         if (S.pop && S.pop.t < 1.2) Txt.draw(g, S.pop.s, cx, cy - DART_R - 30, { col: '#ffe890', shadow: '#101838', align: 'center' });
         const px = VW - 12;
