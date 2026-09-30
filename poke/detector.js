@@ -31,33 +31,49 @@ const BURIED_3D = [
     ['BRASS', 6, () => { pocket('Brass find tag, 1926'); c1aRelic(); }],
     ['TIN', 10, () => { pocket('Glass plate photograph'); sflag('plate_photo', true); c1aRelic(); }],
 ];
-// 24 more: most of it rubbish, some of it history. [metal, depth, text, EGP (scrap or the register's finder's fee), item?]
+// 24 more: most of it rubbish, some of it history.
+// [metal, depth, text, scrap EGP, register entry (an antiquity), metal shown on the screen]
+// Antiquities go to the Ministry's finds register for a flat finder's fee (REG_FEE): they're
+// for the collection and the history, not for money. Scrap is pocket change.
+const REG_FEE = 50;
 const BURIED_MORE = [
     ['FOIL', 2, 'A ring-pull from a can of Stella beer. The eighties were here.', 0],
     ['IRON', 3, 'A bent nail as long as your hand, square-cut. Old, but only nail-old.', 5],
-    ['COIN', 4, 'A silver tetradrachm of Ptolemy II, his mother Arsinoe on the back, black with age. The register pays a finder\'s fee and it goes to the Ministry store in the morning.', 400, null, 'SILVER'],
+    ['COIN', 4, 'A silver tetradrachm of Ptolemy II, his mother Arsinoe on the back, black with age.', 0, ['Silver tetradrachm of Ptolemy II', 'Struck in Alexandria around 270 BC, when a Greek dynasty ruled Egypt from the city Alexander founded. The Ptolemies built the Great Library there.'], 'SILVER'],
     ['FOIL', 1, 'A crumpled cigarette packet, Cleopatra brand, the foil lining still shining. Somebody\'s break.', 0],
     ['IRON', 5, 'A horseshoe, worn to a crescent. Somebody\'s luck, lost.', 10],
-    ['BRASS', 5, 'A brass uniform button: an eagle and a crown and FRANÇAIS. Napoleon\'s savants surveyed this plateau in 1799. One of them lost a button.', 250, 'Napoleonic button'],
+    ['BRASS', 5, 'A brass uniform button: an eagle and a crown and FRANÇAIS. Napoleon\'s savants surveyed this plateau in 1799. One of them lost a button.', 0, ['Napoleonic uniform button', '1799. Napoleon brought 167 scholars to Egypt with his army. Their Description de l\'Égypte started modern Egyptology, and one of his officers found the Rosetta Stone.']],
     ['TIN', 3, 'A sardine tin, opened with a knife, long ago. Nothing else.', 0],
-    ['COIN', 3, 'A copper fals, the Mamluk kind, stamped in Arabic, the size of your little fingernail. The register takes it.', 120],
+    ['COIN', 3, 'A copper fals, the Mamluk kind, stamped in Arabic, the size of your little fingernail.', 0, ['Mamluk copper fals', 'The Mamluks ruled Egypt from 1250 to 1517 and built half of medieval Cairo. Small change like this bought bread in the markets under the Citadel.']],
     ['IRON', 2, 'A bottle cap. Coca-Cola, the Arabic logo. Nothing.', 0],
-    ['BRASS', 6, 'A British Army cap badge, the Camel Corps, 1916. The pin has rusted away.', 180, 'Camel Corps badge'],
+    ['BRASS', 6, 'A British Army cap badge, the Camel Corps, 1916. The pin has rusted away.', 0, ['Imperial Camel Corps badge', '1916. The Camel Corps patrolled the Western Desert against the Senussi during the First World War. Some of them camped at the pyramids.']],
     ['FOIL', 2, 'A foil sweet wrapper, turned up by the wind and buried again by it.', 0],
-    ['IRON', 6, 'A rifle cartridge case, brass gone green, the base stamped 1942. The war came close to Giza.', 30],
-    ['BRASS', 7, 'A bronze arrowhead, three-bladed, the kind the Persians shot twenty-five centuries ago. The register pays well for it.', 300, null, 'BRASS'],
+    ['IRON', 6, 'A rifle cartridge case, brass gone green, the base stamped 1942. The war came close to Giza. The camp buys the brass.', 30],
+    ['BRASS', 7, 'A bronze arrowhead, three-bladed, the kind the Persians shot twenty-five centuries ago.', 0, ['Persian bronze arrowhead', 'Three-bladed, cast in a mould: the kind the Achaemenid Persians used when they conquered Egypt in 525 BC. Herodotus visited the pyramids under Persian rule.']],
     ['TIN', 4, 'A rusted tobacco tin. Inside, three pebbles someone thought were special. They are, a little: they\'re all perfectly round.', 5],
     ['IRON', 4, 'A key that fits nothing on the site, on a ring with a plastic Sphinx.', 0],
     ['COIN', 2, 'A one-piastre coin from 1938, King Farouk young on the front. Worth a piastre.', 1],
     ['FOIL', 3, 'A pull tab. Another pull tab. The detector loves pull tabs.', 0],
     ['IRON', 5, 'A tent peg, iron, one of Miriam\'s by the orange paint. Not treasure, but you smile.', 0],
-    ['SILVER', 8, 'A silver finger ring, plain, worn thin on one side. No stone, no name. You hand it to the register with care.', 350, null, 'SILVER'],
+    ['SILVER', 8, 'A silver finger ring, plain, worn thin on one side. No stone, no name.', 0, ['Silver finger ring', 'Roman period, Hana thinks, from the wear: worn for a lifetime on one hand. Whoever lost it lived and worked on this plateau two thousand years ago.'], 'SILVER'],
     ['TIN', 3, 'A spoon, tin, bent double. Somebody was very angry with their lentils.', 0],
-    ['IRON', 7, 'A chisel of old iron, flattened at the head by a hammer. A quarryman\'s. The register takes it.', 60],
-    ['BRASS', 4, 'A brass tap from a water barrel. The camp will want that back.', 20],
+    ['IRON', 7, 'A chisel of old iron, flattened at the head by a hammer. A quarryman\'s.', 0, ['Quarryman\'s iron chisel', 'Iron tools came late to Egypt. This one cut limestone in the Roman quarries, long after the pyramids\' builders worked the same rock with copper.']],
+    ['BRASS', 4, 'A brass tap from a water barrel. The camp gives you a few pounds to have it back.', 20],
     ['COIN', 5, 'A handful of coins from four different decades, rusted into one lump. Somebody\'s pocket, emptied.', 40],
     ['FOIL', 2, 'Foil from a camera film box, silver on one side. Nothing else.', 0],
 ];
+const REG_COUNT = BURIED_MORE.filter(b => b[4]).length;
+// the Ministry's finds register: every antiquity you hand in, with its story, in the journal
+function registerFind(title, history) {
+    const R = sflag('register') || []; if (R.includes(title)) return;
+    R.push(title); sflag('register', R);
+    storyPay(REG_FEE, 'Finder\'s fee from the register');
+    skillXP('excavation', 15);
+    Game.note('Finds register', 'Antiquities you found and handed to the site register for the Ministry (' + R.length + ' of ' + REG_COUNT + '):\n\n' + R.map(t => '• ' + t + ': ' + (BURIED_MORE.find(b => b[4] && b[4][0] === t)[4][1])).join('\n\n'), 'finds_register');
+    if (R.length === REG_COUNT) { rep('ministry', 5, true); storyNotice('The finds register is complete. The Ministry took note.'); }
+    else storyNotice('Finds register: ' + R.length + ' of ' + REG_COUNT + '.');
+}
+
 Object.assign(ITEM_INFO, {
     'Metal detector': { key: 1, desc: 'Miriam\'s detector: tape round the handle, "M.H." scratched in the housing. Press Q to switch it on outdoors. Face the signal, follow the tick, and read the metal before you dig.' },
     "Miriam's spare phone": { key: 1, desc: 'A cheap phone from Miriam\'s emergency cache, charged. One number saved: "A.S."' },
@@ -73,8 +89,6 @@ Object.assign(ITEM_INFO, {
     'Tin of dried mint': { desc: 'Dried mint and a blackened pot. Enough for a week of proper tea.' },
     'Signal mirror': { desc: 'A soldier\'s signalling mirror in a canvas sleeve. It throws the moon back at you.' },
     'Dates': { desc: 'Dates packed in their own sugar.' },
-    'Napoleonic button': { desc: 'A brass button, an eagle and FRANÇAIS: one of Napoleon\'s savants, 1799. The register let you keep it.' },
-    'Camel Corps badge': { desc: 'A British Army cap badge, the Imperial Camel Corps, 1916.' },
 });
 function c1aCache(what) {
     const n = ['tin', 'phone', 'glasses', 'rucksack'].filter(k => sflag('cache_' + k) || k === what).length;
@@ -109,8 +123,8 @@ const Detector = {
         for (const c of cand) {
             if (k >= BURIED_MORE.length) break;
             if (spots.some(s => Math.hypot(s.x - c.x, s.y - c.y) < 4 * TILE)) continue;
-            const [metal, depth, text, egp, item, shown] = BURIED_MORE[k];
-            spots.push({ id: 'bur' + k, x: c.x, y: c.y, metal: shown || metal, depth, text, egp, item });
+            const [metal, depth, text, egp, reg, shown] = BURIED_MORE[k];
+            spots.push({ id: 'bur' + k, x: c.x, y: c.y, metal: shown || metal, depth, text, egp, reg });
             k++;
         }
         this.spots = spots;
@@ -174,10 +188,12 @@ const Detector = {
         if (D.t < 1.3) return;
         const s = D.s; this.dig = null;
         sflag('dug_' + s.id, true); this.addHole(s); clockAdvance(5);
-        const junk = !s.reward && !s.item && (s.egp || 0) < 50;
-        Dlg.open('System', (junk ? 'You dig. ' : 'You dig, and your fingers find it. ') + s.text, () => {
+        const junk = !s.reward && !s.reg;
+        Dlg.open('System', (junk ? 'You dig. ' : 'You dig, and your fingers find it. ') + s.text + (s.reg ? '\n\nIt belongs to Egypt, not to you. You log it in the site register for the Ministry.' : ''), () => {
             if (s.reward) s.reward();
-            else { if (s.egp) storyPay(s.egp, s.egp >= 100 ? 'The register\'s finder\'s fee' : 'Scrap'); if (s.item) pocket(s.item); else if (!s.egp) { Toast.show('Junk. It goes in the spoil bucket.'); } }
+            else if (s.reg) registerFind(s.reg[0], s.reg[1]);                    // it goes to the Ministry's register
+            else if (s.egp) storyPay(s.egp, 'Scrap');
+            else Toast.show('Junk. It goes in the spoil bucket.');
             const n = this.spots.filter(q => sflag('dug_' + q.id)).length;
             Game.note('Detector finds', 'Dug ' + n + ' of the ' + this.spots.length + ' things the detector can hear round the camp.', 'detector_finds');
             if (!junk) Sfx.get();

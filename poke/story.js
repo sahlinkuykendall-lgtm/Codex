@@ -90,6 +90,9 @@ function rep(f, delta, quiet) {
     if (!quiet && Math.abs(delta) >= 10) storyNotice((REP_NAMES[f] || f) + ' took note.');
 }
 
+// ---- skills (step 6 builds skills and levels; until then XP is kept for them) ----
+function skillXP(skill, n) { const x = Story.s.xp || (Story.s.xp = {}); x[skill] = (x[skill] || 0) + n; }
+
 // ---- money ----
 function money() { return Story.s.money; }
 function storyPay(amount, why) {

@@ -12,6 +12,26 @@ Other docs:
 
 ---
 
+## POKE-STYLE P0.11 — 2026-09-30 — (branch `poke-style`) The detector, rebalanced
+- **The detector is no longer a money printer.** Digging up all 40 spots paid about
+  3,350 EGP (42% of your starting money), enough to make the payroll choice free. It now
+  pays **2,041 EGP**, most of it Miriam's 1,200 EGP emergency tin, as the bible has it.
+  - The 16 finds from the 3D chapter are unchanged.
+  - **The seven antiquities** go to the Ministry's **finds register**: the silver
+    tetradrachm, the Napoleonic button, the Mamluk fals, the Camel Corps badge, the Persian
+    arrowhead, the silver ring and the quarryman's chisel. "It belongs to Egypt, not to you."
+    Each pays a flat 50 EGP finder's fee (they paid 120–400 before).
+  - Each one goes into a **Finds register** page in the journal with its history: the
+    Ptolemies and the Library, Napoleon's savants, the Mamluks' Cairo, the Persian
+    conquest…
+  - Completing the register (7 of 7) gives the Ministry +5 reputation.
+  - Each antiquity gives 15 Excavation XP. It's kept now, for skills in step 6.
+  - The junk still pays pocket change for scrap (about 110 EGP in all).
+- **Fixed:** the Napoleonic button and the Camel Corps badge used to pay you *and* let you
+  keep them.
+- Digging up all 40 costs about 3 hours 20 minutes of the night (5 minutes a dig), not
+  counting the walking.
+
 ## POKE-STYLE P0.10 — 2026-09-30 — (branch `poke-style`) Miriam's metal detector
 - **The detector is a real tool now** (`poke/detector.js`). Take it from beside Hana's table,
   then press **Q** outdoors to switch it on:
