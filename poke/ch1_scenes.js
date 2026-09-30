@@ -12,6 +12,13 @@
 
 const R = () => 'Rais Abdallah';
 
+// ---- canon fixes to the 3D export (map_ch1.js is generated, so they're made here) ----
+// The old story's Sam Okafor is retired (story/00_MASTER_BIBLE.md §11): the half-buried level is Miriam's.
+(function () {
+    const o = POKE_MAP.objects.find(q => q.id === 'sams_gear');
+    if (o) { o.label = "Miriam's Level"; o.say = ['System', 'A brass surveyor\'s level on a snapped tripod, half-buried where the wind has drifted sand over it. "M.H." is scratched into the brass. Miriam\'s.\n\nFour days in the sand, and nobody has picked it up. On this site, nobody touches the Doctor\'s things.']; }
+})();
+
 // things that happen when you walk into a room
 function storyOnEnter(room) {
     if (room === 'INT_TENT') taskDone('tent');

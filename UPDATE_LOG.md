@@ -12,6 +12,16 @@ Other docs:
 
 ---
 
+## POKE-STYLE P0.26 — 2026-09-30 — (branch `poke-style`) A leftover from the old story removed
+- **The half-buried transit level** by Lindqvist's trailer said it belonged to "Sam Okafor,
+  your dead research partner", left there 14 months ago. That's text from the old 3D story:
+  the bible retires Sam (`story/00_MASTER_BIBLE.md` §11, with Ellis, Tariq, Iry, the
+  Uarha, the Heart, the Order of the Unshut Eye and the Perennial Concern). In the new
+  canon you've never been here before. It's now **Miriam's level**, left in the sand four
+  days ago, with "M.H." scratched into the brass.
+- **A sweep of everything else you can read found nothing more:** every Giza object, room
+  and scene, checked for the retired names.
+
 ## POKE-STYLE P0.25 — 2026-09-30 — (branch `poke-style`) The game explains digging, and what water and food do
 - **Digging with the detector:**
   - when you pick it up, the text and the toast now say how it works: Q switches it on,
