@@ -108,7 +108,18 @@ At night, Samy moves the Codex from his locker to the Serapeum's service room fo
   galleries, a torch, a stealth section.
 - You find the Codex in a cooler bag.
 
-## 5. Beat 5: the staged arrival
+## 5. Beat 5: the staged arrival — ✅ DONE in P0.32
+> Done in `poke/ch1b_radwan.js`:
+> - after the Serapeum, a black Mercedes (police plates, lights on) in the inspectorate yard;
+>   Director Fathi and **Colonel Khaled Radwan** at the office door; the driver smoking in
+>   the gateway; Umm Sabry has gone home; the office door is off limits while they're there
+> - their view cones (the driver watches the road and the wall, the Colonel the yard, the
+>   Director over his shoulder); seen, and you back off into the dark and try again
+> - listen from behind the compound wall or the Peugeot: Fathi hands over a sealed evidence
+>   box "from Shelf 4B"; Radwan weighs it, doesn't open it: "The Foundation thanks you.
+>   Mr. Vasse will be—". It's empty; nobody knows you have the Codex
+> - the car goes; new task `c1b_panic`
+
 Umm Sabry warned that "a black car comes for Fathi on Tuesdays." Headlights at the gate:
 **Colonel Radwan** arrives to "collect evidence" for Vasse, and Fathi hands over an empty
 box. Nobody knows yet that you have the real thing. (A timed event, like Giza's midnight

@@ -12,6 +12,35 @@ Other docs:
 
 ---
 
+## POKE-STYLE P0.32 — 2026-09-30 — (branch `poke-style`) The black car: Colonel Radwan and the empty box (Chapter 1-B, step 5)
+- **Beat 5, the staged arrival** (from the bible). "A black car comes for the Director on
+  Tuesdays," Umm Sabry said, and it's Tuesday. Coming up out of the Serapeum with the
+  Codex, you see its headlights turn in at the inspectorate.
+- **In the yard:** a black Mercedes with Cairo police plates, engine running, headlights
+  on. At the office door, Director Fathi and **Colonel Khaled Radwan** of the Tourist and
+  Antiquities Police (new: a pressed dark uniform, a cap, a grey moustache, a cigarette
+  lit from the last one). In the gateway, his driver, smoking, watching the road. Umm
+  Sabry has gone home for the night, and the office door is off limits while they're
+  there ("Not now. You'd walk straight into them").
+- **Listen in without being seen:** each of them has a view cone. The driver watches the
+  road and now and then looks along the wall; the Colonel looks over the yard; the
+  Director keeps glancing over his shoulder. The compound wall and the Director's Peugeot
+  are cover. Get within earshot unseen and the bar fills. If they notice you, you drop
+  behind the wall and back off into the dark to try again.
+- **The handover:** Fathi hands over a sealed grey evidence box, "everything from Shelf
+  4B, sealed and signed for". Radwan weighs it in his hands, something crosses his face,
+  and he doesn't open it. "The Foundation thanks you. Mr. Vasse will be—" He stops. Fathi:
+  "The ledger has been corrected. A clerical error. It was never here." Radwan: "Then I
+  was never here either." The box is empty. The Codex is inside your jacket, and nobody
+  in the yard knows it.
+- The car's lights swing away toward Cairo, the Director goes back inside, and the notes
+  get the Colonel and what the Director did. New task: Karim's man will find a brick in the
+  cooler bag, and Samy will come looking. That's beat 6, Samy's panic, in the next update.
+- Tested: the scene setting itself up, being seen and backing off, listening from behind
+  the west wall, the handover, the car leaving, and saving and loading. The audit is clean
+  (209 scenes), the playthroughs and the earlier Inspector flows pass, and Giza's 33 views
+  are identical.
+
 ## POKE-STYLE P0.31 — 2026-09-30 — (branch `poke-style`) The Serapeum at night: the galleries, the patrol, the Codex (Chapter 1-B, step 4)
 - **Beat 4** (from the bible): Samy moves the Codex from his locker to the Serapeum's
   service room for Karim's man to collect after midnight. Get there first.

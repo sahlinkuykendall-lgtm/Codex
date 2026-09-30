@@ -104,6 +104,7 @@ there are no image files.
 | `ch1b_tail.js` | Chapter 1-B beat 3: following Samy through Mit Rahina (view cones, cover, the crowd, the suspicion meter), and listening in on Karim el-Gebali |
 | `ch1b_town.js` | Mit Rahina's street life: wires and bunting, the ful cart, cane juice and qullas (food and water), animals, pigeon towers, the old men at dominoes and the boys with a ball |
 | `ch1b_serapeum.js` | Chapter 1-B beat 4: waiting for night, the Serapeum's galleries (a dark room of granite bull coffins), the night ghaffir's patrol, Samy's drop in the service room, the Codex, and the black car |
+| `ch1b_radwan.js` | Chapter 1-B beat 5: the black car at midnight, Colonel Radwan, Fathi's sealed (empty) box, and listening in without being seen |
 | `backgrounds.js` | The four backgrounds: skills, gear, papers, their paintings and opening cutscenes |
 | `intro.js` | The opening scenes, the background choice, male/female, the character creator, the name grid, your papers |
 | `game.js` | The loop: input, movement and collision, camera, drawing, day/night, doors, saving |
