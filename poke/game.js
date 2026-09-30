@@ -12,7 +12,7 @@ const Game = {
     VW: 480, VH: 270, scale: 3,
     state: 'boot',
     set: { textSpeed: 1, time: 1, run: 0, zoom: 0, volIdx: 2, volume: 1, names: 1 },
-    player: { x: 0, y: 0, dir: 0, frame: 0, anim: 0, name: '', gender: 'm', choices: null, sheet: null },
+    player: { x: 0, y: 0, dir: 0, frame: 0, anim: 0, name: '', gender: 'm', choices: null, bg: 'archaeologist', egyptian: false, sheet: null },
     maps: {}, map: null,
     journal: [], bag: {}, seen: {}, taken: {},
     time: 0, hour: 9, fade: null, hintT: 0, bumpT: 0,
@@ -34,7 +34,7 @@ const Game = {
     hasSave() { try { return !!localStorage.getItem(this.SAVE); } catch (e) { return false; } },
     save() {
         const p = this.player, out = this.outdoorPos();
-        const data = { v: 1, name: p.name, gender: p.gender, choices: p.choices, x: out[0], y: out[1], dir: p.dir, journal: this.journal, bag: this.bag, seen: this.seen, taken: this.taken, hour: this.hour };
+        const data = { v: 1, name: p.name, gender: p.gender, choices: p.choices, bg: p.bg, egyptian: p.egyptian, x: out[0], y: out[1], dir: p.dir, journal: this.journal, bag: this.bag, seen: this.seen, taken: this.taken, hour: this.hour };
         try { localStorage.setItem(this.SAVE, JSON.stringify(data)); } catch (e) { }
     },
     load() {
@@ -42,7 +42,7 @@ const Game = {
         try { d = JSON.parse(localStorage.getItem(this.SAVE)); } catch (e) { }
         if (!d) return this.newGame();
         this.resetWorld();
-        Object.assign(this.player, { name: d.name, gender: d.gender, choices: d.choices || null, x: d.x, y: d.y, dir: d.dir || 0 });
+        Object.assign(this.player, { name: d.name, gender: d.gender, choices: d.choices || null, bg: d.bg || 'archaeologist', egyptian: !!d.egyptian, x: d.x, y: d.y, dir: d.dir || 0 });
         this.journal = d.journal || []; this.bag = d.bag || {}; this.seen = d.seen || {}; this.taken = d.taken || {};
         if (this.set.time === 4 && d.hour != null) this.hour = d.hour;
         for (const e of this.maps.ch1.ents) if (e.id && this.taken[e.id]) World.removeEnt(this.maps.ch1, e);

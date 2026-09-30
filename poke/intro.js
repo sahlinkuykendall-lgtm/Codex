@@ -1,12 +1,13 @@
 // ============================================================
 // THE CODEX OF GIZA — POKE STYLE: THE OPENING (poke/intro.js)
 // What a new player sees before they can move:
-//   1. the story so far, in five illustrated scenes (from the story bible:
+//   1. the story so far, in four illustrated scenes (from the story bible:
 //      the Serapeum burning in 391 AD, Petamun's seven Houses, the Codex
 //      sealed at Giza, Miriam finding it, the black car)
-//   2. your permit: male or female, how you look (the character creator),
+//   2. who you are: one of the four backgrounds (poke/backgrounds.js)
+//   3. your papers: male or female, how you look (the character creator),
 //      your name (a DS-style letter grid; typing works too)
-//   3. the taxi at the gate
+//   4. your background's own opening scene, then you arrive
 // ESC skips the story scenes.
 // ============================================================
 
@@ -115,7 +116,7 @@ const SCENES = [
     },
     {   // ---- the black car ----
         cap: 'THE DIG CAMP  ·  FOUR NIGHTS AGO',
-        text: 'Four nights ago a black car came up the road to her camp with its lights off.\n\nIn the morning Miriam was gone. Her tea was still on the table. Her boots were by the door.\n\nThe official story is that she left for family reasons. Nobody at the dig believes it.',
+        text: 'Four nights ago a black car came up the road to her camp with its lights off.\n\nIn the morning Miriam was gone. Her tea was still on the table. Her boots were by the door.\n\nThe official story is that she left for family reasons. Nobody at the dig believes it.\n\nFour very different people are left holding her trail. You are one of them.',
         draw(g, t, W, H) {
             const A = pa(g), hz = Math.round(H * 0.56);
             drawNightScene(g, t, 0.25);
@@ -133,40 +134,34 @@ const SCENES = [
             for (let i = 0; i < 5; i++) A.ell(cx + 84 + i * 9 + (t * 6 % 9), cy + 26 - i, 5 - i, 2, 'rgba(120,130,170,0.25)');
         },
     },
-    {   // ---- the letter ----
-        cap: 'TODAY',
-        text: 'Today a letter came from the Ministry in Cairo.\n\nThe Giza dig needs a new director, tonight. They are sending you.\n\nFirst, your permit. They will want to know who you are.',
-        draw(g, t, W, H) {
-            const A = pa(g);
-            A.r(0, 0, W, H, '#3a2a1c'); for (let x = 0; x < W; x += 18) A.vl(x, 0, H, '#30221a');
-            const w = Math.min(280, W - 60), h = Math.min(170, H - 90), x = (W - w) >> 1, y = 22;
-            A.r(x + 4, y + 4, w, h, '#1e140e'); A.r(x, y, w, h, '#f4ecd4'); A.r(x, y, w, 3, '#fffaf0'); A.r(x + w - 3, y, 3, h, '#d8ccac');
-            A.ell(x + 28, y + 26, 13, 13, '#2c5490'); A.ell(x + 28, y + 26, 10, 10, '#f4ecd4'); A.poly([[x + 22, y + 32], [x + 34, y + 32], [x + 28, y + 17]], '#c89020');
-            Txt.draw(g, 'MINISTRY OF TOURISM AND ANTIQUITIES', x + 48, y + 14, { col: '#2c5490' });
-            Txt.draw(g, 'PERMIT TO EXCAVATE', x + 48, y + 28, { col: '#30302c' });
-            A.r(x + 14, y + 46, w - 28, 1, '#b8a880');
-            ['Concession: Giza Western Field Survey', 'Acting director: ________________', 'Effective: immediately'].forEach((s, i) => Txt.draw(g, s, x + 16, y + 56 + i * 15, { col: '#50483c' }));
-            for (let i = 0; i < 3; i++) A.r(x + 16, y + 108 + i * 8, w - 60 - i * 30, 1, '#c8bc9c');
-            const sx = x + w - 50, sy = y + h - 42, a = Math.min(1, Math.max(0, t - 1.2) * 4);
-            if (a > 0) { g.globalAlpha = a; A.ell(sx, sy, 22, 22, '#c03828'); A.ell(sx, sy, 18, 18, '#f4ecd4'); A.ell(sx, sy, 15, 15, '#c03828'); A.ell(sx, sy, 13, 13, '#f4ecd4'); Txt.draw(g, 'URGENT', sx, sy - 6, { col: '#c03828', align: 'center' }); g.globalAlpha = 1; }
-        },
-    },
 ];
 
 const Intro = {
-    phase: 'story', i: 0, t: 0, gender: 'm', choices: null, row: 0, name: '', kx: 0, ky: 0, confirmSel: 0, sheet: null, sheetKey: '',
+    phase: 'story', i: 0, oi: 0, t: 0, bg: 0, egyptian: false, gender: 'm', choices: null, row: 0, name: '', kx: 0, ky: 0, confirmSel: 0, sheet: null, sheetKey: '',
     KEYS: ['ABCDEFGHIJ', 'KLMNOPQRST', 'UVWXYZ \'-.', 'abcdefghij', 'klmnopqrst', 'uvwxyz    '],
     start() {
-        this.phase = 'story'; this.i = 0; this.t = 0; this.name = ''; this.gender = 'm'; this.choices = Object.assign({}, CHOICES_M); this.row = 0; this.kx = 0; this.ky = 0;
+        this.phase = 'story'; this.i = 0; this.t = 0; this.bg = 0; this.egyptian = false; this.name = ''; this.gender = 'm'; this.choices = Object.assign({}, CHOICES_M); this.row = 0; this.kx = 0; this.ky = 0;
         this.showScene();
     },
-    showScene() { this.t = 0; Dlg.open('', SCENES[this.i].text, () => { if (this.i < SCENES.length - 1) Game.fadeTo(() => { this.i++; this.showScene(); }); else Game.fadeTo(() => { this.phase = 'gender'; this.t = 0; }); }); },
+    showScene() { this.t = 0; Dlg.open('', SCENES[this.i].text, () => { if (this.i < SCENES.length - 1) Game.fadeTo(() => { this.i++; this.showScene(); }); else Game.fadeTo(() => { this.phase = 'background'; this.t = 0; }); }); },
     look() { return lookFromChoices(this.choices, this.gender); },
+    // your background's own scenes, one after another; then you arrive (or, for an opening not built yet, back to the choice)
+    showOpening() {
+        const B = BACKGROUNDS[this.bg], sc = B.scenes[this.oi];
+        this.phase = 'opening'; this.t = 0;
+        const text = sc.text.replace('{origin}', Game.player.egyptian ? 'Arabic is your own language, and you read it.' : 'Your Arabic is street Arabic, learned on the docks.');
+        Dlg.open('', text, () => {
+            if (this.oi < B.scenes.length - 1) Game.fadeTo(() => { this.oi++; this.showOpening(); });
+            else if (B.ready) Game.fadeTo(() => Game.newGame());
+            else Game.fadeTo(() => { this.phase = 'soon'; this.t = 0; Dlg.open('', 'To be continued.\n\nThe ' + B.place.split('  ·  ')[0] + ' opening is being built, and it comes next. For now the Archaeologist\'s story is the one you can play.', () => Game.fadeTo(() => { this.phase = 'background'; this.bg = 0; this.t = 0; })); });
+        });
+    },
     // the preview sheet, redrawn only when a choice changes
     preview() { const k = JSON.stringify(this.choices) + this.gender; if (k !== this.sheetKey) { this.sheetKey = k; this.sheet = personSheet(this.look()); } return this.sheet; },
     finish() {
-        Game.player.name = this.name.trim(); Game.player.gender = this.gender; Game.player.choices = Object.assign({}, this.choices);
-        Game.fadeTo(() => { this.phase = 'arrive'; this.t = 0; Dlg.open('', 'Giza, after dark. The plateau above Cairo, where the city stops and the desert begins.\n\nThe taxi leaves you at the gate of the dig and drives away without waiting.\n\nSomebody is coming to meet you, with a lantern.', () => Game.fadeTo(() => Game.newGame())); });
+        const B = BACKGROUNDS[this.bg];
+        Object.assign(Game.player, { name: this.name.trim(), gender: this.gender, choices: Object.assign({}, this.choices), bg: B.id, egyptian: !!(B.origin && this.egyptian) });
+        this.oi = 0; Game.fadeTo(() => this.showOpening());
     },
     // keys that the name screen takes for itself (so you can just type)
     key(e) {
@@ -177,10 +172,19 @@ const Intro = {
     },
     update(dt, I) {
         this.t += dt;
-        if (Dlg.active) { if (this.phase === 'story' && I.back && !Game.fade) { Dlg.active = false; Sfx.back(); Game.fadeTo(() => { this.phase = 'gender'; this.t = 0; }); return; } Dlg.update(dt, I); return; }
+        if (Dlg.active) { if (this.phase === 'story' && I.back && !Game.fade) { Dlg.active = false; Sfx.back(); Game.fadeTo(() => { this.phase = 'background'; this.t = 0; }); return; } Dlg.update(dt, I); return; }
+        if (this.phase === 'background') {
+            const n = BACKGROUNDS.length, B = BACKGROUNDS[this.bg];
+            if (I.up) { this.bg = (this.bg + n - 1) % n; this.t = 0; Sfx.move(); }
+            if (I.down) { this.bg = (this.bg + 1) % n; this.t = 0; Sfx.move(); }
+            if ((I.left || I.right) && B.origin) { this.egyptian = !this.egyptian; Sfx.tick(); }
+            if (I.ok || I.enter) { Sfx.ok(); this.phase = 'gender'; }
+            return;
+        }
         if (this.phase === 'gender') {
             if (I.left || I.right) { this.gender = this.gender === 'm' ? 'f' : 'm'; this.choices = Object.assign({}, this.gender === 'm' ? CHOICES_M : CHOICES_F); Sfx.move(); }
             if (I.ok) { Sfx.ok(); this.phase = 'creator'; this.row = 0; }
+            if (I.back) { Sfx.back(); this.phase = 'background'; }
         } else if (this.phase === 'creator') {
             const n = CREATOR.length + 2;
             if (I.enter) { Sfx.ok(); this.phase = 'name'; this.kx = 0; this.ky = 0; return; }        // ENTER: done, from any row
@@ -203,8 +207,8 @@ const Intro = {
             }
             if (I.back && !this.name) { this.phase = 'creator'; Sfx.back(); }
         } else if (this.phase === 'confirm') {
-            if (I.up) { this.confirmSel = (this.confirmSel + 2) % 3; Sfx.move(); } if (I.down) { this.confirmSel = (this.confirmSel + 1) % 3; Sfx.move(); }
-            if (I.ok) { Sfx.ok(); if (this.confirmSel === 0) this.finish(); else if (this.confirmSel === 1) this.phase = 'creator'; else this.phase = 'name'; }
+            if (I.up) { this.confirmSel = (this.confirmSel + 3) % 4; Sfx.move(); } if (I.down) { this.confirmSel = (this.confirmSel + 1) % 4; Sfx.move(); }
+            if (I.ok) { Sfx.ok(); this.phase = ['finish', 'creator', 'name', 'background'][this.confirmSel]; if (this.phase === 'finish') { this.phase = 'confirm'; this.finish(); } }
         }
     },
     draw(g) {
@@ -214,15 +218,16 @@ const Intro = {
             sc.draw(g, this.t, W, H);
             const cw = Txt.width(sc.cap) + 20; plaque(g, 8, 8, cw, 20); Txt.draw(g, sc.cap, 18, 12, { col: '#fff4d0', shadow: PAL.wood[3] });
             Txt.draw(g, 'ESC: skip', W - 8, 12, { col: '#ffffff', shadow: '#30302c', align: 'right' });
-        } else if (this.phase === 'arrive') {
-            drawNightScene(g, this.t, 0.2);
-            const x = Math.round(W * 0.5 + this.t * 10), y = Math.round(H * 0.72);
-            A.r(x, y, 46, 12, '#e8e8e0'); A.poly([[x + 8, y], [x + 14, y - 8], [x + 32, y - 8], [x + 38, y]], '#e8e8e0'); A.r(x + 15, y - 6, 16, 6, '#384888'); A.r(x, y + 5, 46, 2, '#242228'); A.ell(x + 10, y + 12, 4, 3, '#05060c'); A.ell(x + 36, y + 12, 4, 3, '#05060c'); A.r(x + 44, y + 3, 3, 3, '#ffd070');
+        } else if (this.phase === 'opening' || this.phase === 'soon') {
+            const B = BACKGROUNDS[this.bg], sc = this.phase === 'soon' ? { cap: B.name, place: true } : B.scenes[this.oi];
+            if (sc.place) bgWide(g, B.id, this.t, W, H, this.phase === 'soon' ? null : this.preview()); else sc.draw(g, this.t, W, H);
+            const cw = Txt.width(sc.cap) + 20; plaque(g, 8, 8, cw, 20); Txt.draw(g, sc.cap, 18, 12, { col: '#fff4d0', shadow: PAL.wood[3] });
         } else {
             // the permit desk: a dark blotter, and whichever page you're on
             A.r(0, 0, W, H, '#2c2238'); for (let y = 0; y < H; y += 4) for (let x = (y & 4) * 2; x < W; x += 16) A.px(x, y, '#3a2e4a');
-            frieze(g, 0, 0, W); frieze(g, 0, H - 16, W, 3);
-            if (this.phase === 'gender') this.drawGender(g, W, H);
+            if (this.phase !== 'background') { frieze(g, 0, 0, W); frieze(g, 0, H - 16, W, 3); }
+            if (this.phase === 'background') this.drawBackground(g, W, H);
+            else if (this.phase === 'gender') this.drawGender(g, W, H);
             else if (this.phase === 'creator') this.drawCreator(g, W, H);
             else if (this.phase === 'name') this.drawName(g, W, H);
             else this.drawConfirm(g, W, H);
@@ -232,7 +237,7 @@ const Intro = {
     drawGender(g, W, H) {
         const A = pa(g), cx = W >> 1, cy = Math.round(H * 0.44);
         frame(g, cx - 130, cy - 96, 260, 192);
-        Txt.draw(g, 'THE PERMIT ASKS:', cx, cy - 86, { align: 'center', col: UI.gold });
+        Txt.draw(g, 'YOUR PAPERS ASK:', cx, cy - 86, { align: 'center', col: UI.gold });
         Txt.draw(g, 'MALE OR FEMALE?', cx, cy - 72, { align: 'center', col: UI.ink });
         ['m', 'f'].forEach((k, i) => {
             const x = cx + (i ? 18 : -114), on = this.gender === k;
@@ -241,7 +246,47 @@ const Intro = {
             g.globalAlpha = on ? 1 : 0.4; bigSprite(g, sh[k].frames[0][on ? [1, 0, 2, 0][(this.t * 5 | 0) % 4] : 0], x, cy - 46, 3); g.globalAlpha = 1;
             Txt.draw(g, k === 'm' ? 'MALE' : 'FEMALE', x + 48, cy + 50, { align: 'center', col: on ? UI.ink : UI.dim });
         });
-        Txt.draw(g, '◄ ► choose     SPACE: next', cx, cy + 76, { align: 'center', col: UI.dim });
+        Txt.draw(g, '◄ ► choose     SPACE: next     ESC: back', cx, cy + 76, { align: 'center', col: UI.dim });
+    },
+    // WHO ARE YOU? the four backgrounds on the left, the one you're on in full on the right,
+    // and underneath: skills, gear, and what only this one has
+    drawBackground(g, W, H) {
+        const A = pa(g), top = 18, lw = 142, lx = Math.max(6, (W - 470) >> 1), rx = lx + lw + 6, rw = Math.min(330, W - rx - 6), ph = Math.max(150, H - top - 84);
+        Txt.draw(g, 'WHO ARE YOU?', lx + 2, 3, { col: '#ffe890', shadow: '#1e140e' });
+        Txt.draw(g, '▲▼ choose    SPACE: this is me', rx + rw - 2, 3, { col: '#a898c0', align: 'right' });
+        frame(g, lx, top, lw, ph);
+        const rh = Math.floor((ph - 12) / 4);
+        BACKGROUNDS.forEach((B, i) => {
+            const y = top + 7 + i * rh, on = i === this.bg;
+            if (on) { A.r(lx + 4, y - 1, lw - 8, rh - 2, '#5890d8'); A.r(lx + 5, y, lw - 10, rh - 4, '#d8ecff'); }
+            const ey = y + ((rh - 30) >> 1);
+            A.r(lx + 12, ey + 1, 26, 26, B.ready ? '#f4ecd4' : '#d8d0c0'); A.hl(lx + 12, ey + 1, 26, '#fffaf0');
+            BG_EMBLEM[B.id](A, lx + 15, ey + 4);
+            Txt.draw(g, B.name.replace('THE ', ''), lx + 44, ey + 2, { col: on ? UI.ink : UI.dim });
+            Txt.draw(g, B.ready ? 'Play' : 'Preview', lx + 44, ey + 15, { col: B.ready ? '#388030' : '#a03028' });
+            if (on) A.poly([[lx + 5, ey + 9], [lx + 5, ey + 19], [lx + 10, ey + 14]], '#d04838');
+        });
+        // the one you're on: where it starts, who you are, what's happened
+        const B = BACKGROUNDS[this.bg], vx = rx + 8, vw = rw - 16, vh = Math.max(44, ph - 124);
+        frame(g, rx, top, rw, ph, { band: '#e0a030', hi: '#ffe090' });
+        g.save(); g.beginPath(); g.rect(vx, top + 8, vw, vh); g.clip(); BG_SCENE[B.id](A, vx, top + 8, vw, vh, this.t); g.restore();
+        A.r(vx - 1, top + 7, vw + 2, 1, '#38404c'); A.r(vx - 1, top + 8 + vh, vw + 2, 1, '#38404c'); A.r(vx - 1, top + 7, 1, vh + 2, '#38404c'); A.r(vx + vw, top + 7, 1, vh + 2, '#38404c');
+        const cap = B.place.toUpperCase(), cw = Txt.width(cap) + 12; A.r(vx + 3, top + 11, cw, 14, 'rgba(20,16,28,0.72)'); Txt.draw(g, cap, vx + 9, top + 12, { col: '#fff4d0' });
+        if (!B.ready) { const cc = 'OPENING BEING BUILT', w2 = Txt.width(cc) + 12; A.r(vx + vw - w2 - 3, top + 8 + vh - 17, w2, 14, '#a03028'); Txt.draw(g, cc, vx + vw - 9, top + 8 + vh - 16, { col: '#ffffff', align: 'right' }); }
+        let y = top + vh + 12; const tw = rw - 20;
+        Txt.draw(g, B.name, rx + 10, y, { col: UI.gold }); Txt.draw(g, 'CHAPTER ' + B.chapter, rx + rw - 10, y, { col: UI.dim, align: 'right' }); y += 13;
+        Txt.wrap(B.who + ' ' + B.hook, tw).slice(0, Math.floor((top + ph - 6 - y) / 12)).forEach(ln => { Txt.draw(g, ln, rx + 10, y, { col: UI.ink }); y += 12; });
+        if (top + ph - 8 - y >= 14) Txt.draw(g, 'Four roads, one trail: they all meet in Cairo.', rx + 10, top + ph - 20, { col: UI.dim });
+        // skills · gear · only you
+        const eg = B.origin && this.egyptian, by = top + ph + 4, bh = H - by - 6, cols = [['SKILLS', eg ? B.skillsEg : B.skills], ['GEAR', eg ? B.gearEg : B.gear], ['ONLY YOU', B.only]];
+        const bw = Math.floor((lw + rw + 6) / 3);
+        cols.forEach(([k, v], i) => {
+            const cx = lx + i * bw, w = i === 2 ? lw + rw + 6 - 2 * bw : bw - 4;
+            frame(g, cx, by, w, bh, i === 2 ? { band: '#58a848', hi: '#b8f0a0' } : undefined);
+            Txt.draw(g, k, cx + 8, by + 6, { col: i === 2 ? '#388030' : UI.gold });
+            if (i === 0 && B.origin) Txt.draw(g, '◄ ' + (eg ? 'Egyptian' : 'Foreign') + ' ►', cx + w - 8, by + 6, { col: '#3058a0', align: 'right' });
+            Txt.wrap(v.replace(/ · /g, ',  '), w - 16).slice(0, Math.floor((bh - 22) / 12)).forEach((ln, j) => Txt.draw(g, ln, cx + 8, by + 20 + j * 12, { col: UI.ink }));
+        });
     },
     drawCreator(g, W, H) {
         const A = pa(g), pw = 132, lw = Math.min(250, W - pw - 36), x0 = (W - pw - lw - 12) >> 1, y0 = Math.max(6, (H - 236) >> 1);
@@ -291,18 +336,19 @@ const Intro = {
         Txt.draw(g, 'Arrows + SPACE, or just type. ENTER when done.', cx, y0 + 226 > H - 12 ? H - 12 : y0 + 226, { col: '#d8c8a0', align: 'center' });
     },
     drawConfirm(g, W, H) {
-        const A = pa(g), w = Math.min(300, W - 40), h = 170, x = (W - w) >> 1, y = Math.max(8, (H - h - 70) >> 1);
+        const A = pa(g), w = Math.min(300, W - 40), h = 170, x = (W - w) >> 1, y = Math.max(8, (H - h - 84) >> 1), D = BACKGROUNDS[this.bg].doc;
         A.r(x + 4, y + 4, w, h, '#1e140e'); A.r(x, y, w, h, '#f4ecd4'); A.r(x, y, w, 3, '#fffaf0');
-        A.ell(x + 26, y + 24, 12, 12, '#2c5490'); A.ell(x + 26, y + 24, 9, 9, '#f4ecd4'); A.poly([[x + 21, y + 29], [x + 31, y + 29], [x + 26, y + 16]], '#c89020');
-        Txt.draw(g, 'MINISTRY OF TOURISM AND ANTIQUITIES', x + 44, y + 12, { col: '#2c5490' });
-        Txt.draw(g, 'PERMIT TO EXCAVATE', x + 44, y + 25, { col: '#30302c' });
+        A.r(x, y + 3, w, 2, D.col);
+        A.r(x + 14, y + 12, 26, 26, '#f4ecd4'); BG_EMBLEM[BACKGROUNDS[this.bg].id](A, x + 17, y + 15);
+        Txt.draw(g, D.org, x + 44, y + 12, { col: D.col });
+        Txt.draw(g, D.kind, x + 44, y + 25, { col: '#30302c' });
         A.r(x + 12, y + 42, w - 24, 1, '#b8a880');
         A.r(x + 14, y + 50, 70, 84, '#38404c'); A.r(x + 16, y + 52, 66, 80, '#b8d4f0'); A.r(x + 16, y + 108, 66, 24, '#ecd698');
         bigSprite(g, this.preview().frames[0][0], x + 17, y + 58, 2);
-        [['Name', 'Dr. ' + this.name.trim()], ['Post', 'Acting director'], ['Site', 'Giza Western Field'], ['Valid', 'Tonight']].forEach(([k, v], i) => { Txt.draw(g, k, x + 96, y + 54 + i * 19, { col: '#8a7c60' }); Txt.draw(g, v, x + 132, y + 54 + i * 19, { col: '#30302c' }); A.r(x + 132, y + 66 + i * 19, w - 146, 1, '#c8bc9c'); });
-        const sx = x + w - 40, sy = y + h - 34; A.ell(sx, sy, 20, 20, '#c03828'); A.ell(sx, sy, 17, 17, '#f4ecd4'); A.ell(sx, sy, 14, 14, '#c03828'); A.ell(sx, sy, 12, 12, '#f4ecd4'); Txt.draw(g, 'OK', sx, sy - 6, { col: '#c03828', align: 'center' });
-        const opts = ['THIS IS ME', 'CHANGE MY LOOK', 'CHANGE MY NAME'];
-        frame(g, (W - 150) >> 1, y + h + 8, 150, 14 + opts.length * 15);
-        opts.forEach((s, i) => { const yy = y + h + 16 + i * 15; Txt.draw(g, s, ((W - 150) >> 1) + 24, yy, { col: i === this.confirmSel ? UI.ink : UI.dim }); if (i === this.confirmSel) A.poly([[((W - 150) >> 1) + 12, yy + 2], [((W - 150) >> 1) + 12, yy + 10], [((W - 150) >> 1) + 17, yy + 6]], '#d04838'); });
+        D.rows(this.name.trim()).forEach(([k, v], i) => { Txt.draw(g, k, x + 94, y + 54 + i * 19, { col: '#8a7c60' }); Txt.draw(g, v, x + 150, y + 54 + i * 19, { col: '#30302c' }); A.r(x + 150, y + 66 + i * 19, w - 164, 1, '#c8bc9c'); });
+        const sx = x + w - 40, sy = y + h - 34; A.ell(sx, sy, 20, 20, '#c03828'); A.ell(sx, sy, 17, 17, '#f4ecd4'); A.ell(sx, sy, 14, 14, '#c03828'); A.ell(sx, sy, 12, 12, '#f4ecd4'); Txt.draw(g, D.seal, sx, sy - 6, { col: '#c03828', align: 'center' });
+        const opts = ['THIS IS ME', 'CHANGE MY LOOK', 'CHANGE MY NAME', 'CHANGE BACKGROUND'];
+        frame(g, (W - 170) >> 1, y + h + 8, 170, 14 + opts.length * 15);
+        opts.forEach((s, i) => { const yy = y + h + 16 + i * 15, ox = (W - 170) >> 1; Txt.draw(g, s, ox + 24, yy, { col: i === this.confirmSel ? UI.ink : UI.dim }); if (i === this.confirmSel) A.poly([[ox + 12, yy + 2], [ox + 12, yy + 10], [ox + 17, yy + 6]], '#d04838'); });
     },
 };

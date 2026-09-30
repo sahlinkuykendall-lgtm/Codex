@@ -10,7 +10,6 @@
 
 const REGIONS = [
     // [chapter(s), name, longitude, latitude, teaser, unlocked]
-    ['1 · 14', 'GIZA', 31.13, 29.98, 'The dig camp on the plateau, where Miriam found the Codex. You are here. The story comes back to Giza at the very end: past the Osiris Shaft lies the last House.', true],
     ['2', 'CAIRO', 31.26, 30.05, 'Café El-Fishawy in the old city, on Thursday. Father Bishoy will be waiting. So will everyone else who wants the Codex.'],
     ['3', 'ALEXANDRIA', 29.92, 31.2, 'The first House: under the Serapeum\'s foundations, and down in the sunken royal harbour.'],
     ['4', 'THE DELTA', 31.88, 30.97, 'Tanis: fallen colossi in the mud, and a sacred lake with something far beneath it.'],
@@ -32,6 +31,12 @@ const OASES = [[25.52, 29.2], [28.87, 28.35], [27.97, 27.06], [29.0, 25.5], [30.
 
 const WorldMap = {
     open: false, level: 0, t: 0, sel: 0, zoom: 1, egypt: null,
+    // the regions for your story: your own opening first (nobody else's is on your map), then Giza, then the rest
+    list() {
+        const B = bgOf(Game.player.bg);
+        if (B.id === 'archaeologist') return [['1 · 14', 'GIZA', B.lon, B.lat, B.teaser, true], ...REGIONS];
+        return [['1', B.place.split('  ·  ')[0].toUpperCase(), B.lon, B.lat, B.teaser, true], ['14', 'GIZA', 31.13, 29.98, 'The plateau, the Osiris Shaft beneath it, and the last House. Every road ends here.'], ...REGIONS];
+    },
     show(level) { this.open = true; this.level = level || 0; this.t = 0; this.zoom = this.level; this.sel = 0; Sfx.ok(); },
     update(dt, I) {
         this.t += dt;
@@ -39,8 +44,8 @@ const WorldMap = {
         if (I.map) { if (this.level === 0) { this.level = 1; Sfx.move(); } else { this.open = false; Sfx.back(); } return; }
         if (I.back || I.menu) { if (this.level === 1) { this.level = 0; Sfx.back(); } else { this.open = false; Sfx.back(); } return; }
         if (this.level === 1) {
-            if (I.left || I.up) { this.sel = (this.sel + REGIONS.length - 1) % REGIONS.length; Sfx.move(); }
-            if (I.right || I.down) { this.sel = (this.sel + 1) % REGIONS.length; Sfx.move(); }
+            if (I.left || I.up) { this.sel = (this.sel + this.list().length - 1) % this.list().length; Sfx.move(); }
+            if (I.right || I.down) { this.sel = (this.sel + 1) % this.list().length; Sfx.move(); }
         }
     },
     // the country, drawn once
@@ -102,10 +107,10 @@ const WorldMap = {
             const eg = this.egyptCanvas(), k = Math.max(1, Math.floor(Math.min((VW * 0.62) / eg.width, avail / eg.height)));
             const ew = eg.width * k, eh = eg.height * k, ex = 18, ey = top + ((avail - eh) >> 1);
             // it grows out from Giza as you zoom out
-            const z = Math.min(1, (this.zoom - 0.5) * 2), [gx, gy] = this.px(31.13, 29.98), sc = k * (1 + (1 - z) * 5);
+            const z = Math.min(1, (this.zoom - 0.5) * 2), [gx, gy] = this.px(bgOf(Game.player.bg).lon, bgOf(Game.player.bg).lat), sc = k * (1 + (1 - z) * 5);
             g.save(); g.beginPath(); g.rect(ex, ey, ew, eh); g.clip();
             g.drawImage(eg, ex + gx * k - gx * sc, ey + gy * k - gy * sc, eg.width * sc, eg.height * sc);
-            if (z > 0.95) REGIONS.forEach(([ch, name, lon, lat, , open], i) => {
+            if (z > 0.95) this.list().forEach(([ch, name, lon, lat, , open], i) => {
                 const [x0, y0] = this.px(lon, lat), x = ex + x0 * k, y = ey + y0 * k, on = i === this.sel;
                 if (open) { A.r(x - 4, y - 4, 9, 9, '#38404c'); A.r(x - 3, y - 3, 7, 7, (this.t * 3 | 0) % 2 ? '#d04838' : '#ffe890'); }
                 else { A.r(x - 3, y - 3, 7, 7, '#38404c'); A.r(x - 2, y - 2, 5, 5, on ? '#ffe890' : '#8a94a0'); A.r(x - 1, y - 3, 3, 2, '#38404c'); }
@@ -114,13 +119,13 @@ const WorldMap = {
             g.restore();
             A.r(ex - 2, ey - 2, ew + 4, 2, '#c89020'); A.r(ex - 2, ey + eh, ew + 4, 2, '#c89020'); A.r(ex - 2, ey, 2, eh, '#c89020'); A.r(ex + ew, ey, 2, eh, '#c89020');
             // what's there
-            const [ch, name, , , teaser, open] = REGIONS[this.sel], lx = ex + ew + 14, lw = VW - lx - 20;
+            const [ch, name, , , teaser, open] = this.list()[this.sel], lx = ex + ew + 14, lw = VW - lx - 20;
             Txt.draw(g, 'CHAPTER ' + ch, lx, top + 2, { col: UI.dim });
             Txt.draw(g, name, lx, top + 16, { col: UI.ink });
             Txt.draw(g, open ? '● You are here' : '■ Locked', lx, top + 32, { col: open ? '#388030' : '#a03028' });
             Txt.wrap(teaser, lw).slice(0, 9).forEach((ln, i) => Txt.draw(g, ln, lx, top + 52 + i * 13, { col: UI.ink }));
             if (!open) Txt.wrap('The story will take you there.', lw).forEach((ln, i) => Txt.draw(g, ln, lx, VH - 58 + i * 12, { col: UI.dim }));
-            Txt.draw(g, (this.sel + 1) + ' / ' + REGIONS.length, lx, VH - 30, { col: UI.dim });
+            Txt.draw(g, (this.sel + 1) + ' / ' + this.list().length, lx, VH - 30, { col: UI.dim });
         }
     },
 };

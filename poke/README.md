@@ -34,8 +34,13 @@ there are no image files.
   every chapter region from the bible, locked until the story takes you there, each with a teaser.
 - **The opening** (from the story bible): Alexandria in 391 AD with the Serapeum burning,
   Petamun's seven Houses on a map of Egypt, Miriam finding the Codex in the Osiris Shaft,
-  and the black car four nights ago. Then the Ministry letter. ESC skips it.
-- **Character creation, Pokémon-style.** On your permit you choose male or female, then
+  and the black car four nights ago. ESC skips it.
+- **Four backgrounds** (`poke/backgrounds.js`, from `story/01_CHARACTERS.md`): the
+  Archaeologist (Giza), the Inspector (Saqqara), the Fixer (Marsa Tarfa, Egyptian or
+  foreign) and the Journalist (Port Said). Each has its own skills, gear, papers and
+  opening cutscenes, and an "only you" strength. Only the Archaeologist's opening is
+  playable yet; the others play their cutscenes and then return you to the choice.
+- **Character creation, Pokémon-style.** On your papers you choose male or female, then
   build your look in 11 categories with 10–13 options each, many Egyptian-themed:
   - skin (10)
   - hair (13, including the sidelock of youth and a Cleopatra cut)
@@ -51,7 +56,8 @@ there are no image files.
   - accessory (12: ankh, scarab, Eye of Horus, broad collar…)
 
   "Surprise me" picks at random. Then you pick your name on a DS-style letter grid, or just
-  type it, and check the finished permit.
+  type it, and check your finished papers (a permit, an inspector's ID, a harbour pass or a
+  press card, by background).
 - **Day and night:** dawn, day, dusk and night tints, or a moving clock (a day in twelve
   minutes). Lamps, the fire and the old woman's lamp light up after dark; she only appears
   at night.
@@ -75,7 +81,8 @@ there are no image files.
 | `worldmap.js` | The M map: the area, and Egypt with the chapter regions |
 | `interiors.js` | The three rooms and their furniture |
 | `ui.js` | Text box, place banner, title screen, pause menu |
-| `intro.js` | The opening scenes, male/female, the character creator, the name grid, the permit |
+| `backgrounds.js` | The four backgrounds: skills, gear, papers, their paintings and opening cutscenes |
+| `intro.js` | The opening scenes, the background choice, male/female, the character creator, the name grid, your papers |
 | `game.js` | The loop: input, movement and collision, camera, drawing, day/night, doors, saving |
 
 To re-export the map after changing the 3D layout, run
@@ -86,4 +93,5 @@ To re-export the map after changing the 3D layout, run
 - The story's choices and flags. You can look at everything, but conversations are the
   opening line of each scene, not the branching dialogue.
 - The minigames (sieve, tea, darts), the supply train moving, and the midnight event.
+- The Inspector's, Fixer's and Journalist's starting areas (their cutscenes are in).
 - Other chapters.

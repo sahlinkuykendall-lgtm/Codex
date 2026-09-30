@@ -12,6 +12,40 @@ Other docs:
 
 ---
 
+## POKE-STYLE P0.6 — 2026-09-30 — (branch `poke-style`) Four backgrounds, each with its own opening
+- **Who are you?** After the story so far, you now pick one of the four backgrounds from the
+  bible (`story/01_CHARACTERS.md`).
+  - Each one shows where it starts (a little painting of the place), who you are, what has
+    happened to you, your skills and languages, your starting money and gear, and an
+    **ONLY YOU** panel: what this background has that the other three don't.
+  - **The Archaeologist** starts at the Giza dig camp. Excavation 3: the only one who can run
+    a dig.
+  - **The Inspector** starts at the Saqqara inspectorate. The only native Arabic speaker and
+    reader, and the best start with the Ministry.
+  - **The Fixer** starts at Marsa Tarfa on the Red Sea. Picks locks, haggles, dives, and owes
+    Bassem "the Shark" 60,000 EGP. You choose whether they're Egyptian (Arabic 5, reads
+    Arabic) or foreign (street Arabic).
+  - **The Journalist** starts in Port Said. Photography 3, the best French, the most money.
+  - All four roads meet in Cairo in Chapter 2.
+- **Your papers match your background:** a permit to excavate, an inspector's identity card,
+  a harbour pass (with the debt written on it), or a press card.
+- **Each background has its own opening cutscenes** after the papers, from its region file
+  in the bible, ending with you standing in your starting place:
+  - The Archaeologist: the Ministry's letter of appointment, then the taxi at the dig gate.
+  - The Inspector: the ledger with the Codex's line scratched out, then Director Fathi
+    behind his newspaper, then Saqqara.
+  - The Fixer: the note on your door, then Bassem's offer on his terrace, then the harbour.
+  - The Journalist: Miriam's email, then the waterfront hotel in Port Said.
+- **Only the Archaeologist's opening can be played so far.** The other three can be picked:
+  you make your character and watch their cutscenes, and then it says their opening is being
+  built and takes you back to the choice. Their starting areas come next.
+- The shared story now ends on the bible's line: four very different people are left
+  holding Miriam's trail, and you are one of them.
+- **The M map follows your background:** your own opening is on it (nobody else's), and
+  Giza comes back as Chapter 14.
+- The pause-menu card uses your title: "Dr." only for the Archaeologist.
+- The page asks browsers for the new files, so an old cached copy won't load.
+
 ## POKE-STYLE P0.5 — 2026-09-30 — (branch `poke-style`) Layout audit, solid props, a real trench
 - **A layout audit of the whole camp.** Nothing stands on a road any more (except the dig
   gate and the roadblock, which are meant to), nothing overlaps, and everything you can

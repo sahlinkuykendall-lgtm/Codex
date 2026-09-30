@@ -171,7 +171,7 @@ const Title = {
             Txt.draw(g, str, bx + 26, by + 8 + i * 15, { col: i === this.sel ? UI.ink : UI.dim });
             if (i === this.sel) A.poly([[bx + 13, by + 10 + i * 15], [bx + 13, by + 18 + i * 15], [bx + 18, by + 14 + i * 15]], '#d04838');
         });
-        Txt.draw(g, 'POKE-STYLE BUILD  P0.5', VW - 6, VH - 14, { col: '#8898d0', align: 'right' });
+        Txt.draw(g, 'POKE-STYLE BUILD  P0.6', VW - 6, VH - 14, { col: '#8898d0', align: 'right' });
         Txt.draw(g, '▲▼ choose    SPACE select', 6, VH - 14, { col: '#8898d0' });
     },
 };
@@ -236,7 +236,7 @@ const Menu = {
             frame(g, 6, 6, 214, 78, { band: '#e0a030', hi: '#ffe090' });
             A.r(14, 14, 44, 62, '#38404c'); A.r(16, 16, 40, 58, '#b8d4f0'); A.r(16, 56, 40, 18, '#ecd698');
             if (Game.player.sheet) g.drawImage(Game.player.sheet.frames[0][[1, 0, 2, 0][(Game.time * 4 | 0) % 4]], 20, 32);
-            Txt.draw(g, 'Dr. ' + (Game.player.name || '—'), 66, 14, { col: UI.ink });
+            Txt.draw(g, bgOf(Game.player.bg).title(Game.player.name || '—'), 66, 14, { col: UI.ink });
             let where = Game.placeName().replace(/^THE /, ''); while (Txt.width(where) > 138 && where.length > 4) where = where.slice(0, -1);
             Txt.draw(g, where, 66, 29, { col: UI.dim });
             Txt.draw(g, Game.clockText(), 66, 43, { col: UI.dim });
