@@ -190,7 +190,10 @@ Also:
 - **The watchtower:** climbing it should reveal every place on the map, and with the field
   glasses you see the car waiting by the shaft.
 
-## 8. Secrets and lore (bible §SECRETS)
+## 8. Secrets and lore (bible §SECRETS) — ✅ DONE in P0.16
+> Done in `poke/ch1_places.js` (SECRETS_1A, `secretsSync`, the mason's marks, the false door, the ramp);
+> the seal, the ibis, the Setne bookmark and the car were already in from steps 3–7.
+
 - Miriam's bookmarked Setne story in her tent ("Coptos. The river. Why always the river?")
 - The ibis made by the sherds
 - The eye-in-a-house mason's mark

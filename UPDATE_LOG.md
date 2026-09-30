@@ -12,6 +12,36 @@ Other docs:
 
 ---
 
+## POKE-STYLE P0.16 — 2026-09-30 — (branch `poke-style`) Real spoil heaps; secrets and lore (Area 1, step 8)
+- **The spoil heaps are real piles of earth now**, not flat ovals (you asked for this).
+  - Each heap's surface is modelled with a rounded top, a soft skirt and a few lumps. It's
+    drawn a pixel at a time and shaded in four flat tones by its slope, lit from the upper
+    left like everything else in the camp, with pebbles and an outline.
+  - **Four sizes:** the big heap by the find store down to the two small ones. Trench B's
+    heap (the one with the red stake) is darker: fresh earth, as the story says.
+  - **The shadow is fixed.** A soft shadow sits at each heap's foot, in place of the boxy
+    building shadow they used to get.
+  - A heap is solid only where it's drawn.
+  - These two dig-zone views are the only things that look different; the camp's other
+    31 views are pixel-identical to P0.15.
+- **The secrets of the plateau** (bible §SECRETS), with a **Secrets of the plateau** page in
+  the journal that counts them (and a notice as each one turns up):
+  1. the bronze seal of Petamun
+  2. the painted sherds that join into an ibis (and Petamun's seal has an ibis too)
+  3. Miriam's bookmarked Setne story: "Coptos. The river. Why always the river?"
+  4. the eye-in-a-house mark on the quarry block
+  5. the car by the Osiris Shaft, from the watchtower through the field glasses
+
+  The chapter-end card says how many you found. They pay off in later chapters.
+- **Lore, ported from the 3D build:**
+  - **The mason's marks:** "The Drunkards of Menkaure" in red ochre, and the much later
+    eye in a house. If you've seen the block, the Codex's first page shows the same mark
+    in its margin (and the other way round).
+  - **The false door** in the workers' cemetery: Petety's curse, readable at Hieroglyphs 2
+    (crocodiles in the water, snakes on land).
+  - **The builders' ramp:** its sledge ruts, and the long argument about how the stones
+    went up (Hatnub, 2018).
+
 ## POKE-STYLE P0.15 — 2026-09-30 — (branch `poke-style`) The shaft, the watchtower, the train (Area 1, step 7)
 - **Inside the Osiris Shaft** (`poke/ch1_places.js`): climb down from the survey shaft at the
   foot of the cliff. There are three levels of cut limestone, each lit only by work lamps

@@ -555,12 +555,43 @@ SPR_L['stone wall'] = SPR_L['old limestone wall'] = (w, d) => {
     A.hl(x, top + H + 6, L, PAL.rock[3]);
     return fit(st);
 };
+// A spoil heap: a real pile of dug earth. Its surface is a height field (a dome, a few lumps, a
+// little grit), drawn back to front a pixel at a time and shaded by its slope, lit from the upper
+// left in four flat tones, with pebbles, an outline and a soft shadow at its foot. Each heap in
+// the dig zone has its own size; Trench B's (ow_spoil) is fresher, the earth still dark.
+const SPOIL_SIZE = { fl_spoil: [1, 1], ow_spoil: [0.86, 1.15, true], d_spoil2: [0.74, 0.9], d_spoil3: [0.6, 0.85] };
 SPR_L['spoil mound'] = SPR.ow_spoil = (w, d, o) => {
-    const st = stage(w, d, 10), { A } = st, cx = st.x + (w >> 1), cy = st.y + (d >> 1);
-    A.ell(cx, cy + 2, (w >> 1) - 1, (d >> 1) - 1, PAL.sand[3]); A.ell(cx - 3, cy - 3, Math.round(w * 0.36), Math.round(d * 0.3), PAL.sand[2]);
-    A.ell(cx - 6, cy - 7, Math.round(w * 0.2), Math.round(d * 0.16), PAL.sand[1]);
-    const R = rng(o.id); for (let i = 0; i < 14; i++) A.px(cx + (R() - 0.5) * w * 0.7, cy + (R() - 0.3) * d * 0.5, PAL.rock[2]);
-    return Object.assign(fit(st), { c: st.c });                    // no outline: it's a heap of the ground itself
+    const [k, hk, fresh] = SPOIL_SIZE[o.id] || [0.9, 1], R = rng(o.id);
+    const rx = Math.max(10, Math.round(w / 2 * k) - 2), ry = Math.max(6, Math.round(d / 2 * k) - 1), H = Math.round(Math.min(rx, 34) * 0.62 * hk);
+    const UP = Math.round(H * 1.5) + 8, st = stage(w, d + 6, UP), { A } = st, cx = st.x + (w >> 1), cy = st.y + (d >> 1) + 2;   // (room above for the lumps)
+    const P = fresh ? ['#d4b274', '#b89456', '#98763e', '#74562c', '#523a1c'] : [PAL.sand[1], PAL.sand[2], PAL.sand[3], PAL.sand[4], PAL.rock[4]];
+    const lumps = [0, 1, 2].map(() => ({ x: cx + (R() - 0.5) * rx, y: cy + (R() - 0.5) * ry * 0.8, r: rx * (0.35 + R() * 0.25), h: H * (0.14 + R() * 0.18) }));
+    const z = (x, y) => {
+        const e = ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2; if (e >= 1) return -1;
+        let v = H * Math.pow(1 - e, 1.25);                       // a soft skirt, not a wall
+        for (const L of lumps) { const le = ((x - L.x) / L.r) ** 2 + ((y - L.y) / (L.r * ry / rx)) ** 2; if (le < 1) v += L.h * (1 - le) ** 2; }
+        return v + hash2(x * 3 + 7, y * 5 + 1) * 0.35 * (1 - e);
+    };
+    let top = null;
+    for (let gy = cy - ry; gy <= cy + ry; gy++) for (let gx = cx - rx; gx <= cx + rx; gx++) {
+        const zz = z(gx, gy); if (zz < 0) continue;
+        const sx = z(gx + 1, gy) - z(gx - 1, gy), sy = z(gx, gy + 1) - z(gx, gy - 1), lit = sx * 0.9 + sy * 0.35;   // (faces toward the sun, upper left, are lit)
+        const col = lit > 0.9 ? P[0] : lit > 0.1 ? P[1] : lit > -0.8 ? P[2] : P[3];
+        const py = Math.round(gy - zz);
+        A.r(gx, py, 1, 3, col);                                     // (a short column, so no gaps open on the steep front)
+        if (!top || py < top[1]) top = [gx, py];
+    }
+    for (let i = 0; i < 22; i++) {                                  // stones and grit on the surface
+        const a = R() * Math.PI * 2, rr = Math.sqrt(R()) * 0.85, gx = Math.round(cx + Math.cos(a) * rx * rr), gy = Math.round(cy + Math.sin(a) * ry * rr), zz = z(gx, gy);
+        if (zz < 0) continue;
+        const py = Math.round(gy - zz);
+        A.px(gx, py, i % 3 ? PAL.rock[2] : PAL.rock[3]); if (i % 4 === 0) { A.px(gx + 1, py, PAL.rock[3]); A.px(gx, py - 1, PAL.rock[1]); }
+    }
+    const body = outline(st.c, P[4]), [c, g] = mk(body.width, body.height), B = pa(g);
+    B.ell(cx + 4, cy + 2, rx + 1, ry, 'rgba(64,40,24,0.2)');         // its shadow, under it and to the lower right
+    g.drawImage(body, 0, 0);
+    // (only where it's drawn is solid; top: where a stake would stand, from the entity's corner)
+    return Object.assign({ ox: -(st.c.width - st.w) / 2, oy: -(st.up + 1) }, { c, noShadow: true, solid: [(w >> 1) - rx + 4, (d >> 1) + 2 - ry + 2, rx * 2 - 8, ry * 2 - 3], top: top && [top[0] - 1, top[1] - UP - 1] });
 };
 SPR_L['survey stake'] = SPR_L["sam's survey stake"] = (w, d) => { const st = propStage(w, d, 8, 18), { A } = st; A.r(st.x + 2, st.y + 3, 2, 14, PAL.plank[0]); A.r(st.x + 2, st.y, 2, 5, PAL.red[1]); A.r(st.x + 4, st.y + 1, 3, 3, PAL.red[0]); return propFit(st, w, d); };
 // A lamp on a post: a stone foot, a post lit on one side, a lantern with glass that glows

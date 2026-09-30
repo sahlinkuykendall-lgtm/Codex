@@ -132,8 +132,8 @@ function placesSync() {
     if (!m.stakeB) {
         const h = m.ents.find(e => e.id === 'ow_spoil');
         if (h) {
-            const spr = SPR_L['survey stake'](16, 16);
-            m.stakeB = World.addEnt(m, { x: Math.round(h.x + h.w * 0.55) - 8, y: Math.round(h.y + h.d * 0.3), w: 16, d: 16, id: 'trenchB_stake', label: 'Red Stake', spr, sortY: (h.sortY || h.y + h.d) + 1, say: ['System', 'A red stake leaning out of the top of the freshest heap.'] });
+            const spr = SPR_L['survey stake'](16, 16), t = (h.spr && h.spr.top) || [h.w * 0.55, h.d * 0.3];   // on the heap's summit
+            m.stakeB = World.addEnt(m, { x: Math.round(h.x + t[0]) - 6, y: Math.round(h.y + t[1]) - 14, w: 16, d: 16, id: 'trenchB_stake', label: 'Red Stake', spr, sortY: (h.sortY || h.y + h.d) + 1, say: ['System', 'A red stake leaning out of the top of the freshest heap.'] });
         }
     }
     if (m.stakeB) m.stakeB.gone = !!sflag('mag_key');
@@ -156,3 +156,59 @@ function storeSealSprite(state) {
     }
     return { c, ox: -7, oy: -20 };
 }
+
+// ============================================================
+// SECRETS AND LORE (step 8): the bible's §SECRETS, and the places that tell the plateau's story
+// ============================================================
+// The five secrets of Chapter 1-A. They pay off later (the seal and the ibis in Ch2's reading of
+// the Codex, the mark with Father Bishoy, the Setne story in Ch10), so here they're only found,
+// noted, and counted.
+const SECRETS_1A = [
+    ['petamun_seal', 'The bronze seal of Petamun, behind the old seal on the shaft approach.'],
+    ['ibis', 'The painted sherds join into an ibis: Thoth\'s bird. Petamun\'s seal has an ibis too.'],
+    ['books_seen', 'Miriam\'s bookmarked Setne story: "Coptos. The river. Why always the river?"'],
+    ['mason_mark', 'An eye inside a house, painted on a quarry block much later than the gang\'s name.'],
+    ['saw_shaft_car', 'A car with no lights by the Osiris Shaft, seen from the watchtower.'],
+];
+function secretFound(k) { return k === 'ibis' ? sflag('hana_q') === 'done' || !!sflag('sherd_set') : !!sflag(k); }
+function secretsSync() {
+    const found = SECRETS_1A.filter(([k]) => secretFound(k));
+    if (found.length === (Story.s.secretsN || 0)) return;
+    const more = found.length > (Story.s.secretsN || 0);
+    Story.s.secretsN = found.length;
+    Game.note('Secrets of the plateau', 'Found ' + found.length + ' of ' + SECRETS_1A.length + ':\n\n' + found.map(([, t]) => '• ' + t).join('\n\n') + (found.length < SECRETS_1A.length ? '\n\nThe plateau is keeping the rest.' : '\n\nAll of them. Somebody will want to hear about this.'), 'secrets');
+    if (more) { Notice.show('A secret of the plateau (' + found.length + ' of ' + SECRETS_1A.length + ').'); Sfx.tone(988, 0.12, 'triangle', 0.05); setTimeout(() => Sfx.tone(1319, 0.2, 'triangle', 0.05), 120); }
+}
+
+// ---- the mason's marks in the old quarry ----
+STORY_SCRIPTS.c1a_mason = 'c1a_mason';
+scene('c1a_mason', {
+    speaker: 'System',
+    text: () => `A block the ancient quarrymen cut and never took, lying where it was levered out four and a half thousand years ago. On its face, in red ochre, their marks: a levelling line, and inside an oval the name of the work gang, "The Drunkards of Menkaure". (Real gangs signed their blocks with names like that; one at Giza was called exactly this.)\n\nOff to one side, painted by another hand and much later, a small mark on its own: an eye inside the outline of a house.` +
+        (sflag('codex') ? `\n\nYou know that mark. It's in the margin of the Codex's first page, beside the first line of the list.` : `\n\nIt's not Old Kingdom. It isn't anything you know. You sketch it.`),
+    choices: [{ text: 'Sketch the marks.', onSelect: () => {
+        if (!sflag('mason_mark')) { sflag('mason_mark', true); skillXP('hieroglyphs', 25); storyNote('The mason\'s marks', 'On an abandoned quarry block: the Old Kingdom gang name "The Drunkards of Menkaure" in red ochre, and, painted much later, an eye inside a house.' + (sflag('codex') ? ' The same mark is in the Codex\'s margin.' : '') + ' (Father Bishoy will want to see it.)'); }
+    } }],
+});
+// the Codex remembers the mark, if you've already seen it on the block
+(function () {
+    const def = STORY.c1a_codex, base = def.text;
+    def.text = () => (typeof base === 'function' ? base() : base) + (sflag('mason_mark') ? `\n\nIn the margin beside the list's first line: an eye inside a house. The mark from the quarry block.` : '');
+})();
+
+// ---- the false door in the workers' cemetery (Petety's curse, if you can read it) ----
+STORY_SCRIPTS.c1p_falsedoor = 'c1p_falsedoor';
+scene('c1p_falsedoor', {
+    speaker: 'System',
+    text: () => `A false door: a limestone slab carved like a doorway that doesn't open, the door the dead come through to take their offerings. This cemetery belongs to the men who built the pyramids, buried in sight of them, with their tools and their bread. It was found in 1990, when a horse stumbled into a wall.\n\nThe columns name the owner: an overseer of the side of the pyramid.` +
+        (skillLevel('hieroglyphs') >= 2 ? `\n\nAt the bottom, a curse, the real one from Petety's tomb nearby: "All people who enter this tomb who will make evil against it and destroy it: may the crocodile be against them in the water, and snakes against them on land. May the hippopotamus be against them in the water, the scorpion against them on land."` : `\n\nThere's more at the bottom, but your hieroglyphs aren't good enough to read it.`),
+    choices: [{ text: 'Read it slowly.', onSelect: () => { if (!sflag('falsedoor')) { sflag('falsedoor', true); skillXP('hieroglyphs', 35, 'the false door'); storyNote("The workers' cemetery", 'The pyramid builders\' own tombs, found in 1990. A false door' + (skillLevel('hieroglyphs') >= 2 ? ' with a curse on anyone who harms it: crocodiles in the water, snakes on land.' : ', and a curse you couldn\'t read yet.')); } } }],
+});
+
+// ---- the builders' ramp ----
+STORY_SCRIPTS.c1p_ramp = 'c1p_ramp';
+scene('c1p_ramp', {
+    speaker: 'System',
+    text: `A long, low mound running toward the escarpment, rubble packed between two tumbled walls of mud brick: a construction ramp. Whoever built the pyramids dragged stone up ramps like this: straight ones, zigzag ones, ramps spiralling round the pyramid itself. Archaeologists have argued about which for two hundred years. In 2018 a ramp with post-holes and staircases either side was found at an Egyptian alabaster quarry, Hatnub, and the argument got louder.\n\nThe sledge ruts are still in the packed surface, if you know how to look.`,
+    choices: [{ text: 'Follow the ruts with your hand.', onSelect: () => { if (!sflag('ramp')) { sflag('ramp', true); skillXP('excavation', 25, 'the builders\' ramp'); storyNote('The builders\' ramp', 'A construction ramp with sledge ruts still in its surface. How the pyramids\' stones went up is still argued about; the Hatnub ramp (2018) had post-holes and staircases either side.'); } } }],
+});

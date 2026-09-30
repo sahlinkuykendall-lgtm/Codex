@@ -194,7 +194,7 @@ function storySync() {
         const open = !!sflag('gate_open');
         if (gate.isOpen !== open) { gate.isOpen = open; gate.spr = open ? gate.sprOpen : gate.sprLocked; World.setSolid(m, gate.lock, !open); }
     }
-    Bosta.sync(); placesSync();
+    Bosta.sync(); placesSync(); secretsSync();
     const here = sflag('lena_event') === 'searching';
     for (const e of m.ents) if (e.lenaEvent) e.gone = !here;
     if (here && !Game.lenaCar) {
@@ -761,6 +761,7 @@ function c1aChapterEnd() {
     if (f.hana_q === 'done') L.push('Hana joined the painted sherds into Thoth\'s ibis, and gave you her wax.');
     if (f.lindqvist_papers) L.push('You kept Lindqvist\'s half-burned Foundation papers.');
     if (f.store_resealed) L.push('You resealed the find store with Hana\'s wax. Nobody knows it was opened.');
+    L.push('Secrets of the plateau: ' + (Story.s.secretsN || 0) + ' of ' + SECRETS_1A.length + ' found.' + ((Story.s.secretsN || 0) === SECRETS_1A.length ? ' All of them.' : ''));
     EndCard.show('END OF CHAPTER ONE', 'THE GIZA DIG CAMP', L, 'Thursday night, Café El-Fishawy, Cairo. Father Bishoy is waiting for someone who isn\'t coming. Chapter Two, Cairo, is being built. Your choices are saved and will carry forward.');
 }
 
