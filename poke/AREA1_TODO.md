@@ -31,8 +31,8 @@ Rules:
 - Each update gets a POKE-STYLE P0.x entry in `UPDATE_LOG.md` and a bump of the title
   version in `poke/ui.js`.
 - Commit and push `poke-style` after each step.
-- Test with the Playwright scripts in `%TEMP%/codex_tests` (`poke_play.js`, `poke_audit.js`,
-  `poke_camp.js`, `poke_bg.js`).
+- Test with the Playwright scripts in `tools/poke_checks/`: `poke_audit.js` (links, scenes, reachability),
+  `poke_playthrough.js` (three full nights), `poke_look.js <older build>` (the pixel-for-pixel look check).
 
 ---
 
@@ -199,7 +199,11 @@ Also:
 - The eye-in-a-house mason's mark
 - The car by the shaft seen from the watchtower
 
-## 9. Last
+## 9. Last — Area 1's checks ✅ DONE in P0.17; the other three openings are next
+> Done: the audit, three full-night playthroughs (one per exit) with save/load mid-search, down the shaft,
+> with Bosta and after the card, and a speed check. They're `tools/poke_checks/`. Still to do: the other
+> three openings below.
+
 - Run a playthrough of the whole night, with each exit choice.
 - Check the save and load in the middle of the night.
 - Run `poke_audit.js` again after adding things to the map.

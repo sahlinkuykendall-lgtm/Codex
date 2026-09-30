@@ -12,6 +12,32 @@ Other docs:
 
 ---
 
+## POKE-STYLE P0.17 — 2026-09-30 — (branch `poke-style`) Area 1 checked from end to end (step 9, part 1)
+- **Area 1 (the Archaeologist's night at Giza) is complete.** Steps 1–8 of `AREA1_TODO.md`
+  are done, and this update is the final check.
+- **The audit:** all 124 scenes. Every conversation link and every scripted object points at
+  a scene that exists. Every scene's words and choices work under 60 rounds of random story
+  states. Everything you can examine can be walked to. The story's first people can be
+  reached while the dig gate is still locked. The midnight car covers no door, road or
+  person, and the tent door stays reachable.
+- **Three full nights played on the game's own clock**, so midnight, the car and thirst and
+  hunger all happen as they do in play:
+  - **the quiet exit:** save and load mid-search (the car and all three searchers come back),
+    and the clock running free after the chapter-end card with no second car
+  - **the legal exit:** Amira called early, the shaft, save and load down it (you're back at
+    the top), knocked out and robbed of the page, Amira remembering the promise
+  - **the deal:** the Codex taken before midnight so the car never comes, Bosta at your heel
+    across a save and load
+
+  Money, flags and each chapter-end card came out right. No errors.
+- **Speed:** 0.5–5 ms a frame at night in the busiest parts of the camp, against 16.7 ms.
+- **The checks are in the repo** (`tools/poke_checks/`), to run after any change:
+  - `poke_audit.js`
+  - `poke_playthrough.js`
+  - `poke_look.js <older build>`: the pixel-for-pixel look check
+
+  No gameplay changed in this update.
+
 ## POKE-STYLE P0.16 — 2026-09-30 — (branch `poke-style`) Real spoil heaps; secrets and lore (Area 1, step 8)
 - **The spoil heaps are real piles of earth now**, not flat ovals (you asked for this).
   - Each heap's surface is modelled with a rounded top, a soft skirt and a few lumps. It's
