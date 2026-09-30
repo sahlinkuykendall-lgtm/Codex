@@ -50,8 +50,9 @@ function writeOut(glbBuf) {
     const b = await chromium.launch({ channel: 'chrome' });
     const p = await b.newPage();
     p.on('console', m => { if (m.type() === 'error') console.log('  [page] ' + m.text().slice(0, 200)); });
-    await p.goto('about:blank');
-    for (const f of ['three.min.js', 'fflate.min.js', 'NURBSUtils.js', 'NURBSCurve.js', 'FBXLoader.js', 'GLTFLoader.js', 'GLTFExporter.js'])
+    await p.route('http://codex.local/**', r => { const u = decodeURIComponent(new URL(r.request().url()).pathname); if (u === '/blank.html') return r.fulfill({ body: '<html></html>', contentType: 'text/html' }); const fp = path.join(ROOT, u); if (!fs.existsSync(fp)) return r.fulfill({ status: 404 }); r.fulfill({ body: fs.readFileSync(fp), contentType: fp.endsWith('.wasm') ? 'application/wasm' : 'application/javascript' }); });
+    await p.goto('http://codex.local/blank.html');
+    for (const f of ['three.min.js', 'fflate.min.js', 'NURBSUtils.js', 'NURBSCurve.js', 'FBXLoader.js', 'GLTFLoader.js', 'DRACOLoader.js', 'GLTFExporter.js'])
         await p.addScriptTag({ path: path.join(ROOT, 'lib', f) });
     const ext = path.extname(input).slice(1).toLowerCase();
     const job = {
@@ -62,7 +63,7 @@ function writeOut(glbBuf) {
         const ab = (b64) => { const s = atob(b64), u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); return u.buffer; };
         const parse = async (ext, buf) => {
             if (ext === 'fbx') { const r = new THREE.FBXLoader().parse(buf, ''); return { root: r, clips: r.animations || [] }; }
-            const g = await new Promise((res, rej) => new THREE.GLTFLoader().parse(buf, '', res, rej));
+            const g = await new Promise((res, rej) => (() => { const l = new THREE.GLTFLoader(); const d = new THREE.DRACOLoader(); d.setDecoderPath('/lib/draco/'); l.setDRACOLoader(d); return l; })().parse(buf, '', res, rej));
             return { root: g.scene, clips: g.animations || [] };
         };
         const { root, clips } = await parse(job.ext, ab(job.data));
