@@ -12,6 +12,35 @@ Other docs:
 
 ---
 
+## POKE-STYLE P0.21 — 2026-09-30 — (branch `poke-style`) The shaft, the old seal, the builders' ramp, the sherds and the workers' kitchen redrawn
+- **The shaft entrance** stands out now:
+  - a portal of big dressed limestone blocks with a keystone lintel set into the cliff, and
+    a heavy timber frame inside it
+  - the ladder going down into the dark, and the steel grille swung open with its padlock
+    hanging
+  - a timber A-frame with a pulley over the top, a yellow danger sign and sandbags
+  - a lantern on a hook that glows at night
+- **Petamun's seal:**
+  - a round panel sunk in the rock, with a ring of pale stone round a glossy amber core
+  - four glyph stones at its compass points: the owl, the eye, the serpent and the lion
+  - the name cut small above it, and a timber brace across it
+  - the amber glows faintly at night
+- **The builders' ramp:**
+  - a long mound rising east to the cliff, with a front wall of coursed mud brick
+  - where the wall has tumbled, the rubble fill spills out in a fan of chips
+  - on top: packed rubble, a trackway of timber sleepers and the two sledge ruts
+  - a survey string on red pegs with a label tag, because it's being dug
+- **The painted sherds** are curved terracotta shards with a red ochre band, a black line
+  and pale broken edges, not dots.
+- **The workers' kitchen** is a long trestle table under a reed-mat awning:
+  - a big aluminium pot of lentils steaming on a gas ring, and the blue gas bottle
+  - stacks of bread, a tray of tea glasses and a kettle
+  - a chopping board with a half-cut onion, enamel plates and a basket of tomatoes
+- **The vegetable crates** are proper slatted crates heaped with tomatoes, onions,
+  cucumbers, aubergines and oranges, each with a burlap sack of potatoes slumped beside it.
+- **The look check:** only the views with these things changed. The audit and the three
+  playthroughs are clean.
+
 ## POKE-STYLE P0.20 — 2026-09-30 — (branch `poke-style`) Music; fewer lamps that reach further
 - **Music** (`poke/music.js`): little chiptune loops made on the fly, with no sound files.
   Each has a square-wave lead, a triangle bass, soft arpeggios and a darbuka (doum and tak).
