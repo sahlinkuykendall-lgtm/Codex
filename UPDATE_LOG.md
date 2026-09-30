@@ -12,6 +12,26 @@ Other docs:
 
 ---
 
+## V4.1.3 — 2026-09-29 — Crates, drums and barrels: mixed, not the same box everywhere
+- **Every crate in the world now picks a look.** The same spot always gets the same one:
+  - Single crates are the nailed wooden crate (with FRAGILE sticker) or the old SCA-stencilled box.
+    They keep their size, so radios, tools and lamps still sit on them.
+  - Crate stacks are strapped shipping crates, a pile of crates with one fallen off, or
+    a hand-stacked mix of singles.
+- **Drums:** the blue water drums are the real plastic drums, with caps; one lies on
+  its cradle with a tap. Fuel drums are red and black oil drums, and the rusty oil drum
+  is the black one. Every drum is turned a different way.
+- **New set dressing:**
+  - **Vegetable crates** at both ends of the camp kitchen table: the slatted crates with
+    tomatoes, onions, cucumbers and aubergines.
+  - **A wooden water barrel** with a dipper in the mess tent.
+  - **Army crates** (one open) against the old Ministry post.
+- `prepare_model.js` now converts old "specular-glossiness" materials, which this Three.js
+  version can't read and draws white. The crate pile needed it.
+- Mess tent collision now matches the canvas (the model's width includes its guy ropes).
+- Saved for later chapters: the bourbon-barrel row (Ch2/Ch3 cafés and cellars) and the
+  untextured "crates" kit.
+
 ## V4.1.2 — 2026-09-29 — Your new models in the camp: dartboard, radio, the Codex, tents, camp kitchen, dig tools
 - **The dartboard** in the worker camp is now the real Winmau board. It's sized so its
   double ring sits exactly on the game's scoring edge, so darts score the same as before.

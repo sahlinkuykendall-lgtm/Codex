@@ -100,9 +100,9 @@ function c1mCentre(inst, cx, cz, y) {
     const MX = 5280, MZ = 4545, MW = 400, MD = 290;
     obj('c1m_mess', 'Mess Tent', MX, MZ, MW, MD, null, { decorative: true });
     obj('c1m_mess_in', 'Mess Tent (Look)', MX, MZ + 40, 120, 40, 'c1m_mess');
-    solid(MX, MZ - MD * 0.36, MW * 0.8, 16);                           // back wall
-    solid(MX - MW * 0.4, MZ, 16, MD * 0.72);                           // ends
-    solid(MX + MW * 0.4, MZ, 16, MD * 0.72);
+    solid(MX, MZ - MD * 0.3, MW * 0.66, 16);                           // back wall
+    solid(MX - MW * 0.33, MZ, 16, MD * 0.72);                           // ends
+    solid(MX + MW * 0.33, MZ, 16, MD * 0.72);
     CH1_BUILDERS.c1m_mess_in = () => { const g = new THREE.Group(); g.userData.h = 40; return g; };   // the look-in point: the tent is the mesh
     CH1_BUILDERS.c1m_mess = function (o, M) {
         const g = new THREE.Group();

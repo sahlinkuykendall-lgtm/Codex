@@ -14,7 +14,7 @@ const fs = require('fs');
 const path = require('path');
 const { NodeIO } = require('@gltf-transform/core');
 const { ALL_EXTENSIONS } = require('@gltf-transform/extensions');
-const { weld, simplify, dedup, prune, textureCompress, flatten } = require('@gltf-transform/functions');
+const { weld, simplify, dedup, prune, textureCompress, flatten, metalRough } = require('@gltf-transform/functions');
 const { MeshoptSimplifier } = require('meshoptimizer');
 const draco3d = require('draco3dgltf');
 const sharp = require('sharp');
@@ -67,6 +67,8 @@ const countTris = (doc) => {
         const want = new Set(keepmat.split(','));
         for (const m of root.listMeshes()) for (const p of m.listPrimitives()) if (!p.getMaterial() || !want.has(p.getMaterial().getName())) { m.removePrimitive(p); p.dispose(); }
     }
+    // old specular-glossiness materials: three r147 can't read them (renders white), so convert
+    if (root.listExtensionsUsed().some(e => e.extensionName === 'KHR_materials_pbrSpecularGlossiness')) await doc.transform(metalRough());
     // Draco-compressed input: drop the extension so the game never needs a decoder
     for (const ext of root.listExtensionsUsed()) if (/draco/i.test(ext.extensionName)) ext.dispose();
     await doc.transform(prune(), dedup(), weld());

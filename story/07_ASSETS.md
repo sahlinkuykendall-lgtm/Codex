@@ -61,6 +61,13 @@ Preview sheets are in `models/previews/`.
 | fishing_camp_assets | Stove, gas bottle, cooler, mugs, folding table, mat (untextured) | 803k | **Ch1 Miriam's Camp Kitchen (DONE, rod dropped, coloured per piece)** | Colours are in `KIT`, `ch1a_models.js` |
 | sieve | Ancient perforated pottery bowl (a strainer, not a dig sieve) | 297k | **Ch1 Hana's table (DONE, cut to 18k)** | A dig sieve on trestles is still on the wishlist |
 | dirty_shovel, pickaxe, old_pickaxe, farming_hoe, broom, survival_shovel | Dig tools | 0.4–6k | **Ch1 Tool Rack and trench kit (DONE)**; every later dig | — |
+| crate_box, wood_crate, crate_pile | Nailed crate, strapped shipping crates, a pile | 0.2–4k | **Every crate in Ch1 (DONE, V4.1.3)**: `subCrate` and the crate stacks pick one per spot | crate_pile needed its old material converted |
+| crate (slatted) | Open fruit/vegetable crate | 6k | **Ch1 vegetable crates (DONE)**; Ch2 markets | — |
+| dirty_oil_barrel, plastic_blue_drum | Red and black oil drums; blue water drum | 2–6k | **Every drum in Ch1 (DONE)**: `subDrum` picks by colour | The oil pack is split with `--keep red_all_0` / `black_all_0` |
+| barrel (wooden) | Wooden barrel | 2k | **Ch1 mess tent water barrel (DONE)**; Ch2 cafés, Ch3 Alexandria cellars | — |
+| military_crates | Green army crates, one open | 9k | **Ch1 by the Ministry post (DONE)**; Ch6 army camp, Lena's people | The paint was marked see-through; fixed in the game |
+| old_bourbon_barrels | A row of five old barrels | 8k | Later: a Ch2/Ch3 cellar or café | 20 MB. Reduce textures |
+| crates (kit) | Tall, wide and small crates, a barrel, planks (untextured) | 7k | Later, with a wood texture | Normal map only |
 | garden_tools_pack | Hose, planter, bucket, wheelbarrow, rakes, shovel | 30k | **Wheelbarrow and bucket: Ch1 (DONE)**. The rest for Ch2 gardens and village farms | Pieces are grouped by material, so use `--keepmat Wheelbarrow` |
 
 ---

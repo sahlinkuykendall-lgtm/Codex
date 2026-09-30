@@ -75,6 +75,10 @@
     - The builders run before the models parse, so always measure a model in its group's
       space, never in world space.
     - Packs with no textures get a material per mesh name (see `KIT` for the camp kitchen).
+    - `ch1a_crates.js` (V4.1.3) loads after `ch1a_models.js`. It reassigns `subCrate`, `subDrum`
+      and the 'crates' / 'sorted crates' label builders, so every crate and drum picks a model by
+      a steady hash of its spot (`c1cPick`). Singles still fill exactly s × 0.8s × s, because
+      callers stack things on them.
     - Prepare models with `tools/prepare_model.js`. It takes `--keep`, `--keepmat`, `--drop`,
       `--tris`, `--tex` and `--error`.
   - The first realistic-character pass may push the download size up. Plan to wrap the game as a Windows .exe with Electron (GitHub Releases for hosting) when it gets heavy.
