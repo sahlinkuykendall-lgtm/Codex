@@ -12,6 +12,29 @@ Other docs:
 
 ---
 
+## V4.1.1 — 2026-09-29 — Your downloaded models: the first ones in the game, and a plan for the rest
+- **Hana's table now holds real scanned artefacts** from your model library:
+  - The seated limestone statuette of Steward Au, cut out of the statue pack.
+  - The leather sandal.
+  - The papyrus fragment.
+  - A new **"Hana's Finds Tray"** to examine: Excavation XP, and Hana's line that Miriam
+    wouldn't let the statuette go into the find store.
+- **Model tools:**
+  - `tools/preview_models.js` renders a picture of every model and reads its triangles,
+    textures, size and animations. The contact sheets are in `models/previews/`.
+  - `tools/prepare_model.js` picks one piece from a pack, cuts it down to a triangle budget
+    while keeping its textures, and shrinks textures. The papyrus went from 193k to 5k
+    triangles, and the statue from 65k to 9k.
+  - Draco-compressed models (the Ramesses III statue, the spice stand, one temple) are now
+    supported.
+- **Matte option for scans:** scanned models often arrive marked as metal, which renders
+  black at night. The loader's `matte` option makes them stone, leather and papyrus.
+- **New asset guide, `story/07_ASSETS.md`:**
+  - Where each of your 31 models belongs (Cairo museum, Alexandria, Tanis, Karnak, the
+    Houses and so on), with the triangle budget for each.
+  - A **Chapter 1 wishlist** of everything in the camp you could find models for, with
+    search terms: characters, animals, vehicles, buildings, props, small finds.
+
 ## V4.1.0 — 2026-09-29 — Chapter 1 completed against the bible: systems, missing content, new places
 **New systems (story/06_SYSTEMS.md):**
 - **Skills and XP.** 16 skills, levels 0–5. You start with your background's levels

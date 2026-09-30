@@ -57,10 +57,17 @@ function modelSpawn(name, opts) {
     };
     inst.ready = modelLoad(name).then(gltf => {
         const m = THREE.SkeletonUtils.clone(gltf.scene);
-        const k = (opts.height || 56) / (gltf.userData.height || 1);
+        // exact scale (opts.scale) or fit to a height in world units (about 32 per metre)
+        const k = opts.scale || (opts.height || 56) / (gltf.userData.height || 1);
         m.scale.setScalar(k);
         m.position.y = -gltf.userData.minY * k;
-        m.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; o.frustumCulled = false; } });
+        m.traverse(o => {
+            if (!o.isMesh) return;
+            o.castShadow = true; o.receiveShadow = true; o.frustumCulled = false;
+            // scanned props often arrive marked fully metallic, which renders black
+            // without reflections to show: opts.matte makes them stone/leather/papyrus
+            if (opts.matte) o.material = [].concat(o.material).map(mt => { const c = mt.clone(); c.metalness = 0; c.roughness = Math.max(0.7, c.roughness || 0); c.metalnessMap = null; return c; }).reduce((a, c, i, arr) => arr.length === 1 ? c : arr, null);
+        });
         group.add(m);
         inst.model = m;
         inst.mixer = new THREE.AnimationMixer(m);

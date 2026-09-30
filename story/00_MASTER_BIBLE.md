@@ -13,6 +13,7 @@ here, add it here first and then reference it.
 | `04_ENDINGS.md` | 7 endings and their variations, and exactly what decides each |
 | `05_ECONOMY.md` | Money, prices per region, jobs, shops, property, selling finds |
 | `06_SYSTEMS.md` | Skills, languages, failure states, day/night, food and water, the phone, the Book's pull |
+| `07_ASSETS.md` | Downloaded 3D models: where each goes, budgets, and the per-chapter wishlist |
 | `regions/*.md` | One file per chapter: beats, places, NPCs, side quests, jobs, secrets |
 | `SIDE_QUESTS_INDEX.md` | Every side quest in the game in one table |
 
