@@ -85,7 +85,7 @@ Then the chapter-end card. **Inspector-only lore seed:** Umm Sabry's story of th
 "where the magician's wife and son are painted by the river" (Naneferkaptah, from the
 Setne tale) sets `ch10_tomb_known` after Ch9.
 
-## 8. Side quests (bible §SIDE QUESTS, SQ-01B-01 to 05)
+## 8. Side quests (bible §SIDE QUESTS, SQ-01B-01 to 09)
 | Quest | Giver | What happens |
 |---|---|---|
 | Umm Sabry's Price | Umm Sabry | Gossip for gossip: who's romancing the accountant? (Already a task.) Unlocks her network: tips about Fathi, and a Return-ending cameo |
@@ -93,11 +93,14 @@ Setne tale) sets `ch10_tomb_known` after Ch9.
 | Rais Gad's Tunnel | Rais Gad | Robbers dug into the closed mastaba (the fresh hole is on the map). Stake it out at night. A good find, Ministry rep, and it introduces the Qurna robbing families |
 | The Colossus | A lost tourist child | At the Ramesses colossus, find the parents (the two tourists are there). Small reward, and a guiding job unlocked |
 | The Forged Seal | Fathi | Forged tomb seals across the site: compare them (the seal minigame). It's Samy; evidence for the Radwan conscience track |
+| The Serdab's Eyes | The serdab | Photograph Djoser through the eye holes (C, the camera). Photography XP |
+| The Café's Backgammon | The café champion | Beat him at tawla (a new minigame, kept for Madame Samira's café in Ch2). A small purse, village rep |
+| The Well Girls | The girls at the well | Find their jerrycan's cap in the market. Village rep, and gossip for Umm Sabry |
+| The Mechanic's Receipt | The mechanic | The receipt for Samy's bike (cash, from Cairo). Extra proof in beat 6: new lines, same outcome, not a Radwan conscience point |
 
-**The same amount to do as Giza:** Area 1 has 11 side quests; the bible gives Ch1-B five,
-plus three jobs and two secrets. With the jobs, secrets and the seal register below it comes
-out about even. **More side quests need adding to the bible first** (see the proposals at
-the end).
+**The same amount to do as Giza:** Area 1 has 11 side quests. Ch1-B has nine (the bible's
+five, plus four added to the bible on 2026-09-30 after checking they conflict with nothing),
+plus three jobs, two secrets and the seal register.
 
 ## 9. Jobs, the collection, minigames
 - **Jobs (bible §JOBS):**
@@ -125,12 +128,3 @@ the end).
 - **Rest:** wait or sleep somewhere (Umm Sabry's corner by day, the ghaffir's bench by night).
 - **The checks:** an Inspector playthrough with each exit, save and load mid-night, and the
   speed check.
-
-## Proposals (not in the bible: say yes and they go into the bible first)
-- **The Serdab's Eyes:** photograph Djoser through the serdab's holes at dawn (Photography XP).
-- **The Café's Backgammon:** a tawla game against the café's champion (Madame Samira's
-  tawla café is in Ch2 Cairo; this would foreshadow it).
-- **The Well Girls:** the two girls at the village well have lost their jerrycan's cap. A tiny
-  kindness quest, and village rep.
-- **The Mechanic's Receipt:** the mechanic knows Samy paid cash for the motorbike. Getting
-  the receipt is extra proof for beat 6.

@@ -62,6 +62,10 @@ _Source: `regions/ch01_opening_inspector.md`_
 | SQ-01B-03 | Rais Gad's Tunnel | Rais Gad | A good find, Ministry rep, and it introduces the Qurna robbing families |
 | SQ-01B-04 | The Colossus | Tourist child | Small reward, and a guiding job unlocked |
 | SQ-01B-05 | The Forged Seal | Fathi | It's Samy. Evidence for the Radwan conscience track |
+| SQ-01B-06 | The Serdab's Eyes | The serdab (Step Pyramid) | Photograph Djoser through the serdab's eye holes. Photography XP, and a photo for the phone |
+| SQ-01B-07 | The Café's Backgammon | The café champion, Mit Rahina | A tawla game (the tawla minigame, reused later at Madame Samira's in Ch2). A small purse and village rep; it doesn't touch SQ-02-07 |
+| SQ-01B-08 | The Well Girls | Two girls at the village well | Find their jerrycan's lost cap. Village rep, and gossip Umm Sabry wants |
+| SQ-01B-09 | The Mechanic's Receipt | The mechanic, Mit Rahina | The receipt for Samy's motorbike (paid cash, from Cairo). Extra proof when you expose him in beat 6: it changes what Fathi and Samy say, not the outcome, and it is **not** a Radwan conscience point |
 
 ## CH1-D — PORT SAID (Journalist opening)
 _Source: `regions/ch01_opening_journalist.md`_

@@ -72,6 +72,10 @@ unlocks The Return without the Coptos quest (`03_CHOICES_AND_FLAGS.md` §6).
 | SQ-01B-03 | Rais Gad's Tunnel | Rais Gad | Robbers dug a tunnel into a closed mastaba. Stake it out at night | A good find, Ministry rep, and it introduces the Qurna robbing families |
 | SQ-01B-04 | The Colossus | Tourist child | A lost child at Mit Rahina's Ramesses colossus museum. Find the parents | Small reward, and a guiding job unlocked |
 | SQ-01B-05 | The Forged Seal | Fathi | Someone forged tomb seals across the site. Compare them (seal minigame) | It's Samy. Evidence for the Radwan conscience track |
+| SQ-01B-06 | The Serdab's Eyes | The serdab | Djoser has looked out of his sealed box for 4,650 years. Photograph him through the two eye holes (any time of day: the Inspector's day runs 08:30 Tuesday to 04:40 Wednesday) | Photography XP, and the photo on your phone |
+| SQ-01B-07 | The Café's Backgammon | The café champion | An old man at the ahwa has not lost at tawla since the 1990s. Beat him (the tawla minigame; Madame Samira's tawla café in Ch2 reuses it) | A small purse and village rep. It doesn't affect SQ-02-07 |
+| SQ-01B-08 | The Well Girls | Two girls at the village well | They've lost the cap of their jerrycan and will be scolded. Find it (it's in the market) | Village rep, and a piece of gossip for Umm Sabry's Price |
+| SQ-01B-09 | The Mechanic's Receipt | The mechanic | He knows Samy paid cash for the new motorbike, from Cairo. Get the receipt | Extra proof when you expose Samy in beat 6: it changes what Fathi and Samy say, not the outcome. It is not a Radwan conscience point |
 
 ## JOBS
 - Seal inspections (a paid shift)
