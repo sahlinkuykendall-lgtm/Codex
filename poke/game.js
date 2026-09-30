@@ -281,6 +281,7 @@ const Game = {
         if (e.person) { const dx = p.x - e.x, dy = p.y - e.y; e.person.dir = Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? DIR.left : DIR.right) : (dy < 0 ? DIR.up : DIR.down); e.person.frame = 0; }
         Sfx.ok();
         const sc = scriptFor(e);
+        this.talkId = e.id;                                 // (so a scene shared by several things knows which one)
         if (sc) return startDialogue(sc);                   // a scripted conversation (poke/ch1_scenes.js)
         const [speaker, text] = e.say;
         Dlg.open(speaker, text, () => {

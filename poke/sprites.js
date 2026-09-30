@@ -531,7 +531,43 @@ SPR_L['tin bucket'] = (w, d) => { const st = propStage(w, d, 12, 14), { A } = st
 SPR_L['rope coil'] = (w, d) => { const st = propStage(w, d, 18, 12), { A } = st; A.ell(st.x + 8, st.y + 6, 8, 5, PAL.canvas[2]); A.ell(st.x + 8, st.y + 5, 6, 3, PAL.canvas[1]); A.ell(st.x + 8, st.y + 5, 3, 1, PAL.canvas[3]); return propFit(st, w, d, { flat: true }); };
 SPR_L['rock pile'] = (w, d, o) => rocks(w, d, o.id, 3);
 SPR_L['boulder'] = (w, d, o) => rocks(w, d, o.id, 1, 14);
-SPR_L['big boulder'] = (w, d, o) => rocks(w, d, o.id, 1, 22);
+// The big boulder: a limestone block the size of a car, its front face cut flat by quarrymen who
+// drove a row of wedges into it and gave up. Top lit, the rough left side half lit, the right side
+// in shadow; bedding lines, pits, chips at its foot, its shadow to the lower right.
+SPR_L['big boulder'] = (w, d, o) => {
+    const st = propStage(w, d, 76, 56), { A } = st, x = st.x + 2, y = st.y + 2, R = rng('boulder' + o.id);
+    const TOP = ['#f4e6c8', '#e2cea8', '#cdb68e'], SIDE = ['#c8b08a', '#b09672'], FACE = ['#d8c49e', '#c4ae88', '#a89070'], DARK = ['#8e7658', '#735e44', '#5a4834'];
+    const top = [[5, 17], [11, 9], [23, 4], [41, 3], [55, 6], [65, 12], [62, 20], [36, 23], [10, 22]];
+    const left = [[5, 17], [10, 22], [13, 47], [5, 45], [1, 33], [2, 23]];
+    const face = [[10, 22], [36, 23], [62, 20], [61, 46], [36, 48], [13, 47]];
+    const right = [[65, 12], [71, 20], [70, 38], [67, 45], [61, 46], [62, 20]];
+    const P = pts => pts.map(([a, b]) => [x + a, y + b]);
+    A.poly(P(left), SIDE[1]); A.poly(P(right), DARK[0]); A.poly(P(face), FACE[1]); A.poly(P(top), TOP[1]);
+    A.poly(P([[11, 10], [23, 5], [41, 4], [50, 7], [34, 11], [18, 14], [8, 18]]), TOP[0]);                         // the sunlit crown
+    A.poly(P([[40, 21], [62, 19], [64, 13], [58, 16], [46, 18]]), TOP[2]);
+    A.poly(P([[2, 24], [6, 18], [9, 22], [10, 34], [4, 36]]), SIDE[0]);                                               // the rough side, half lit
+    for (let i = 0; i < 26; i++) {                                                                                   // pits and speckle on the natural faces
+        const a = R(), px = Math.round(3 + a * 64), py = Math.round(6 + R() * 16);
+        if (py < 20 - (px > 55 ? 6 : 0)) A.px(x + px, y + py, R() < 0.5 ? TOP[2] : '#b89e78');
+    }
+    for (let i = 0; i < 12; i++) A.px(x + 2 + Math.round(R() * 9), y + 24 + Math.round(R() * 20), DARK[0]);
+    for (const by of [27, 34, 41]) A.line(x + 63, y + by - 4, x + 69, y + by - 1, DARK[1]);                        // bedding in the shadowed side
+    A.line(x + 2, y + 30, x + 11, y + 32, DARK[0]); A.line(x + 3, y + 39, x + 12, y + 41, DARK[0]);
+    for (let i = 0; i < 30; i++) { const fx = 15 + Math.round(R() * 42), fy = 33 + Math.round(R() * 10); A.line(x + fx, y + fy, x + fx + 2, y + fy - 2, R() < 0.5 ? FACE[0] : FACE[2]); }   // the cut face: pick marks
+    A.poly(P([[48, 24], [61, 22], [60, 45], [52, 46], [55, 34]]), FACE[2]);                                           // the face turns away from the sun at its east end
+    A.hl(x + 11, y + 23, 50, '#f0e0c0');                                                                             // the arris, catching the light
+    for (let wx = 16; wx < 58; wx += 7) { A.r(x + wx, y + 26, 3, 5, DARK[2]); A.hl(x + wx, y + 31, 3, TOP[0]); A.px(x + wx + 2, y + 26, DARK[1]); }   // the wedge slots
+    A.line(x + 37, y + 31, x + 35, y + 38, DARK[1]); A.line(x + 35, y + 38, x + 38, y + 47, DARK[1]); A.line(x + 38, y + 31, x + 36, y + 38, FACE[0]);   // the split that never ran true
+    A.line(x + 30, y + 8, x + 38, y + 14, TOP[2]); A.line(x + 38, y + 14, x + 36, y + 19, TOP[2]);                   // a weathered crack on top
+    A.hl(x + 13, y + 46, 48, DARK[1]); A.hl(x + 5, y + 44, 8, DARK[1]); A.hl(x + 61, y + 45, 8, DARK[2]);
+    for (const [cx, cy, s] of [[8, 50, 3], [22, 51, 2], [48, 51, 3], [58, 50, 2], [67, 49, 2], [30, 52, 1]]) {        // chips the quarrymen left
+        A.r(x + cx, y + cy - s + 1, s + 2, s, SIDE[0]); A.hl(x + cx, y + cy - s + 1, s + 1, TOP[0]); A.px(x + cx + s + 1, y + cy, DARK[0]);
+    }
+    const body = outline(st.c, DARK[2]), [c, g] = mk(body.width, body.height), B = pa(g);
+    B.ell(x + 42, y + 48, 34, 5, 'rgba(64,40,24,0.22)');
+    g.drawImage(body, 0, 0);
+    return { c, ox: Math.round((w - c.width) / 2), oy: Math.round(d - c.height + 1), noShadow: true, solid: [w / 2 - 34, d - 18, 68, 16] };
+};
 // A rock: a rounded lump, lit on its upper left, a flat shadowed underside, one crack
 function rockAt(A, cx, cy, r, R) {
     const ry = Math.round(r * 0.75);
@@ -687,6 +723,27 @@ SPR.ow_well = (w, d) => {                         // the old well: a stone drum,
     A.hl(cx - 15, ry + 11, 31, '#6e5a44');
     return propFit(st, w, d, { solid: [w / 2 - 16, d - 16, 32, 14] });
 };
+// Water jars (a zeer): two big unglazed clay jars on a wooden stand, sweating, a tin cup on a nail,
+// a dark damp patch in the sand beneath. `sabil` is the stone-niched one by the sheikh's tomb.
+function zeer(w, d, sabil) {
+    const st = propStage(w, d, 34, 36), { A } = st, x = st.x, y = st.y;
+    A.ell(x + 16, y + 32, 14, 3, '#c8a868');                                                                  // the wet sand
+    if (sabil) { A.r(x + 1, y, 31, 30, '#d8c8a4'); A.r(x + 1, y, 31, 3, '#f0e4c8'); A.r(x + 4, y + 5, 25, 25, '#8a7456'); A.ell(x + 16, y + 6, 12, 5, '#8a7456'); A.r(x + 5, y + 8, 23, 20, '#6e5a44'); }
+    else { A.r(x + 3, y + 10, 2, 21, '#8e5e32'); A.r(x + 28, y + 10, 2, 21, '#8e5e32'); A.vl(x + 3, y + 10, 21, '#b8844c'); A.r(x + 1, y + 12, 31, 3, '#b8844c'); A.hl(x + 1, y + 12, 31, '#e0b478'); A.hl(x + 1, y + 14, 31, '#6e4424'); }
+    for (const jx of [x + 10, x + 23]) {                                                                      // the jars: round-bellied, lit on the left, dark where they sweat
+        A.ell(jx, y + 17, 7, 9, '#b8683c'); A.ell(jx - 2, y + 15, 4, 6, '#d88a54'); A.ell(jx - 3, y + 13, 1, 3, '#f0b07c');
+        A.ell(jx + 2, y + 21, 4, 4, '#984e2c'); A.px(jx + 3, y + 23, '#6e3a20'); A.px(jx + 1, y + 25, '#7a9ab4');
+        A.r(jx - 3, y + 7, 7, 2, '#c87a48'); A.hl(jx - 3, y + 7, 7, '#e8a070'); A.ell(jx, y + 7, 3, 1, '#3a2418');
+    }
+    if (sabil) { A.r(x + 1, y + 24, 31, 7, '#c4b08a'); A.hl(x + 1, y + 24, 31, '#f0e4c8'); A.hl(x + 1, y + 30, 31, '#8a7456'); for (let i = 6; i < 30; i += 8) A.vl(x + i, y + 25, 5, '#a8926c'); }
+    else { A.r(x + 1, y + 19, 31, 3, '#b8844c'); A.hl(x + 1, y + 19, 31, '#e0b478'); A.hl(x + 1, y + 21, 31, '#6e4424'); }        // the front rail holds them
+    A.r(x + 15, y + 23, 3, 3, '#9aa4ae'); A.hl(x + 15, y + 23, 3, '#dfe6ea'); A.vl(x + 16, y + 21, 2, '#6a7480');   // the tin cup on its string
+    return propFit(st, w, d, { solid: [w / 2 - 14, d - 10, 28, 10] });
+}
+SPR_L['water jars'] = (w, d) => zeer(w, d);
+SPR_L['sabil'] = (w, d) => zeer(w, d, true);
+SPR_L['date palm'] = (w, d, o) => Object.assign(palm(o.id, true), { anchor: true });
+SPR.c1w_well2 = (w, d) => SPR.ow_well(w, d);
 SPR.ow_lookout = (w, d) => { const st = propStage(w, d, 22, 28), { A } = st, R = rng('cairn'); for (let j = 0; j < 5; j++) { const ww = 18 - j * 3; A.ell(st.x + 10, st.y + 24 - j * 5, ww >> 1, 3, PAL.rock[j & 1 ? 1 : 2]); A.ell(st.x + 9, st.y + 23 - j * 5, (ww >> 1) - 2, 1, PAL.rock[0]); } return propFit(st, w, d, { solid: [w / 2 - 9, d - 8, 18, 8] }); };
 SPR.ow_bones = (w, d) => { const st = propStage(w, d, 40, 20), { A } = st; for (let i = 0; i < 6; i++) { A.line(st.x + 8 + i * 4, st.y + 14, st.x + 9 + i * 4, st.y + 5, PAL.white[1]); A.line(st.x + 9 + i * 4, st.y + 5, st.x + 12 + i * 4, st.y + 4, PAL.white[1]); } A.r(st.x + 6, st.y + 14, 26, 2, PAL.white[0]); A.ell(st.x + 35, st.y + 11, 4, 3, PAL.white[0]); A.px(st.x + 36, st.y + 10, PAL.dark[3]); return propFit(st, w, d, { flat: true }); };
 SPR.ow_oasis = () => null;                                           // the pool is painted into the ground; its palms are trees
@@ -694,10 +751,83 @@ SPR.ow_ruin_note = (w, d) => { const st = propStage(w, d, 36, 14), { A } = st; A
 SPR.c1p_falsedoor = (w, d) => { const st = propStage(w, d, 28, 34), { A } = st; A.r(st.x, st.y, 26, 32, PAL.rock[1]); A.r(st.x, st.y, 26, 3, PAL.rock[0]); A.r(st.x + 4, st.y + 6, 18, 26, PAL.rock[2]); A.r(st.x + 8, st.y + 10, 10, 22, PAL.rock[3]); A.r(st.x + 11, st.y + 14, 4, 18, PAL.dark[3]); for (let j = 8; j < 30; j += 4) { A.px(st.x + 5, st.y + j, PAL.rock[3]); A.px(st.x + 20, st.y + j, PAL.rock[3]); } return propFit(st, w, d, { solid: [w / 2 - 13, d - 6, 26, 6] }); };
 SPR.c1p_looterpit = (w, d) => { const st = propStage(w, d, 40, 26), { A } = st; A.ell(st.x + 19, st.y + 13, 19, 11, PAL.sand[3]); A.ell(st.x + 19, st.y + 13, 13, 7, PAL.dirt[2]); A.ell(st.x + 19, st.y + 15, 9, 4, PAL.dirt[3]); A.line(st.x + 30, st.y + 4, st.x + 36, st.y + 16, PAL.wood[1]); return Object.assign(propFit(st, w, d, { flat: true }), { c: st.c }); };
 SPR.c1a_mason = (w, d) => { const st = propStage(w, d, 30, 22), { A } = st; A.r(st.x, st.y, 28, 12, PAL.rock[0]); A.r(st.x, st.y + 12, 28, 9, PAL.rock[2]); for (const [mx, my] of [[5, 14], [11, 15], [17, 14], [22, 16]]) { A.r(st.x + mx, st.y + my, 3, 1, PAL.red[2]); A.r(st.x + mx + 1, st.y + my - 1, 1, 4, PAL.red[2]); } return propFit(st, w, d, { solid: [w / 2 - 14, d - 8, 28, 8] }); };
-SPR.c1p_pavement = (w, d, o) => { const st = stage(w, d, 0), { A } = st, R = rng('pave'); for (let i = 0; i < 40; i++) { const x = st.x + R() * (w - 20), y = st.y + R() * (d - 12), ww = 10 + R() * 16; A.ell(x + ww / 2, y + 5, ww / 2, 4, PAL.rock[R() < 0.5 ? 0 : 1]); if (R() < 0.4) A.ell(x + ww / 2, y + 5, 2, 1, PAL.rock[2]); } return Object.assign(fit(st), { c: st.c, flat: true }); };
+// The fossil pavement: a low shelf of bedrock the sand has blown off, a ragged edge, split by joints
+// into slabs, and in it the sea that was here: nummulites like spilled coins, two ammonites, an urchin.
+function vnoise(x, y, s, k) {                                      // smooth value noise, 0..1
+    const fx = x / s, fy = y / s, ix = Math.floor(fx), iy = Math.floor(fy), tx = fx - ix, ty = fy - iy, e = t => t * t * (3 - 2 * t);
+    const h = (i, j) => hash2(i * 7 + k, j * 11 + k * 3);
+    return (h(ix, iy) * (1 - e(tx)) + h(ix + 1, iy) * e(tx)) * (1 - e(ty)) + (h(ix, iy + 1) * (1 - e(tx)) + h(ix + 1, iy + 1) * e(tx)) * e(ty);
+}
+SPR.c1p_pavement = (w, d) => {
+    const M = 10, UP = 42, cw = w + M * 2, ch = d + UP + M, R = rng('pave2');
+    const [c0, g0] = mk(cw + 2, ch + 6), A = pa(g0), X = M + 1, Y = UP + 1;
+    const S = ['#eee2c6', '#e2d4b4', '#d6c6a2'], CRACK = '#a08a68', SHADE = '#c4b08a', HI = '#faf2dc';
+    // the stone tiles under it (5×3, and 3 tiles over the top row); the rock's edge wanders in and out
+    // of them by noise, and where it pulls back the tiles are covered with sand
+    const U = new Uint8Array(cw * ch);
+    for (const [rx, ry, rw, rh] of [[0, 0, w, d], [32, -32, 96, 32]]) for (let j = ry; j < ry + rh; j++) for (let i = rx; i < rx + rw; i++) U[(j + UP) * cw + i + M] = 1;
+    const D = new Float32Array(cw * ch);                                                    // signed distance to the tiles' edge (a chamfer pass each way)
+    for (const inside of [1, 0]) {
+        const F = new Float32Array(cw * ch).fill(1e6);
+        for (let k = 0; k < cw * ch; k++) if (U[k] !== inside) F[k] = 0;
+        for (let j = 0; j < ch; j++) for (let i = 0; i < cw; i++) { const k = j * cw + i; if (i) F[k] = Math.min(F[k], F[k - 1] + 1); if (j) F[k] = Math.min(F[k], F[k - cw] + 1); if (i && j) F[k] = Math.min(F[k], F[k - cw - 1] + 1.41); if (j && i < cw - 1) F[k] = Math.min(F[k], F[k - cw + 1] + 1.41); }
+        for (let j = ch - 1; j >= 0; j--) for (let i = cw - 1; i >= 0; i--) { const k = j * cw + i; if (i < cw - 1) F[k] = Math.min(F[k], F[k + 1] + 1); if (j < ch - 1) F[k] = Math.min(F[k], F[k + cw] + 1); if (i < cw - 1 && j < ch - 1) F[k] = Math.min(F[k], F[k + cw + 1] + 1.41); if (j < ch - 1 && i) F[k] = Math.min(F[k], F[k + cw - 1] + 1.41); }
+        for (let k = 0; k < cw * ch; k++) if (U[k] === inside) D[k] = inside ? -F[k] : F[k];
+    }
+    const seeds = []; for (let i = 0; i < 16; i++) seeds.push([R() * w, -30 + R() * (d + 30), i % 3]);
+    const cell = (x, y) => { let a = 1e9, b = 1e9, k = 0; for (let i = 0; i < seeds.length; i++) { const q = Math.hypot((x - seeds[i][0]) * 0.8, y - seeds[i][1]); if (q < a) { b = a; a = q; k = i; } else if (q < b) b = q; } return [k, b - a]; };
+    const IN = new Uint8Array(cw * ch), K = new Int16Array(cw * ch).fill(-1);
+    for (let j = 0; j < ch; j++) for (let i = 0; i < cw; i++) {
+        const x = i - M, y = j - UP, k0 = j * cw + i;
+        if (!(D[k0] < -2 + (vnoise(x, y, 13, 3) - 0.5) * 34 + (vnoise(x, y, 4, 8) - 0.5) * 5)) continue;
+        IN[k0] = 1; const [k, gap] = cell(x, y); K[k0] = gap < 1.3 ? -2 : k;
+    }
+    const at = (i, j) => (i < 0 || j < 0 || i >= cw || j >= ch) ? 0 : IN[j * cw + i], kk = (i, j) => (i < 0 || j < 0 || i >= cw || j >= ch) ? -1 : K[j * cw + i];
+    for (let j = 0; j < ch; j++) for (let i = 0; i < cw; i++) {
+        if (!at(i, j)) continue;
+        const k = kk(i, j), px = i + 1, py = j + 1;
+        if (k === -2) { A.px(px, py, CRACK); continue; }
+        let col = S[seeds[k][2]];
+        if (kk(i, j - 1) === -2 || kk(i - 1, j) === -2) col = HI;                          // slab edges: lit on the upper left...
+        else if (kk(i, j + 1) === -2 || kk(i + 1, j) === -2) col = SHADE;                  // ...shadowed on the lower right
+        else if (vnoise(i, j, 4, 17) > 0.72) col = S[Math.min(2, seeds[k][2] + 1)];        // weathering
+        A.px(px, py, col);
+        if (D[j * cw + i] > -4 && vnoise(i, j, 5, 29) > 0.58) A.px(px, py, '#f2dca2');     // sand drifted back over the edge
+    }
+    for (let j = 0; j < ch; j++) for (let i = 0; i < cw; i++) if (at(i, j) && !at(i, j + 1)) {   // the shelf's low front edge
+        A.r(i + 1, j + 2, 1, 3, '#bca07a'); A.px(i + 1, j + 4, '#8e7658');
+    }
+    const on = (x, y) => at(x + M, y + UP) && kk(x + M, y + UP) >= 0;
+    const coin = (x, y, r) => { A.ell(X + x, Y + y, r, Math.max(1, r - 1), '#c8b28a'); A.ell(X + x, Y + y, Math.max(1, r - 1), Math.max(1, r - 2), '#e8d8b4'); A.px(X + x, Y + y, '#b09a74'); A.px(X + x - 1, Y + y - 1, HI); };
+    for (let n = 0; n < 7; n++) {                                                            // nummulites, in drifts
+        const cx = R() * w, cy = -24 + R() * (d + 20);
+        for (let m = 0; m < 12; m++) { const x = Math.round(cx + (R() - 0.5) * 30), y = Math.round(cy + (R() - 0.5) * 16); if (on(x, y) && on(x + 3, y + 2) && on(x - 3, y - 2)) coin(x, y, R() < 0.3 ? 3 : 2); }
+    }
+    const ammonite = (x, y, r) => {
+        A.ell(X + x, Y + y, r + 1, Math.round(r * 0.8) + 1, '#b8a07a'); A.ell(X + x, Y + y, r, Math.round(r * 0.8), '#e4d2ac');
+        let lx = null, ly = null;
+        for (let t = 0; t < Math.PI * 7; t += 0.12) { const rr = r * (1 - t / (Math.PI * 7.4)), qx = Math.round(X + x + Math.cos(t) * rr), qy = Math.round(Y + y + Math.sin(t) * rr * 0.8); if (lx !== null) A.line(lx, ly, qx, qy, '#a48c66'); lx = qx; ly = qy; }
+        for (let t = 0; t < Math.PI * 2; t += 0.45) A.px(Math.round(X + x + Math.cos(t) * (r - 1)), Math.round(Y + y + Math.sin(t) * (r - 1) * 0.8), '#fbf0d6');   // the ribs
+    };
+    ammonite(46, 30, 8); ammonite(118, -12, 6);
+    const ux = 92, uy = 66;                                                                 // a sea urchin, its five petals
+    A.ell(X + ux, Y + uy, 6, 5, '#c0a880'); A.ell(X + ux, Y + uy, 5, 4, '#e0ceaa');
+    for (let p = 0; p < 5; p++) { const a = -Math.PI / 2 + p * Math.PI * 0.4; for (let s = 1; s <= 3; s++) A.px(Math.round(X + ux + Math.cos(a) * s), Math.round(Y + uy + Math.sin(a) * s * 0.8), '#a48c66'); }
+    for (const [sx, sy] of [[20, 70], [70, 10], [140, 50], [60, -20]]) { A.line(X + sx, Y + sy, X + sx + 4, Y + sy - 2, '#b8a07a'); A.line(X + sx + 4, Y + sy - 2, X + sx + 7, Y + sy, '#b8a07a'); A.px(X + sx + 3, Y + sy - 1, HI); }   // shell bits
+    const rock = outline(c0, '#8e7658'), [c, g] = mk(rock.width, rock.height), B = pa(g);
+    for (let j = 0; j < ch; j++) for (let i = 0; i < cw; i++) if (U[j * cw + i] && !IN[j * cw + i]) {   // sand over the tiles the rock pulls back from
+        B.px(i + 1, j + 1, '#f2dca2'); if (hash2(i * 3, j * 7) > 0.985) B.px(i + 1, j + 1, '#d9bc78');
+    }
+    g.drawImage(rock, 0, 0);
+    return { c, ox: -X, oy: -Y, flat: true };
+};
 function smallFind(col) { return (w, d) => { const st = propStage(w, d, 10, 8), { A } = st; A.ell(st.x + 4, st.y + 4, 4, 2, col[1]); A.px(st.x + 3, st.y + 3, col[0]); A.px(st.x + 6, st.y + 5, col[2]); return Object.assign(propFit(st, w, d, { flat: true }), { sparkle: true }); }; }
 SPR_L['painted sherd'] = smallFind(PAL.brick);
-SPR_L['fossil'] = smallFind(PAL.white);
+SPR_L['fossil'] = (w, d) => {                         // a loose fossil: a little ammonite, glinting
+    const st = propStage(w, d, 12, 10), { A } = st, x = st.x + 5, y = st.y + 5;
+    A.ell(x, y, 5, 4, '#b8a07a'); A.ell(x, y, 4, 3, '#f0e2c2'); A.ell(x + 1, y, 2, 2, '#c8b28a'); A.px(x + 1, y, '#f0e2c2'); A.px(x - 2, y - 2, '#ffffff'); A.px(x + 3, y + 2, '#a48c66');
+    return Object.assign(propFit(st, w, d, { flat: true }), { sparkle: true });
+};
 SPR_L['something buried'] = (w, d) => { const st = propStage(w, d, 14, 8), { A } = st; A.ell(st.x + 6, st.y + 4, 6, 3, PAL.sand[3]); A.ell(st.x + 6, st.y + 3, 4, 1, PAL.sand[1]); return Object.assign(propFit(st, w, d, { flat: true }), { c: st.c }); };
 SPR_L['broken clay pot'] = (w, d) => { const st = propStage(w, d, 14, 12), { A } = st; A.ell(st.x + 6, st.y + 7, 5, 4, PAL.brick[1]); A.ell(st.x + 6, st.y + 4, 4, 2, PAL.dark[3]); A.poly([[st.x + 2, st.y + 3], [st.x + 5, st.y + 1], [st.x + 7, st.y + 4]], PAL.brick[0]); A.px(st.x + 12, st.y + 10, PAL.brick[2]); return propFit(st, w, d); };
 SPR_L['driftwood'] = (w, d) => { const st = propStage(w, d, 30, 10), { A } = st; A.line(st.x, st.y + 6, st.x + 28, st.y + 3, PAL.wood[0]); A.line(st.x, st.y + 7, st.x + 28, st.y + 4, PAL.wood[2]); A.line(st.x + 12, st.y + 5, st.x + 17, st.y, PAL.wood[1]); return propFit(st, w, d, { flat: true }); };
@@ -768,7 +898,7 @@ SPR.puzzle_glyph = SPR.tunnel_mouth = (w, d, o) => {       // a doorway cut into
 };
 
 // ---- PLANTS ----
-function palm(seed) {
+function palm(seed, heavy) {
     const R = rng(seed), [c, g] = mk(72, 88), A = pa(g), lean = Math.round((R() - 0.5) * 10), tx = 36, ty = 84;
     for (let j = 0; j < 54; j++) {                                // the trunk: ringed, leaning a little, lit on its left
         const x = tx + Math.round(lean * (j / 54) * (j / 54)) - 3, y = ty - j, wd = j < 6 ? 7 : 6;
@@ -797,6 +927,13 @@ function palm(seed) {
     for (let i = 0; i < n; i++) frond((i / n) * Math.PI * 2 + R() * 0.4, 21 + R() * 7, 12 + R() * 9, 1);
     for (let i = 0; i < 4; i++) frond(-Math.PI * 0.85 + i * 0.5 + R() * 0.2, 14 + R() * 4, 4, 2);                              // young fronds on top, catching the sun
     A.ell(hx - 3, hy + 4, 2, 2, '#e0a030'); A.ell(hx + 2, hy + 5, 2, 2, '#c07830'); A.ell(hx, hy + 3, 2, 2, '#e8b840');           // dates
+    if (heavy) for (const [bx, by] of [[-9, 4], [8, 5], [-1, 7]]) {                                                            // a date palm in fruit: heavy amber bunches under the crown
+        A.line(hx, hy + 2, hx + bx, hy + by, '#e0b050');
+        for (let r = 0; r < 4; r++) for (let k = 0; k < 4 - (r >> 1) - (r === 3 ? 1 : 0); k++) {
+            const qx = hx + bx - 3 + k * 2 + (r & 1), qy = hy + by + r * 2;
+            A.r(qx, qy, 2, 2, (k + r) % 3 ? '#c8782c' : '#a0521e'); A.px(qx, qy, '#f4b050');
+        }
+    }
     return { c: outline(c), ox: -36, oy: -85, solid: [-4, -4, 8, 5] };
 }
 function acacia(seed) {

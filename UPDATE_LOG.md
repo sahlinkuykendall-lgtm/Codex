@@ -12,6 +12,32 @@ Other docs:
 
 ---
 
+## POKE-STYLE P0.18 — 2026-09-30 — (branch `poke-style`) The big boulder, the fossil pavement, water and food all over the camp
+- **The big boulder** is redrawn as it's described: a car-sized limestone block with its
+  front cut flat. The quarrymen's row of wedge slots and the split that never ran true are
+  still in it, with pick marks, a sunlit top, a shadowed east side and chips at its foot.
+  The palm beside it moved one tile east to give it room.
+- **The fossil pavement** is now a real shelf of bedrock instead of beige blobs:
+  - a ragged edge with sand blown back over it
+  - joints splitting it into slabs, lit on the upper left
+  - nummulites in drifts, two ammonites and a sea urchin
+  - the loose fossils you pick up are little ammonites now
+
+  The army crates that sat on top of it moved to the edge of the guard post yard.
+- **Water and food wherever you go** (each spot fills the canteen too):
+  - **a second well**, the Bedouin well by the shelter (drink 70)
+  - **water jars (a zeer)** by the sieve in the dig zone, by Trench A, and at Farouk's post
+    (drink 40)
+  - **a sabil** by the sheikh's tomb: a stone niche with a water jar that somebody always
+    keeps full (drink 40)
+  - **the mess tent:** bread (+30 food, every 2 hours) and water from the urn
+  - **date palms in fruit** at the oasis and by the old village: pick a handful (3 dates)
+    every 4 hours
+- **Thirst and hunger hints** and the canteen's description now name these places.
+- **A new rule in `AREA1_TODO.md`:** every map gets a well, water jars and a food source.
+- **The look check:** only the views with these changes differ. The audit (131 scenes) and
+  the three playthroughs are clean.
+
 ## POKE-STYLE P0.17 — 2026-09-30 — (branch `poke-style`) Area 1 checked from end to end (step 9, part 1)
 - **Area 1 (the Archaeologist's night at Giza) is complete.** Steps 1–8 of `AREA1_TODO.md`
   are done, and this update is the final check.

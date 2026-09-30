@@ -86,7 +86,7 @@ function campLayout() {
         ['c1m_trenchkit', 71, 18, 2, 2], ['fl_scaffold', 71, 23, 2, 2], ['d_sandbag1', 65, 14, 2, 1], ['d_sandbag2', 69, 14, 2, 1], ['d_sandbag3', 71, 27, 2, 1],
         ['d_rope_coil', 72, 21, 1, 1], ['d_bucket', 64, 24, 1, 1], ['d_worklamp3', 65, 15, 1, 1], ['d_worklamp4', 70, 26, 1, 1],
         // --- the guard post on the road in: the old Ministry post, the booth, Farouk ---
-        ['fl_ministry_post', 57, 40, 7, 3], ['c1c_milcrates', 54, 41, 2, 1], ['d_min1', 66, 42, 4, 2], ['d_min2', 66, 45, 3, 2],
+        ['fl_ministry_post', 57, 40, 7, 3], ['c1c_milcrates', 56, 43, 2, 1], ['d_min1', 66, 42, 4, 2], ['d_min2', 66, 45, 3, 2],
         ['fl_guard_booth', 45, 48, 3, 2], ['c1a_farouk', 44, 50, 1, 1], ['c1m_farouk_radio', 43, 50, 1, 1], ['inspector', 49, 48, 3, 2], ['d_truck2', 56, 50, 5, 2],
         // --- the supply line ---
         ['carts', 8, 43, 5, 1], ['c1a_hamid', 17, 45, 1, 1], ['d_truck1', 31, 41, 5, 2],
@@ -101,12 +101,15 @@ function campLayout() {
         ['d_rockpile1', 6, 40, 1, 1], ['d_rockpile2', 65, 52, 1, 1], ['d_rockpile3', 31, 51, 2, 1],
         ['ow_roadblock0', 37, 55, 2, 1], ['ow_roadblock1', 40, 55, 2, 1],
         ['d_palm1', 48, 22, 1, 1], ['d_palm2', 48, 30, 1, 1],
+        // --- water and food (every map has a well; jars where people work; dates) ---
+        ['c1w_well2', 67, 31, 2, 2], ['c1w_zeer_dig', 41, 15, 1, 1], ['c1w_zeer_trench', 63, 21, 1, 1], ['c1w_zeer_post', 42, 48, 1, 1], ['c1w_sabil', 50, 52, 1, 1],
+        ['c1f_datepalm', 12, 18, 1, 1], ['c1f_datepalm2', 28, 41, 1, 1],
     ];
     // the small finds scattered about (sherds, fossils, things half buried)
     const scatter = { ow_sherd: [[28, 12], [48, 18], [60, 38], [11, 40], [34, 52], [55, 14], [21, 20], [72, 44]], c1p_fossil: [[52, 39], [54, 40], [53, 41], [55, 39], [51, 41]],
         ow_cache: [[31, 9], [47, 11], [10, 47], [26, 53], [61, 49], [72, 13], [16, 20], [53, 31], [6, 47], [44, 43], [72, 38], [36, 36], [25, 10], [57, 29], [9, 37], [29, 43]] };
     // trees: the palms of the oasis and along the roads
-    const trees = [[3, 11], [12, 12], [3, 17], [12, 18], [7, 10], [9, 20], [4, 20], [15, 14], [2, 24], [26, 34], [29, 16], [36, 40], [44, 40], [10, 46], [60, 34], [73, 40], [63, 53], [30, 37], [18, 53], [23, 30], [49, 26]];
+    const trees = [[3, 11], [12, 12], [3, 17], [7, 10], [9, 20], [4, 20], [15, 14], [2, 24], [26, 34], [29, 16], [36, 40], [44, 40], [10, 46], [61, 35], [73, 40], [63, 53], [30, 37], [18, 53], [23, 30], [49, 26]];
     // lamps along the roads, on the kerbs
     const lamps = [];
     for (let y = 20; y < 54; y += 6) lamps.push([38, y], [41, y + 3]);

@@ -85,8 +85,8 @@ const NEED_DRAIN = { water: 0.11, food: 0.06 };        // per story minute
         _adv(mins);
         const n = needs(), w0 = n.water, f0 = n.food;
         n.water = Math.max(0, n.water - NEED_DRAIN.water * mins); n.food = Math.max(0, n.food - NEED_DRAIN.food * mins);
-        if (w0 > 20 && n.water <= 20) storyNotice('Thirsty. The well, the water barrels, your canteen (in the bag).');
-        if (f0 > 20 && n.food <= 20) storyNotice('Hungry. The cooking table, or dates.');
+        if (w0 > 20 && n.water <= 20) storyNotice('Thirsty. A well, the water jars, the barrels, your canteen (in the bag).');
+        if (f0 > 20 && n.food <= 20) storyNotice('Hungry. The cooking table, the mess tent, or dates.');
         if (w0 > 0 && n.water <= 0) Notice.show('Parched. You can\'t run until you drink.');
         if (f0 > 0 && n.food <= 0) Notice.show('Starving. You can\'t run until you eat.');
     };
@@ -123,14 +123,62 @@ scene('c1a_cooking', {
         return c;
     },
 });
+// water and food all over the map: every map has a well; jars wherever people work; dates in season.
+// (these are poke-style additions, so their objects are added to the story's list here)
+POKE_MAP.objects.push(
+    { id: 'c1w_well2', label: 'Bedouin Well', model: 'well' }, { id: 'c1w_zeer_dig', label: 'Water Jars', model: 'water jars' },
+    { id: 'c1w_zeer_trench', label: 'Water Jars', model: 'water jars' }, { id: 'c1w_zeer_post', label: 'Water Jars', model: 'water jars' },
+    { id: 'c1w_sabil', label: 'Sabil', model: 'sabil' }, { id: 'c1f_datepalm', label: 'Date Palm', model: 'date palm' }, { id: 'c1f_datepalm2', label: 'Date Palm', model: 'date palm' });
+const WATER_JARS = {
+    c1w_zeer_dig: `Two clay jars in the shade of the sieve, the kind every Egyptian village has: the water seeps through the clay and the desert air cools it. The workmen fill them from the barrels every morning.`,
+    c1w_zeer_trench: `Water jars by the trench, a tin cup on a nail. Somebody has chalked on the stand in Arabic, and underneath, in English, in Lindqvist's hand: PLEASE DRINK. HEATSTROKE IS NOT A RESEARCH OUTCOME.`,
+    c1w_zeer_post: `Farouk's water jars, under a scrap of awning. The water tastes of clay and is very cold. A fly drowns itself in the cup, happily.`,
+    c1w_sabil: `A sabil: a little stone niche by the tomb with a jar of water in it, filled by somebody from the village for any stranger who passes. Nobody knows who fills it. It is always full.`,
+};
+for (const id in WATER_JARS) {
+    STORY_SCRIPTS[id] = id;
+    scene(id, { speaker: 'System', text: WATER_JARS[id], choices: [{ text: 'Drink.', onSelect: () => { const r = refill(); drink(40, 'Cool water from the jar'); if (r) Notice.show(r.trim()); } }, { text: 'Move on.' }] });
+}
+STORY_SCRIPTS.c1w_well2 = 'c1a_well2';
+scene('c1a_well2', {
+    speaker: 'System',
+    text: `The Bedouin well: a ring of dressed stones, a pulley on two crooked posts, a leather bucket. It is older than the camp and older than the Ministry and, probably, older than the Bedouin.`,
+    choices: [{ text: 'Haul up the bucket and drink.', onSelect: () => { const r = refill(); drink(70, 'Cold well water'); if (r) Notice.show(r.trim()); } }, { text: 'Leave it.' }],
+});
+STORY_SCRIPTS.c1f_datepalm = STORY_SCRIPTS.c1f_datepalm2 = 'c1a_datepalm';
+const DATE_WAIT = 240;
+const datesReady = id => sflag('dates_' + id) == null || Story.s.clock - sflag('dates_' + id) >= DATE_WAIT;
+scene('c1a_datepalm', {
+    speaker: 'System',
+    get text() { return datesReady(Game.talkId) ? `A date palm in fruit, the bunches hanging heavy and amber under the crown. The low ones you can reach.` : `A date palm. You've had the low bunches; the rest are up where only the boys who climb palms for a living can get them. Later, maybe some will drop.`; },
+    get choices() {
+        const id = Game.talkId, c = [];
+        if (datesReady(id)) c.push({ text: 'Pick a handful. (5 minutes)', onSelect: () => { sflag('dates_' + id, Story.s.clock); pocket('Dates', 3); eat(10, 'A fresh date'); clockAdvance(5); } });
+        c.push({ text: 'Move on.' });
+        return c;
+    },
+});
+// the mess tent: bread under a cloth, the tea urn
+STORY_SCRIPTS.c1m_mess_in = 'c1a_mess';
+scene('c1a_mess', {
+    speaker: 'System',
+    text: `The mess tent: an old army marquee, faded to the colour of the desert, open on the camp side. A long trestle table, two benches, a steel urn for tea water, a crate of bread under a cloth against the flies.\n\nSomebody has left a newspaper weighted down with a glass.`,
+    get choices() {
+        const c = [], fed = sflag('bread_at') != null && Story.s.clock - sflag('bread_at') < 120;
+        if (!fed) c.push({ text: 'Tear off some bread. (5 minutes)', onSelect: () => { sflag('bread_at', Story.s.clock); eat(30, 'Aish baladi, a day old'); clockAdvance(5); } });
+        c.push({ text: 'Water from the urn.', onSelect: () => { const r = refill(); drink(35, 'Water from the urn'); if (r) Notice.show(r.trim()); } });
+        c.push({ text: 'Move on.' });
+        return c;
+    },
+});
 // things in the bag you can use (SPACE on them in the BAG)
 const ITEM_USE = {
-    Canteen: () => { const c = sflag('canteen') ?? 3; if (c <= 0) { Toast.show('The canteen is empty. Fill it at the well or the barrels.'); return; } sflag('canteen', c - 1); drink(35, 'A swig from the canteen'); },
+    Canteen: () => { const c = sflag('canteen') ?? 3; if (c <= 0) { Toast.show('The canteen is empty. Fill it at a well, the water jars or the barrels.'); return; } sflag('canteen', c - 1); drink(35, 'A swig from the canteen'); },
     Dates: () => { dropItem('Dates'); eat(14, 'A date'); },
     'Thermos of karkadeh': () => { dropItem('Thermos of karkadeh'); drink(50, 'Karkadeh, sour and cold'); },
     'Mint Tea': () => { dropItem('Mint Tea'); drink(18, 'Mint tea'); },
 };
-ITEM_INFO.Canteen = { key: 1, desc: 'Your canteen: three good swigs. SPACE here to drink. Fill it at the well or the water barrels.' };
+ITEM_INFO.Canteen = { key: 1, desc: 'Your canteen: three good swigs. SPACE here to drink. Fill it at a well, the water jars, the barrels or the mess tent urn.' };
 
 // ---- injury ----
 function setInjured(why) { sflag('injured', why || true); Notice.show('Injured: you\'re limping. Rest, or get it seen to.'); }

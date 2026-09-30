@@ -31,6 +31,10 @@ Rules:
 - Each update gets a POKE-STYLE P0.x entry in `UPDATE_LOG.md` and a bump of the title
   version in `poke/ui.js`.
 - Commit and push `poke-style` after each step.
+- **Every map gets water and food.** At least one well (drink 70, fills the canteen, like
+  `ow_well` / `c1w_well2`), water jars (a zeer, drink 40) wherever people work, and one
+  food source or more (a cooking pot, bread, a date palm with a 4-hour wait). Put them where
+  the player's day takes them, not only at the edges.
 - Test with the Playwright scripts in `tools/poke_checks/`: `poke_audit.js` (links, scenes, reachability),
   `poke_playthrough.js` (three full nights), `poke_look.js <older build>` (the pixel-for-pixel look check).
 
