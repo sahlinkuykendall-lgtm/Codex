@@ -218,7 +218,8 @@ scene('c1a_rais', {
 });
 scene('c1a_pay', {
     speaker: R(),
-    text: `"Forty men. Eleven days. The site account is six thousand pounds short, and the Swiss money that pays the season comes through Doctor Lindqvist."\n\n"Doctor Miriam paid them from her own pocket last month. I am not asking you to do that. I am telling you what she did."`,
+    text: () => (sflag('lq_wages') ? `You tell him what Lindqvist said. "Friday," the Rais repeats, and puts another glass on the tray.\n\n` : '') +
+        `"Forty men. Eleven days. The site account is six thousand pounds short, and the Swiss money that pays the season comes through Doctor Lindqvist."\n\n"Doctor Miriam paid them from her own pocket last month. I am not asking you to do that. I am telling you what she did."`,
     get choices() {
         const c = [];
         c.push({ text: gameState.funds >= 6000 ? 'Pay the six thousand yourself. (−6,000 EGP)' : 'Pay the six thousand yourself. (you don\'t have it)', onSelect: () => {
@@ -316,6 +317,8 @@ scene('c1a_lindqvist', {
     get choices() {
         const c = [];
         if (sflag('payroll') === 'confront_pending') c.push({ text: '"The payroll is six thousand short. Where did the money go?"', nextScene: 'c1a_lq_confront' });
+        // before the payroll is settled at the Rais's fire, he can only dodge (the confrontation goes through the Rais)
+        if (!sflag('lq_wages') && (!sflag('payroll') || sflag('payroll') === 'delayed')) c.push({ text: '"The Rais says the men haven\'t been paid in eleven days."', onSelect: () => sflag('lq_wages', true), nextScene: 'c1a_lq_wages' });
         if (!sflag('lq_mother')) c.push({ text: '"Her mother? Miriam\'s mother died years ago. It\'s in her file."', onSelect: () => { sflag('lq_mother', true); rel('lindqvist', -5, true); }, nextScene: 'c1a_lq_mother' });
         if (!sflag('vasse_named')) c.push({ text: '"Who\'s paying for this season?"', nextScene: 'c1a_lq_money' });
         if (!sflag('lq_key')) c.push({ text: '"Where\'s the find-store key?"', onSelect: () => sflag('lq_key', true), nextScene: 'c1a_lq_key' });
@@ -332,6 +335,19 @@ scene('c1a_lq_told', {
     speaker: 'Dr. Lindqvist',
     text: `"The Foundation's office called. They said she'd asked them to pass it on." He hears himself say it and looks miserable. "Which is odd, I suppose. Now that you — yes."`,
     choices: [{ text: '"Odd is one word for it."', onSelect: () => { sflag('vasse_named', true); storyNote('Lindqvist', 'The deputy. Kind, frightened, lying badly. The story that Miriam left for her mother came from "the Foundation\'s office" — the Swiss foundation that pays the season.'); }, nextScene: 'c1a_lindqvist' }],
+});
+scene('c1a_lq_wages', {
+    speaker: 'Dr. Lindqvist',
+    text: `"Friday." It comes out too fast. "The transfer's coming Friday. Geneva is — they're slow, the Swiss, everybody thinks they're punctual but the banks—" He hears himself and stops.\n\n"Friday. Tell the Rais Friday. I'll sort it out."\n\nHe picks up his coffee, finds it cold, and drinks it anyway.`,
+    choices: [{ text: '"The Rais says you said Friday last Friday."', onSelect: () => {
+        rel('lindqvist', -3, true);
+        storyNote('The wages', 'Lindqvist says the men will be paid "Friday", when a transfer comes from Geneva. He said that last Friday too. The Rais is waiting to talk about it at the workers\' fire (west).');
+    }, nextScene: 'c1a_lq_wages2' }],
+});
+scene('c1a_lq_wages2', {
+    speaker: 'Dr. Lindqvist',
+    text: `He looks at the trailer door, as if someone might come through it. "Then this Friday. I promise." He doesn't say who he's promising for.`,
+    choices: [{ text: 'Back.', nextScene: 'c1a_lindqvist' }],
 });
 scene('c1a_lq_money', {
     speaker: 'Dr. Lindqvist',

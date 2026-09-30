@@ -54,6 +54,12 @@ Dr. Miriam Hale, "left for family reasons" four days ago. Nobody at camp believe
    - **`delayed`**: the men wait. Rais -10, workmen -20. You dig alone. (You can still
      pay later.)
 
+   **If you ask Lindqvist first** (before the payroll is settled, or while it's `delayed`):
+   *"The Rais says the men haven't been paid in eleven days."* He dodges: *"Friday. The
+   transfer's coming Friday. Geneva is slow."* You can press him, since he said Friday
+   last Friday too: Lindqvist -3 (`lq_wages`), and the Rais repeats "Friday" at the fire.
+   He only tells the truth through the `confronted` route. (Added V4.1.5.)
+
    Any of these gets you Miriam's key ring and **opens the dig-zone gate**. The find-store
    key isn't on the ring: *"She kept that key on her."*
 3. **The trenches mean something now:**

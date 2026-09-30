@@ -12,6 +12,17 @@ Other docs:
 
 ---
 
+## V4.1.5 — 2026-09-29 — Lindqvist can be asked about the wages
+- **Meeting Dr. Lindqvist before settling the payroll** now gives you *"The Rais says the
+  men haven't been paid in eleven days."* He dodges: "Friday. The transfer's coming
+  Friday. Geneva is slow." You can press him (he said Friday last Friday too). That costs a
+  little of his goodwill (Lindqvist -3) and goes in your notes.
+- When you then talk wages at the Rais's fire, you tell him what Lindqvist said, and he
+  just repeats "Friday."
+- The real answer still comes the bible's way: choose *"Lindqvist is going to explain where
+  that money went"* at the fire, then confront him at his trailer. All three payroll
+  outcomes are unchanged. The bible's Ch1-A beat 2 now includes the dodge.
+
 ## V4.1.4 — 2026-09-29 — Chapter 1: real sand, and a lighting pass through the whole day
 **The sand**
 - The ground is now your photographed sand (Ground089, from ambientCG), with its colour,
