@@ -12,6 +12,10 @@ Other docs:
 
 ---
 
+## V4.0.7 — 2026-09-29 — Realistic style chosen; test characters removed
+- **Art direction decided: realistic.** Characters will be realistic, rigged and animated with Mixamo. The model pipeline (converter, loader) stays.
+- The two test people in front of the tent are gone. The low-poly test model is deleted. Remy (realistic, with walk and dodge) stays packed in `models/`, ready for casting, but isn't loaded, so the game loads as fast as before.
+
 ## V4.0.6 — 2026-09-29 — Remy dodges
 - The realistic test character (Remy) now has a second Mixamo animation, **Dodging Right**. He walks his beat in front of the tent, and at each end dodges to the right, then walks back. The new animation added only 0.05 MB, because it was downloaded without a skin.
 

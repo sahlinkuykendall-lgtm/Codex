@@ -56,7 +56,8 @@
     `lib/GLTFLoader.js` and `lib/SkeletonUtils.js` (three r147 examples/js).
   - Source files go in `avatars/`. The web uploader caps files at 25 MB, but the converter
     reads them from anywhere.
-  - `ch1_testmodels.js` is TEMPORARY: two test people in front of the tent.
+  - **Art direction (chosen V4.0.7): realistic.** Characters are realistic, rigged in Mixamo and animated with Mixamo animations (download them "Without Skin"; they share one skeleton, so each animation works on every Mixamo-rigged character). `models/remy.js` (Remy, with walk and dodge) is packed and ready but not loaded yet.
+  - The first realistic-character pass may push the download size up. Plan to wrap the game as a Windows .exe with Electron (GitHub Releases for hosting) when it gets heavy.
 - The supply line runs one forward-only route: in from the desert, round the balloon loop
   (`CH1_RAIL_LOOP` in `ch1_layout.js`), and back out. So the loco always leads.
 - **The new story (V4.0.0+).** `story_core.js` and `ch1a_story.js` load LAST (after
