@@ -2,6 +2,21 @@
 
 ---
 
+## BUILD STATUS (what exists in the game so far)
+
+| System | Status | Where |
+|---|---|---|
+| Skills & XP | **Built** (V4.1.0): levels 0–5, background start levels, XP from doing, level-up toasts, a Skills tab on the phone | `story_systems.js` (skillXP); Ch1 hooks in `ch1a_extras.js` |
+| Relationships & reputation | **Built** (V4.0.0): rel/rep, tiers, choice notices | `story_core.js` |
+| Languages | Partly built: Arabic XP from conversations. Unreadable speech and signs are not built yet | — |
+| Day & night | **Built** (V4.1.0): story clock; Ch1 is one night, then a free 48-minute day with sun, sky, fog and lamps | `story_core.js` (clock), `ch1_world.js` (ch1DayState / ch1ApplyDay) |
+| The phone | **Built** (V4.1.0): Map, Messages, Contacts and calls, Bank ledger, Skills, Notes (P) | `story_systems.js` |
+| Police heat | Not built (no police in Ch1-A) | — |
+| Failure states | Partly built: injured (limp; heal by rest or first aid), knocked out (wake elsewhere, lose items/time). Jail, hospital, robbery, kidnap, stranded and the rest come with the chapters that need them | `story_systems.js` (setInjured, knockOut) |
+| Stealth & combat | Not built | — |
+| Food & water | **Built** (V4.1.0): thirst and hunger meters on the HUD; at empty no sprinting | `story_systems.js` (needs, drink, eat) |
+| Collectibles | Built for Ch1: sherds, caches, relics, fossils, and the first Keeper tile | Ch1 files |
+
 ## 1. SKILLS & XP
 
 You earn XP by *doing*: every action trains its skill, like Skyrim, plus quest rewards.

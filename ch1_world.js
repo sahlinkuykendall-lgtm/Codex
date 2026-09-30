@@ -746,6 +746,8 @@ function makeCh1Sky() {
             uMoonDir: { value: CH1_MOON_DIR.clone() },
             uGlowDir: { value: CH1_GLOW_DIR.clone() },
             uHaze: { value: new THREE.Vector3(CH1_HAZE.r, CH1_HAZE.g, CH1_HAZE.b) },
+            uDay: { value: 0 },
+            uSunDir: { value: new THREE.Vector3(0, 1, 0) },
         },
         vertexShader: `
             varying vec3 vDir;
@@ -755,7 +757,7 @@ function makeCh1Sky() {
                 gl_Position = p.xyww;
             }`,
         fragmentShader: `
-            uniform float uTime; uniform vec3 uMoonDir; uniform vec3 uGlowDir; uniform vec3 uHaze;
+            uniform float uTime; uniform vec3 uMoonDir; uniform vec3 uGlowDir; uniform vec3 uHaze; uniform float uDay; uniform vec3 uSunDir;
             varying vec3 vDir;
             float hash(vec3 p) { p = fract(p * 0.3183099 + 0.1); p *= 17.0; return fract(p.x * p.y * p.z * (p.x + p.y + p.z)); }
             float noise(vec3 x) {
@@ -806,6 +808,21 @@ function makeCh1Sky() {
                 vec3 st = stars(d, 170.0, 0.982) + stars(d, 420.0, 0.991) * 0.7 + band * stars(d, 700.0, 0.965) * 0.45;
                 col += st * vis;
                 col = mix(col, cloudCol, cl * 0.55);
+                // the day sky: dusty pale horizon, deep blue overhead, the sun, and
+                // a warm band round the horizon when the sun is low
+                if (uDay > 0.001) {
+                    vec3 dHor = vec3(0.78, 0.72, 0.60), dZen = vec3(0.22, 0.42, 0.74);
+                    vec3 day = mix(dHor, dZen, pow(smoothstep(-0.02, 0.85, h), 0.6));
+                    day = mix(day, vec3(0.62, 0.55, 0.45), smoothstep(0.0, -0.1, h));
+                    float sd = max(0.0, dot(d, uSunDir));
+                    float low = 1.0 - smoothstep(0.05, 0.45, uSunDir.y);
+                    vec3 warm = vec3(1.0, 0.55, 0.25);
+                    day += warm * low * 0.55 * pow(max(0.0, dot(normalize(vec3(d.x, 0.0, d.z)), normalize(vec3(uSunDir.x, 0.0, uSunDir.z)))), 3.0) * exp(-max(h, 0.0) * 5.0);
+                    day += mix(vec3(1.0, 0.95, 0.85), warm, low) * (pow(sd, 900.0) * 6.0 + pow(sd, 40.0) * 0.35 + pow(sd, 6.0) * 0.12);
+                    float dcl = smoothstep(0.55, 0.85, fbm(vec3(d.x * 2.2 + uTime * 0.002, d.y * 9.0, d.z * 2.2)));
+                    day = mix(day, vec3(0.95, 0.93, 0.9), dcl * 0.5 * smoothstep(0.04, 0.3, h));
+                    col = mix(col, day, uDay);
+                }
                 gl_FragColor = vec4(col, 1.0);
             }`,
         side: THREE.BackSide,
@@ -1340,7 +1357,7 @@ function addCh1Scatter(group) {
 function buildCh1Environment(group, scene) {
     ch1FX.glows = []; ch1FX.fires = []; ch1FX.smoke = []; ch1FX.moths = []; ch1FX.sway = [];
     ch1FX.embers = null; ch1FX.dust = null; ch1FX.beacon = null;
-    ch1FX.lamps = []; ch1FX.pool = []; ch1FX.poolTick = 0;
+    ch1FX.lamps = []; ch1FX.pool = []; ch1FX.poolTick = 0; ch1FX._lastDayK = undefined;
     ch1FX.active = true;
     ch1Rects = null;
 
@@ -1359,7 +1376,8 @@ function buildCh1Environment(group, scene) {
 
     // Moonlight: cool, from the north-east, casting soft shadows that
     // follow the player (the shadow camera re-centres every frame)
-    group.add(new THREE.HemisphereLight(0x4a5c8a, 0x2a2218, 0.42));
+    ch1FX.hemi = new THREE.HemisphereLight(0x4a5c8a, 0x2a2218, 0.42);
+    group.add(ch1FX.hemi);
     const sun = new THREE.DirectionalLight(0x9fb6e6, 0.62);
     sun.castShadow = true;
     const q = (typeof getSettings === 'function') ? getSettings().preset : null;
@@ -1447,12 +1465,22 @@ function updateCh1FX(focusX, focusZ) {
     const dt = Math.min(0.05, t - (ch1FX.lastT || t));
     ch1FX.lastT = t;
 
+    // time of day (from the story clock; the title screen is always night)
+    const D = ch1DayState();
+    ch1FX.day = D.k;
     // sky + moon ride with the camera (infinitely far away)
     if (ch1FX.sky) {
         ch1FX.sky.position.copy(cam3.position);
-        ch1FX.sky.material.uniforms.uTime.value = t;
+        const u = ch1FX.sky.material.uniforms;
+        u.uTime.value = t;
+        u.uDay.value = D.k;
+        u.uSunDir.value.copy(D.sun);
     }
-    if (ch1FX.moon) ch1FX.moon.position.copy(cam3.position).addScaledVector(CH1_MOON_DIR, 14000);
+    if (ch1FX.moon) {
+        ch1FX.moon.position.copy(cam3.position).addScaledVector(CH1_MOON_DIR, 14000);
+        ch1FX.moon.traverse(o => { if (o.material) o.material.opacity = 1 - D.k * 0.95; });
+    }
+    ch1ApplyDay(D);
     if (ch1FX.beacon) ch1FX.beacon.material.opacity = (t % 2.2) < 0.25 ? 1 : 0.08;
 
     // shadow camera follows the focus, snapped to texels (no shimmer)
@@ -1461,7 +1489,8 @@ function updateCh1FX(focusX, focusZ) {
         const fx = Math.round(focusX / texel) * texel, fz = Math.round(focusZ / texel) * texel;
         const fy = ch1Height(focusX, focusZ);
         ch1FX.sun.target.position.set(fx, fy, fz);
-        ch1FX.sun.position.set(fx + CH1_MOON_DIR.x * 2600, fy + CH1_MOON_DIR.y * 2600, fz + CH1_MOON_DIR.z * 2600);
+        const LD = D.k > 0.5 ? D.sun : CH1_MOON_DIR;   // by day the sun casts the shadows
+        ch1FX.sun.position.set(fx + LD.x * 2600, fy + Math.max(0.12, LD.y) * 2600, fz + LD.z * 2600);
         ch1FX.sun.target.updateMatrixWorld();
     }
 
@@ -1490,13 +1519,14 @@ function updateCh1FX(focusX, focusZ) {
         if (!L) { l.intensity = 0; continue; }
         l.userData.fade = Math.min(1, l.userData.fade + 0.05);
         const flick = L.steady ? 1 : (0.86 + 0.10 * Math.sin(t * 9 + L.phase) + 0.06 * Math.sin(t * 23 + L.phase * 1.7)) * (L.fire ? 1.12 * (ch1FX.fireFlick || 0.9) / (0.86 + 0.10 * Math.sin(t * 9 + L.phase) + 0.06 * Math.sin(t * 23 + L.phase * 1.7)) : 1);
-        l.intensity = L.intensity * flick * l.userData.fade;
+        l.intensity = L.intensity * flick * l.userData.fade * (L.fire ? 1 - (ch1FX.day || 0) * 0.6 : 1 - (ch1FX.day || 0) * 0.9);
     }
 
-    // lamp halos breathe with their lights
+    // lamp halos breathe with their lights (and all but vanish in daylight)
+    const dayDim = 1 - (ch1FX.day || 0) * 0.85;
     for (const g of ch1FX.glows) {
-        if (g.steady) continue;
-        g.sprite.material.opacity = g.base * (0.85 + 0.1 * Math.sin(t * 9 + g.phase) + 0.05 * Math.sin(t * 23 + g.phase));
+        if (g.steady) { if (!g.base0) g.base0 = g.sprite.material.opacity; g.sprite.material.opacity = g.base0 * dayDim; continue; }
+        g.sprite.material.opacity = g.base * dayDim * (0.85 + 0.1 * Math.sin(t * 9 + g.phase) + 0.05 * Math.sin(t * 23 + g.phase));
     }
 
     // fire: one shared flicker drives the flames, coals, halo, the light
@@ -2201,4 +2231,49 @@ function ch1QuarryKnob(g, Q, W, L, H, seed, rng) {
     for (const m of ch1QMerge(parts)) g.add(m);
     // a few loose stones (their own shapes, left unmerged)
     for (let k = 0; k < 5; k++) ch1AddRock(g, (rng() - 0.5) * W * 1.3, 0, -L / 2 - rng() * 60, 4 + rng() * 8, rng, Q.rough);
+}
+
+
+// ============================================================
+// DAY AND NIGHT
+// The story clock (gameState.story.clock, minutes) drives the sun: it
+// rises in the east (+x) around 06:00, crosses the southern sky (+z) and
+// sets in the west around 18:00. k is "how much day": 0 at night, 1 in
+// full daylight, easing through dawn and dusk.
+// ============================================================
+const CH1_DAY_HAZE = new THREE.Color(0xb8aa92);
+const CH1_NIGHT_FOG = [700, 6400], CH1_DAY_FOG = [1400, 11000];
+function ch1DayState() {
+    const on = typeof storyOn === 'function' && storyOn() && gameState.currentScreen === 'GAME';
+    const m = on ? (((S().clock % 1440) + 1440) % 1440) : 120;
+    const th = (m - 360) / 720 * Math.PI;             // 0 at sunrise, PI at sunset
+    const alt = Math.sin(th);
+    const sun = new THREE.Vector3(Math.cos(th), Math.max(-0.4, alt * 0.9), Math.max(0, Math.sin(th)) * 0.5 + 0.05).normalize();
+    const k = Math.max(0, Math.min(1, (alt + 0.08) / 0.33));
+    return { k: k * k * (3 - 2 * k), sun, alt, m };
+}
+const _dayTmp = new THREE.Color();
+function ch1ApplyDay(D) {
+    const k = D.k;
+    if (ch1FX._lastDayK !== undefined && Math.abs(ch1FX._lastDayK - k) < 0.0005) return;
+    ch1FX._lastDayK = k;
+    const low = 1 - Math.max(0, Math.min(1, (D.sun.y - 0.05) / 0.4));   // sun near the horizon: warm light
+    if (ch1FX.hemi) {
+        ch1FX.hemi.color.setHex(0x4a5c8a).lerp(_dayTmp.setHex(0xcfe0ff), k);
+        ch1FX.hemi.groundColor.setHex(0x2a2218).lerp(_dayTmp.setHex(0x8a6a44), k);
+        ch1FX.hemi.intensity = 0.42 + k * 0.55;
+    }
+    if (ch1FX.sun) {
+        ch1FX.sun.color.setHex(0x9fb6e6).lerp(_dayTmp.setHex(0xfff2dc).lerp(new THREE.Color(0xffa860), low * 0.8), k);
+        ch1FX.sun.intensity = 0.62 + k * 1.6;
+    }
+    if (scene3.fog) {
+        scene3.fog.color.copy(CH1_HAZE).lerp(CH1_DAY_HAZE, k);
+        scene3.fog.near = CH1_NIGHT_FOG[0] + (CH1_DAY_FOG[0] - CH1_NIGHT_FOG[0]) * k;
+        scene3.fog.far = CH1_NIGHT_FOG[1] + (CH1_DAY_FOG[1] - CH1_NIGHT_FOG[1]) * k;
+        if (typeof fogBase !== 'undefined') { fogBase[0] = scene3.fog.near; fogBase[1] = scene3.fog.far; }
+    }
+    if (scene3.background && scene3.background.isColor) scene3.background.copy(CH1_HAZE).lerp(CH1_DAY_HAZE, k);
+    const b = (typeof gfxSettings === 'function' && gfxSettings().brightness) || 1;
+    if (typeof renderer3 !== 'undefined' && currentMapKey === 1 && !interiorState.active) renderer3.toneMappingExposure = 0.95 * b * (1 - k * 0.12);
 }

@@ -41,6 +41,15 @@
 - `tips3d.js`: timed first-steps tips on a new game (hold X to disable).
 - `ch1_supply.js`: the animated supply-line train and worker (visual only).
 - `ch1_interiors.js`: art-directed tent / dorm / foreman office interiors.
+- **Load order (V4.1.0)** after `title3d.js`: `story_core.js`, then `story_systems.js`
+  (skills/XP, thirst and hunger, injury and knock-out, the phone on P), `ch1a_story.js`,
+  `ch1_dog.js`, `ch1a_extras.js` (systems wired into Ch1: XP, needs, failures, phone
+  messages and calls, Miriam's phone, the mason's marks, Hagg Sayed's race, the 1926
+  relics), `ch1a_places.js` (the workers' cemetery, sheikh's tomb, watchtower, builders'
+  ramp, old quarry, fossil pavement), then the model loader.
+- **Day and night:** `ch1DayState()` / `ch1ApplyDay()` in `ch1_world.js` drive the sky
+  shader's `uDay` / `uSunDir`, the hemi and sun lights, fog, lamps and exposure from the
+  story clock. The clock is capped at 04:40 until `ch1_complete`, then runs free.
 - `ch1_dog.js` (loads after `ch1a_story.js`): Bosta the camp dog. It has a rigged model
   (poses: stand, sit, lie, sleep, roll; a trot gait), a behaviour loop (sleep, wander, idle,
   home, or follow the player's breadcrumb trail), synthesized bark, growl and whimper, and

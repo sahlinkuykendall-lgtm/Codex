@@ -143,7 +143,8 @@ function clockTick() {
 function clockAdvance(mins) {
     const s = S();
     const before = s.clock;
-    s.clock = Math.min(CLOCK_END, s.clock + mins);
+    // Chapter 1 is one night (it stops before dawn); once it's over, days turn
+    s.clock = s.flags.ch1_complete ? s.clock + mins : Math.min(CLOCK_END, s.clock + mins);
     if (typeof onClockPassed === 'function') onClockPassed(before, s.clock);
     const el = document.getElementById('stat-clock');
     if (el) el.textContent = clockStr();

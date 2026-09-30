@@ -12,6 +12,56 @@ Other docs:
 
 ---
 
+## V4.1.0 — 2026-09-29 — Chapter 1 completed against the bible: systems, missing content, new places
+**New systems (story/06_SYSTEMS.md):**
+- **Skills and XP.** 16 skills, levels 0–5. You start with your background's levels
+  (Archaeologist: Excavation 3, Hieroglyphs 2, Greek, Coptic, Photography and First aid 1).
+  You learn by doing:
+  - digging, sieving and finding things
+  - reading the seal, the stake, the false door and the Codex
+  - talking with Egyptian speakers (Arabic)
+  - sneaking, photographing, climbing, riding
+
+  Level-ups show on screen. Excavation and Hana's valuation raise sieve pay.
+- **Thirst and hunger.** Two small meters under your money. Refill them at the well, the
+  water barrels, your canteen, the tea, the cooking table's lentils, or dates. At empty you
+  can't sprint, but it's never deadly.
+- **Failure states.**
+  - The old seal's dart injures you, so you limp until you rest or Hana patches you up.
+  - Slipping into the tent behind Lena's men gets you knocked out. You wake by the fire 1.5
+    hours later, injured, and they've taken Miriam's notebook page.
+- **The phone (P).** Map (tasks and places found), Messages, Contacts (with calls), Bank
+  (a ledger of every payment), Skills and Notes.
+- **Day and night.** Chapter 1 stays one night. After the chapter-end card, time runs on
+  (a 48-minute day): dawn, a moving sun and blue sky at noon, dusk, then night again. Lamps
+  dim by day, and the old woman at the tomb is only there at night.
+
+**Missing bible content, now in:**
+- **Miriam's spare phone** (a cache) with "A.S." saved. Calling it reaches Amira early,
+  and the Ministry exit remembers your promise.
+- **The quarry mason's marks:** "The Drunkards of Menkaure" (a real gang name), and an
+  eye-in-a-house mark that matches the Codex.
+- **Hagg Sayed and his horses** at the camp gate. **Race him** for Mina's debt; three
+  choices during the race decide it.
+- **Hana's valuation:** +20% on sieve finds and the sherd set.
+- **Four 1926 expedition relics** round the old truck (detector). The glass-plate photo
+  shows the Rais's grandfather, and you can show him.
+
+**The layout audit filled the empty stretches with new places:**
+- **The Workers' Cemetery:** the pyramid builders' tombs, a false door with Petety's real
+  curse, and a looters' pit.
+- **The Sheikh's Tomb:** a whitewashed shrine, and an old woman with a lamp at night who
+  gives you the Keepers' tile.
+- **The Watchtower:** climb it to put every place on your map. With field glasses, you see
+  a car by the Osiris Shaft.
+- **The Builders' Ramp.**
+- **The Old Quarry:** the rock field, now a named place.
+- **The Fossil Pavement:** five nummulites, "pharaoh's lentils".
+
+**The story bible is updated to match:** the region file (side quests SQ-01A-01 to 11,
+places, people, systems), characters (Saber, Hamid, Gamal, Hagg Sayed, the old woman,
+Bosta), a build-status table in `06_SYSTEMS.md`, and the side-quest index (141 quests).
+
 ## V4.0.7 — 2026-09-29 — Realistic style chosen; test characters removed
 - **Art direction decided: realistic.** Characters will be realistic, rigged and animated with Mixamo. The model pipeline (converter, loader) stays.
 - The two test people in front of the tent are gone. The low-poly test model is deleted. Remy (realistic, with walk and dodge) stays packed in `models/`, ready for casting, but isn't loaded, so the game loads as fast as before.

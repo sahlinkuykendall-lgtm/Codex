@@ -255,6 +255,12 @@ off is a side-quest chain (§ `regions/ch01_opening_fixer.md`).
   money and is terrified.
 - **Hana Mostafa:** 25, conservator, Miriam's protégée, sharp. She becomes a Cairo contact.
 - **Uncle Farouk:** the night guard (*ghafir*). He saw a car on the night Miriam left.
+- **Saber:** 13, the tea boy, in an orange football shirt. He knows everything that happens on site, and only tells people who can pour a proper glass of tea.
+- **Uncle Hamid:** the supply-line foreman. Broad, flat cap, at war with a coupling pin.
+- **Gamal:** a night-shift workman in the dormitory. His mood follows the payroll choice.
+- **Hagg Sayed:** keeps horses and camels under the pyramids at Nazlet el-Samman ("tourists, weddings, films — and loans"). He holds Mina's debt, and will race you for it.
+- **The old woman with the lamp:** sits by the sheikh's tomb at night. Small, dressed in black, kind, unafraid. She knew about Miriam's plaster-covered hands, and gives you the Keepers' painted tile. She is a Keeper; the game never says so in Chapter 1.
+- **Bosta:** the camp dog. A sandy baladi dog, one ear up and one flopped, with a curled tail. She arrived in the back of the post van (*bosta*). She has her own routine (sleeping by the fire, begging at the cooking table, lying at the Rais's feet), can be won over to follow you, learns to sit and give a paw, and barks at the midnight car. She's tracked as rel_bosta. (A later chapter could let her come along to Cairo.)
 
 ### Ch1-B — Saqqara (Inspector)
 - **Director Fathi Mansour:** the player's boss. A careful bureaucrat who protects himself.

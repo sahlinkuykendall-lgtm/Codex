@@ -4,7 +4,7 @@ Every side quest in the game, by chapter. **Built from the region files**: if yo
 change a quest, edit the region file, then regenerate this index. The full summaries live
 in the region files.
 
-**Total: 137 side quests.** At about 30–60 minutes each, plus jobs, collectibles and
+**Total: 141 side quests.** At about 30–60 minutes each, plus jobs, collectibles and
 optional tombs, that's the 30–60 hour side-content target.
 
 **ID format:** `SQ-<chapter>-<number>`. `SQ-01A…01D` are the background openings.
@@ -29,13 +29,17 @@ _Source: `regions/ch01_opening_archaeologist.md`_
 
 | ID | Name | Giver | Outcome |
 |---|---|---|---|
-| SQ-01A-01 | The Rais's Son | Rais Abdallah | Rais +15, and the Qufti family owes you (Ch10) |
-| SQ-01A-02 | Hana's Conservation | Hana | Hana +15, and **conservation wax** (reseals the find store) |
+| SQ-01A-01 | The Rais's Son | Rais Abdallah | Rais +15, and the Qufti family owes you (Ch10). Riding XP |
+| SQ-01A-02 | Hana's Conservation | Hana | Hana +15, **conservation wax** (reseals the find store), and **Hana's valuation** (+20% on sieve finds and the sherd set) |
 | SQ-01A-03 | The Tea Boy's Secret | Saber | **Half-burned papers**: Vasse transfers, and "Dr. Hale's cooperation is no longer required" (a Radwan proof item in Ch4) |
-| SQ-01A-04 | The Truck of 1926 | Exploration | Lore, and 40 EGP |
+| SQ-01A-04 | The Truck of 1926 | Exploration | 600 EGP, Ministry +5, and showing the Rais the photo (Rais +12) |
 | SQ-01A-05 | Supply Line Blues | Uncle Hamid | 1,500 EGP, workmen +10 |
-| SQ-01A-06 | Miriam's Caches | The detector | Money, gear |
+| SQ-01A-06 | Miriam's Caches | The detector | Money and gear. **Calling "A.S." from the phone** reaches Amira early (Amira +12, and the legal exit remembers the promise) |
 | SQ-01A-07 | Darts Night | The dartboard | 2,000 EGP, and a nickname ("Abu Ramy") |
+| SQ-01A-08 | Bosta | The camp dog | A companion for the night, who barks at the midnight car and growls at Lena |
+| SQ-01A-09 | Pharaoh's Lentils | The fossil pavement | Excavation XP, lore |
+| SQ-01A-10 | The Lamp at the Tomb | The old woman at the sheikh's tomb (night only) | Keepers +5. The first Keeper shrine tile (shrine travel in later chapters) |
+| SQ-01A-11 | The Looters' Pit | The workers' cemetery | An amulet, or Ministry +3 |
 
 ## CH1-C — MARSA TARFA, RED SEA COAST (Fixer opening)
 _Source: `regions/ch01_opening_fixer.md`_

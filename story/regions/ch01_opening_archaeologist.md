@@ -1,6 +1,6 @@
 # CH1-A — THE GIZA DIG CAMP (Archaeologist opening)
 
-**Status: built (V4.0.0)** in `ch1a_story.js`, with shared state in `story_core.js`.
+**Status: built (V4.0.0 → V4.1.0)** in `ch1a_story.js`, with shared state in `story_core.js`.
 This file matches the build. If you change the chapter, change both.
 
 | | |
@@ -113,35 +113,100 @@ Dr. Miriam Hale, "left for family reasons" four days ago. Nobody at camp believe
 
 | ID | Name | Giver | Summary | Outcome |
 |---|---|---|---|---|
-| SQ-01A-01 | The Rais's Son | Rais Abdallah | Mina owes a Nazlet el-Samman stable owner 1,500 EGP. Pay it, or hand over the darts tournament winnings | Rais +15, and the Qufti family owes you (Ch10) |
-| SQ-01A-02 | Hana's Conservation | Hana | Bring her three painted sherds. The flicks join into an ibis | Hana +15, and **conservation wax** (reseals the find store) |
+| SQ-01A-01 | The Rais's Son | Rais Abdallah | Mina owes Hagg Sayed, a Nazlet el-Samman stable owner, 1,500 EGP. Pay it, hand over the darts winnings, or **race Hagg Sayed** on his old grey mare at the camp gate (three choices during the race decide it) | Rais +15, and the Qufti family owes you (Ch10). Riding XP |
+| SQ-01A-02 | Hana's Conservation | Hana | Bring her three painted sherds. The flicks join into an ibis | Hana +15, **conservation wax** (reseals the find store), and **Hana's valuation** (+20% on sieve finds and the sherd set) |
 | SQ-01A-03 | The Tea Boy's Secret | Saber | Pour a perfect glass (**tea minigame**), and he tells you Lindqvist burned papers in the site-office bin | **Half-burned papers**: Vasse transfers, and "Dr. Hale's cooperation is no longer required" (a Radwan proof item in Ch4) |
-| SQ-01A-04 | The Truck of 1926 | Exploration | The Harvard–Boston Expedition truck's glovebox: a 1926 diary about an old woman with a lamp at the shaft, "one of the Keepers" | Lore, and 40 EGP |
+| SQ-01A-04 | The Truck of 1926 | Exploration | The Harvard–Boston Expedition truck: a diary in the glovebox (an old woman with a lamp at the shaft, "one of the Keepers"), and **four relics** round it for the detector: a Kodak camera, a trowel, a brass find tag, and a glass-plate photo of the crew with a boy who is the Rais's grandfather | 600 EGP, Ministry +5, and showing the Rais the photo (Rais +12) |
 | SQ-01A-05 | Supply Line Blues | Uncle Hamid | The skip line's coupling pin sheared. There's a spare in the sorted crates | 1,500 EGP, workmen +10 |
-| SQ-01A-06 | Miriam's Caches | The detector | Some of the 12 buried caches are Miriam's (orange survey tape): 1,200 EGP, a spare phone with "A.S." saved, field glasses, her old rucksack (16 space) | Money, gear |
+| SQ-01A-06 | Miriam's Caches | The detector | Some of the buried caches are Miriam's (orange survey tape): 1,200 EGP, **her spare phone** (one number: "A.S."), field glasses, her old rucksack (16 space) | Money and gear. **Calling "A.S." from the phone** reaches Amira early (Amira +12, and the legal exit remembers the promise) |
 | SQ-01A-07 | Darts Night | The dartboard | A 200 EGP stake. Beat the Rais's 132 (**darts minigame**) | 2,000 EGP, and a nickname ("Abu Ramy") |
+| SQ-01A-08 | Bosta | The camp dog | Win the camp dog over (ear scratches, dates) and she follows you. Teach her to sit and give a paw | A companion for the night, who barks at the midnight car and growls at Lena |
+| SQ-01A-09 | Pharaoh's Lentils | The fossil pavement | Five nummulite fossils ("the lentils of the pyramid workers", Herodotus) | Excavation XP, lore |
+| SQ-01A-10 | The Lamp at the Tomb | The old woman at the sheikh's tomb (night only) | She knows where Miriam is ("somewhere safe") and gives you a painted tile: a lamp in a doorway, the Keepers' sign | Keepers +5. The first Keeper shrine tile (shrine travel in later chapters) |
+| SQ-01A-11 | The Looters' Pit | The workers' cemetery | Fresh robbers' digging. Take the faience Eye of Horus they missed, or leave it for the Ministry | An amulet, or Ministry +3 |
+
+## PLACES (discovered on first visit; the watchtower reveals them all)
+
+| Place | What's there |
+|---|---|
+| The Director's Camp | Miriam's tent, Hana's table, the date palm, Bosta's home by the fire |
+| The Workers' Camp | The Rais at the fire (**the brazier's fire and its sound**), the dorm, the site office, the kettle, the cooking table, darts, water barrels |
+| The Dig Zone | The dig shed, the find store, the survey shaft, Petamun's old seal |
+| Trench A | Lindqvist's trailer, the trench, the scaffold |
+| The Old Ministry Post | Uncle Farouk, the guard booth, the generator |
+| Camp Gate | The gate, Hagg Sayed and his horses, the loading bay. **The supply line's turning loop**: the train comes in loco-first, rounds the loop and leaves loco-first |
+| The Oasis | Pool, well (drink), canteen |
+| The Old Village | Mud-brick ruins, the fallen lintel |
+| The Spoil Field | The sieve (Trench B's key) |
+| The Dry Wadi | Acacias, camel bones |
+| The Lookout | The cairn |
+| The 1926 Truck | The Harvard–Boston truck and its relics |
+| Bedouin Shelter | A goat-hair tent, a hearth with brass coffee pots, and a couched camel |
+| **The Old Quarry** | The limestone knobs, and **the mason's marks**: "The Drunkards of Menkaure" in red ochre (a real Giza gang name), and a later eye-in-a-house mark that matches the Codex's margin (pays off with Bishoy in Ch2) |
+| **The Workers' Cemetery** | The pyramid builders' tomb chapels (found 1990), a false door with Petety's real curse (needs Hieroglyphs 2), and the looters' pit |
+| **The Sheikh's Tomb** | A whitewashed village saint's shrine. At night, the old woman with the lamp |
+| **The Watchtower** | An old antiquities-police tower. Climb it (Climbing XP) and every place goes on your map. With the field glasses, you see a car waiting by the Osiris Shaft |
+| **The Builders' Ramp** | A construction ramp with sledge ruts, and the history of the ramp debate (Hatnub, 2018) |
+| **The Fossil Pavement** | Five nummulites |
+
+## PEOPLE (besides the main cast above)
+- **Bosta**, the camp dog: a sandy baladi dog, one ear up and one flopped, named for the
+  post van she arrived in. She has her own routine and can follow you.
+- **Hagg Sayed**: horse and camel owner from Nazlet el-Samman, and moneylender. He holds
+  Mina's debt.
+- **The old woman with the lamp**: at the sheikh's tomb, at night. Kind and unafraid. A
+  Keeper, though nothing on screen says so.
+- **The cook**, **Gamal** (night shift), the workmen.
+
+## SYSTEMS HERE (see `06_SYSTEMS.md`)
+- **The clock:** the chapter runs one night, 20:30 to 04:40. After the chapter-end card, the
+  clock runs free (a 48-minute day): dawn, full day with a moving sun, and dusk.
+- **Skills and XP:**
+  - Excavation (digging, sieving, finds, fossils, relics)
+  - Hieroglyphs (the seal, the false door, the mason's marks)
+  - Coptic (the red stake)
+  - Greek (the seal's name, the Codex)
+  - Arabic (every real conversation with an Egyptian speaker)
+  - Photography, Stealth, Climbing, Riding, First aid
+- **Thirst and hunger:**
+  - Water comes from the well, the water barrels, the canteen and tea.
+  - Food comes from the cooking table (lentils) and dates.
+  - At empty you can't sprint.
+- **Failure states:**
+  - The old seal's dart **injures** you, so you limp until Hana patches you or you rest.
+  - Slipping into the tent behind Lena's men gets you **knocked out**. You wake by the
+    workers' fire 1.5 hours later, injured, and **they take Miriam's notebook page**
+    (`lena_has_page`: whoever they work for now knows about the shaft).
+- **The phone (P):**
+  - Map, with tasks and places found
+  - Messages (the department's welcome; an unknown number at midnight: "Go to bed, Doctor.")
+  - Contacts and calls
+  - Bank, with a ledger
+  - Skills
+  - Notes (J also opens the notes)
 
 ## JOBS
-- Sieving at the spoil field (3 heaps)
-- Detector sweeps (caches)
+- Sieving at the spoil field (3 heaps; Excavation and Hana raise the pay)
+- Detector sweeps (caches and relics)
 - Painted sherds (8, with a bounty for the set)
+- The darts tournament
 
 ## SECRETS
 - The bronze seal of Petamun (step 7)
 - The painted sherds form an ibis (a deniable Thoth hint)
 - Miriam's bookmarked Setne story in her tent: *"Coptos. The river. Why always the river?"*
   It pays off in Ch10
+- The mason's eye-in-a-house mark (Ch2)
+- The car by the Osiris Shaft, seen from the watchtower through the field glasses
 
-## VISUALS (V4.0.1)
-- **The old quarry.** The rock knobs are the limestone the pyramids were cut from: a rough,
-  weathered crown, cut faces stepping down in terraces, half-cut blocks still standing in
-  their channels, wedge sockets, and chips and abandoned blocks at the foot
-  (`ch1QuarryKnob` in `ch1_world.js`).
-- **The 1926 truck.** A Model T-era one-tonner with a brass radiator, spoked wheels, a roof
-  on posts and a slatted bed. The tailboard is stencilled HARVARD – BOSTON EXP. 1926. It's
-  half buried in a dune.
-- **The find store.** A steel door, a padlocked hasp under a Ministry seal of paper and red
-  wax, a "FIND STORE — MAGAZINE · MoTA" sign, and crates of finds against the wall.
+## VISUALS
+- **The old quarry (V4.0.1).** The rock knobs are the limestone the pyramids were cut from:
+  weathered crowns, and cut faces stepping down in terraces with half-cut blocks, wedge
+  sockets and spoil.
+- **The 1926 truck (V4.0.1)**, **the find store (V4.0.1)**, **the brazier's fire (V4.0.3)**,
+  **Bosta, the turning loop, the Bedouin camp, the site office front (V4.0.4)**.
+- **The new places (V4.1.0):** tomb chapels, the maqam, the watchtower, the ramp, the fossil
+  pavement.
 
 ## LEAVING
 Every exit leads to **Ch2 Cairo** (not built yet). The chapter-end card says so. Your choices
