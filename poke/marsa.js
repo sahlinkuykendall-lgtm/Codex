@@ -43,6 +43,14 @@ function marsaLayout() {
     // ---- the reef, offshore: the shallows you can see into ----
     for (let y = 3; y < 19; y++) { const a = 69 + Math.round(Math.sin(y * 0.7) * 1.5 + R()), b = 76 + Math.round(Math.cos(y * 0.5) * 1.5 + R()); rect(a, y, b - a, 1, T.REEF); }
     for (let y = 47; y < 56; y++) rect(71 + Math.round(R()), y, 3 + Math.round(R() * 2), 1, T.REEF);   // a fringe off the villa's point
+    // ---- Lighthouse Island, past the harbour mouth, sheltering the harbour (an addition: poke/ch1c_island.js) ----
+    for (let y = 24; y <= 39; y++) {
+        const k = (y - 31.5) / 8, half = Math.sqrt(Math.max(0, 1 - k * k)) * 4.2, a = Math.round(74.6 - half + Math.sin(y * 1.3) * 0.4), b = Math.round(74.6 + half + Math.cos(y * 0.9) * 0.4);
+        if (b > a) rect(a, y, b - a, 1, T.BEACH);
+        if (b - a > 3 && y > 24 && y < 39) rect(a + 1, y, b - a - 2, 1, T.SAND);
+    }
+    rect(68, 31, 3, 1, T.QUAY);                                                       // the island's little jetty
+    for (const [rx, ry, rw] of [[79, 27, 1], [79, 33, 1], [76, 40, 2], [72, 23, 2], [70, 37, 1]]) rect(rx, ry, rw, 1, T.REEF);
     // ---- the coast highway, north to south ----
     path([[12, 0], [12, H - 1]], 1, T.ROAD);
     // ---- the truck stop beside it: a gravel lot ----

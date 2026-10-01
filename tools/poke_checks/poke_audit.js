@@ -78,7 +78,7 @@ const LAUNCH = process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } :
     for (const bg of Object.keys(AREAS).filter(k => k !== 'archaeologist')) {
       Game.player.bg = bg; Game.newGame(); Dlg.active = false;
       const am = Game.maps.ch1, AW = Math.ceil(am.pw / S), AH = Math.ceil(am.ph / S);
-      const aflood = () => { const seen = new Uint8Array(AW * AH), q = [[Math.floor(am.spawn[0] / S), Math.floor(am.spawn[1] / S)]]; seen[q[0][1] * AW + q[0][0]] = 1;
+      const aflood = () => { const seen = new Uint8Array(AW * AH), q = [[am.spawn[0], am.spawn[1]]].concat(area().auditSeeds ? area().auditSeeds() : []).map(([x, y]) => [Math.floor(x / S), Math.floor(y / S)]); for (const [i, j] of q) seen[j * AW + i] = 1;   // (auditSeeds: places reached another way, by boat)
         while (q.length) { const [i, j] = q.pop(); for (const [a, c] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const x = i + a, y = j + c; if (x < 0 || y < 0 || x >= AW || y >= AH || seen[y * AW + x]) continue; if (World.blocked(am, x * S + 2, y * S, 12, S)) continue; seen[y * AW + x] = 1; q.push([x, y]); } } return seen; };
       const anear = (seen, e) => { const x0 = e.w ? e.x : e.x - 10, y0 = e.w ? e.y : e.y - 12, x1 = e.w ? e.x + e.w : e.x + 10, y1 = e.w ? e.y + e.d : e.y + 4;
         for (let x = Math.floor((x0 - 18) / S); x <= Math.floor((x1 + 18) / S); x++) for (let y = Math.floor((y0 - 18) / S); y <= Math.floor((y1 + 22) / S); y++) if (x >= 0 && y >= 0 && x < AW && y < AH && seen[y * AW + x]) return true; return false; };

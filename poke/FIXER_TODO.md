@@ -167,11 +167,20 @@ Three tasks, each with more than one way to do it:
   line each on the end card.
 
 ## 9. Jobs (bible §JOBS)
-- **Fishing** off the reef and the harbour (the fishing minigame, new; reused by SQ-01C-03)
+- **Fishing** off the reef and the harbour (the fishing minigame, new; reused by SQ-01C-03). ✅ The
+  minigame is done (P0.43), on Lighthouse Island's fishing rocks; selling to the fish seller works.
+  Still to do: fishing from the harbour too, and the hotel cook's side quest using it.
 - **Diving salvage** on a sunk yacht (the diving minigame, reused by SQ-01C-01)
 - **Truck-stop loading** (a timed loading job)
 - **Small smuggling runs** (cigarettes): pay against the debt, with risk (police heat)
 - Paying the debt down from any of them through the bank app.
+
+## 9b. Lighthouse Island — ✅ DONE in P0.43 (an addition the owner asked for)
+> `poke/ch1c_island.js`: an island past the harbour mouth, reached with a nameless boatman by day.
+> The lighthouse (its room inside, the climb to the lamp), the keeper's ruined hut, a cistern, an
+> osprey's nest, turtle tracks, gulls, flotsam, a driftwood fire to grill your catch, and the
+> fishing rocks. Not in the bible's map; no named people, no story flags. Later steps may use it
+> (the diving jobs, Rana's reef, the boat chase in beat 6) only where that doesn't change a beat.
 
 ## 10. Secrets (bible §SECRETS)
 - **A wrecked Roman trade ship on the reef** (real Roman Red Sea trade): found diving, an

@@ -2,7 +2,7 @@
 
 The working memory for the poke-style build: **what the owner wants, how to work, what's
 been done, and what's next.** Keep it current: update the "Where we are" and "What's next"
-sections at the end of every step. Last updated 2026-10-01, at P0.42.
+sections at the end of every step. Last updated 2026-10-01, at P0.43.
 
 ---
 
@@ -85,7 +85,7 @@ See `poke/README.md` for the file-by-file table. The essentials:
   area's layout.
 - **Minigames:** `MINIS.x = {title, keys, start, update, draw}`; `playMinigame(kind, opts, cb)`.
   So far: sieve, tea, darts, seal, race, tawla, the guide's quiz, and for the Fixer: haggle,
-  lockpick, scout (`ch1c_prep.js`). Don't name a minigame's state field `done`: `Mini` keeps the
+  lockpick, scout (`ch1c_prep.js`), fish (`ch1c_island.js`). Don't name a minigame's state field `done`: `Mini` keeps the
   callback there.
 - **Music:** `poke/music.js`, chiptune tunes synthesised on the fly (`TUNES`).
 - Script order matters: new files go in `poke.html` after what they depend on.
@@ -101,7 +101,8 @@ node tools/poke_checks/poke_inspector.js      # Saqqara with each exit, save/loa
 git worktree add -f /tmp/old HEAD && node tools/poke_checks/poke_look.js /tmp/old   # 33 identical
 ```
 Add a playthrough file for each new opening (next: `poke_fixer.js`). An area can define
-`auditOpen()` to open its story gates for the audit (the Fixer's villa gate does).
+`auditOpen()` to open its story gates for the audit (the Fixer's villa gate does), and
+`auditSeeds()` for places reached another way (Lighthouse Island, by boat).
 
 ---
 
@@ -142,6 +143,10 @@ Add a playthrough file for each new opening (next: `poke_fixer.js`). An area can
 - **P0.42: the Fixer, step 3** (`ch1c_prep.js`): three new minigames (haggling, lockpicking,
   scouting the patrol boat); diesel paid, stolen past the night watchman's view cone, or bribed;
   the coast guard route bought from the fisherman or scouted from the fort's rampart; Rana's kit.
+- **P0.43: Lighthouse Island** (`ch1c_island.js`), the owner's idea instead of widening the map's
+  west side: a boatman takes you over by day; the lighthouse and its room, flavour (osprey, turtle
+  tracks, gulls, flotsam), water and food, and the fishing minigame (sell the catch on the quay).
+  The audit now takes `auditSeeds()` for places reached by boat.
 
 ## 6. What's next
 

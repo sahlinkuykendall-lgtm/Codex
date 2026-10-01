@@ -12,6 +12,26 @@ Other docs:
 
 ---
 
+## POKE-STYLE P0.43 — 2026-10-01 — (branch `poke-style`) Marsa Tarfa: Lighthouse Island, and fishing
+- **Lighthouse Island** (`poke/ch1c_island.js`, an addition the owner asked for: not in the bible's
+  map, nothing in it touches the story), offshore past the harbour mouth, sheltering the harbour.
+  A **boatman** on the quay takes you over by day (20 EGP there and back, or haggle him to 10) and
+  waits at the island's jetty to bring you back. He won't go out after dark.
+- On the island:
+  - **the lighthouse**, red and white, its lamp glowing at night. Inside, the keeper's room: the
+    keepers' logbook (1921 to the last night in 1998), the calendar, the keeper's photograph, the
+    old radio, a spare lens from Paris, the water tank. Climb the 91 steps to the lamp for the
+    view over the whole town (different by day and by night).
+  - the last keeper's roofless hut, a rain cistern (water), an osprey on its nest, turtle tracks
+    up the beach to the rangers' ring of stones, white-eyed gulls, a crate of washed-up left
+    flip-flops, and a driftwood fire where you can **grill your catch** (food)
+- **The fishing minigame** (the bible's fishing job, built early): on the island's fishing rocks.
+  SPACE on the swinging bar to cast (near for reef fish, far for the big ones), SPACE when the
+  float goes under, then hold SPACE to keep the green band on the fish as it fights. Parrotfish,
+  spangled emperor, red snapper, bluefin trevally, coral grouper, and the odd flip-flop.
+  **Sell the catch** to the fish seller on the quay (20–70 EGP each). It's a way to make money.
+- The audit can now flood from extra starting points (`auditSeeds`) for places you reach by boat.
+
 ## POKE-STYLE P0.42 — 2026-10-01 — (branch `poke-style`) The Fixer, step 3: prep the job (three new minigames)
 - **Diesel for Zaki's dhow** (`poke/ch1c_prep.js`), three ways:
   - **pay the fuel man** by day at the fuel store, with the new **haggling minigame**: ◄► your price,
