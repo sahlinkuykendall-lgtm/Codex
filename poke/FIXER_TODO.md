@@ -140,6 +140,17 @@ Three tasks, each with more than one way to do it:
 | SQ-01C-03 | Fish for the Hotel | Hotel cook | A fishing job, done well three times: fishing unlocked, the cook's discount |
 | SQ-01C-04 | The Coast Guard's Cousin | Fisherman | Smuggle medicine (not drugs) to a mountain village up the wadi: rep, and a Bedouin contact for Ch6 |
 | SQ-01C-05 | Bassem's Nephew | Bassem's sister | Get her boy out of Bassem's crew: `rel_rana` +, a small debt cut |
+- **Additions** (not in the bible: the bible gives Marsa Tarfa 5 side quests, against Giza's 11
+  and Saqqara's 9, so these bring it up to 9; nameless locals only, nothing that touches the main
+  story):
+
+| ID | Name | Giver | What |
+|---|---|---|---|
+| SQ-01C-06 | The One Guest | Hotel porter | The hotel's only guest (the cook's cousin) has jammed his room safe with his passport inside: open it with your lockpicks (the lockpicking minigame, first used here) |
+| SQ-01C-07 | Tawla at the Truck Stop | Café man | The truck stop's tawla champion, a long-haul driver who has never lost on this road (the tawla minigame, reused) |
+| SQ-01C-08 | The Imam's Loudspeaker | The imam | The minaret's loudspeaker crackles and cuts out mid-call: find the loose wire up the minaret, and the boy who has been "borrowing" the batteries |
+| SQ-01C-09 | Goats in the Wadi | A boy | His family's goats have strayed up the wadi: bring them back down before dark (the wadi explored) |
+
 - Like the Inspector's: the people who are only about by day, the compass for each, and a
   line each on the end card.
 
@@ -154,6 +165,10 @@ Three tasks, each with more than one way to do it:
 - **A wrecked Roman trade ship on the reef** (real Roman Red Sea trade): found diving, an
   amphora and coins (a Rare find)
 - **A tiny Keeper shrine in the fort wall:** the first one the player might notice
+- **Addition** (not in the bible): **the smugglers' cave** up the wadi: a hollow in the rock with
+  names and dates scratched by the coast's smugglers going back to the 1940s, a rusted British
+  army tin, and your own initials from when you were young and stupid (or, if you're foreign, the
+  initials of the man who taught you the trade). Three secrets, like Saqqara.
 - Counted like Giza's and Saqqara's (a notice, a journal page, a line on the end card).
 
 ## 11. Rooms and the rest

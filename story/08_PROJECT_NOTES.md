@@ -28,6 +28,12 @@ sections at the end of every step. Last updated 2026-10-01, at P0.40.
 - **Don't reuse characters** unless the bible says they're in both stories. Each chapter uses
   only its own named cast; everyone else is a nameless local with a new look (don't reuse a
   named character's look for a stranger either).
+- **Starter maps match each other:** every Chapter 1 opening is about the same size (Giza and
+  Saqqara are ~80×58 tiles) and has about the same amount to do (Giza: 11 side quests, Saqqara:
+  9, plus jobs and 3–5 secrets each). Follow the bible first; **where the bible has fewer
+  missions, add some of your own**, as long as they don't conflict with the story or the bible
+  (no new named characters, nothing that changes a beat, a flag or what someone knows). Mark
+  added ones as additions in the plan.
 - Easter eggs are allowed when the owner asks for them (the sphinx one is in `poke/ch1b_egg.js`).
 - No copyrighted music or lyrics: write original tunes "in the spirit of" instead.
 
