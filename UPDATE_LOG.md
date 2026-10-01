@@ -12,6 +12,25 @@ Other docs:
 
 ---
 
+## POKE-STYLE P0.46 — 2026-10-01 — (branch `poke-style`) The Fixer, step 5: you open it
+- **Cast off** (`poke/ch1c_open.js`): once the package is aboard and the diesel, route and kit are
+  sorted, tell Zaki to cast off. The Umm Kalthoum slides out of the harbour on the real map with no
+  lights, you and Zaki on deck: between the moored boats, past the coast guard post (lit windows,
+  the crew at dinner), out between the island and the breakwater, and south round Bassem's point,
+  a wake behind her and the lighthouse beam sweeping past.
+- **The deck at sea**, a place you can walk about: the hooded hurricane lamp, the thumping engine
+  hatch, the furled lateen sail, Zaki at the wheel with his back to you ("The locker key is on the
+  nail. In case you need a rope."), tea and bread on a brazier, Rana's kit bag, the stars and the
+  moon on the water.
+- **The case:** cut the wire with your knife, or (Lockpicking) work it out of the lead seal so it
+  could all go back as it was. Inside, in a green silk scarf: **the Codex**. Taped in the lining: a
+  **GPS tracker**, blinking. In the flap: **the note**, in a woman's hand: "If you're reading this,
+  they stole it from me. Father Bishoy, El-Fishawy, Thursday. Please." If you gave Brandt your word,
+  the game remembers that you broke it.
+- Zaki: "That is not a package. That is a curse." Far off on the black water, a green lamp, twice:
+  the ship. (The meeting, the betrayal and the escape are step 6.)
+- A new `deck` room style (planks, the night sea over the gunwale, no way off).
+
 ## POKE-STYLE P0.45 — 2026-10-01 — (branch `poke-style`) The Fixer, step 4: the truck stop at ten
 - **The truck** (`poke/ch1c_truck.js`): at ten a white box truck with Cairo plates comes down the coast
   highway with its headlights on and pulls up at the truck stop, engine running. Wait for it at the

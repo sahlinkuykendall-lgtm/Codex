@@ -119,7 +119,12 @@ Three tasks, each with more than one way to do it:
   cropped blond hair, clipped. She checks you over. *"Don't open it."*
 - You load the package into Zaki's pickup (or carry it to the dhow); she watches you go.
 
-## 5. Beat 5: you open it
+## 5. Beat 5: you open it — ✅ DONE in P0.46
+> Done in `poke/ch1c_open.js`: "Cast off" (once the package is aboard and the prep is done); the voyage on
+> the map (no lights, past the coast guard post, round Bassem's point); the deck at sea (`INT_DHOW`, a
+> `deck` room you can't leave); the locker key "in case you need a rope"; cut the wire or keep the seal
+> whole (`c1c_seal` = cut/intact); the Codex, the GPS tracker, the note in the flap (the Fixer doesn't
+> know Miriam: it's unsigned); Zaki's "That is a curse"; the green lamp, twice. `c1c_opened`, `c1c_at_sea`.
 - On the dhow, in the dark, out past the reef (a deck scene: the lamp, the engine, Zaki at
   the wheel pretending not to look).
 - Inside: **the Codex**, **a GPS tracker**, and a note in the flap in Miriam's handwriting:

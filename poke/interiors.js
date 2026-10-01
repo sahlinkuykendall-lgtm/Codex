@@ -99,6 +99,10 @@ function roomShell(tw, th, style) {
     } else if (style === 'planks') {
         A.r(0, W, pw, ph - W, PAL.plank[1]);
         for (let y = W; y < ph; y += 16) { A.hl(0, y, pw, PAL.plank[2]); for (let x = ((y / 16) & 1) * 40 + 12; x < pw; x += 80) A.vl(x, y, 16, PAL.plank[2]); for (let x = 6; x < pw; x += 23) A.px(x + ((y * 7) % 9), y + 5 + ((x * 3) % 7), PAL.plank[0]); }
+    } else if (style === 'deck') {                     // a boat's deck: planks running fore and aft, tar in the seams
+        A.r(0, W, pw, ph - W, '#a8845c');
+        for (let y = W; y < ph; y += 9) { A.hl(0, y, pw, '#6a4a2c'); for (let x = ((y / 9) % 3) * 40 + 10; x < pw; x += 120) A.vl(x, y, 9, '#7a5a3a'); }
+        for (let i = 0; i < 60; i++) A.px(Math.floor(hash2(i, 81) * pw), W + Math.floor(hash2(81, i) * (ph - W)), '#c8a070');
     } else if (style === 'villa') {                    // big slabs of polished marble, cream, faintly veined
         for (let y = W; y < ph; y += 48) for (let x = -((y - W) / 48 & 1) * 32; x < pw; x += 64) {
             A.r(x, y, 64, 48, hash2(x, y) > 0.5 ? '#f4eee2' : '#ece4d4'); A.hl(x, y, 64, '#d8cebc'); A.vl(x, y, 48, '#d8cebc');
@@ -144,6 +148,11 @@ function roomShell(tw, th, style) {
     } else if (style === 'planks') {
         A.r(0, 0, pw, W, PAL.wood[1]); for (let x = 0; x < pw; x += 10) A.vl(x, 0, W, PAL.wood[2]); A.r(0, 0, pw, 6, PAL.wood[3]); A.r(0, W - 5, pw, 5, PAL.wood[3]);
         for (const wx of [pw * 0.22, pw * 0.72]) { const x = Math.round(wx); A.r(x - 1, 13, 34, 26, PAL.wood[3]); A.r(x, 14, 32, 24, PAL.blue[3]); A.r(x, 14, 32, 3, PAL.blue[2]); A.vl(x + 16, 14, 24, PAL.wood[3]); A.hl(x, 26, 32, PAL.wood[3]); A.px(x + 5, 19, PAL.white[0]); A.px(x + 24, 31, PAL.white[1]); }
+    } else if (style === 'deck') {                     // no wall: the night sea over the gunwale, the stars, a path of moonlight
+        A.r(0, 0, pw, W, '#101838'); A.r(0, 26, pw, W - 26, '#14284a'); A.hl(0, 26, pw, '#2a3a64');
+        for (let i = 0; i < 50; i++) A.px(Math.floor(hash2(i, 91) * pw), Math.floor(hash2(91, i) * 24), i % 4 ? '#8890b8' : '#ffffff');
+        for (let i = 0; i < 16; i++) A.hl(Math.round(pw * 0.66) - 10 + Math.floor(hash2(i, 92) * 20), 30 + i * 1.4 | 0, 3 + (i % 3) * 2, '#c8d0e8');
+        A.r(0, W - 12, pw, 8, '#6a4a2c'); A.hl(0, W - 12, pw, '#a8845c'); A.hl(0, W - 5, pw, '#3a2a1a'); for (let x = 20; x < pw; x += 60) A.r(x, W - 16, 4, 12, '#5a3e24');   // the gunwale
     } else if (style === 'villa') {                    // the whole back wall glass, slid open: sky, the sea, a white balustrade
         A.r(0, 0, pw, W, '#9ed2f4'); A.r(0, 20, pw, 6, '#c4e6fa'); A.r(0, 26, pw, W - 26, '#2a7ab8'); A.r(0, 26, pw, 4, '#3a8ac8'); A.hl(0, 26, pw, '#6ab0e0');
         for (let i = 0; i < 18; i++) A.hl(Math.floor(hash2(i, 91) * (pw - 10)), 32 + Math.floor(hash2(i, 92) * (W - 44)), 4 + (i % 3) * 2, '#8ac8f0');
@@ -161,7 +170,9 @@ function roomShell(tw, th, style) {
     A.r(0, 0, E, ph, PAL.dark[2]); A.r(pw - E, 0, E, ph, PAL.dark[2]); A.r(E - 2, W, 2, ph - W, PAL.dark[1]); A.r(pw - E, W, 2, ph - W, PAL.dark[1]);
     A.r(0, ph - E, pw, E, PAL.dark[2]); A.r(E, ph - E, pw - E * 2, 2, PAL.dark[1]);
     const dx = (pw >> 1) - 22;
-    if (style === 'rock') {                             // no mat down here: the ladder you came down
+    if (style === 'deck') {                             // the gunwale all round: no way off but the sea
+        for (const [x, y, w, h] of [[0, W, E, ph - W], [pw - E, W, E, ph - W], [0, ph - E, pw, E]]) { A.r(x, y, w, h, '#6a4a2c'); A.r(x, y, w, 2, '#a8845c'); }
+    } else if (style === 'rock') {                             // no mat down here: the ladder you came down
         A.r(dx, ph - E, 44, E, PAL.dark[3]);
         A.r(dx + 12, ph - E - 22, 3, 26, PAL.wood[2]); A.r(dx + 29, ph - E - 22, 3, 26, PAL.wood[2]);
         for (let j = ph - E - 18; j < ph; j += 6) A.r(dx + 15, j, 14, 2, PAL.wood[1]);

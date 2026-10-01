@@ -2,7 +2,7 @@
 
 The working memory for the poke-style build: **what the owner wants, how to work, what's
 been done, and what's next.** Keep it current: update the "Where we are" and "What's next"
-sections at the end of every step. Last updated 2026-10-01, at P0.45.
+sections at the end of every step. Last updated 2026-10-01, at P0.46.
 
 ---
 
@@ -60,7 +60,7 @@ The player picks one of **four backgrounds**, and each has its own Chapter 1 ope
 |---|---|---|
 | Archaeologist | 1-A, the Giza dig camp (one night) | **Done** (P0.7–P0.28; `poke/AREA1_TODO.md`) |
 | Inspector | 1-B, Saqqara and Mit Rahina | **Done** (P0.23–P0.39; `poke/INSPECTOR_TODO.md`) |
-| Fixer | 1-C, Marsa Tarfa on the Red Sea | **In progress** (`poke/FIXER_TODO.md`): steps 1–4 done (P0.40–P0.45), plus Lighthouse Island |
+| Fixer | 1-C, Marsa Tarfa on the Red Sea | **In progress** (`poke/FIXER_TODO.md`): steps 1–5 done (P0.40–P0.46), plus Lighthouse Island |
 | Journalist | 1-D, Port Said | Not planned yet (only the opening cutscenes exist) |
 
 All four meet in **Chapter 2, Cairo** (`story/regions/ch02_cairo.md`). Each opening ends with
@@ -154,12 +154,14 @@ Add a playthrough file for each new opening (next: `poke_fixer.js`). An area can
   Tower in Ch2).
 - **P0.45: the Fixer, step 4** (`ch1c_truck.js`): the truck at ten, Lena Brandt's handover ("Don't
   open it"), the pickup or carrying it, the package aboard Zaki's dhow.
+- **P0.46: the Fixer, step 5** (`ch1c_open.js`): casting off and the voyage out on the map, the dhow's
+  deck at sea, opening the case (the Codex, the tracker, the note), the green lamp.
 
 ## 6. What's next
 
 1. **The Fixer's opening, Chapter 1-C (Marsa Tarfa):** follow `poke/FIXER_TODO.md`; next is
-   step 5 (you open it on the dhow, in the dark, out past the reef: the Codex, a GPS tracker, and
-   Miriam's note in the flap). Waiting on the owner's go-ahead.
+   step 6 (the ship and the betrayal: overhear the crew, the boat chase minigame, Zaki shot, first
+   aid or keep running, `ch1c_zaki_saved`). Waiting on the owner's go-ahead.
 2. Then the Journalist's opening, Chapter 1-D (Port Said): write `JOURNALIST_TODO.md` the
    same way first.
 3. Then Chapter 2, Cairo, where the four backgrounds meet.
