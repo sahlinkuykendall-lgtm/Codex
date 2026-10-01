@@ -16,6 +16,7 @@ here, add it here first and then reference it.
 | `07_ASSETS.md` | Downloaded 3D models: where each goes, budgets, and the per-chapter wishlist |
 | `regions/*.md` | One file per chapter: beats, places, NPCs, side quests, jobs, secrets |
 | `SIDE_QUESTS_INDEX.md` | Every side quest in the game in one table |
+| `08_PROJECT_NOTES.md` | Not story: the build's working notes (the owner's rules, what's done, what's next) |
 
 ---
 
