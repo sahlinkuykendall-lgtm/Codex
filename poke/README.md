@@ -123,6 +123,7 @@ there are no image files.
 | `ch1c_truck.js` | Chapter 1-C, beat 4: the truck at ten (headlights down the highway), Lena Brandt's handover and "Don't open it", the pickup or carrying it, the package stowed aboard |
 | `ch1c_open.js` | Chapter 1-C, beat 5: casting off (the voyage out on the map), the dhow's deck at sea (a room), opening the case: the Codex, the GPS tracker, the note in the flap; the ship's green lamp |
 | `ch1c_ship.js` | Chapter 1-C, beat 6: alongside the ship, the ship's deck (stealth: deckhands' torches, listen to the captain), the boat chase and first aid minigames, Zaki shot (`ch1c_zaki_saved`), home |
+| `ch1c_exit.js` | Chapter 1-C, beat 7: back on shore, dumping the tracker (reef / bus / Bassem's car), the exit (legal / deal / quiet), goodbyes, leaving by lorry or night bus, the end card |
 | `backgrounds.js` | The four backgrounds: skills, gear, papers, their paintings and opening cutscenes |
 | `intro.js` | The opening scenes, the background choice, male/female, the character creator, the name grid, your papers |
 | `game.js` | The loop: input, movement and collision, camera, drawing, day/night, doors, saving |

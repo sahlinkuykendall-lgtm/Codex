@@ -12,6 +12,28 @@ Other docs:
 
 ---
 
+## POKE-STYLE P0.49 — 2026-10-01 — (branch `poke-style`) The Fixer, step 7: back on shore, and the way out (Chapter 1-C playable to the end)
+- **The tracker** (`poke/ch1c_exit.js`): get rid of it before you go, three ways:
+  - throw it onto the reef from the new **green harbour light** at the end of the north breakwater
+    ("Let them think you went down with it")
+  - drop it in the luggage hold of the **night bus south** to Marsa Alam (at the truck stop
+    01:30–02:45), between the onions
+  - tape it inside the bumper of **Bassem's own black Mercedes**, parked by his villa (the Swiss
+    will be very interested in Bassem's lawyer, barber and cousin's wedding tomorrow)
+- **The exit** (`c1_exit`):
+  - **legal:** the coast guard post; the officer phones the Ministry and **Dr. Amira Sayed** asks you
+    to bring it to Cairo yourself, not the police courier. `rel_amira` +15, `rep_ministry` +10, and
+    **Bassem hunts you**: debt +10,000
+  - **deal:** Bassem comes out to his gate in a silk dressing gown with a better idea: sell it to the
+    **Gebali** in Cairo. 20,000 off the debt, 5,000 for the road, Gebali +10, a favour owed
+  - **quiet:** just leave without a word; the debt stays and grows
+- **Goodbyes**, if you want them: Zaki on his dhow (saved: "If you ever need a boat, any boat, on any
+  sea, you call me"; not saved: "You're good at going"), and Rana at her shop (give back her kit).
+- **Leaving:** the lorry driver from the truck stop ("Cairo? Empty, at four. Or now, for you.") or
+  the **night bus north** (from 03:00). Bassem's last text, and **the chapter-end card**: your exit,
+  Zaki, the tracker, the debt, your word to Brandt, the seal, the diesel and the route, Rana, the
+  lighthouse, your catch, and "In Cairo, a young man called Karim el-Gebali already knows your name."
+
 ## POKE-STYLE P0.48 — 2026-10-01 — (branch `poke-style`) The Fixer, step 6: the ship and the betrayal
 - **Alongside** (`poke/ch1c_ship.js`): the green lamp becomes a rusty coaster with her name painted out.
   "Hamburg." Up the rope ladder, the case still in your bag.

@@ -386,7 +386,7 @@ function c1cHome() {
 }
 scene('c1c_home', {
     speaker: 'System',
-    text: () => `Half past one in the morning. The Umm Kalthoum creeps back in past the breakwater with no lights and a hole in her hull above the waterline, and Zaki ${sflag('ch1c_zaki_saved') ? 'asleep below on a mattress of nets, breathing slow and even' : 'below on a mattress of nets, awake, saying nothing'}.\n\nThe harbour is asleep. The lighthouse turns. In your bag: a book older than anything you've ever touched, a note that says please, and a little green light, blinking, telling someone exactly where you are.\n\n(What you do now is the next part of the story: coming soon.)`,
+    text: () => `Half past one in the morning. The Umm Kalthoum creeps back in past the breakwater with no lights and a hole in her hull above the waterline, and Zaki ${sflag('ch1c_zaki_saved') ? 'asleep below on a mattress of nets, breathing slow and even' : 'below on a mattress of nets, awake, saying nothing'}.\n\nThe harbour is asleep. The lighthouse turns. In your bag: a book older than anything you've ever touched, a note that says please, and a little green light, blinking, telling someone exactly where you are.`,
     choices: [{ text: 'Step onto the quay.' }],
 });
 

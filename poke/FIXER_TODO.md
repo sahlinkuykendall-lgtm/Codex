@@ -144,7 +144,12 @@ Three tasks, each with more than one way to do it:
   dhow drifts, and you lose the ship) or **keep running** (he survives, just, and won't
   forgive you) → `ch1c_zaki_saved` ★ (in Ch3 his boat takes you to the harbour dive).
 
-## 7. Beat 7: back on shore, and the exit
+## 7. Beat 7: back on shore, and the exit — ✅ DONE in P0.49
+> Done in `poke/ch1c_exit.js`: the tracker (`c1c_tracker` = reef / bus / bassem: the harbour light, the night
+> bus south 01:30–02:45, Bassem's Mercedes); the exit (`c1_exit` = legal at the coast guard post with Amira on
+> the phone, `ch1c_bassem_hunts`; deal at Bassem's gate, `ch1c_owe_gebali`; quiet, `ch1c_debt_grows`); the debt
+> carried in `Story.s.debt`; goodbyes with Zaki and Rana; leaving by the lorry or the night bus north; Bassem's
+> parting text; the end card. **The Fixer's opening can be played start to finish.**
 - You have Vasse's package, Bassem's debt and a tracker. **Dump the tracker:** on the reef,
   on a passing bus, or in Bassem's own car (the funny option).
 - **The exit choice** (`c1_exit`):
