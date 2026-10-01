@@ -2,7 +2,7 @@
 
 The working memory for the poke-style build: **what the owner wants, how to work, what's
 been done, and what's next.** Keep it current: update the "Where we are" and "What's next"
-sections at the end of every step. Last updated 2026-10-01, at P0.40.
+sections at the end of every step. Last updated 2026-10-01, at P0.41.
 
 ---
 
@@ -60,7 +60,7 @@ The player picks one of **four backgrounds**, and each has its own Chapter 1 ope
 |---|---|---|
 | Archaeologist | 1-A, the Giza dig camp (one night) | **Done** (P0.7–P0.28; `poke/AREA1_TODO.md`) |
 | Inspector | 1-B, Saqqara and Mit Rahina | **Done** (P0.23–P0.39; `poke/INSPECTOR_TODO.md`) |
-| Fixer | 1-C, Marsa Tarfa on the Red Sea | **In progress** (`poke/FIXER_TODO.md`): step 1 done in P0.40 |
+| Fixer | 1-C, Marsa Tarfa on the Red Sea | **In progress** (`poke/FIXER_TODO.md`): steps 1–2 done (P0.40–P0.41) |
 | Journalist | 1-D, Port Said | Not planned yet (only the opening cutscenes exist) |
 
 All four meet in **Chapter 2, Cairo** (`story/regions/ch02_cairo.md`). Each opening ends with
@@ -98,7 +98,8 @@ node tools/poke_checks/poke_playthrough.js    # Giza start to finish; errors []
 node tools/poke_checks/poke_inspector.js      # Saqqara with each exit, save/load, speed
 git worktree add -f /tmp/old HEAD && node tools/poke_checks/poke_look.js /tmp/old   # 33 identical
 ```
-Add a playthrough file for each new opening (next: `poke_fixer.js`).
+Add a playthrough file for each new opening (next: `poke_fixer.js`). An area can define
+`auditOpen()` to open its story gates for the audit (the Fixer's villa gate does).
 
 ---
 
@@ -129,11 +130,19 @@ Add a playthrough file for each new opening (next: `poke_fixer.js`).
   `ch1c_scenes.js`): the map with new sea, reef, beach and quay ground; the cast; beat 1 (the debt
   collectors, the debt in the bank app, Zaki, Rana, the summons to Bassem's at five); water and
   food; your flat and Rana's dive shop. The Fixer is playable. The villa gate stays shut until step 2.
+- **After P0.40:** the matching-starter-maps rule; four side quests and a secret added to the Fixer
+  plan (marked as additions).
+- **P0.41: the Fixer, step 2** (`ch1c_bassem.js`): Bassem's gate opens at 16:30 (or wait for five);
+  the villa inside; Bassem's offer (the truck at ten, the dhow, the ship, the Swiss foundation, the
+  German woman who doesn't laugh, nobody opens the package); the beat 3 tasks set. New: the
+  `villa` room style, the `chain` accessory, and `auditOpen` (an area's story gates opened for the
+  audit).
 
 ## 6. What's next
 
 1. **The Fixer's opening, Chapter 1-C (Marsa Tarfa):** follow `poke/FIXER_TODO.md`; next is
-   step 2 (Bassem's offer at the villa, its interior). Waiting on the owner's go-ahead.
+   step 3 (prep the job: the fuel theft with the new lockpicking minigame or a paid fill with the
+   new haggling minigame, the coast guard route, Rana's kit). Waiting on the owner's go-ahead.
 2. Then the Journalist's opening, Chapter 1-D (Port Said): write `JOURNALIST_TODO.md` the
    same way first.
 3. Then Chapter 2, Cairo, where the four backgrounds meet.

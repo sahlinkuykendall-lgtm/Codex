@@ -4,9 +4,9 @@
 // follows the bible (story/01_CHARACTERS.md §Ch1-C): Bassem "the Shark"
 // Nassar, Captain Zaki, Rana Fouad. Lena Brandt comes with the truck in
 // beat 4. Everyone else is nameless: Bassem's men, the fishermen, the café.
-// Step 1 (this file so far): the area, the cast on the map, and beat 1:
-// the debt collectors at your door, the bank app, Zaki at his dhow, Rana at
-// her dive shop, and Bassem's summons for five o'clock.
+// This file: the area, the cast on the map, and beat 1: the debt collectors
+// at your door, the bank app, Zaki at his dhow, Rana at her dive shop, and
+// Bassem's summons for five o'clock. Beat 2 (the villa) is ch1c_bassem.js.
 // ============================================================
 
 // ---- the cast's looks (new people: nobody from Giza or Saqqara) ----
@@ -177,15 +177,8 @@ function c1cRanaDone() {
 }
 function c1cBeatOneCheck() { if (sflag('c1c_zaki') && sflag('c1c_rana')) storyNotice('A boat, and a way out of the water. Bassem at five.'); }
 
-// ---- Bassem's gate (the villa is beat 2: until then, five o'clock) ----
+// ---- Bassem's gate: his man and the villa are in ch1c_bassem.js (beat 2) ----
 STORY_SCRIPTS.c1c_vguard = STORY_SCRIPTS.c1c_vgate = 'c1c_vguard';
-scene('c1c_vguard', {
-    speaker: "Bassem's Man",
-    text: () => Story.s.clock < 17 * 60
-        ? `Bassem's man at the gate looks at you, at his watch, and at you again. "Five o'clock. Not before. Mr. Bassem is eating, and when Mr. Bassem is eating, the sea waits."`
-        : `"Wait." He talks into a radio, listens, frowns. "Mr. Bassem is on the phone to Cairo. Cairo talks a lot. Wait."`,
-    choices: [{ text: 'Go.' }],
-});
 
 // ============================================================
 // THE OTHERS (lines for now: their stories come in their beats and side quests)
@@ -328,5 +321,4 @@ scene('c1c_cooler', { speaker: 'System', text: 'Rana\'s water cooler, for divers
 TASK_TARGETS.c1c_door = () => 'c1c_collector1';
 TASK_TARGETS.c1c_zaki = () => 'c1c_zaki';
 TASK_TARGETS.c1c_rana = () => ({ room: 'INT_DIVESHOP', id: 'c1c_rana', out: 'c1c_diveshop' });
-TASK_TARGETS.c1c_bassem = () => 'c1c_vguard';
 NEEDS_WHERE.fixer = 'Water: the public tap in the square, the water jars by the tap, on the quay and at the truck stop, the cooler in Rana\'s shop, the sink in your flat, and your canteen (in the bag, three swigs; it refills at any of them). Food: grilled fish on the quay, the ful cart, the café, the kiosk, and the truck stop café.';

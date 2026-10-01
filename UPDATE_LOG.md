@@ -12,6 +12,27 @@ Other docs:
 
 ---
 
+## POKE-STYLE P0.41 — 2026-10-01 — (branch `poke-style`) The Fixer, step 2: Bassem's offer at the villa
+- **The villa gate opens at half past four.** Before that, Bassem's man sends you away ("when Mr.
+  Bassem is eating, the sea waits"). Once Zaki and Rana have heard, you can **sit in the shade of
+  the wall and wait for five**. Come early and Bassem likes it; come after six and he notices.
+- **The garden and the villa** (`poke/ch1c_bassem.js`): walk in through the gate, past the pool, to
+  the arches. Inside: white marble and white leather, a television the size of a garage door, a
+  tiger shark's jaw in a glass case, a white Persian cat on a velvet cushion, a gold bar cart with
+  nothing stronger than mango on it, and the whole back of the house open onto **the terrace over
+  the sea** (a brass telescope pointed at the coast guard post, a cargo ship on the horizon).
+- **Bassem "the Shark" Nassar**, polite and terrifying: the juice, the phone face down, his sister's
+  boy bringing the ice ("he's learning the business"). **The job:** a truck from Cairo at ten, the
+  package to a ship offshore on Zaki's dhow, a Swiss foundation, their security chief "a German
+  woman who doesn't laugh", and **nobody opens the package**. Ask what's in it, who the client is,
+  what happens if you say no (photographs of Rana's shop and Zaki's dhow), or haggle him for the
+  diesel (500 EGP).
+- **After the offer:** his man walks you out, the gate shuts behind you, and beat 3's tasks go up:
+  diesel for the dhow, a way past the coast guard, Rana's diving kit, and the truck stop at ten.
+  (The tasks themselves are step 3.) Bassem texts you if you're late, and again before ten.
+- The villa's pool now says something. The audit lets an area open its story gates (`auditOpen`),
+  so what's behind them counts as reachable.
+
 ## POKE-STYLE P0.40 — 2026-10-01 — (branch `poke-style`) The Fixer's opening begins: Marsa Tarfa on the Red Sea (Chapter 1-C, step 1)
 - **The Fixer is playable.** Pick them in the intro (Egyptian or foreign: an Egyptian Fixer has
   Egyptian Arabic 5 and Arabic reading 2, and even less money).

@@ -78,7 +78,13 @@ Diving 1, Egyptian Arabic (street). New minigames: **haggling**, **lockpicking**
 - The Fixer becomes playable from the intro (`ready: true`); Egyptian or foreign changes the
   lines in places (the bible's `skillsEg`).
 
-## 2. Beat 2: Bassem's offer
+## 2. Beat 2: Bassem's offer — ✅ DONE in P0.41
+> Done in `poke/ch1c_bassem.js`: the gate opens at 16:30 (wait for five in the shade of the wall once
+> Zaki and Rana know; early or late changes his greeting); the garden; the villa inside (marble, the
+> terrace over the sea, the telescope on the coast guard, the shark's jaw, the white cat); Bassem, his
+> nephew with the ice (a seed for SQ-01C-05) and his man; the job and four questions (what's in it,
+> the client and the German woman, "and if I say no?", haggling 500 for diesel); his man walks you
+> out and the gate shuts; the beat 3 tasks set; his texts if you're late and before ten.
 - **Bassem's villa** (an interior): the terrace, the juice, the phone face down. He's polite
   and terrifying. One night job and you're even: a truck brings a package from Cairo at ten,
   Zaki's dhow takes it out to a cargo ship offshore, the client is a Swiss foundation, and

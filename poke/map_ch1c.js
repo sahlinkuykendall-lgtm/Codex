@@ -67,8 +67,8 @@ window.POKE_MAP_1C = {
         { id: 'c1c_vwall_n1', label: 'Villa Wall', model: 'villa wall', say: ['System', 'A high white wall with broken glass set along the top and a camera every ten metres. Bassem likes his privacy, and other people\'s.\n\nOver it, the villa: white and new, arches and blue glass, a terrace hanging over the water, more air conditioners than windows, and a swimming pool twenty metres from the sea that nobody ever swims in. Everyone in Marsa Tarfa knows what paid for it, and everyone in Marsa Tarfa says it was fish.'] },
         { id: 'c1c_vwall_n2', label: 'Villa Wall', model: 'villa wall' }, { id: 'c1c_vwall_w', label: 'Villa Wall', model: 'villa wall' },
         { id: 'c1c_vgate', label: "The Villa's Gate", model: 'villa gate', say: null },
-        { id: 'c1c_villa', label: "Bassem's Villa", model: 'villa', say: null },   // (behind the wall until beat 2: the wall says what it looks like)
-        { id: 'c1c_vpool', label: 'Swimming Pool', model: 'villa pool', say: null },
+        { id: 'c1c_villa', label: "Bassem's Villa", model: 'villa', say: null },   // (its door is named: the wall says what it looks like)
+        { id: 'c1c_vpool', label: 'Swimming Pool', model: 'villa pool', say: ['System', 'A swimming pool twenty metres from the sea, perfectly blue, perfectly still, a leaf turning slowly in the middle of it. Nobody has ever been seen swimming in it. Rana says it\'s so Bassem can look at water he owns.'] },
         // --- the highway and the truck stop ---
         { id: 'c1c_truckcafe', label: 'The Truck Stop Café', model: 'truck stop café', say: null },
         { id: 'c1c_pumps', label: 'Fuel Pumps', model: 'fuel pumps', say: ['System', 'Two fuel pumps under a tin canopy, one for diesel and one for "petrol, sometimes." The attendant sits between them in a plastic chair with a newspaper over his face.'] },

@@ -99,6 +99,11 @@ function roomShell(tw, th, style) {
     } else if (style === 'planks') {
         A.r(0, W, pw, ph - W, PAL.plank[1]);
         for (let y = W; y < ph; y += 16) { A.hl(0, y, pw, PAL.plank[2]); for (let x = ((y / 16) & 1) * 40 + 12; x < pw; x += 80) A.vl(x, y, 16, PAL.plank[2]); for (let x = 6; x < pw; x += 23) A.px(x + ((y * 7) % 9), y + 5 + ((x * 3) % 7), PAL.plank[0]); }
+    } else if (style === 'villa') {                    // big slabs of polished marble, cream, faintly veined
+        for (let y = W; y < ph; y += 48) for (let x = -((y - W) / 48 & 1) * 32; x < pw; x += 64) {
+            A.r(x, y, 64, 48, hash2(x, y) > 0.5 ? '#f4eee2' : '#ece4d4'); A.hl(x, y, 64, '#d8cebc'); A.vl(x, y, 48, '#d8cebc');
+            const a = hash2(x + 3, y), b = hash2(x, y + 7); A.line(x + 6 + a * 30, y + 6, x + 20 + a * 30, y + 18 + b * 20, '#e0d6c4');
+        }
     } else {
         // terrazzo tiles, two tones set as a chequer, a few cracked
         for (let y = W; y < ph; y += TILE) for (let x = 0; x < pw; x += TILE) {
@@ -139,6 +144,12 @@ function roomShell(tw, th, style) {
     } else if (style === 'planks') {
         A.r(0, 0, pw, W, PAL.wood[1]); for (let x = 0; x < pw; x += 10) A.vl(x, 0, W, PAL.wood[2]); A.r(0, 0, pw, 6, PAL.wood[3]); A.r(0, W - 5, pw, 5, PAL.wood[3]);
         for (const wx of [pw * 0.22, pw * 0.72]) { const x = Math.round(wx); A.r(x - 1, 13, 34, 26, PAL.wood[3]); A.r(x, 14, 32, 24, PAL.blue[3]); A.r(x, 14, 32, 3, PAL.blue[2]); A.vl(x + 16, 14, 24, PAL.wood[3]); A.hl(x, 26, 32, PAL.wood[3]); A.px(x + 5, 19, PAL.white[0]); A.px(x + 24, 31, PAL.white[1]); }
+    } else if (style === 'villa') {                    // the whole back wall glass, slid open: sky, the sea, a white balustrade
+        A.r(0, 0, pw, W, '#9ed2f4'); A.r(0, 20, pw, 6, '#c4e6fa'); A.r(0, 26, pw, W - 26, '#2a7ab8'); A.r(0, 26, pw, 4, '#3a8ac8'); A.hl(0, 26, pw, '#6ab0e0');
+        for (let i = 0; i < 18; i++) A.hl(Math.floor(hash2(i, 91) * (pw - 10)), 32 + Math.floor(hash2(i, 92) * (W - 44)), 4 + (i % 3) * 2, '#8ac8f0');
+        A.r(0, W - 16, pw, 3, '#f4f4f0'); A.hl(0, W - 16, pw, '#ffffff'); for (let x = 4; x < pw; x += 8) { A.r(x, W - 13, 3, 9, '#ecece6'); A.vl(x + 2, W - 13, 9, '#c8ccd0'); } A.r(0, W - 4, pw, 4, '#d8d4c8');
+        for (let x = 0; x < pw; x += 112) { A.r(x, 0, 4, W, '#e8ecef'); A.vl(x + 3, 0, W, '#b8c0c8'); }   // the frames of the sliding doors
+        A.r(0, 0, pw, 4, '#f4f4f0'); A.hl(0, 4, pw, '#c8ccd0');
     } else {
         A.r(0, 0, pw, W, PAL.plaster[0]); A.r(0, 0, pw, 6, PAL.plaster[2]); A.dith(0, 6, pw, 5, PAL.plaster[1], 0); A.r(0, W - 12, pw, 12, PAL.plaster[2]); A.r(0, W - 12, pw, 1, PAL.plaster[3]); A.r(0, W - 3, pw, 3, PAL.plaster[3]);
         for (let i = 0; i < 6; i++) A.r(20 + hash2(i, 3) * (pw - 60), 12 + hash2(i, 5) * 20, 6, 2, PAL.plaster[1]);
@@ -156,7 +167,7 @@ function roomShell(tw, th, style) {
         for (let j = ph - E - 18; j < ph; j += 6) A.r(dx + 15, j, 14, 2, PAL.wood[1]);
         A.poly([[dx + 22, ph - E - 30], [dx + 16, ph - E - 24], [dx + 28, ph - E - 24]], PAL.gold[0]);   // up
     } else {
-        A.r(dx, ph - E, 44, E, style === 'tent' ? PAL.khaki[1] : style === 'planks' || style === 'trailer' ? PAL.plank[1] : style === 'tin' ? '#c8a878' : style === 'concrete' ? '#c2baac' : style === 'maqam' ? '#e4d8bc' : PAL.metal[1]);
+        A.r(dx, ph - E, 44, E, style === 'tent' ? PAL.khaki[1] : style === 'planks' || style === 'trailer' ? PAL.plank[1] : style === 'tin' ? '#c8a878' : style === 'concrete' ? '#c2baac' : style === 'maqam' ? '#e4d8bc' : style === 'villa' ? '#ece4d4' : PAL.metal[1]);
         A.r(dx + 4, ph - E - 12, 36, 16, PAL.red[2]); A.dith(dx + 4, ph - E - 12, 36, 16, PAL.red[3], 0); A.r(dx + 4, ph - E - 12, 36, 2, PAL.gold[1]); A.r(dx + 4, ph - E + 2, 36, 2, PAL.gold[1]);
         // an arrow on the mat: the way out
         A.poly([[dx + 22, ph - 3], [dx + 16, ph - 10], [dx + 28, ph - 10]], PAL.gold[0]);

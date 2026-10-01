@@ -362,10 +362,15 @@ SPR_L['villa wall'] = (w, d) => {                                  // high and w
     if (w >= d) { const top = 3; for (let i = 3; i < sp.c.width - 3; i += 3) A.px(i, top - 1 + (i % 2), i % 6 ? '#a6e8c8' : '#ffffff'); for (let i = 20; i < sp.c.width - 10; i += 64) { A.r(i, top + 2, 6, 3, '#20242c'); A.px(i + 6, top + 3, '#d02818'); } }
     return sp;
 };
-SPR_L['villa gate'] = (w, d) => {                                  // wrought iron between white pillars with lamps on top, an intercom, a camera
+SPR_L['villa gate'] = (w, d, o) => {                               // wrought iron between white pillars with lamps on top, an intercom, a camera (o.open: swung back, the garden through it)
     const st = propStage(w, d, w + 8, 52), { A } = st, x = st.x, y = st.y;
     for (const px of [x, x + w - 4]) { A.r(px, y + 8, 12, 44, WASH[1]); A.vl(px, y + 8, 44, WASH[0]); A.vl(px + 11, y + 8, 44, WASH[3]); A.r(px - 1, y + 6, 14, 4, WASH[0]); A.r(px + 3, y, 6, 6, '#20242c'); A.r(px + 4, y + 1, 4, 4, '#fff4c0'); }
     const gx = x + 12, gw = w - 16;
+    if (o && o.open) {                                                 // each leaf folded back against its pillar, seen edge-on
+        for (const [lx, s] of [[gx, 1], [gx + gw - 7, -1]]) { for (let i = 0; i < 7; i += 2) A.vl(lx + i, y + 14 - (s > 0 ? i : 6 - i) / 2, 36, '#20242c'); A.line(lx, y + 16, lx + 6, y + 13, '#20242c'); A.line(lx, y + 48, lx + 6, y + 45, '#20242c'); A.px(lx + 3, y + 22, '#c89020'); }
+        A.r(x + 2, y + 28, 6, 8, '#86949e'); A.r(x + 3, y + 29, 4, 3, '#28384a'); A.r(x + w - 2, y + 10, 6, 4, '#20242c'); A.px(x + w + 3, y + 11, '#d02818');
+        return propFit(st, w, d, { light: { x: 0, y: -40, r: 40, far: 80, c: '#fff4c0' } });
+    }
     for (let i = 0; i < gw; i += 4) { A.vl(gx + i, y + 14, 36, '#20242c'); A.px(gx + i, y + 12, '#c89020'); } A.hl(gx, y + 16, gw, '#20242c'); A.hl(gx, y + 30, gw, '#20242c'); A.hl(gx, y + 48, gw, '#20242c');
     A.vl(gx + (gw >> 1), y + 12, 38, '#3a3e48'); for (let k = 0; k < 4; k++) A.ell(gx + 6 + k * ((gw - 12) / 3), y + 22, 3, 3, '#c89020');   // scrollwork, gilt
     A.r(x + 2, y + 28, 6, 8, '#86949e'); A.r(x + 3, y + 29, 4, 3, '#28384a'); A.r(x + w - 2, y + 10, 6, 4, '#20242c'); A.px(x + w + 3, y + 11, '#d02818');   // the intercom, the camera

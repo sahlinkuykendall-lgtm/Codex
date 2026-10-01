@@ -115,6 +115,7 @@ function personFrame(L, dir, f) {
         if (acc === 'scarab') { A.px(15, by + 1, GOLD[2]); A.px(17, by + 1, GOLD[2]); A.r(15, by + 2, 3, 2, CLOTH.faience[1]); A.px(16, by + 2, CLOTH.faience[0]); A.px(14, by + 3, GOLD[1]); A.px(18, by + 3, GOLD[1]); }
         if (acc === 'horus') { A.px(15, by + 1, GOLD[2]); A.px(17, by + 1, GOLD[2]); A.hl(14, by + 2, 5, CLOTH.nile[2]); A.px(16, by + 3, '#ffffff'); A.px(15, by + 4, GOLD[1]); A.px(17, by + 3, CLOTH.nile[2]); }
         if (acc === 'collar') { A.hl(bx + 1, by, bw - 2, GOLD[1]); A.hl(bx + 1, by + 1, bw - 2, CLOTH.nile[1]); A.hl(bx + 2, by + 2, bw - 4, CLOTH.red[1]); A.hl(bx + 3, by + 3, bw - 6, GOLD[1]); A.r(15, by, 2, 1, skin); }
+        if (acc === 'chain') { A.px(14, by + 1, GOLD[0]); A.px(15, by + 2, GOLD[1]); A.px(16, by + 3, GOLD[0]); A.px(17, by + 2, GOLD[1]); A.px(18, by + 1, GOLD[0]); A.r(15, by, 3, 1, skin); }
         if (acc === 'canteen') { A.line(bx + bw - 2, by, bx + 1, by + 7, '#5c3418'); A.r(bx, by + 6, 3, 3, '#9cacb8'); A.px(bx + 1, by + 5, '#4c5a66'); }
     } else if (dir === DIR.up && acc === 'collar') { A.hl(bx + 1, by, bw - 2, GOLD[1]); A.hl(bx + 1, by + 1, bw - 2, CLOTH.nile[1]); }
     else if (side && acc === 'collar') { A.hl(bx, by, bw, GOLD[1]); A.hl(bx, by + 1, bw, CLOTH.nile[1]); }
