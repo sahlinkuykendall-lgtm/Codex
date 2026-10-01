@@ -320,7 +320,7 @@ scene('c1b_glovebox', {
     text: `The Fiat's glovebox: a year of paperwork in no order at all, a chocolate bar gone white, a cassette of Abdel Halim. And, near the top, a receipt from a motorbike dealer in Shubra, Cairo: one Haojue 150, red, paid in full, IN CASH, and a name in careful capitals: SAMY RAGAB.\n\nThe date is last Thursday. Two days before the Codex came to Saqqara.`,
     choices: [{ text: 'Take the receipt, and give back the key.', onSelect: () => {
         pocket('Motorbike receipt'); sflag('c1b_receipt_taken', true); taskDone('c1b_receipt'); rel('village', 2, true);
-        storyNote('Samy\'s motorbike', 'The receipt, from a dealer in Shubra, Cairo: a red Haojue 150, paid in cash, SAMY RAGAB, dated last Thursday, two days before Dr. Hale brought the Codex in. So somebody paid him before it even arrived.');
+        storyNote('Samy\'s motorbike', 'The receipt, from a dealer in Shubra, Cairo: a red Haojue 150, paid in cash, SAMY RAGAB, dated a week ago today, two days before Dr. Hale brought the Codex in. So somebody paid him before it even arrived.');
     } }],
 });
 ITEM_INFO['Motorbike receipt'] = { desc: 'A receipt from a Shubra motorbike dealer: one red Haojue 150, paid in cash, SAMY RAGAB. Dated two days before the Codex came to Saqqara.' };

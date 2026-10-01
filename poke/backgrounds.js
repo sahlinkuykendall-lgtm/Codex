@@ -162,7 +162,7 @@ const BACKGROUNDS = [
         scenes: [
             {
                 cap: 'SAQQARA INSPECTORATE  ·  THIS MORNING',
-                text: 'Three days ago Dr. Miriam Hale logged an object into the inspectorate\'s secure evidence store, "for safekeeping pending Ministry review": one leather codex, Late Antique.\n\nThis morning the line in the ledger is scratched out, and the object is gone.',
+                text: 'Five days ago, the day before she disappeared, Dr. Miriam Hale logged an object into the inspectorate\'s secure evidence store, "for safekeeping pending Ministry review": one leather codex, Late Antique.\n\nThis morning the line in the ledger is scratched out, and the object is gone.',
                 draw(g, t, W, H) {
                     const A = pa(g);
                     bgDesk(A, W, H, ['#4a3a2c', '#3e3024']);
@@ -171,7 +171,7 @@ const BACKGROUNDS = [
                     Txt.draw(g, 'SECURE STORE  ·  IN', x + 12, y + 8, { col: '#2c5490' });
                     const rows = ['Faience amulet, Saite', 'Limestone stela frag.', 'Pottery lot, Teti ext.', '1 leather codex'];
                     rows.slice(0, 4).forEach((r, i) => { const ry = y + 30 + i * 20; A.hl(x + 10, ry + 12, w / 2 - 20, '#c8bc9c'); Txt.draw(g, r, x + 12, ry, { col: '#50483c' }); });
-                    A.hl(x + w / 2 + 10, y + 102, w / 2 - 20, '#c8bc9c'); Txt.draw(g, 'M. Hale  ·  3 days ago', x + w / 2 + 12, y + 90, { col: '#50483c' }); for (let k = 0; k < 6; k++) A.line(x + w / 2 + 10 + k * 20, y + 100 - (k & 1) * 8, x + w / 2 + 28 + k * 20, y + 92 + (k & 1) * 8, '#20242c');
+                    A.hl(x + w / 2 + 10, y + 102, w / 2 - 20, '#c8bc9c'); Txt.draw(g, 'M. Hale  ·  5 days ago', x + w / 2 + 12, y + 90, { col: '#50483c' }); for (let k = 0; k < 6; k++) A.line(x + w / 2 + 10 + k * 20, y + 100 - (k & 1) * 8, x + w / 2 + 28 + k * 20, y + 92 + (k & 1) * 8, '#20242c');
                     // the scratched-out line
                     const sy = y + 90;
                     for (let k = 0; k < 7; k++) A.line(x + 10 + k * 18, sy + 10 - (k & 1) * 8, x + 28 + k * 18, sy + 2 + (k & 1) * 8, '#20242c');

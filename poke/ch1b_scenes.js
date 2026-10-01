@@ -127,7 +127,7 @@ scene('c1b_fathi', {
     speaker: 'Director Fathi',
     text: () => sflag('c1b_fathi')
         ? `Director Fathi turns a page of his newspaper. "Clerical error. I said it once. I am a busy man, I don't like to say things twice."`
-        : `Director Fathi Mansour doesn't look up from his newspaper. ${sflag('c1b_tea') ? 'He takes the tea without looking at it, and drinks, and some of the stiffness goes out of his shoulders. ' : ''}\n\n"The ledger. Yes. I saw." A page turns. "File it as a clerical error."\n\nYou say that Dr. Hale logged it in person three days ago, that her signature is in the book.\n\n"Then Dr. Hale made a clerical error." The newspaper lowers two centimetres. "Inspector. I have been in this service thirty-one years. I would like to finish them. Do your round. Check your seals. Go home."`,
+        : `Director Fathi Mansour doesn't look up from his newspaper. ${sflag('c1b_tea') ? 'He takes the tea without looking at it, and drinks, and some of the stiffness goes out of his shoulders. ' : ''}\n\n"The ledger. Yes. I saw." A page turns. "File it as a clerical error."\n\nYou say that Dr. Hale logged it in person five days ago, the day before she disappeared, that her signature is in the book.\n\n"Then Dr. Hale made a clerical error." The newspaper lowers two centimetres. "Inspector. I have been in this service thirty-one years. I would like to finish them. Do your round. Check your seals. Go home."`,
     get choices() {
         if (sflag('c1b_fathi')) return [{ text: 'Leave him to his paper.' }];
         return [
@@ -144,8 +144,8 @@ function c1bFathiDone() {
 }
 scene('c1b_ledger', {
     speaker: 'System',
-    text: `The evidence ledger, open on its stand. Faience amulet, Saite. Limestone stela fragment. Pottery lot, Teti extension. And then a line scratched out so hard the pen went through the paper: "1 leather codex, Late Antique", and beside it, still perfectly readable, Dr. Miriam Hale's signature and the date, three days ago.\n\nWhoever scratched it out used the inspectorate's red pen. There are only three of those. One is on the Director's desk. One is on Samy's.`,
-    choices: [{ text: 'Photograph the page with the service phone.', onSelect: () => { if (!sflag('c1b_ledger')) { sflag('c1b_ledger', true); skillXP('investigation', 20, 'the ledger'); storyNote('The evidence ledger', '"1 leather codex, Late Antique", logged in by Dr. Miriam Hale three days ago, then scratched out in the inspectorate\'s red pen. Only three people have those pens: the Director, Samy Ragab, and you.'); } } }, { text: 'Leave it.' }],
+    text: `The evidence ledger, open on its stand. Faience amulet, Saite. Limestone stela fragment. Pottery lot, Teti extension. And then a line scratched out so hard the pen went through the paper: "1 leather codex, Late Antique", and beside it, still perfectly readable, Dr. Miriam Hale's signature and the date, five days ago.\n\nWhoever scratched it out used the inspectorate's red pen. There are only three of those. One is on the Director's desk. One is on Samy's.`,
+    choices: [{ text: 'Photograph the page with the service phone.', onSelect: () => { if (!sflag('c1b_ledger')) { sflag('c1b_ledger', true); skillXP('investigation', 20, 'the ledger'); storyNote('The evidence ledger', '"1 leather codex, Late Antique", logged in by Dr. Miriam Hale five days ago, the day before she disappeared, then scratched out in the inspectorate\'s red pen. Only three people have those pens: the Director, Samy Ragab, and you.'); } } }, { text: 'Leave it.' }],
 });
 scene('c1b_shelf4b', {
     speaker: 'System',

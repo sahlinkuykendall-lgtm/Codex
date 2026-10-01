@@ -2,7 +2,7 @@
 
 The working memory for the poke-style build: **what the owner wants, how to work, what's
 been done, and what's next.** Keep it current: update the "Where we are" and "What's next"
-sections at the end of every step. Last updated 2026-10-01, at P0.49.
+sections at the end of every step. Last updated 2026-10-01, at P0.50.
 
 ---
 
@@ -165,6 +165,10 @@ Add a playthrough file for each new opening (next: `poke_fixer.js`). An area can
 - **P0.49: the Fixer, step 7** (`ch1c_exit.js`): the tracker dumped (reef, bus south, Bassem's car), the
   exit (legal / deal / quiet), goodbyes, leaving by lorry or night bus, the end card. The Fixer's
   opening plays start to finish.
+- **P0.50:** a tester's report on the Inspector: the dates fixed (Miriam logged the Codex five days ago,
+  the day before she vanished, matching the shared intro's "four nights ago"; the bible changed too)
+  and her reason made plain (she trusted the Ministry, feared the antiquities police). Still open, not
+  done by the owner's choice: a line telling players the four starts are separate stories.
 
 ## 6. What's next
 

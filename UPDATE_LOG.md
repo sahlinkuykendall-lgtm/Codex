@@ -12,6 +12,18 @@ Other docs:
 
 ---
 
+## POKE-STYLE P0.50 — 2026-10-01 — (branch `poke-style`) The Inspector's story made consistent (a tester's report)
+- **The dates:** the shared intro says Miriam vanished four nights ago, but the Inspector's story said
+  she logged the Codex three days ago, after she'd gone. Now it's **five days ago, the day before she
+  disappeared**, everywhere: the Inspector's intro card and its ledger, the Director, the ledger page,
+  Samy's confession, and the motorbike receipt (now "a week ago today", still two days before she
+  brought the Codex in). The bible (`story/regions/ch01_opening_inspector.md`) changed to match.
+- **Why she logged it:** reading Miriam's note now says it plainly. She didn't hide the Codex from
+  the Ministry: she brought it *to* the Ministry's locked store, to wait for review by someone in
+  Cairo she trusted. Her warning is about the antiquities **police**, who come with papers to
+  "collect evidence" (and if you watched Colonel Radwan come for it: "She was right."). On the
+  phone, Dr. Amira Sayed now says "Then she meant it for me... Especially not the police."
+
 ## POKE-STYLE P0.49 — 2026-10-01 — (branch `poke-style`) The Fixer, step 7: back on shore, and the way out (Chapter 1-C playable to the end)
 - **The tracker** (`poke/ch1c_exit.js`): get rid of it before you go, three ways:
   - throw it onto the reef from the new **green harbour light** at the end of the north breakwater

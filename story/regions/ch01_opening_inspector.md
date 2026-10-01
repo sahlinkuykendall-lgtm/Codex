@@ -15,9 +15,12 @@
 ## PREMISE
 
 You're a junior inspector at the Saqqara inspectorate: underpaid, overworked, and good at
-noticing things. Three days ago Dr. Miriam Hale logged an object into Saqqara's secure
-evidence store for "safekeeping pending Ministry review": *one leather codex,
-Late Antique*. This morning, the log line has been scratched out, and the object is
+noticing things. Five days ago, the day before she disappeared, Dr. Miriam Hale logged an
+object into Saqqara's secure evidence store for "safekeeping pending Ministry review": *one
+leather codex, Late Antique*. (Why: the inspectorate is the Ministry of Antiquities, a civilian
+body, and the review she meant was her friend Dr. Amira Sayed's, in Manuscripts. Her note warns
+against the antiquities *police*, who she knew would come to claim it for Vasse, as Colonel
+Radwan does in beat 5.) This morning, the log line has been scratched out, and the object is
 gone. Your boss, **Director Fathi**, tells you to "file it as a clerical error."
 
 ---
