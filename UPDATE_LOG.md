@@ -12,6 +12,22 @@ Other docs:
 
 ---
 
+## POKE-STYLE P0.45 — 2026-10-01 — (branch `poke-style`) The Fixer, step 4: the truck stop at ten
+- **The truck** (`poke/ch1c_truck.js`): at ten a white box truck with Cairo plates comes down the coast
+  highway with its headlights on and pulls up at the truck stop, engine running. Wait for it at the
+  truck stop café ("Sit with a tea and wait for the truck"), or come when you like: it waits, and
+  Bassem texts if you're late. Being there when it pulls in counts as early.
+- **Lena Brandt** gets out: tall, cropped blond hair, a knee she won't give in to. She checks you over
+  ("Bassem's courier." "Brandt."), you can bring up Bassem's camel joke ("It is not a good joke"),
+  and she hands over **the package**: a waxed canvas document case with a leather flap, wired and
+  sealed. The ship will show a green lamp twice; the man will say "Hamburg." **"Don't open it."**
+  Give her your word, ask what's in it, or say nothing; your word counts with her (`rel_lena`).
+- **Get it to the dhow:** Zaki is waiting at the edge of the lot in his cousin's pickup. Ride down to
+  the harbour with him, or carry it yourself down the main street. Brandt watches you go, then the
+  truck turns round and heads back north.
+- Zaki stows it in the locker under the wheel and hangs the key round his neck. He'll sail once the
+  diesel, the route and Rana's kit are sorted (the sailing itself is step 5).
+
 ## POKE-STYLE P0.44 — 2026-10-01 — (branch `poke-style`) The lighthouse turns, and the view from the lamp
 - **The lighthouse's light turns** like a real one: two beams sweeping round once every eleven
   seconds over the island, the sea and the harbour, brighter the darker it gets, and the lamp

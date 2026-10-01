@@ -120,6 +120,7 @@ there are no image files.
 | `ch1c_bassem.js` | Chapter 1-C, beat 2: Bassem's gate (open from 16:30, wait for five), the villa inside, Bassem and his offer, the prep tasks for beat 3 |
 | `ch1c_prep.js` | Chapter 1-C, beat 3: the haggling, lockpicking and scouting minigames; the night watchman's round and view cone; diesel (pay, steal, bribe), the coast guard route (buy, scout from the fort), Rana's kit |
 | `ch1c_island.js` | Marsa Tarfa's Lighthouse Island (an addition): the boatman, the lighthouse and its room, the island's flavour, water and food, the fishing minigame, selling fish |
+| `ch1c_truck.js` | Chapter 1-C, beat 4: the truck at ten (headlights down the highway), Lena Brandt's handover and "Don't open it", the pickup or carrying it, the package stowed aboard |
 | `backgrounds.js` | The four backgrounds: skills, gear, papers, their paintings and opening cutscenes |
 | `intro.js` | The opening scenes, the background choice, male/female, the character creator, the name grid, your papers |
 | `game.js` | The loop: input, movement and collision, camera, drawing, day/night, doors, saving |

@@ -109,7 +109,12 @@ Three tasks, each with more than one way to do it:
   look.
 - The compass leads round the prep; the day passes as you do it.
 
-## 4. Beat 4: the truck stop (the staged event)
+## 4. Beat 4: the truck stop (the staged event) — ✅ DONE in P0.45
+> Done in `poke/ch1c_truck.js`: the truck down the highway at ten (wait at the truck stop café, or come
+> late: it waits; Bassem texts); Lena Brandt's handover (the camel joke, the green lamp twice and
+> "Hamburg", "Don't open it", your word or not: `c1c_lena_word`, `rel_lena` +1 to +4); Zaki's cousin's
+> pickup or carry it yourself; she watches you go, the truck goes north; the package stowed in the
+> dhow's locker (`c1c_package` = aboard). Task `c1c_sail` set for beat 5.
 - At ten the truck pulls in at the truck stop, and **Lena Brandt** gets out with it: tall,
   cropped blond hair, clipped. She checks you over. *"Don't open it."*
 - You load the package into Zaki's pickup (or carry it to the dhow); she watches you go.
