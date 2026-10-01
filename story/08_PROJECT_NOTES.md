@@ -2,7 +2,7 @@
 
 The working memory for the poke-style build: **what the owner wants, how to work, what's
 been done, and what's next.** Keep it current: update the "Where we are" and "What's next"
-sections at the end of every step. Last updated 2026-10-01, at P0.46.
+sections at the end of every step. Last updated 2026-10-01, at P0.47.
 
 ---
 
@@ -156,6 +156,9 @@ Add a playthrough file for each new opening (next: `poke_fixer.js`). An area can
   open it"), the pickup or carrying it, the package aboard Zaki's dhow.
 - **P0.46: the Fixer, step 5** (`ch1c_open.js`): casting off and the voyage out on the map, the dhow's
   deck at sea, opening the case (the Codex, the tracker, the note), the green lamp.
+- **P0.47:** Marsa Tarfa's houses each given their own character (`HSTY` and `HOUSE_BITS` in
+  `sprites_ch1c.js`: washes, coral stone, lattice bay windows, balconies, a barber's and a tailor's,
+  roof clutter). The lighthouse view uses the same sprites, so it follows automatically.
 
 ## 6. What's next
 

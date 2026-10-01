@@ -12,6 +12,22 @@ Other docs:
 
 ---
 
+## POKE-STYLE P0.47 — 2026-10-01 — (branch `poke-style`) Marsa Tarfa's houses, each with its own character
+- **Every house in town is different now** (`poke/sprites_ch1c.js`, from the Red Sea's own harbour
+  towns, Quseir above all):
+  - walls in whitewash or a coloured wash (ochre, rose, sky, mint), or old **coral stone** with the
+    plaster falling away in patches
+  - one, two or three storeys; arched windows on some, iron bars on some ground-floor windows
+  - **wooden lattice bay windows** (rawashin, the mashrabiya Quseir is famous for) on corbels
+  - iron **balconies** with pots of bougainvillea and basil, one with a bird cage
+  - shops on the ground floor: **a barber's** (the striped pole, the mirror, the red chair) and
+    **a tailor's** (a dress form, bolts of cloth), shutters rolled half up
+  - bougainvillea climbing a corner, the hand of Fatima, the Hajj mural
+  - on the roofs: concrete with the parapet painted to match, a **palm-frond shade** with a mat
+    under it, a little **rooftop room**, a **pigeon coop**, a **solar heater**, a domed stair-head,
+    nets, washing, the dish from the Gulf, rebar for the floor they'll add one day
+- The lighthouse's 360° view draws the town from the same sprites, so it shows the new houses too.
+
 ## POKE-STYLE P0.46 — 2026-10-01 — (branch `poke-style`) The Fixer, step 5: you open it
 - **Cast off** (`poke/ch1c_open.js`): once the package is aboard and the diesel, route and kit are
   sorted, tell Zaki to cast off. The Umm Kalthoum slides out of the harbour on the real map with no
