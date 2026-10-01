@@ -91,30 +91,54 @@ SPR_L['tea corner'] = (w, d) => {                                   // Umm Sabry
 };
 
 // ---- THE STEP PYRAMID OF DJOSER ----
-// Six steps of weathered limestone, each face leaning in a little, coursed and patched, the corners
-// crumbling; the top flat; rubble and sand drifted at the foot.
+// Six steps of limestone, each one battered (leaning in) and shorter than the one below, the whole
+// thing much wider than it is tall: a stack of mastabas. Coursed blocks with the joints staggered, the
+// fine casing fallen away in places to show the rubble core, sand drifted on every ledge.
 SPR_L['step pyramid'] = (w, d) => {
-    const FH = 22, LD = 10, N = 6, st = stage(w, d, 48, 8), { A } = st, cx = st.x + (w >> 1), yb = st.y + d - 2, Wb = w - 16;
-    const F = ['#ead6a4', '#d6bc86', '#bca070', '#94784e', '#6e583a'], LED = ['#f2e2b8', '#dcc898'];
+    const N = 6, st = stage(w, d, 40, 8), { A } = st, cx = st.x + (w >> 1), base = st.y + d - 6, R = rng('djoser');
+    const F = ['#f2e0b0', '#dfc792', '#c9ad78', '#a88a5a', '#7e6440'];        // lit, face, turning, shadow, deep
+    const SH = ['#cdb07c', '#b8996a', '#9a7c52', '#7a6040'];                 // the same stone where it turns away from the sun
+    const CORE = ['#cbb184', '#b09468', '#8c7250', '#6a5438'];               // the rubble core where the casing has gone
+    const LED = ['#f8ecc8', '#ecdab0', '#d8c294', '#bea47a'];
+    const W0 = w - 14, WT = Math.round(w * 0.42), FH = [28, 26, 24, 22, 20, 18], LD = 9, BAT = 6;
+    let fb = base;
     for (let k = 0; k < N; k++) {
-        const Wk = Wb - k * Math.round((Wb - 70) / (N - 1)), fb = yb - k * (FH + LD), ft = fb - FH, x0 = cx - (Wk >> 1), x1 = cx + (Wk >> 1);
-        // the ledge above this step (its top, where the next step stands back)
-        A.poly([[x0 + 3, ft], [x1 - 3, ft], [x1 - 7, ft - LD], [x0 + 7, ft - LD]], LED[1]); A.hl(x0 + 7, ft - LD, Wk - 14, LED[0]);
-        for (let i = 0; i < Wk / 6; i++) A.px(x0 + 8 + Math.floor(hash2(i, k * 7) * (Wk - 16)), ft - 2 - Math.floor(hash2(k, i * 3) * (LD - 3)), i % 3 ? F[2] : F[0]);
-        // the face: leaning in, coursed, lit on the left and turning away on the right
-        A.poly([[x0, fb], [x1, fb], [x1 - 3, ft], [x0 + 3, ft]], F[1]);
-        A.poly([[x0, fb], [x0 + Math.round(Wk * 0.28), fb], [x0 + Math.round(Wk * 0.28), ft], [x0 + 3, ft]], F[0]);
-        A.poly([[x1 - Math.round(Wk * 0.16), fb], [x1, fb], [x1 - 3, ft], [x1 - Math.round(Wk * 0.16), ft]], F[2]);
-        for (let j = ft + 4; j < fb; j += 4) { A.hl(x0 + 2, j, Wk - 4, F[3]); for (let i = ((j >> 2) & 1) * 5; i < Wk - 6; i += 11) A.px(x0 + 3 + i + Math.floor(hash2(i, j) * 4), j + 1 + Math.floor(hash2(j, i) * 2), F[3]); }
-        for (let i = 0; i < 5; i++) { const hx = x0 + 6 + Math.floor(hash2(k * 5 + i, 3) * (Wk - 20)), hy = ft + 3 + Math.floor(hash2(3, k * 5 + i) * (FH - 8)); A.r(hx, hy, 4 + (i & 1) * 3, 3, F[4]); A.hl(hx, hy + 3, 4 + (i & 1) * 3, F[0]); }   // blocks fallen out
-        const bite = 4 + Math.round(hash2(k, 9) * 6);                                                                                                              // the corners, crumbling
-        A.poly([[x1 - bite - 3, ft], [x1 - 3, ft], [x1 - 1, ft + bite]], LED[1]); A.poly([[x0 + 3, ft], [x0 + 3 + bite, ft], [x0 + 1, ft + bite + 2]], LED[1]);
-        A.hl(x0, fb, Wk, F[4]);
+        const Wk = Math.round(W0 - (W0 - WT) * k / (N - 1)), h = FH[k], ft = fb - h, x0 = cx - (Wk >> 1), x1 = x0 + Wk;
+        const xl = y => x0 + Math.round(BAT * (fb - y) / h), xr = y => x1 - Math.round(BAT * (fb - y) / h);
+        // the face, block by block: a course every 5 px, the joints staggered, a stone here and there lighter or darker
+        for (let j = ft, row = 0; j < fb; j += 5, row++) {
+            const hh = Math.min(5, fb - j), L = xl(j + hh - 1), Rr = xr(j + hh - 1);
+            let bx = L - Math.floor(R() * 8);
+            while (bx < Rr) {
+                const bw = 7 + Math.floor(R() * 7), a = Math.max(bx, xl(j)), b = Math.min(bx + bw, xr(j)), t = (bx + bw / 2 - x0) / Wk;
+                const P = t > 0.9 ? SH : F, roll = R(), c = t < 0.07 ? F[0] : roll < 0.12 ? (P === SH ? SH[0] : F[0]) : roll > 0.88 ? (P === SH ? SH[2] : F[2]) : (P === SH ? SH[1] : F[1]);
+                if (b > a) { for (let yy = j; yy < j + hh; yy++) { const aa = Math.max(bx, xl(yy)), bb = Math.min(bx + bw, xr(yy)); if (bb > aa) A.hl(aa, yy, bb - aa, c); } A.hl(a, j + hh - 1, b - a, P === SH ? SH[2] : F[2]); if (bx > xl(j)) A.vl(bx, j, hh - 1, P === SH ? SH[2] : F[3]); }
+                bx += bw;
+            }
+        }
+        // where the casing has fallen away: the core, rough and shadowed, a broken edge along the top
+        const holes = 2 + (k > 2 ? 1 : 0);
+        for (let i = 0; i < holes; i++) {
+            const hw = 14 + Math.floor(R() * 22), hy = ft + 3 + Math.floor(R() * (h - 9)), hh = 4 + Math.floor(R() * (fb - hy - 4)), hx = x0 + 14 + Math.floor(R() * (Wk - hw - 28));
+            for (let yy = hy; yy < hy + hh; yy++) { const inset = Math.round(Math.abs(yy - hy - hh / 2) / hh * 6 * R()); A.hl(hx + inset, yy, hw - inset * 2, CORE[1]); }
+            for (let n = 0; n < hw * hh / 6; n++) { const px = hx + 2 + Math.floor(R() * (hw - 4)), py = hy + Math.floor(R() * hh); A.r(px, py, 2, 1, R() < 0.5 ? CORE[2] : CORE[0]); }
+            A.hl(hx + 1, hy, hw - 2, CORE[3]); A.hl(hx + 2, hy - 1, hw - 4, F[0]);
+        }
+        // the corners: the west catching the sun, the east turned away
+        for (let yy = ft; yy < fb; yy++) { A.px(xl(yy), yy, F[0]); A.px(xl(yy) + 1, yy, F[0]); A.px(xr(yy) - 1, yy, SH[3]); A.px(xr(yy) - 2, yy, SH[2]); }
+        A.hl(x0, fb - 1, Wk, F[4]);
+        // the ledge on top of this step, where the next stands back: sunlit, sand blown into it, stones fallen on it
+        const lt = ft - (k === N - 1 ? 22 : LD), la = xl(ft), lb = xr(ft);
+        A.poly([[la, ft], [lb, ft], [lb - 2, lt], [la + 2, lt]], LED[1]); A.hl(la, ft, lb - la, LED[0]); A.hl(la + 1, ft + 1, lb - la - 2, F[0]);
+        for (let i = 0; i < (lb - la) / 10; i++) { const sx = la + 4 + Math.floor(R() * (lb - la - 12)), sw = 6 + Math.floor(R() * 14); A.r(sx, lt + 2 + Math.floor(R() * (ft - lt - 4)), sw, 2, LED[0]); }
+        for (let i = 0; i < (lb - la) / 8; i++) { const px = la + 3 + Math.floor(R() * (lb - la - 6)), py = lt + 1 + Math.floor(R() * (ft - lt - 2)); A.r(px, py, 2, 2, F[2]); A.px(px, py, F[0]); }
+        if (k < N - 1) { const nx0 = cx - (Math.round(W0 - (W0 - WT) * (k + 1) / (N - 1)) >> 1), nx1 = 2 * cx - nx0; A.hl(nx0, lt + 1, nx1 - nx0, LED[3]); A.r(nx1, lt + 1, 6, 2, LED[2]); A.r(nx1, lt + 3, 3, 1, LED[2]); }   // the next step's shadow at its foot
+        else { A.hl(la + 2, lt, lb - la - 4, '#fff8e0'); for (let i = 0; i < 6; i++) A.r(la + 10 + Math.floor(R() * (lb - la - 24)), lt + 4 + Math.floor(R() * 14), 3, 2, F[3]); }
+        fb = lt;
     }
-    const topY = yb - N * (FH + LD) + LD, tw = Wb - (N - 1) * Math.round((Wb - 70) / (N - 1)) - 14;
-    A.r(cx - (tw >> 1), topY - 14, tw, 14, LED[0]); A.hl(cx - (tw >> 1), topY - 14, tw, '#fff4d8');
-    for (let i = 0; i < 40; i++) { const rx = cx - (Wb >> 1) + Math.floor(hash2(i, 77) * Wb), ry = yb + 1 + Math.floor(hash2(77, i) * 4); A.r(rx, ry, 2 + (i % 3), 2, i % 2 ? F[2] : F[0]); }   // rubble at the foot
-    for (const [ax, aw] of [[-(Wb >> 1) - 4, 50], [(Wb >> 1) - 46, 50], [-20, 40]]) A.ell(cx + ax + (aw >> 1), yb + 1, aw >> 1, 4, '#ecd698');
+    // at the foot: rubble and drifted sand
+    for (let i = 0; i < 46; i++) { const rx = cx - (W0 >> 1) + Math.floor(hash2(i, 77) * W0), ry = base + 1 + Math.floor(hash2(77, i) * 4); A.r(rx, ry, 2 + (i % 3), 2, i % 2 ? F[2] : F[0]); A.px(rx, ry + 1, F[4]); }
+    for (const [ax, aw] of [[-(W0 >> 1) - 6, 60], [(W0 >> 1) - 54, 60], [-30, 44]]) { A.ell(cx + ax + (aw >> 1), base + 1, aw >> 1, 4, '#ecd698'); A.hl(cx + ax + 6, base - 2, aw - 12, '#f6e6b0'); }
     return fit(st);
 };
 // the enclosure wall: pale limestone panelled like a palace façade, bastions at intervals; restored in
@@ -190,15 +214,21 @@ SPR.c1b_bus = (w, d) => {                                          // a tour coa
     A.r(x, y + 42, 122, 3, '#9aa4ae'); wheel(A, x + 22, y + 44, 6); wheel(A, x + 96, y + 44, 6); A.r(x + 118, y + 36, 4, 4, '#ffe890');
     return propFit(st, w, d, { solid: [w / 2 - 60, d - 20, 120, 18] });
 };
-SPR_L['souvenir stall'] = (w, d) => {                              // papyrus prints, little alabaster pyramids, scarabs by the kilo
-    const st = propStage(w, d, 60, 40), { A } = st, x = st.x, y = st.y;
-    A.r(x + 2, y + 2, 2, 36, WOOD[2]); A.r(x + 54, y + 2, 2, 36, WOOD[2]);
-    for (let i = 0; i < 58; i += 6) A.r(x + i, y, 6, 8, (i / 6) & 1 ? '#f4efe4' : '#2e7a58'); for (let i = 0; i < 58; i += 6) A.poly([[x + i, y + 8], [x + i + 6, y + 8], [x + i + 3, y + 11]], (i / 6) & 1 ? '#f4efe4' : '#2e7a58');
-    for (const [px, c] of [[8, '#e8d8a8'], [20, '#d8c890'], [32, '#e8d8a8']]) { A.r(x + px, y + 12, 10, 12, c); A.r(x + px + 2, y + 14, 6, 6, '#c04830'); A.px(x + px + 4, y + 16, '#2a5aa0'); }   // papyrus prints on a line
-    A.r(x + 4, y + 26, 52, 6, WOOD[1]); A.hl(x + 4, y + 26, 52, WOOD[0]); A.r(x + 4, y + 32, 52, 6, WOOD[2]);
-    for (let i = 0; i < 6; i++) A.poly([[x + 8 + i * 8, y + 26], [x + 11 + i * 8, y + 20], [x + 14 + i * 8, y + 26]], i & 1 ? '#f4ecd4' : '#d8c8a0');
-    for (let i = 0; i < 4; i++) { A.ell(x + 44 + (i & 1) * 5, y + 24 - (i >> 1) * 2, 2, 1, '#2f8a7a'); }
-    return propFit(st, w, d, { solid: [w / 2 - 28, d - 10, 56, 10] });
+SPR_L['souvenir stall'] = (w, d) => {                              // papyrus prints (banana leaf), little alabaster pyramids (resin), scarabs by the kilo, gold
+    const st = propStage(w, d, 66, 58), { A } = st, x = st.x, y = st.y, T = 42;                                                          // Tutankhamun masks, black Bastet cats, scarves on a line
+    for (const px of [2, 60]) { A.r(x + px, y + 6, 3, 50, WOOD[2]); A.vl(x + px, y + 6, 50, WOOD[1]); }
+    for (let i = 0; i < 66; i += 6) { const c = (i / 6) & 1 ? '#f4efe4' : '#2e7a58'; A.r(x + i, y, 6, 10, c); A.hl(x + i, y, 6, shade(c, 0.3)); A.ell(x + i + 3, y + 10, 3, 2, c); A.hl(x + i + 1, y + 12, 4, shade(c, -0.3)); }
+    A.soft(x + 3, y + 13, 60, 8, '#20141c', 0.14);
+    A.hl(x + 4, y + 15, 58, '#5a6068');                                                                                                  // the line, and what hangs from it
+    for (const [px, c] of [[6, '#e8d8a8'], [17, '#d8c890'], [28, '#e8d8a8']]) { A.r(x + px, y + 16, 10, 13, c); A.r(x + px + 1, y + 17, 8, 11, shade(c, -0.08)); A.r(x + px + 3, y + 18, 4, 6, '#c04830'); A.px(x + px + 4, y + 19, '#f0c040'); A.px(x + px + 5, y + 22, '#2a5aa0'); A.hl(x + px + 2, y + 26, 6, '#2a5aa0'); }   // papyrus prints: a pharaoh, a goddess
+    for (const [px, c] of [[40, '#c83030'], [46, '#3a70c8'], [52, '#f0c040']]) { A.r(x + px, y + 16, 5, 16, c); A.vl(x + px, y + 16, 16, shade(c, 0.3)); for (let j = 0; j < 3; j++) A.px(x + px + 1 + j, y + 32, c); }   // scarves
+    A.r(x + 1, y + T, 64, 4, WOOD[0]); A.hl(x + 1, y + T, 64, '#f4d8a8'); A.r(x + 1, y + T + 4, 64, 8, WOOD[1]); A.hl(x + 1, y + T + 11, 64, WOOD[3]); A.r(x + 1, y + T + 4, 64, 2, '#2e7a58');
+    for (let i = 0; i < 4; i++) { const px = x + 5 + i * 7, sz = 3 + (i & 1); A.poly([[px, y + T], [px + sz, y + T - sz * 2], [px + sz * 2, y + T]], i & 1 ? '#f4ecd4' : '#e4d4b0'); A.vl(px + sz, y + T - sz * 2 + 1, sz * 2 - 1, '#c8b48c'); }   // alabaster pyramids
+    A.r(x + 34, y + T - 9, 6, 9, '#f0c040'); A.r(x + 33, y + T - 7, 8, 5, '#3a70c8'); for (let j = 0; j < 4; j++) A.hl(x + 33, y + T - 7 + j * 2, 8, j & 1 ? '#3a70c8' : '#f0c040'); A.r(x + 35, y + T - 8, 4, 4, '#e8b060'); A.px(x + 36, y + T - 7, '#20242c'); A.px(x + 38, y + T - 7, '#20242c'); A.r(x + 36, y + T - 3, 2, 3, '#c89020');   // a gold mask
+    A.r(x + 45, y + T - 10, 4, 10, '#26242c'); A.r(x + 44, y + T - 3, 6, 3, '#26242c'); A.px(x + 45, y + T - 11, '#26242c'); A.px(x + 48, y + T - 11, '#26242c'); A.px(x + 46, y + T - 8, '#f0c040'); A.px(x + 47, y + T - 6, '#f0c040');   // a black Bastet
+    A.ell(x + 57, y + T - 2, 5, 2, '#c8a060'); for (let i = 0; i < 6; i++) A.ell(x + 54 + (i % 3) * 3, y + T - 3 - (i >> 1), 1, 1, i & 1 ? '#2f8a7a' : '#3aa090');   // a basket of scarabs
+    A.r(x + 10, y + T + 6, 14, 4, '#ffffff'); A.hl(x + 11, y + T + 7, 10, '#2e7a58'); A.hl(x + 11, y + T + 9, 7, '#d04838');           // a sign: "ONE DOLLAR"
+    return propFit(st, w, d, { solid: [w / 2 - 30, d - 10, 60, 10] });
 };
 SPR.c1b_camel1 = SPR.c1b_camel2 = () => Object.assign(camel(), { anchor: true });
 
@@ -416,18 +446,58 @@ SPR_L['bakery'] = (w, d) => {                                      // the baladi
     });
     return { c: frames[0], frames, fps: 2, ox: -(frames[0].width - w) / 2, oy: -(wallH + 10 + 1) + 12 };
 };
-SPR_L['market stall'] = (w, d, o) => {                             // a wooden stall under a striped awning, its goods heaped up
-    const kind = o.id.split('_').pop(), st = propStage(w, d, 92, 44), { A } = st, x = st.x, y = st.y;
-    const AW = { fruit: ['#f07860', '#fff4e0'], cloth: ['#3a70c8', '#fff4e0'], spice: ['#e0a030', '#7a3a20'], veg: ['#58a848', '#fff4e0'] }[kind] || ['#d04838', '#fff4e0'];
-    A.r(x + 3, y + 4, 2, 30, WOOD[2]); A.r(x + 86, y + 4, 2, 30, WOOD[2]);
-    for (let i = 0; i < 90; i += 8) A.r(x + i, y, 8, 9, (i / 8) & 1 ? AW[1] : AW[0]); for (let i = 0; i < 90; i += 8) A.poly([[x + i, y + 9], [x + i + 8, y + 9], [x + i + 4, y + 13]], (i / 8) & 1 ? AW[1] : AW[0]);
-    A.r(x + 2, y + 28, 86, 7, WOOD[1]); A.hl(x + 2, y + 28, 86, WOOD[0]); A.r(x + 2, y + 35, 86, 7, WOOD[2]); for (let i = 6; i < 86; i += 14) A.vl(x + i, y + 35, 7, WOOD[3]);
-    const heap = (hx, col, hi) => { for (let r = 0; r < 4; r++) for (let i = 0; i < 6 - r; i++) { const vx = hx + i * 4 + r * 2, vy = y + 26 - r * 3; A.ell(vx, vy, 2, 2, col); A.px(vx - 1, vy - 1, hi); } };
-    if (kind === 'fruit') { heap(x + 8, '#f09020', '#ffd080'); heap(x + 36, '#e8d040', '#fff4a0'); heap(x + 62, '#d8402c', '#ff9a80'); A.r(x + 40, y + 14, 12, 6, '#3e8a30'); for (let i = 0; i < 4; i++) A.ell(x + 42 + i * 3, y + 20, 1, 3, '#f0d040'); }
-    else if (kind === 'veg') { heap(x + 8, '#d8402c', '#ff9a80'); heap(x + 36, '#d8a048', '#ffe0a0'); for (let i = 0; i < 6; i++) { A.r(x + 62 + i * 3, y + 18 + (i & 1), 2, 9, '#3e8a30'); A.px(x + 62 + i * 3, y + 18, '#78c050'); } }
-    else if (kind === 'spice') { for (let i = 0; i < 5; i++) { const sx = x + 6 + i * 17, c = ['#c83818', '#e0a020', '#8a5a2c', '#58883a', '#d86020'][i]; A.r(sx, y + 18, 13, 10, '#c8a878'); A.ell(sx + 6, y + 18, 6, 3, c); A.px(sx + 4, y + 17, '#fff4d8'); } }
-    else { for (let i = 0; i < 6; i++) { const c = ['#d04838', '#3a70c8', '#f0c040', '#2e7a58', '#8a4a9a', '#f4efe4'][i]; A.r(x + 8 + i * 13, y + 13, 9, 14, c); A.vl(x + 8 + i * 13, y + 13, 14, shade(c, 0.25)); A.vl(x + 16 + i * 13, y + 13, 14, shade(c, -0.3)); } }
-    return propFit(st, w, d, { solid: [w / 2 - 44, d - 12, 88, 12] });
+SPR_L['market stall'] = (w, d, o) => {                             // a wooden stall under a striped, scalloped awning: crates under the counter, the goods heaped and hung,
+    const kind = o.id.split('_').pop(), st = propStage(w, d, 96, 60), { A } = st, x = st.x, y = st.y, R = rng('stall' + kind);   // a brass scale, price cards on sticks
+    const AW = { fruit: ['#f07860', '#fff4e0', '#c04838'], cloth: ['#3a70c8', '#fff4e0', '#285496'], spice: ['#e0a030', '#7a3a20', '#b07818'], veg: ['#58a848', '#fff4e0', '#3e8030'] }[kind] || ['#d04838', '#fff4e0', '#a02828'];
+    const T = 44;                                                                                                                       // the counter's top
+    // the frame: four posts, a bar across under the awning
+    for (const px of [3, 89]) { A.r(x + px, y + 8, 3, 50, WOOD[2]); A.vl(x + px, y + 8, 50, WOOD[1]); }
+    A.r(x + 3, y + 16, 89, 2, WOOD[3]);
+    // the awning: stripes, sagging a little between the posts, its scalloped edge in shadow underneath
+    for (let i = 0; i < 96; i += 8) {
+        const c = (i / 8) & 1 ? AW[1] : AW[0], sag = Math.round(Math.sin((i + 4) / 96 * Math.PI) * 2);
+        A.r(x + i, y + sag, 8, 12, c); A.hl(x + i, y + sag, 8, shade(c, 0.3)); A.hl(x + i, y + sag + 10, 8, shade(c, -0.12));
+        A.ell(x + i + 4, y + sag + 12, 4, 2, c); A.hl(x + i + 1, y + sag + 14, 6, shade(c, -0.3));
+    }
+    A.soft(x + 4, y + 16, 88, 10, '#20141c', 0.14);                                                                                     // the awning's shade
+    // the counter: planks on trestles, a front board, crates and a sack underneath
+    A.r(x + 1, y + T, 94, 4, WOOD[0]); A.hl(x + 1, y + T, 94, '#f4d8a8'); A.r(x + 1, y + T + 4, 94, 8, WOOD[1]); for (let i = 1; i < 94; i += 16) A.vl(x + i, y + T + 4, 8, WOOD[2]); A.hl(x + 1, y + T + 11, 94, WOOD[3]);
+    const crate = (cx, cy, fill) => { A.r(cx, cy, 14, 8, '#c8a060'); for (let i = 0; i < 14; i += 3) A.vl(cx + i, cy, 8, '#a07840'); A.hl(cx, cy, 14, '#e8c888'); if (fill) for (let i = 0; i < 4; i++) { A.ell(cx + 2 + i * 3, cy, 2, 1, fill); } };
+    // the goods
+    const heap = (hx, hy, n, col, hi, lo) => { for (let r = 0; r < n; r++) for (let i = 0; i < n - r; i++) { const vx = hx + i * 4 + r * 2, vy = hy - r * 3; A.ell(vx, vy, 2, 2, col); A.px(vx - 1, vy - 1, hi); A.px(vx + 1, vy + 1, lo); } };
+    const card = (cx, cy, txt) => { A.vl(cx + 2, cy + 4, 4, WOOD[3]); A.r(cx, cy, 6, 4, '#ffffff'); A.hl(cx + 1, cy + 1, 4, txt); A.px(cx + 1, cy + 2, txt); };
+    const scale = (sx, sy) => { A.vl(sx + 5, sy - 8, 8, '#c89020'); A.hl(sx, sy - 8, 11, '#e0b030'); A.ell(sx + 1, sy - 4, 3, 1, '#d8a020'); A.ell(sx + 10, sy - 5, 3, 1, '#d8a020'); A.r(sx + 3, sy, 5, 2, '#8a6418'); A.px(sx + 5, sy - 9, '#fff0a0'); };
+    if (kind === 'fruit') {
+        heap(x + 6, y + T - 2, 5, '#f09020', '#ffd080', '#c06010'); heap(x + 30, y + T - 2, 4, '#f4dc50', '#fff8b0', '#c0a020'); heap(x + 66, y + T - 2, 4, '#d8402c', '#ff9a80', '#a02818');
+        for (let k = 0; k < 2; k++) { const bx = x + 20 + k * 40; A.vl(bx + 3, y + 18, 3, '#6a4a2c'); for (let i = 0; i < 5; i++) { A.ell(bx + i * 2, y + 24 + (i & 1), 1, 4, '#f0d040'); A.px(bx + i * 2, y + 21, '#6a8a20'); } }   // bananas on hooks
+        for (let i = 0; i < 3; i++) { A.ell(x + 50 + i * 4, y + T - 3, 3, 2, '#7ab840'); A.px(x + 49 + i * 4, y + T - 4, '#b8e070'); A.px(x + 51 + i * 4, y + T - 2, '#e8a020'); }   // mangoes
+        A.ell(x + 12, y + 56, 6, 4, '#2e7a30'); A.hl(x + 8, y + 54, 8, '#58a848'); A.ell(x + 84, y + 56, 6, 4, '#3e8a30'); for (let i = -4; i < 5; i += 3) A.vl(x + 84 + i, y + 53, 6, '#1e5a20');   // watermelons on the ground
+        crate(x + 26, y + 50, '#f09020'); crate(x + 56, y + 50, '#d8402c'); card(x + 14, y + 30, '#d04838'); card(x + 74, y + 32, '#d04838'); scale(x + 44, y + T);
+    } else if (kind === 'veg') {
+        heap(x + 6, y + T - 2, 5, '#d8402c', '#ff9a80', '#a02818'); heap(x + 54, y + T - 2, 4, '#c89048', '#f0d0a0', '#8a5a28');
+        for (let i = 0; i < 4; i++) { A.ell(x + 32 + i * 4, y + T - 3, 2, 3, '#5a2a6a'); A.px(x + 31 + i * 4, y + T - 5, '#8a5aa0'); A.px(x + 32 + i * 4, y + T - 6, '#3e8a30'); }   // aubergines
+        for (let i = 0; i < 6; i++) { A.r(x + 74 + i * 3, y + T - 12 + (i & 1), 2, 11, '#3e8a30'); A.ell(x + 75 + i * 3, y + T - 12 + (i & 1), 2, 2, '#78c050'); }   // bunches of molokhia and dill
+        for (let k = 0; k < 3; k++) { const gx = x + 24 + k * 22; A.vl(gx, y + 18, 4, '#c8b888'); for (let j = 0; j < 4; j++) { A.ell(gx, y + 23 + j * 3, 2, 1, '#f4ecd8'); A.px(gx - 1, y + 23 + j * 3, '#d8c8a8'); } }   // garlic strung up
+        A.ell(x + 14, y + 55, 7, 4, '#d8a048'); for (let i = -5; i < 6; i += 2) A.vl(x + 14 + i, y + 51, 7, '#d04838');   // a net sack of onions
+        crate(x + 60, y + 50, '#d8402c'); crate(x + 76, y + 50, '#58a848'); card(x + 20, y + 30, '#2e7a30'); card(x + 64, y + 32, '#2e7a30'); scale(x + 40, y + T);
+    } else if (kind === 'spice') {
+        for (let i = 0; i < 6; i++) { const sx = x + 4 + i * 15, c = ['#c83818', '#e0a020', '#8a5a2c', '#58883a', '#d86020', '#9a1838'][i];                    // sacks rolled open, a cone of spice in each
+            A.r(sx, y + T - 8, 13, 8, '#d8c098'); A.hl(sx, y + T - 8, 13, '#f0dcb8'); A.vl(sx + 12, y + T - 8, 8, '#a89070');
+            A.poly([[sx + 1, y + T - 8], [sx + 12, y + T - 8], [sx + 7, y + T - 15]], c); A.px(sx + 5, y + T - 12, shade(c, 0.4)); A.hl(sx + 2, y + T - 8, 10, shade(c, -0.2)); A.vl(sx + 11, y + T - 3, 3, '#ffffff'); }
+        for (let i = 0; i < 7; i++) { A.r(x + 10 + i * 11, y + 20, 6, 8, '#e8f0f4'); A.r(x + 10 + i * 11, y + 23, 6, 5, ['#c83818', '#e0a020', '#58883a', '#8a5a2c', '#f0d040', '#9a1838', '#d86020'][i]); A.r(x + 10 + i * 11, y + 19, 6, 2, '#d04838'); }   // jars on a shelf
+        A.r(x + 6, y + 28, 84, 2, WOOD[2]);
+        for (const lx of [2, 92]) for (let j = 0; j < 6; j++) A.px(x + lx, y + 30 + j * 2, '#c82010');                                  // strings of dried chillies
+        A.ell(x + 12, y + 55, 7, 4, '#9a1838'); A.ell(x + 12, y + 53, 6, 2, '#c83050'); A.ell(x + 84, y + 55, 7, 4, '#d8c098');      // hibiscus and a sack of something "for the stomach"
+        crate(x + 40, y + 50, null); scale(x + 74, y + T - 8);
+    } else {
+        for (let i = 0; i < 7; i++) { const c = ['#d04838', '#3a70c8', '#f0c040', '#2e7a58', '#8a4a9a', '#f4efe4', '#20242c'][i];                               // bolts of cloth hung from the bar
+            A.r(x + 8 + i * 12, y + 18, 9, 18 + (i % 3) * 2, c); A.vl(x + 8 + i * 12, y + 18, 18 + (i % 3) * 2, shade(c, 0.3)); A.vl(x + 16 + i * 12, y + 18, 18 + (i % 3) * 2, shade(c, -0.3));
+            if (i === 3) for (let j = 20; j < 36; j += 4) A.hl(x + 9 + i * 12, y + j, 7, '#f4efe4'); }
+        for (let i = 0; i < 4; i++) for (let j = 0; j < 3; j++) { const c = ['#c8b898', '#3a70c8', '#d04838', '#f4efe4'][(i + j) % 4]; A.r(x + 8 + i * 20, y + T - 3 - j * 3, 16, 3, c); A.hl(x + 8 + i * 20, y + T - 3 - j * 3, 16, shade(c, 0.3)); }   // folded stacks
+        A.vl(x + 92, y + 18, 2, '#86949e'); A.poly([[x + 87, y + 22], [x + 97, y + 22], [x + 98, y + 40], [x + 86, y + 40]], '#5a8ab8'); A.hl(x + 86, y + 22, 12, '#86b0d8');   // a galabeya on a hanger
+        crate(x + 30, y + 50, null); crate(x + 50, y + 50, null); A.r(x + 70, y + 50, 16, 8, '#c8b898'); A.hl(x + 70, y + 50, 16, '#e8dcc0');
+    }
+    return propFit(st, w, d, { solid: [w / 2 - 46, d - 12, 92, 12] });
 };
 SPR_L['garage'] = (w, d) => {                                      // the mechanic's: the shutter rolled up; inside, an old Fiat facing out with its bonnet up, a pegboard of tools, a work lamp
     const WH = 50, rd = d - 26, lift = WH - 26, st = stage(w, d, lift + 14, 6), { A } = st, x = st.x, top = st.y - lift, R = rng('garage');
@@ -486,41 +556,129 @@ SPR_L['donkey cart'] = (w, d) => {                                 // a donkey d
 };
 
 // ---- THE MUSEUM GARDEN ----
-// The colossus of Ramesses II, fallen, lying on its back as it was found: nemes striped, the false beard,
-// a scroll in each fist, broken off at the knees. Under a light shade on four posts, a rail round it.
+// The colossus of Ramesses II, fallen, lying on his back as it was found, head to the west, looking up
+// at the sky. We see him from above: so his face is turned on its side to us (brow on the left, chin on
+// the right, his eyes one above the other). The nemes and its lappets, the false beard, his fists round
+// two scrolls, a cartouche on his shoulder and on his belt, the dagger in the belt, the pleated kilt,
+// and the legs broken off at the knees. On a low plinth, a rail round it.
 SPR_L['fallen colossus'] = (w, d) => {
-    const st = stage(w, d, 40, 6), { A } = st, x = st.x, y = st.y, L = ['#f2e6c8', '#dccaa0', '#bca47e', '#94784e', '#6e583a'];
-    A.r(x + 6, y + 30, w - 12, d - 40, '#d8cab0'); A.hl(x + 6, y + 30, w - 12, '#f0e4cc'); A.r(x + 6, y + d - 12, w - 12, 6, '#b8a88c'); A.hl(x + 6, y + d - 7, w - 12, '#8e8068');   // the plinth
-    const sy = y + 44, sx = x + 24;                                                                                          // the statue, head to the west
-    A.ell(sx + 18, sy + 18, 20, 22, L[1]); A.poly([[sx + 4, sy + 2], [sx + 30, sy + 2], [sx + 38, sy + 34], [sx - 2, sy + 34]], L[1]);   // the nemes
-    for (let j = 0; j < 36; j += 4) A.hl(sx + 2, sy + j, 34, j % 8 ? L[2] : L[0]);
-    A.ell(sx + 18, sy + 18, 11, 12, L[0]); A.ell(sx + 16, sy + 14, 3, 2, L[3]); A.ell(sx + 22, sy + 14, 3, 2, L[3]); A.r(sx + 18, sy + 17, 2, 6, L[2]); A.hl(sx + 15, sy + 25, 8, L[3]);   // the face, looking at the sky
-    A.r(sx + 16, sy + 30, 5, 10, L[2]); A.hl(sx + 16, sy + 32, 5, L[3]); A.hl(sx + 16, sy + 36, 5, L[3]);                                                          // the beard
-    const bx = sx + 40, bw = w - 110;
-    A.r(bx, sy + 4, bw, 34, L[1]); A.hl(bx, sy + 4, bw, L[0]); A.hl(bx, sy + 37, bw, L[3]);                               // the body: chest, belt, kilt
-    A.r(bx, sy + 4, 30, 34, L[0]); A.ell(bx + 18, sy + 12, 7, 4, L[2]); A.ell(bx + 18, sy + 30, 7, 4, L[2]);
-    A.r(bx + 36, sy + 2, 8, 38, L[2]); for (let j = 4; j < 38; j += 3) A.px(bx + 38 + (j % 2) * 2, sy + j, L[4]);                                                  // the cartouche on the belt
-    for (let i = bx + 46; i < bx + bw; i += 4) A.vl(i, sy + 6, 30, L[2]);                                                                                          // the pleated kilt
-    for (const ay of [sy - 2, sy + 38]) { A.r(bx + 10, ay, 40, 6, L[1]); A.hl(bx + 10, ay, 40, L[0]); A.ell(bx + 52, ay + 3, 4, 4, L[2]); }                        // arms at his sides, fists round the scrolls
-    const kx = bx + bw; A.r(kx, sy + 6, 20, 14, L[1]); A.r(kx, sy + 22, 20, 14, L[1]); for (const ky of [sy + 6, sy + 22]) { A.vl(kx + 20, ky, 14, L[4]); for (let j = 0; j < 14; j += 2) A.px(kx + 20 + (j % 4 ? 1 : 0), ky + j, L[3]); }   // the knees, broken off
-    for (let i = 0; i < w - 12; i += 16) { A.r(x + 6 + i, y + d - 20, 2, 12, '#5a6272'); } A.r(x + 6, y + d - 20, w - 12, 2, '#86949e');                             // the rail
-    for (const px of [x + 4, x + w - 8]) for (const py of [y + 2, y + d - 30]) { A.r(px, py, 4, 30, '#8e7a5a'); A.vl(px, py, 30, '#b8a47c'); }                  // the shade on its posts
-    A.r(x, y - 4, w, 8, '#e8dcc0'); for (let i = 0; i < w; i += 4) A.vl(x + i, y - 4, 8, i % 8 ? '#d4c4a0' : '#f4ecd4'); A.hl(x, y + 3, w, '#8e7a5a');
-    A.soft(x + 6, y + 4, w - 12, 20, '#20141c', 0.12);
-    return fit(st, { solid: [4, 30, w - 8, d - 38] });
+    const st = stage(w, d, 30, 6), { A } = st, x = st.x, y = st.y;
+    const L = ['#f8ecd0', '#e4d0a8', '#ccb486', '#a88e64', '#7e6646', '#544230'];                           // limestone: lit … deep
+    // the plinth: its top, then its face toward us
+    const px0 = x + 8, pw = w - 16, py0 = y + 22, pd = d - 44;
+    A.r(px0, py0, pw, pd, '#d8ccb4'); A.hl(px0, py0, pw, '#f0e6d2'); A.vl(px0, py0, pd, '#ece2cc');
+    for (let i = px0 + 30; i < px0 + pw; i += 30) A.vl(i, py0 + 1, pd - 1, '#c8bca4');
+    A.r(px0, py0 + pd, pw, 10, '#bcae94'); A.hl(px0, py0 + pd, pw, '#d0c4ac'); A.hl(px0, py0 + pd + 9, pw, '#8e8068'); for (let i = px0 + 30; i < px0 + pw; i += 30) A.vl(i, py0 + pd + 1, 8, '#a89a80');
+    // the statue: u runs from his crown (left) to his knees (right); v is across him (north is up)
+    const u0 = x + 22, cy = py0 + (pd >> 1), U = n => u0 + n;
+    // everything first as a shadow, a few px lower: the stone's thickness, seen along his south side
+    const body = (c, dy) => {
+        A.ell(U(17), cy + dy, 17, 25, c);                                                                                 // the nemes over the crown
+        A.poly([[U(14), cy - 24 + dy], [U(62), cy - 22 + dy], [U(62), cy + 22 + dy], [U(14), cy + 24 + dy]], c);           // the lappets
+        A.ell(U(68), cy + dy, 12, 34, c); A.r(U(66), cy - 30 + dy, 52, 60, c);                                            // shoulders, chest
+        A.poly([[U(118), cy - 30 + dy], [U(150), cy - 30 + dy], [U(150), cy + 30 + dy], [U(118), cy + 30 + dy]], c);      // the arms reach down to here
+        A.poly([[U(118), cy - 23 + dy], [U(178), cy - 26 + dy], [U(178), cy + 26 + dy], [U(118), cy + 23 + dy]], c);      // the kilt
+        A.poly([[U(176), cy - 22 + dy], [U(216), cy - 19 + dy], [U(216), cy + 19 + dy], [U(176), cy + 22 + dy]], c);      // the thighs
+    };
+    body(L[5], 8); body(L[4], 6); body(L[3], 3);
+    // the nemes: over the crown, and its lappets falling either side of the face; stripes that run round his head
+    A.ell(U(17), cy, 17, 25, L[2]); A.ell(U(15), cy - 4, 13, 18, L[1]);
+    for (let i = 2; i < 30; i += 4) { A.vl(U(i), cy - 24 + Math.abs(14 - i) / 3, 48 - Math.abs(14 - i) / 1.5, L[3]); }
+    for (const sgn of [-1, 1]) {
+        const v0 = sgn < 0 ? cy - 24 : cy + 13, vh = 11;
+        A.r(U(14), v0, 48, vh, sgn < 0 ? L[1] : L[2]); A.hl(U(14), sgn < 0 ? v0 : v0 + vh - 1, 48, L[3]);
+        for (let i = 16; i < 62; i += 3) A.vl(U(i), v0 + 1, vh - 2, (i % 6) ? L[2] : L[3]);
+        A.r(U(56), v0, 6, vh, L[2]); A.vl(U(61), v0, vh, L[4]);                                                          // the lappet's hem
+    }
+    // his face, turned on its side to us: the brow band of the nemes, the uraeus, the eyes, the nose, the mouth
+    A.ell(U(30), cy, 16, 12, L[0]); A.ell(U(28), cy - 2, 12, 8, '#fff8e8');
+    A.r(U(12), cy - 13, 4, 26, L[1]); A.vl(U(12), cy - 13, 26, L[0]); A.vl(U(15), cy - 13, 26, L[3]);                   // the band across his brow
+    A.r(U(6), cy - 2, 7, 4, L[1]); A.ell(U(5), cy, 2, 3, L[0]); A.px(U(4), cy, L[4]); A.hl(U(7), cy + 1, 5, L[3]);      // the cobra rearing on it
+    for (const sgn of [-1, 1]) {
+        const ev = cy + sgn * 5;
+        A.vl(U(18), ev - 3, 7, L[3]); A.px(U(17), ev - 3, L[3]);                                                          // the eyebrow
+        A.r(U(21), ev - 2, 3, 5, '#fffdf6'); A.r(U(22), ev - 1, 2, 3, L[4]); A.vl(U(21), ev - 3, 7, L[3]); A.vl(U(24), ev - 2, 5, L[2]);   // the eye, the lids
+        A.line(U(22), ev + sgn * 3, U(25), ev + sgn * 7, L[3]);                                                          // the paint line out toward the ear
+        A.ell(U(26), cy + sgn * 13, 2, 3, L[1]); A.px(U(26), cy + sgn * 13, L[3]);                                        // the ears, standing out of the nemes
+    }
+    A.r(U(23), cy - 1, 11, 3, L[0]); A.hl(U(23), cy - 1, 11, '#ffffff'); A.hl(U(23), cy + 2, 11, L[3]); A.r(U(33), cy - 2, 2, 5, L[2]); A.px(U(33), cy - 2, L[4]); A.px(U(33), cy + 2, L[4]);   // the nose (it stands up toward you), the nostrils
+    A.vl(U(37), cy - 4, 9, L[3]); A.vl(U(38), cy - 3, 7, L[2]); A.vl(U(36), cy - 3, 7, '#fff8e8');                    // the mouth, the hint of a smile
+    A.r(U(43), cy - 4, 14, 8, L[1]); A.hl(U(43), cy - 4, 14, L[0]); A.hl(U(43), cy + 3, 14, L[3]); for (let i = 45; i < 57; i += 2) A.vl(U(i), cy - 3, 6, L[2]);   // the plaited false beard
+    // shoulders and chest, a cartouche on his right shoulder
+    A.r(U(62), cy - 31, 56, 62, L[3]);                                                                                    // (the grooves between his arms and his body)
+    A.ell(U(66), cy, 8, 22, L[1]); A.r(U(66), cy - 19, 52, 38, L[1]); A.r(U(66), cy - 19, 52, 6, L[0]); A.hl(U(66), cy - 19, 52, '#fff8e8');
+    A.ell(U(80), cy - 8, 9, 7, L[0]); A.ell(U(80), cy + 8, 9, 7, L[1]); A.hl(U(88), cy - 14, 8, L[2]); A.hl(U(88), cy + 14, 8, L[3]); A.vl(U(72), cy - 2, 5, L[2]);   // the chest, the pit of the throat
+    A.px(U(82), cy - 8, L[4]); A.px(U(82), cy + 8, L[4]); A.vl(U(96), cy - 3, 7, L[2]); A.vl(U(104), cy - 3, 7, L[2]); A.ell(U(110), cy, 2, 2, L[4]);   // nipples, the belly, the navel
+    // his arms down his sides, the fists closed round two scrolls
+    for (const sgn of [-1, 1]) {
+        const vo = cy + sgn * 25, c0 = sgn < 0 ? L[0] : L[1], c1 = sgn < 0 ? L[1] : L[2], lit = sgn < 0 ? '#fff8e8' : L[2], dk = L[4];
+        A.ell(U(70), vo, 9, 7, c0); A.ell(U(68), vo - 2, 5, 4, sgn < 0 ? '#fff8e8' : L[0]);                                                                // the shoulder
+        A.r(U(70), vo - 5, 48, 11, c0); A.hl(U(70), vo - 5, 48, lit); A.hl(U(70), vo + 5, 48, L[3]); A.hl(U(78), vo - sgn * 6, 40, dk);                    // the upper arm, the groove along his side
+        A.r(U(118), vo - 5 + sgn, 26, 10, c1); A.hl(U(118), vo - 5 + sgn, 26, lit); A.r(U(124), vo - 5 + sgn, 3, 10, L[3]); A.hl(U(118), vo - sgn * 6 + sgn, 26, dk);   // the forearm, a bracelet
+        A.ell(U(148), vo + sgn, 6, 6, c0); A.ell(U(147), vo + sgn - 2, 3, 2, sgn < 0 ? '#fff8e8' : L[0]); A.vl(U(151), vo - 4 + sgn, 9, L[3]); for (const k of [-2, 1]) A.hl(U(143), vo + sgn + k, 6, L[3]);   // the fist
+        A.ell(U(155), vo + sgn, 3, 3, L[2]); A.ell(U(155), vo + sgn, 1, 1, L[4]);                                                                          // the end of the scroll
+    }
+    A.ell(U(64), cy - 34 + 8, 5, 3, L[0]); A.ell(U(64), cy - 26, 4, 2, L[2]); A.hl(U(61), cy - 26, 7, L[4]); A.px(U(68), cy - 26, L[4]); A.px(U(60), cy - 26, L[4]);   // the cartouche on his shoulder
+    // the belt, its cartouche buckle, the dagger tucked in it with two falcon heads on the hilt
+    A.r(U(116), cy - 22, 7, 44, L[2]); for (let j = -21; j < 22; j += 3) A.px(U(118 + (j & 1) * 2), cy + j, L[4]); A.vl(U(116), cy - 22, 44, L[3]);
+    A.r(U(115), cy - 6, 9, 12, L[1]); A.ell(U(119), cy, 3, 5, L[0]); A.vl(U(119), cy - 3, 6, L[4]);
+    A.r(U(108), cy + 9, 22, 3, L[1]); A.hl(U(108), cy + 11, 22, L[3]); A.r(U(104), cy + 8, 4, 5, L[2]); A.px(U(103), cy + 8, L[4]); A.px(U(103), cy + 12, L[4]);
+    // the kilt: pleats running down it, the apron in front
+    A.poly([[U(123), cy - 20], [U(178), cy - 23], [U(178), cy + 23], [U(123), cy + 20]], L[1]);
+    for (let j = -20; j < 22; j += 3) A.hl(U(124), cy + j, 54, j < -6 ? L[0] : L[2]); A.hl(U(124), cy + 21, 54, L[3]);
+    A.poly([[U(124), cy - 9], [U(176), cy - 6], [U(176), cy + 6], [U(124), cy + 9]], L[0]); for (let i = 130; i < 176; i += 8) A.vl(U(i), cy - 7, 14, L[2]); A.vl(U(176), cy - 6, 12, L[3]);
+    // the thighs, the gap between them, the knees, and the break: rough, pitted, paler where the stone is fresh
+    for (const sgn of [-1, 1]) {
+        const vo = cy + sgn * 11, c0 = sgn < 0 ? L[0] : L[1];
+        A.poly([[U(178), vo - 10], [U(210), vo - 8], [U(210), vo + 8], [U(178), vo + 10]], c0); A.hl(U(180), sgn < 0 ? vo - 9 : vo + 8, 28, sgn < 0 ? '#fff8e8' : L[3]);
+        A.ell(U(209), vo, 6, 8, L[0]); A.ell(U(211), vo, 3, 5, L[1]);                                                                                     // the knee
+        for (let j = -8; j < 9; j++) A.px(U(215 + ((j * 7) & 3) - 1), vo + j, L[2]); A.r(U(214), vo - 7, 3, 14, L[2]); for (let j = -6; j < 7; j += 3) A.px(U(215), vo + j, L[4]);   // the break
+    }
+    A.r(U(178), cy - 1, 32, 2, L[4]);
+    // the rail: iron posts and two bars round the plinth, a little sign on the near side
+    for (let i = 0; i <= pw; i += 24) { const rx = px0 + Math.min(i, pw - 2); A.r(rx, py0 + pd + 2, 2, 12, '#3a3e48'); A.r(rx, y + 10, 2, 12, '#5a6272'); }
+    A.r(px0, py0 + pd + 3, pw, 1, '#5a6272'); A.r(px0, py0 + pd + 8, pw, 1, '#3a3e48'); A.r(px0, y + 11, pw, 1, '#86949e'); A.r(px0, y + 16, pw, 1, '#6a7480');
+    A.r(px0 + 20, py0 + pd + 4, 22, 12, '#2c5490'); A.r(px0 + 22, py0 + pd + 6, 18, 1, '#ffffff'); A.r(px0 + 22, py0 + pd + 9, 14, 1, '#dfe6ea'); A.r(px0 + 22, py0 + pd + 12, 10, 1, '#dfe6ea');
+    return fit(st, { solid: [6, 20, w - 12, d - 30] });
 };
-SPR_L['alabaster sphinx'] = (w, d) => {                            // the alabaster sphinx: calcite the colour of honey and milk, veined, a king's face on a lion's body
-    const st = propStage(w, d, 124, 56), { A } = st, x = st.x, y = st.y, AL = ['#fffaf0', '#f4ead4', '#e4d4b0', '#c8b48c', '#a08c68'];
-    A.r(x + 2, y + 40, 120, 14, '#c8bca8'); A.hl(x + 2, y + 40, 120, '#e4dccc'); A.hl(x + 2, y + 53, 120, '#9a9080');
-    A.poly([[x + 30, y + 40], [x + 30, y + 22], [x + 50, y + 16], [x + 104, y + 18], [x + 116, y + 26], [x + 118, y + 40]], AL[1]);   // the lion's body, lying
-    A.poly([[x + 50, y + 16], [x + 104, y + 18], [x + 100, y + 24], [x + 52, y + 22]], AL[0]);
-    for (let i = 0; i < 8; i++) A.line(x + 56 + i * 7, y + 22 + (i % 3), x + 62 + i * 7, y + 34 - (i % 2) * 3, AL[2]);                   // the veins in the stone
-    A.r(x + 4, y + 34, 32, 6, AL[1]); A.r(x + 4, y + 34, 32, 2, AL[0]); for (const px of [x + 6, x + 12, x + 18]) A.vl(px, y + 35, 4, AL[3]);   // the forepaws
-    A.poly([[x + 16, y + 4], [x + 38, y + 4], [x + 42, y + 34], [x + 12, y + 34]], AL[2]); for (let j = 6; j < 34; j += 4) A.hl(x + 14, y + j, 26, j % 8 ? AL[3] : AL[1]);   // the nemes
-    A.ell(x + 27, y + 16, 9, 10, AL[0]); A.ell(x + 24, y + 13, 2, 1, AL[4]); A.ell(x + 30, y + 13, 2, 1, AL[4]); A.r(x + 26, y + 15, 2, 5, AL[2]); A.hl(x + 24, y + 22, 6, AL[3]);
-    A.r(x + 25, y + 26, 4, 8, AL[3]); A.r(x + 20, y + 1, 14, 4, AL[1]);                                                                  // the beard, the uraeus's stump
-    A.line(x + 116, y + 26, x + 122, y + 12, AL[2]); A.px(x + 122, y + 11, AL[3]);                                                      // the tail curled up
-    return propFit(st, w, d, { solid: [w / 2 - 60, d - 18, 120, 18] });
+SPR_L['alabaster sphinx'] = (w, d) => {                            // the alabaster sphinx, in profile: calcite the colour of honey and milk, banded with veins, a king's head in the
+    const st = propStage(w, d, 128, 62), { A } = st, x = st.x, y = st.y, R = rng('sphinx');                                                   // nemes on a lion's body lying on its low base, the forepaws out
+    const AL = ['#fff4dc', '#f2dfb6', '#e0c692', '#c8a46e', '#9e7c4c', '#6a5034'], VN = ['#d4ac72', '#f8eacc', '#fffaf0'];                   // in front, the tail curled round the haunch
+    // the base: its top, then its face
+    A.r(x + 1, y + 46, 126, 4, '#e4dccc'); A.hl(x + 1, y + 46, 126, '#f4eee2'); A.r(x + 1, y + 50, 126, 10, '#c8bca8'); A.hl(x + 1, y + 59, 126, '#9a9080'); for (let i = 20; i < 126; i += 26) A.vl(x + i, y + 51, 8, '#b4a894');
+    // the body: back, haunch, belly
+    A.poly([[x + 38, y + 22], [x + 52, y + 17], [x + 100, y + 18], [x + 112, y + 21], [x + 121, y + 30], [x + 123, y + 46], [x + 36, y + 46]], AL[2]);
+    A.poly([[x + 52, y + 17], [x + 100, y + 18], [x + 108, y + 21], [x + 52, y + 24], [x + 42, y + 23]], AL[0]);                                // the sunlit back
+    A.ell(x + 106, y + 33, 15, 12, AL[1]); A.ell(x + 102, y + 28, 10, 6, AL[0]); A.line(x + 92, y + 42, x + 97, y + 24, AL[3]);                  // the haunch
+    A.hl(x + 40, y + 45, 80, AL[4]); A.poly([[x + 44, y + 40], [x + 92, y + 40], [x + 92, y + 46], [x + 44, y + 46]], AL[3]);                     // the belly in shade
+    A.line(x + 54, y + 26, x + 57, y + 38, AL[3]);                                                                                              // the line of the shoulder
+    // the hind paw drawn up under the haunch, the tail curled round it
+    A.r(x + 88, y + 41, 20, 5, AL[1]); A.hl(x + 88, y + 41, 20, AL[0]); for (const t of [91, 94, 97]) A.vl(x + t, y + 42, 3, AL[4]);
+    for (let i = 0; i <= 20; i++) { const t = i / 20, tx = x + 120 - t * 34, ty = y + 34 + Math.sin(t * Math.PI) * 6; A.r(tx, ty, 2, 2, AL[3]); A.px(tx, ty, AL[1]); }
+    A.ell(x + 85, y + 37, 3, 2, AL[3]); A.px(x + 84, y + 36, AL[1]);                                                                            // its tuft
+    // the chest and the forelegs, stretched out flat before it, big paws
+    A.poly([[x + 28, y + 24], [x + 42, y + 20], [x + 46, y + 44], [x + 30, y + 44]], AL[1]); A.vl(x + 45, y + 26, 18, AL[3]);
+    A.r(x + 4, y + 37, 40, 9, AL[1]); A.hl(x + 4, y + 37, 40, AL[0]); A.hl(x + 4, y + 45, 40, AL[4]); A.r(x + 4, y + 42, 40, 3, AL[2]);
+    A.ell(x + 7, y + 41, 5, 5, AL[1]); A.ell(x + 6, y + 39, 3, 2, AL[0]); for (const t of [3, 6, 9]) A.vl(x + t, y + 41, 4, AL[4]);               // the near paw, toes
+    A.r(x + 10, y + 35, 30, 3, AL[2]); A.ell(x + 11, y + 36, 4, 2, AL[2]);                                                                      // the far leg, just showing behind
+    // the head: the nemes in profile, its lappet down the chest, the striped back flap
+    A.poly([[x + 24, y + 4], [x + 32, y + 1], [x + 42, y + 2], [x + 48, y + 8], [x + 52, y + 24], [x + 44, y + 26], [x + 40, y + 16]], AL[2]);     // the cloth over the crown and down the back
+    for (let j = 0; j < 8; j++) { A.line(x + 33 + j, y + 3 + j * 3, x + 47 + (j > 3 ? j - 3 : 0), y + 6 + j * 3, j % 2 ? AL[4] : AL[1]); }
+    A.poly([[x + 26, y + 16], [x + 36, y + 14], [x + 38, y + 32], [x + 28, y + 32]], AL[1]); for (let j = 17; j < 32; j += 3) A.hl(x + 27, y + j, 10, j % 6 ? AL[4] : AL[0]); A.vl(x + 37, y + 15, 17, AL[4]);   // the lappet
+    A.poly([[x + 22, y + 4], [x + 34, y + 3], [x + 38, y + 14], [x + 30, y + 22], [x + 22, y + 20]], AL[0]);                                   // the face
+    A.r(x + 22, y + 3, 14, 3, AL[1]); A.hl(x + 22, y + 3, 14, '#ffffff'); A.hl(x + 22, y + 6, 14, AL[3]);                                     // the brow band
+    A.r(x + 20, y + 1, 3, 4, AL[2]); A.px(x + 20, y + 0, AL[3]);                                                                                // the uraeus, its head broken off
+    A.poly([[x + 22, y + 8], [x + 18, y + 13], [x + 21, y + 14]], AL[0]); A.px(x + 19, y + 13, AL[3]);                                          // the nose
+    A.hl(x + 20, y + 16, 3, AL[3]); A.px(x + 21, y + 17, AL[2]); A.poly([[x + 21, y + 18], [x + 26, y + 20], [x + 23, y + 21]], AL[1]);        // the mouth, the chin
+    A.r(x + 22, y + 21, 4, 6, AL[2]); A.hl(x + 22, y + 23, 4, AL[3]); A.hl(x + 22, y + 26, 4, AL[4]);                                         // the false beard, broken short
+    A.r(x + 24, y + 9, 4, 2, '#fffdf6'); A.px(x + 24, y + 9, AL[5]); A.px(x + 25, y + 9, AL[5]); A.hl(x + 23, y + 8, 6, AL[3]); A.line(x + 28, y + 10, x + 31, y + 10, AL[3]);   // the eye, the paint line
+    A.ell(x + 33, y + 11, 2, 3, AL[1]); A.vl(x + 34, y + 9, 5, AL[3]);                                                                          // the ear
+    A.vl(x + 37, y + 6, 14, AL[3]);
+    // the veins in the calcite, banded across the whole of it, and a weathered patch where it lay in the ground
+    for (let k = 0; k < 5; k++) { let vy = y + 21 + k * 5 + Math.floor(R() * 2); const c = VN[k % 2]; for (let vx = x + 48 + Math.floor(R() * 8); vx < x + 118 - Math.floor(R() * 10); vx += 2) { vy += R() < 0.12 ? (R() < 0.5 ? -1 : 1) : 0; if (vy > y + 18 && vy < y + 44) A.r(vx, vy, 2, 1, c); } }
+    for (let k = 0; k < 3; k++) { let vy = y + 38 + k * 2; for (let vx = x + 6; vx < x + 42; vx += 2) { vy += R() < 0.25 ? (R() < 0.5 ? -1 : 1) : 0; if (vy > y + 37 && vy < y + 45) A.r(vx, vy, 2, 1, VN[k]); } }
+    for (let i = 0; i < 14; i++) A.px(x + 70 + Math.floor(R() * 30), y + 36 + Math.floor(R() * 6), AL[3]);
+    return propFit(st, w, d, { solid: [w / 2 - 62, d - 18, 124, 18] });
 };
 SPR_L['ticket kiosk'] = (w, d) => {
     const st = propStage(w, d, 40, 44), { A } = st, x = st.x, y = st.y;

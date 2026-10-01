@@ -68,12 +68,18 @@ function hens(seed) {                                  // a few hens pecking abo
     return { c: frames[0].c, frames: frames.map(q => q.c), fps: 2.5, ox: frames[0].ox, oy: frames[0].oy };
 }
 SPR.c1b_chickens1 = () => hens('hens1'); SPR.c1b_chickens2 = () => hens('hens2');
-SPR.c1b_cat = () => {                                  // a ginger cat asleep in the sun, its tail flicking now and then
-    const frames = [0, 1, 0, 0].map(f => {
-        const st = propStage(32, 32, 20, 12), { A } = st, x = st.x, y = st.y;
-        A.ell(x + 10, y + 7, 7, 4, '#e08a38'); A.ell(x + 9, y + 6, 4, 2, '#f4b068'); for (let i = 0; i < 3; i++) A.vl(x + 7 + i * 3, y + 4, 2, '#b86424');
-        A.ell(x + 4, y + 7, 3, 3, '#e08a38'); A.px(x + 2, y + 4, '#e08a38'); A.px(x + 5, y + 4, '#e08a38'); A.px(x + 3, y + 7, '#5a3418'); A.px(x + 5, y + 7, '#5a3418');   // head, ears, shut eyes
-        if (f) A.line(x + 16, y + 8, x + 19, y + 3, '#e08a38'); else A.line(x + 16, y + 9, x + 19, y + 10, '#e08a38');                            // the tail
+SPR.c1b_cat = () => {                                  // a ginger tabby curled up asleep in the sun, nose under its tail, the tip of the tail flicking now and then
+    const O = ['#f6b46a', '#e48c3c', '#c06a28', '#8a4418'], frames = [0, 1, 0, 0].map(f => {
+        const st = propStage(32, 32, 24, 16), { A } = st, x = st.x, y = st.y + 1;
+        A.ell(x + 13, y + 9, 9, 5, O[1]); A.ell(x + 12, y + 7, 7, 3, O[0]); A.hl(x + 6, y + 13, 14, O[2]);                                     // the body, curled
+        for (const [a, b] of [[9, 5], [12, 4], [15, 5], [18, 7]]) { A.px(x + a, y + b, O[2]); A.px(x + a, y + b + 1, O[2]); A.px(x + a + 1, y + b + 2, O[2]); }   // tabby stripes
+        A.ell(x + 6, y + 9, 4, 3, O[1]); A.ell(x + 5, y + 8, 3, 2, O[0]);                                                                       // the head, tucked in
+        A.poly([[x + 2, y + 8], [x + 3, y + 4], [x + 5, y + 7]], O[1]); A.poly([[x + 6, y + 6], [x + 8, y + 4], [x + 9, y + 8]], O[1]);         // ears
+        A.px(x + 3, y + 6, '#f0a0a0'); A.px(x + 8, y + 6, '#f0a0a0');
+        A.hl(x + 3, y + 9, 2, O[3]); A.hl(x + 6, y + 9, 2, O[3]); A.px(x + 5, y + 10, '#e07878'); A.r(x + 3, y + 11, 4, 1, '#fff4e4');          // eyes shut, the nose, a white chin
+        A.ell(x + 6, y + 12, 2, 1, '#fff4e4'); A.ell(x + 9, y + 12, 2, 1, '#fff4e4');                                                          // white paws tucked under
+        for (let i = 0; i < 12; i++) A.px(x + 20 - i, y + 13 + (i > 3 && i < 9 ? 1 : 0), i % 3 ? O[1] : O[2]);                                // the tail wrapped round the front
+        if (f) { A.px(x + 8, y + 12, O[1]); A.px(x + 7, y + 11, O[2]); A.px(x + 7, y + 10, O[1]); } else { A.px(x + 8, y + 14, O[2]); A.px(x + 7, y + 14, O[1]); }   // its tip, flicking
         return propFit(st, 32, 32, {});
     });
     return { c: frames[0].c, frames: frames.map(q => q.c), fps: 1.5, ox: frames[0].ox, oy: frames[0].oy };
@@ -115,29 +121,85 @@ SPR.c1b_bench = (w, d) => {                            // a bench by the well, a
     A.r(x + 41, y + 5, 2, 3, '#f0e8d8'); A.px(x + 41, y + 6, '#b84020'); A.r(x + 50, y + 5, 2, 3, '#f0e8d8'); A.px(x + 50, y + 6, '#b84020');
     return propFit(st, w, d, { solid: [(w - 54) / 2, d - 8, 54, 8] });
 };
-SPR.c1b_dovecote1 = SPR.c1b_dovecote2 = (w, d) => {   // a burg hamam: a tall mud pigeon tower, rows of pots set in it, sticks to perch on, pigeons wheeling
-    const st = propStage(w, d, 50, 84), { A } = st, x = st.x, y = st.y, cx = x + 25;
-    A.poly([[cx - 22, y + 82], [cx + 22, y + 82], [cx + 12, y + 12], [cx - 12, y + 12]], '#b89a70'); A.poly([[cx + 6, y + 82], [cx + 22, y + 82], [cx + 12, y + 12], [cx + 4, y + 12]], '#9a7e58');   // the tower
-    A.poly([[cx - 20, y + 82], [cx - 14, y + 82], [cx - 8, y + 12], [cx - 11, y + 12]], '#d4b890');
-    for (let j = 0; j < 8; j++) { const yy = y + 18 + j * 8, hw = 12 + j * 1.2; for (let i = -hw + 3; i < hw - 2; i += 5) { A.ell(cx + i, yy, 2, 2, '#4a3624'); A.px(cx + i - 1, yy - 1, '#c8a878'); } if (j % 2) { A.hl(cx - hw - 2, yy + 4, 4, '#6a4a2c'); A.hl(cx + hw - 2, yy + 4, 4, '#6a4a2c'); } }
-    A.r(cx - 13, y + 8, 26, 5, '#f4f0e4'); A.hl(cx - 13, y + 8, 26, '#ffffff'); A.ell(cx, y + 6, 10, 4, '#f4f0e4');                 // the whitewashed top
-    for (const [a, b] of [[-6, 2], [4, 0], [16, -8], [-18, -4]]) { A.px(cx + a, y + b, '#e8e8f0'); A.px(cx + a - 1, y + b - 1, '#b8bcc8'); A.px(cx + a + 1, y + b - 1, '#b8bcc8'); }   // pigeons
-    return propFit(st, w, d, { solid: [(w - 40) / 2, d - 20, 40, 18] });
+SPR.c1b_dovecote1 = SPR.c1b_dovecote2 = (w, d) => {   // a burg hamam: a mud-brick base with a little door, then the tower proper, studded with clay pots for the pigeons to nest in,
+    const M = ['#d0ae80', '#b8946a', '#9a7650', '#74563a'], T = ['#dcc098', '#c8a87e', '#a88a62', '#866a48'];   // rows of sticks to land on, a whitewashed crown of little domes; pigeons wheeling
+    const frames = [0, 1].map(f => {
+        const st = propStage(w, d, 60, 100), { A } = st, x = st.x, y = st.y, cx = x + 30, R = rng('dove' + w);
+        const wAt = yy => 13 + Math.round((yy - 18) / 44 * 6);                                                   // the tower's half-width at a height: it tapers
+        // the base: mud brick, plastered, a little blue door
+        for (let yy = 62; yy < 98; yy++) { const hw = 21 + Math.round((yy - 62) * 0.06); A.hl(cx - hw, yy, hw * 2, M[1]); A.hl(cx - hw, yy, 4, M[0]); A.hl(cx + hw - 7, yy, 7, M[2]); }
+        for (let j = 66; j < 96; j += 5) for (let i = -20 + (j % 10 ? 0 : 4); i < 18; i += 9) A.hl(cx + i, j, 6, M[2]);
+        A.r(cx - 5, y + 82, 10, 16, M[3]); A.r(cx - 4, y + 83, 8, 15, '#3a6ab0'); A.vl(cx, y + 83, 15, '#284c88'); A.px(cx + 2, y + 90, '#f0c040'); A.hl(cx - 6, y + 81, 12, '#f4f0e4');
+        A.r(cx - 23, y + 60, 46, 4, '#f4f0e4'); A.hl(cx - 23, y + 60, 46, '#ffffff'); A.hl(cx - 23, y + 63, 46, '#c8c0b0');                         // a whitewashed band
+        // the tower: tapering, its face studded with pot mouths in staggered rows, sticks across every other row
+        for (let yy = 18; yy < 60; yy++) { const hw = wAt(yy); A.hl(cx - hw, yy, hw * 2, T[1]); A.hl(cx - hw, yy, 3, T[0]); A.hl(cx + hw - 6, yy, 6, T[2]); A.px(cx + hw - 1, yy, T[3]); }
+        for (let r = 0; r < 7; r++) {
+            const py = y + 22 + r * 6, hw = wAt(py - y) - 3;
+            for (let i = -hw + (r % 2 ? 3 : 0); i <= hw - 2; i += 6) { const c = cx + i, sh = i > hw - 8; A.ell(c, py, 2, 2, sh ? T[2] : '#e8c8a0'); A.r(c - 1, py - 1, 2, 2, '#2a1a10'); A.px(c - 1, py - 2, sh ? T[1] : '#f8e0c0'); }
+            if (r % 2) { A.hl(cx - hw - 6, py + 3, hw * 2 + 12, '#6a4a2c'); A.hl(cx - hw - 6, py + 2, hw * 2 + 12, '#8e6a44'); }
+        }
+        // the crown: a whitewashed rim and five little domes
+        A.r(cx - 16, y + 13, 32, 6, '#f4f0e4'); A.hl(cx - 16, y + 13, 32, '#ffffff'); A.hl(cx - 16, y + 18, 32, '#c8c0b0'); A.r(cx + 10, y + 14, 6, 4, '#dcd6c8');
+        for (const [dx, r] of [[-12, 3], [-6, 4], [0, 5], [6, 4], [12, 3]]) { A.ell(cx + dx, y + 13 - r + 1, r, r, dx > 4 ? '#dcd6c8' : '#f4f0e4'); A.px(cx + dx - 1, y + 13 - 2 * r + 2, '#ffffff'); A.hl(cx + dx - r + 1, y + 12, 2 * r - 1, '#d4cec0'); }
+        A.vl(cx, y + 2, 2, '#c8c0b0'); A.px(cx, y + 1, '#f0c040');                                                                     // a little finial
+        // pigeons: sitting on the rim and the sticks, and two circling (their wings up, then down)
+        const bird = (bx, by, col) => { A.r(bx, by, 3, 2, col); A.px(bx + 3, by - 1, col); A.px(bx + 4, by - 1, '#f0a020'); A.px(bx - 1, by + 1, shade(col, -0.3)); };
+        bird(cx - 14, y + 10, '#e8e8f0'); bird(cx + 4, y + 11, '#9aa0b0'); bird(cx - 18, y + 49, '#c8ccd8'); bird(cx + 14, y + 37, '#e8e8f0'); bird(cx - 4, y + 25, '#9aa0b0');
+        for (const [a, b] of [[-22, 4], [20, -2]]) { const bx = cx + a + (f ? 2 : 0), by = y + b + (f ? 1 : 0); A.r(bx, by + 1, 3, 1, '#e8e8f0'); if (f) { A.px(bx - 1, by + 2, '#b8bcc8'); A.px(bx + 3, by + 2, '#b8bcc8'); } else { A.px(bx - 1, by, '#b8bcc8'); A.px(bx + 3, by, '#b8bcc8'); A.px(bx - 2, by - 1, '#b8bcc8'); A.px(bx + 4, by - 1, '#b8bcc8'); } }
+        return propFit(st, w, d, { solid: [(w - 42) / 2, d - 20, 42, 18] });
+    });
+    return { c: frames[0].c, frames: frames.map(q => q.c), fps: 3, ox: frames[0].ox, oy: frames[0].oy, solid: frames[0].solid };
 };
-SPR.c1b_buffalo = (w, d) => {                          // a water buffalo, black, horns swept back, lying in the clover; an egret on its back
-    const st = propStage(w, d, 56, 30), { A } = st, x = st.x, y = st.y;
-    A.ell(x + 26, y + 20, 18, 9, '#2a2a30'); A.ell(x + 22, y + 16, 10, 4, '#4a4a54'); A.hl(x + 12, y + 28, 30, '#16161a');
-    A.ell(x + 46, y + 18, 7, 6, '#2a2a30'); A.ell(x + 50, y + 21, 4, 3, '#4a4a54'); A.px(x + 47, y + 16, '#e8e0d0');              // the head, the muzzle, an eye
-    A.line(x + 42, y + 13, x + 36, y + 11, '#8a8478'); A.line(x + 36, y + 11, x + 38, y + 15, '#8a8478'); A.line(x + 48, y + 12, x + 54, y + 10, '#8a8478');   // horns
-    A.ell(x + 22, y + 9, 4, 3, '#ffffff'); A.line(x + 25, y + 8, x + 28, y + 3, '#ffffff'); A.px(x + 29, y + 3, '#f0c040'); A.px(x + 20, y + 12, '#1c1814'); A.px(x + 23, y + 12, '#1c1814');   // the egret
-    return propFit(st, w, d, { solid: [(w - 44) / 2, d - 12, 44, 12] });
+SPR.c1b_buffalo = (w, d) => {                          // a gamoosa: a water buffalo, slate black, sparse-haired, horns swept back flat along its head, standing in the clover chewing; an egret riding on its back
+    const B = ['#5a5c68', '#3c3e48', '#26272e', '#16161a'], frames = [0, 1, 0, 0].map(f => {
+        const st = propStage(w, d, 62, 42), { A } = st, x = st.x, y = st.y + 2;
+        for (const [lx, c] of [[14, B[3]], [36, B[3]]]) { A.r(x + lx, y + 26, 4, 11, c); A.r(x + lx, y + 35, 4, 2, '#3a2c22'); }            // the far legs
+        A.ell(x + 15, y + 20, 10, 9, B[1]); A.ell(x + 38, y + 19, 11, 10, B[1]); A.r(x + 14, y + 12, 26, 15, B[1]);                         // rump, shoulders, the barrel between
+        A.ell(x + 26, y + 26, 14, 4, B[2]); A.hl(x + 10, y + 11, 30, B[0]); A.ell(x + 36, y + 13, 8, 3, B[0]); A.ell(x + 15, y + 14, 6, 3, B[0]);   // the belly in shade, the back lit
+        A.line(x + 14, y + 22, x + 22, y + 24, B[2]); A.line(x + 34, y + 23, x + 40, y + 20, B[2]);                                          // the haunch, the shoulder blade
+        for (const lx of [10, 31]) { A.r(x + lx, y + 25, 5, 8, B[2]); A.r(x + lx + 1, y + 33, 4, 4, B[2]); A.vl(x + lx, y + 25, 8, B[1]); A.r(x + lx + 1, y + 34, 4, 2, '#5a4636'); A.hl(x + lx + 1, y + 36, 4, '#2a2018'); }   // the near legs, muddy at the hoof
+        const hb = f ? 1 : 0;                                                                                                                 // the head, chewing
+        A.poly([[x + 44, y + 12], [x + 50, y + 13 + hb], [x + 57, y + 22 + hb], [x + 57, y + 27 + hb], [x + 52, y + 28 + hb], [x + 46, y + 22]], B[1]);
+        A.r(x + 53, y + 23 + hb, 5, 5, B[0]); A.px(x + 56, y + 24 + hb, B[3]); A.hl(x + 53, y + 28 + hb, 4, B[2]);                          // the muzzle, a nostril
+        A.px(x + 50, y + 17 + hb, '#c8b8a0'); A.px(x + 51, y + 17 + hb, B[3]); A.r(x + 45, y + 18, 3, 2, B[0]);                            // an eye, an ear sticking out
+        for (const [dx, dy, col, hi] of [[2, -1, '#7a766c', '#9a958a'], [0, 0, '#a8a294', '#d8d2c4']]) {                                  // the horns: thick crescents swept back over the neck, curling down at the tips
+            const hx = x + 48 + dx, hy = y + 13 + hb + dy;
+            for (const [p, q, r2, t] of [[0, 0, -4, -4], [-4, -4, -10, -4], [-10, -4, -14, -1]]) { A.line(hx + p, hy + q, hx + r2, hy + t, col); A.line(hx + p, hy + q + 1, hx + r2, hy + t + 1, col); }
+            A.line(hx - 1, hy - 1, hx - 4, hy - 4, hi); A.line(hx - 4, hy - 4, hx - 9, hy - 4, hi); A.px(hx - 14, hy, '#4a4640'); A.px(hx - 14, hy - 1, '#4a4640');
+        }
+        A.line(x + 5, y + 14, x + 3, y + 28, B[2]); A.r(x + 2, y + 28, 3, 3, B[3]); if (f) A.px(x + 1, y + 27, B[2]);                       // the tail, its tuft
+        // the egret: white, an S of a neck, a yellow beak
+        A.ell(x + 24, y + 8, 5, 3, '#ffffff'); A.hl(x + 21, y + 10, 7, '#d8dce4'); A.px(x + 19, y + 7, '#e8ecf0');
+        A.px(x + 28, y + 6, '#ffffff'); A.px(x + 29, y + 5, '#ffffff'); A.px(x + 29, y + 4, '#ffffff'); A.px(x + 28, y + 3, '#ffffff'); A.r(x + 28, y + 1, 3, 2, '#ffffff'); A.hl(x + 31, y + 2, 3, '#f0c040'); A.px(x + 29, y + 1, '#1c1814');
+        A.vl(x + 23, y + 11, 1, '#3a3a40'); A.vl(x + 26, y + 11, 1, '#3a3a40');
+        return propFit(st, w, d, { solid: [(w - 46) / 2, d - 12, 46, 12] });
+    });
+    return { c: frames[0].c, frames: frames.map(q => q.c), fps: 1.5, ox: frames[0].ox, oy: frames[0].oy, solid: frames[0].solid };
 };
-SPR.c1b_goats = (w, d) => {                            // two goats, a black one and a brown one, tethered to a stake
-    const st = propStage(w, d, 34, 22), { A } = st, x = st.x, y = st.y;
-    const goat = (gx, gy, col, s) => { A.r(gx, gy + 4, 12, 7, col); A.hl(gx, gy + 4, 12, shade(col, 0.25)); for (const lx of [1, 4, 8, 11]) A.vl(gx + lx - (lx > 6 ? 0 : 0), gy + 11, 5, shade(col, -0.2)); const hx = s > 0 ? gx + 11 : gx - 4; A.r(hx, gy + 1, 5, 5, col); A.px(hx + (s > 0 ? 4 : 0), gy + 6, '#f4f0e4'); A.px(hx + (s > 0 ? 1 : 3), gy, shade(col, -0.4)); A.px(hx + (s > 0 ? 3 : 1), gy + 2, '#f0c040'); };
-    goat(x + 2, y + 4, '#2a2420', 1); goat(x + 18, y + 2, '#a8683a', -1);
-    A.vl(x + 16, y + 10, 10, WOOD[2]); A.line(x + 16, y + 11, x + 13, y + 7, '#c8b888'); A.line(x + 16, y + 11, x + 20, y + 5, '#c8b888');
-    return propFit(st, w, d, {});
+SPR.c1b_goats = (w, d) => {                            // two baladi goats, a black one grazing and a brown one watching you, long ears flopping, tethered to a stake
+    const frames = [0, 1, 1, 0].map(f => {
+        const st = propStage(w, d, 50, 30), { A } = st, x = st.x, y = st.y + 5;
+        const goat = (gx, gy, P, s, down) => {                                                                                              // s: 1 faces right, -1 left
+            const X = dx => s > 0 ? gx + dx : gx + 18 - dx, R = (dx, dy, ww, hh, c) => A.r(s > 0 ? gx + dx : gx + 18 - dx - ww + 1, gy + dy, ww, hh, c);
+            for (const lx of [3, 12]) R(lx, 10, 2, 7, P[3]);                                                                               // the far legs
+            A.ell(X(8), gy + 7, 7, 4, P[1]); R(3, 3, 11, 2, P[0]); R(2, 10, 13, 1, P[2]);                                                  // the body, the lit back, the belly
+            for (const lx of [2, 11]) { R(lx, 10, 2, 7, P[2]); R(lx, 16, 2, 1, '#2a2420'); }                                               // the near legs, little hooves
+            R(0, 2, 2, 2, P[1]); A.px(X(0), gy + 1, P[0]);                                                                                 // the tail, up
+            if (down) { R(13, 6, 3, 3, P[1]); R(15, 9, 3, 4, P[1]); R(17, 12, 2, 2, P[2]); A.px(X(15), gy + 9, P[3]); R(14, 8, 1, 4, P[3]); A.px(X(18), gy + 15, '#58a848'); }   // head down in the grass, an ear hanging
+            else {
+                R(13, 2, 3, 5, P[1]); R(14, -2, 4, 5, P[1]); R(18, 0, 1, 3, P[1]); A.px(X(18), gy + 2, P[2]);                              // the neck up, the head, a Roman nose
+                A.px(X(16), gy - 1, '#e8c040'); A.px(X(16), gy - 2 + 0, P[3]);                                                             // the eye
+                R(13, -1, 1, 5, P[3]); R(12, 3, 1, 1, P[3]);                                                                               // the long ear hanging down
+                A.px(X(15), gy - 3, '#c8c0b0'); A.px(X(14), gy - 4, '#c8c0b0'); A.px(X(13), gy - 4, '#a8a094');                            // small horns curving back
+                A.px(X(17), gy + 3, P[2]); A.px(X(17), gy + 4, P[3]);                                                                      // the beard
+            }
+        };
+        A.vl(x + 24, y + 6, 12, WOOD[2]); A.px(x + 24, y + 5, WOOD[0]);
+        goat(x + 29, y + 0, ['#d09060', '#b06e3e', '#8a5028', '#683a1c'], 1, false); goat(x + 0, y + 9, ['#4a4440', '#2c2826', '#1e1a18', '#141210'], 1, f);
+        A.line(x + 24, y + 9, x + 15, y + (f ? 17 : 13), '#c8b888'); A.line(x + 24, y + 9, x + 42, y + 4, '#c8b888');                      // the tethers
+        return propFit(st, w, d, {});
+    });
+    return { c: frames[0].c, frames: frames.map(q => q.c), fps: 1.2, ox: frames[0].ox, oy: frames[0].oy };
 };
 SPR.c1b_ball = (w, d) => { const st = propStage(w, d, 8, 8), { A } = st; A.ell(st.x + 4, st.y + 4, 3, 3, '#f4f4f0'); A.px(st.x + 3, st.y + 3, '#20242c'); A.px(st.x + 5, st.y + 5, '#20242c'); A.px(st.x + 5, st.y + 2, '#20242c'); return propFit(st, w, d, { flat: true }); };
 

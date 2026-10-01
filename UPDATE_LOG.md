@@ -12,6 +12,41 @@ Other docs:
 
 ---
 
+## POKE-STYLE P0.39 — 2026-10-01 — (branch `poke-style`) Saqqara redrawn: the Step Pyramid, the colossus, the sphinx, the animals, the stalls; and a secret at the sphinx
+- **The Step Pyramid** no longer looks like a beehive: six battered steps, each shorter than
+  the one below and much wider than tall, built of staggered blocks (no more stripes), with
+  the casing fallen away in patches to show the rubble core, sunlit ledges with sand and
+  stones on them, the east corners turning into shade.
+- **The colossus of Ramesses II** redone from scratch: lying on his back seen from above, his
+  face turned on its side to you (brow, eyes, nose, smile, false beard), the nemes and its
+  striped lappets, arms down his sides with the fists round two scrolls, a cartouche on his
+  shoulder and his belt, the dagger in the belt, the pleated kilt, the legs broken at the
+  knees; the stone's thickness shown along his side, on a plinth inside an iron rail (the
+  heavy shade roof is gone).
+- **The alabaster sphinx** in profile: the nemes and lappet, the face with its broken
+  uraeus and beard, forepaws out with toes, the hind paw tucked, the tail curled round the
+  haunch, honey-and-milk calcite with veins, on a low base.
+- **The pigeon towers:** a mud-brick base with a blue door, a whitewashed band, the tower
+  studded with clay pot mouths and rows of perching sticks, a crown of little domes, pigeons
+  sitting and two circling.
+- **The water buffalo** stands now, slate black, crescent horns swept back, muddy hooves,
+  chewing, its tail swishing, the egret riding on its back. **The goats:** a black one
+  grazing and a brown one watching, long floppy ears, Roman noses, beards, tethered apart.
+  **The cat:** a ginger tabby curled up asleep with its tail round its paws, the tip flicking.
+- **The market stalls:** posts and a sagging scalloped awning, crates and sacks under the
+  counter, brass scales, price cards, and goods to match: bananas on hooks, mangoes and
+  watermelons; aubergines, garlic strings, onions in a net; spice cones in rolled sacks, jars
+  on a shelf, chilli strings; bolts of cloth, folded stacks, a galabeya on a hanger. **The
+  souvenir stall:** papyrus prints and scarves on a line, alabaster pyramids, a gold mask, a
+  black Bastet, a basket of scarabs.
+- **The Fiat in the garage:** a proper boxy old saloon, its bonnet up, one door in grey
+  primer, up on a jack stand with the front wheel off, and its engine in pieces on cardboard.
+- **A secret** (new file `poke/ch1b_egg.js`): stand in front of the alabaster sphinx and
+  press UP three times, quickly. Someone comes out from behind it. Turn the music on.
+- Tested: the audit is clean (287 scenes), the Giza playthroughs and the three Inspector
+  runs pass, the secret triggers only at the sphinx (and not with a gap between presses),
+  plays out, and leaves the world as it was. Giza's 33 views are identical.
+
 ## POKE-STYLE P0.38 — 2026-10-01 — (branch `poke-style`) Saqqara's rooms, the phone, resting, and an Inspector playthrough in the checks (Chapter 1-B, step 11 — the Inspector level is done)
 - **Every building you can see has an inside** (except the Serapeum, which the story keeps
   locked until the round):

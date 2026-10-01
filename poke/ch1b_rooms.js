@@ -31,7 +31,39 @@ const FURN1B = {
     sacks() { const st = stage(30, 14, 16), { A } = st, x = st.x, y = st.y - 14; for (const [a, b] of [[0, 4], [10, 0], [18, 5]]) { A.ell(x + a + 6, y + b + 12, 7, 9, '#e8e0c8'); A.hl(x + a + 2, y + b + 6, 8, '#c8bca0'); A.r(x + a + 4, y + b + 9, 4, 3, '#3a70c8'); } return fit(st, { solid: [0, 4, 30, 10] }); },
     cafeTable() { const st = stage(36, 16, 14), { A } = st, x = st.x, y = st.y - 10; A.ell(x + 18, y + 6, 9, 4, '#dfe6ea'); A.ell(x + 18, y + 5, 8, 3, '#ffffff'); A.r(x + 17, y + 9, 2, 10, '#86949e'); for (const cx of [x + 2, x + 28]) { A.r(cx, y + 4, 6, 6, '#8e5e32'); A.r(cx, y + 10, 6, 2, '#b8844c'); A.vl(cx, y + 12, 6, '#6e4424'); A.vl(cx + 5, y + 12, 6, '#6e4424'); } A.r(x + 15, y + 2, 2, 3, '#f0e8d8'); A.px(x + 15, y + 3, '#b84020'); A.r(x + 20, y + 2, 4, 2, '#d8b888'); return fit(st, { solid: [4, 4, 28, 12] }); },
     shisha() { const st = stage(10, 8, 26), { A } = st, x = st.x + 5, y = st.y - 24; A.ell(x, y + 26, 5, 4, '#3a70c8'); A.ell(x - 1, y + 25, 2, 1, '#8ac0f0'); A.r(x - 1, y + 6, 2, 18, '#c89020'); A.r(x - 3, y + 3, 6, 3, '#9a4a2c'); A.px(x, y + 2, '#ff9040'); A.line(x + 2, y + 18, x + 8, y + 14, '#5a3a20'); return fit(st, { solid: [0, 0, 10, 8] }); },
-    car() { return fit(carSprite(80, 40, ['#f07860', '#c83828', '#a02828', '#701c14'], { tint: '#28384a', hub: '#c8ccd0' }), { solid: [0, 14, 80, 26] }); },
+    car() {                                                                                                                   // the red Fiat 128: a boxy old saloon, one door in grey primer, up on a jack stand with its front wheel off
+        const st = stage(100, 30, 30), { A } = st, x = st.x, y = st.y - 26, P = ['#f07860', '#d04030', '#a82c20', '#701c14'], CH = ['#f4f8fa', '#c8ccd0', '#868c94'], GL = ['#8ab0d0', '#4a6a8a', '#2c3c4c'];
+        A.soft(x + 6, y + 50, 90, 6, '#000000', 0.25); A.ell(x + 60, y + 54, 10, 2, '#1a1410');                                // its shadow, an oil stain
+        // the roof and the bonnet and boot from above (we look down on it a little)
+        A.r(x + 30, y + 6, 40, 10, P[0]); A.hl(x + 30, y + 6, 40, '#ffb8a0'); A.r(x + 31, y + 9, 2, 6, P[1]); A.r(x + 67, y + 9, 2, 6, P[1]);
+        A.r(x + 4, y + 22, 24, 8, P[0]); A.hl(x + 4, y + 22, 24, '#ffb8a0');                                                    // the boot
+        A.r(x + 74, y + 22, 23, 8, '#1e1c1e'); A.r(x + 78, y + 23, 12, 5, '#5a6068'); A.hl(x + 78, y + 23, 12, '#8a9098'); A.r(x + 91, y + 24, 4, 4, '#3a3e46'); A.r(x + 81, y + 21, 4, 2, '#c89020');   // the engine bay, half empty
+        A.poly([[x + 74, y + 22], [x + 78, y + 20], [x + 98, y + 2], [x + 96, y + 0]], P[2]); A.poly([[x + 76, y + 20], [x + 97, y + 1], [x + 99, y + 4], [x + 79, y + 21]], P[0]); A.line(x + 92, y + 22, x + 94, y + 6, CH[1]);   // the bonnet up on its prop
+        // the glasshouse: rear screen, two side windows, the windscreen, thin pillars
+        A.poly([[x + 24, y + 30], [x + 30, y + 16], [x + 70, y + 16], [x + 78, y + 30]], GL[2]);
+        A.poly([[x + 26, y + 29], [x + 31, y + 18], [x + 48, y + 18], [x + 48, y + 29]], GL[1]); A.poly([[x + 51, y + 29], [x + 51, y + 18], [x + 68, y + 18], [x + 75, y + 29]], GL[1]);
+        A.line(x + 34, y + 27, x + 39, y + 19, GL[0]); A.line(x + 56, y + 27, x + 60, y + 19, GL[0]); A.r(x + 48, y + 16, 3, 14, P[1]); A.line(x + 30, y + 16, x + 24, y + 30, P[1]); A.line(x + 70, y + 16, x + 78, y + 30, P[1]);
+        A.r(x + 34, y + 21, 6, 3, '#3a2a20'); A.r(x + 56, y + 21, 8, 4, '#3a2a20');                                            // the seat backs
+        // the flank: one crease along the waist, a chrome strip, the rear door in primer
+        A.r(x + 2, y + 30, 96, 16, P[1]); A.hl(x + 2, y + 30, 96, P[0]); A.hl(x + 2, y + 35, 96, '#f89a80'); A.r(x + 2, y + 41, 96, 5, P[2]); A.hl(x + 2, y + 45, 96, P[3]);
+        A.r(x + 28, y + 30, 21, 15, '#9aa0a8'); A.hl(x + 28, y + 30, 21, '#c0c6cc'); A.r(x + 28, y + 41, 21, 4, '#7a8088');                // the primer door
+        for (const dx of [28, 49, 72]) A.vl(x + dx, y + 30, 15, P[3]); A.hl(x + 2, y + 38, 96, CH[1]); A.hl(x + 2, y + 37, 96, CH[0]);
+        for (const dx of [40, 62]) { A.r(x + dx, y + 33, 4, 1, CH[1]); A.px(x + dx, y + 33, CH[0]); }                           // door handles
+        A.r(x, y + 38, 5, 4, CH[1]); A.hl(x, y + 38, 5, CH[0]); A.r(x + 96, y + 38, 5, 4, CH[1]); A.hl(x + 96, y + 38, 5, CH[0]);   // the bumpers
+        A.r(x + 2, y + 32, 3, 4, '#d02818'); A.px(x + 2, y + 32, '#ff8060'); A.r(x + 96, y + 32, 4, 4, '#fff4c0'); A.px(x + 97, y + 33, '#ffffff'); A.r(x + 92, y + 33, 3, 2, '#f09020');   // tail lamp, headlamp, indicator
+        A.r(x + 74, y + 28, 3, 3, P[3]); A.px(x + 75, y + 28, CH[0]);                                                          // the wing mirror
+        // the rear wheel, in its arch
+        A.ell(x + 20, y + 46, 9, 7, P[3]); wheel(A, x + 20, y + 47, 7, CH[1]); A.ell(x + 20, y + 47, 2, 2, CH[2]);
+        // the front: the arch empty, the brake disc on the hub, a jack stand under the sill, the wheel leaning on the car
+        A.ell(x + 80, y + 46, 9, 7, '#1a1416'); A.ell(x + 80, y + 46, 4, 4, '#8a8e94'); A.ell(x + 80, y + 46, 2, 2, '#5a5e64'); A.px(x + 79, y + 45, CH[0]);
+        A.r(x + 76, y + 46, 8, 3, '#d04838'); A.poly([[x + 74, y + 56], [x + 78, y + 49], [x + 82, y + 49], [x + 86, y + 56]], '#d04838'); A.hl(x + 74, y + 56, 13, '#8a2018'); A.hl(x + 78, y + 49, 4, '#f07860');
+        wheel(A, x + 94, y + 48, 7, CH[1]); A.r(x + 92, y + 47, 4, 2, CH[2]);
+        // on the floor
+        A.r(x + 28, y + 52, 40, 8, '#b8946a'); A.hl(x + 28, y + 52, 40, '#d8b888');                                            // the engine in pieces on cardboard, laid out in order
+        for (const [dx, ww, c] of [[30, 6, '#5a6068'], [38, 4, '#8a9098'], [44, 7, '#3a3e46'], [53, 3, '#c89020'], [58, 5, '#8a9098'], [64, 2, '#5a6068']]) { A.r(x + dx, y + 54, ww, 3, c); A.hl(x + dx, y + 54, ww, shade(c, 0.35)); }
+        A.r(x + 60, y + 58, 7, 1, '#a8b0b8'); A.px(x + 59, y + 57, '#a8b0b8');                                                // a spanner
+        return fit(st, { solid: [2, 8, 96, 22] });
+    },
     fridgeDrinks() { const st = stage(24, 12, 34), { A } = st, x = st.x, y = st.y - 32; A.r(x, y, 24, 46, '#d04838'); A.r(x + 2, y + 6, 20, 32, '#9ed2f4'); for (let j = 0; j < 4; j++) for (let i = 0; i < 4; i++) A.r(x + 4 + i * 5, y + 9 + j * 8, 3, 6, ['#3a70c8', '#d04838', '#58a848', '#f0c040'][(i + j) % 4]); A.r(x + 2, y + 1, 20, 4, '#ffffff'); A.r(x + 6, y + 2, 12, 2, '#d04838'); return fit(st, { solid: [0, 0, 24, 12] }); },
     postcards() { const st = stage(18, 10, 30), { A } = st, x = st.x, y = st.y - 28; A.r(x + 8, y, 2, 40, '#86949e'); for (let j = 0; j < 3; j++) for (let s of [-1, 1]) A.r(x + 9 + s * 6 - 4, y + 4 + j * 11, 8, 9, ['#f0c040', '#58a6e6', '#f07860'][(j + (s > 0 ? 1 : 0)) % 3]); A.ell(x + 9, y + 40, 6, 2, '#5a6272'); return fit(st, { solid: [2, 2, 14, 8] }); },
     ironing() { const st = stage(36, 10, 16), { A } = st, x = st.x, y = st.y - 12; A.poly([[x, y + 4], [x + 30, y + 2], [x + 36, y + 5], [x + 30, y + 8], [x, y + 8]], '#dcd8cc'); A.hl(x, y + 4, 30, '#ffffff'); A.line(x + 8, y + 8, x + 4, y + 22, '#86949e'); A.line(x + 24, y + 8, x + 28, y + 22, '#86949e'); A.r(x + 14, y, 9, 4, '#d04838'); A.r(x + 14, y - 1, 6, 1, '#5a6272'); A.r(x + 2, y + 2, 10, 3, '#3a70c8'); return fit(st, { solid: [0, 2, 36, 8] }); },
@@ -122,7 +154,7 @@ ROOMS.INT_GARAGE = {
         WALLART.calendar(A, 40, 12); A.r(90, 10, 60, 30, '#3a3226'); for (let i = 0; i < 9; i++) for (let j = 0; j < 4; j++) A.px(94 + i * 6, 14 + j * 6, '#5a4c38');
         A.r(96, 14, 2, 14, '#a8b0b8'); A.r(104, 13, 8, 3, '#a8b0b8'); A.r(118, 16, 5, 4, '#d04838'); A.r(130, 13, 2, 16, '#a8b0b8'); A.r(138, 15, 6, 6, '#c89020');
         wall(88, 64, null, { label: 'Tool Board', say: ['System', 'Spanners, sockets, a hammer, a mallet and something that might be a dentist\'s tool, every one hanging in its painted outline. Two outlines are empty. "Borrowed," says a note, "by Samir. SAMIR."'] });
-        put((pw >> 1) - 40, W + 34, FURN1B.car(), 'c1b_fiat', { label: 'The Red Fiat', script: 'c1b_fiat' });
+        put((pw >> 1) - 50, W + 34, FURN1B.car(), 'c1b_fiat', { label: 'The Red Fiat', script: 'c1b_fiat' });
         put(20, ph - 64, FURN.radioTable(), null, { label: 'Radio', say: ['System', 'A radio with a coat hanger for an aerial, playing Abdel Halim Hafez singing about a love that\'s over. The mechanic sings along when he thinks nobody\'s listening.'] });
         put(pw - 50, W + 10, FURN.jerrycans()); put(pw - 46, ph - 70, FURN.burnBin());
     },

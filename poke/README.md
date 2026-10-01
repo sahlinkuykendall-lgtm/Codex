@@ -112,6 +112,7 @@ there are no image files.
 | `ch1b_jobs.js` | Chapter 1-B's jobs: the seal register and the paid seal shift (eight sealed shafts, two forged), guiding tours of the Step Pyramid (the guide's quiz), sieving at the Teti dig |
 | `ch1b_secrets.js` | Chapter 1-B's secrets (the Serapeum's twenty-sixth gallery with its bronze Thoth and a rare find; Naneferkaptah's sealed tomb), counted like Giza's; the Serapeum open after the round |
 | `ch1b_rooms.js` | Chapter 1-B's interiors (the café, bakery, mosque, garage, seven village houses, the ghaffir's hut, the kiosk, the Step Pyramid's shaft), the phone calls and messages, and the places to rest |
+| `ch1b_egg.js` | A secret at the alabaster sphinx (UP three times in front of it): a rocker's cameo with an original riff. Not in the story bible, on purpose |
 | `backgrounds.js` | The four backgrounds: skills, gear, papers, their paintings and opening cutscenes |
 | `intro.js` | The opening scenes, the background choice, male/female, the character creator, the name grid, your papers |
 | `game.js` | The loop: input, movement and collision, camera, drawing, day/night, doors, saving |
