@@ -12,6 +12,29 @@ Other docs:
 
 ---
 
+## POKE-STYLE P0.42 — 2026-10-01 — (branch `poke-style`) The Fixer, step 3: prep the job (three new minigames)
+- **Diesel for Zaki's dhow** (`poke/ch1c_prep.js`), three ways:
+  - **pay the fuel man** by day at the fuel store, with the new **haggling minigame**: ◄► your price,
+    OFFER or WALK AWAY. He counters, his patience drains (glasses of tea), insulting offers cost
+    double, and walking away while he's above his last price makes him call you back, once. With
+    Haggling 3 you can tell when he's near his limit.
+  - **steal it after dark** with the new **lockpicking minigame**: hold SPACE to lift each pin, let
+    go when the gap is on the shear line; only the binding pin sets (Lockpicking 2 lets you feel
+    which). A **night watchman** walks the quay with a torch and a view cone and rattles the padlock
+    twice a round. The minigame lasts exactly as long as his back is turned, so start just after he
+    walks on. Caught: bribe him (and then he offers you the key), or run (police heat +1).
+  - **pay the watchman** for "a long walk to the end of the breakwater" (haggle him).
+- **A route past the coast guard**, two ways:
+  - **buy the patrol times** from the old fisherman (his wife's cousin is on the patrol boat), haggling
+  - **watch the patrol boat from the fort** at dusk with the new **scouting minigame**: new steps
+    up the fort's wall to the rampart; press SPACE as its lights pass each mark to note the times.
+    Either way: out at dusk, north to the buoy line, back by 19:40, nothing until after midnight;
+    go south, round the villa's point.
+- **Rana's diving kit:** tell her the job or don't, check the kit in front of her (Diving) or say you
+  trust her. "If you go in, swim for the reef. Not for the boat."
+- Zaki talks about the diesel and the route as you sort them. When all three are done: "Diesel, a
+  route, a way out of the water. The truck at ten."
+
 ## POKE-STYLE P0.41 — 2026-10-01 — (branch `poke-style`) The Fixer, step 2: Bassem's offer at the villa
 - **The villa gate opens at half past four.** Before that, Bassem's man sends you away ("when Mr.
   Bassem is eating, the sea waits"). Once Zaki and Rana have heard, you can **sit in the shade of

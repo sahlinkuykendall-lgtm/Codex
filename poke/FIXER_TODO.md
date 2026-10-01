@@ -91,7 +91,13 @@ Diving 1, Egyptian Arabic (street). New minigames: **haggling**, **lockpicking**
   their security chief is "a German woman who doesn't laugh." "Nobody opens the package."
 - Sets the three prep tasks of beat 3.
 
-## 3. Beat 3: prep the job (your choice of how)
+## 3. Beat 3: prep the job (your choice of how) — ✅ DONE in P0.42
+> Done in `poke/ch1c_prep.js`: the **haggling**, **lockpicking** and **scouting** minigames; diesel
+> paid (haggle the fuel man by day), stolen (pick the padlock after dark while the night watchman's
+> back is turned; caught: bribe or run, heat +1) or bribed (pay the watchman for a long walk); the
+> route bought from the fisherman (his wife's cousin is on the patrol boat) or scouted from the fort's
+> rampart at dusk (new steps up the wall); Rana's kit (with a look); Zaki's lines as you go. Flags:
+> `c1c_fuel` (paid/stolen/bribed), `c1c_route` (bought/scouted), `c1c_route_good`, `c1c_kit`, `c1c_prep`.
 Three tasks, each with more than one way to do it:
 - **Fuel for the dhow:** steal it from the harbour fuel store at dusk (**the lockpicking
   minigame**, new, plus a watchman's view cone) or pay for a fill (**the haggling

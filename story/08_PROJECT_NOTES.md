@@ -2,7 +2,7 @@
 
 The working memory for the poke-style build: **what the owner wants, how to work, what's
 been done, and what's next.** Keep it current: update the "Where we are" and "What's next"
-sections at the end of every step. Last updated 2026-10-01, at P0.41.
+sections at the end of every step. Last updated 2026-10-01, at P0.42.
 
 ---
 
@@ -60,7 +60,7 @@ The player picks one of **four backgrounds**, and each has its own Chapter 1 ope
 |---|---|---|
 | Archaeologist | 1-A, the Giza dig camp (one night) | **Done** (P0.7–P0.28; `poke/AREA1_TODO.md`) |
 | Inspector | 1-B, Saqqara and Mit Rahina | **Done** (P0.23–P0.39; `poke/INSPECTOR_TODO.md`) |
-| Fixer | 1-C, Marsa Tarfa on the Red Sea | **In progress** (`poke/FIXER_TODO.md`): steps 1–2 done (P0.40–P0.41) |
+| Fixer | 1-C, Marsa Tarfa on the Red Sea | **In progress** (`poke/FIXER_TODO.md`): steps 1–3 done (P0.40–P0.42) |
 | Journalist | 1-D, Port Said | Not planned yet (only the opening cutscenes exist) |
 
 All four meet in **Chapter 2, Cairo** (`story/regions/ch02_cairo.md`). Each opening ends with
@@ -84,7 +84,9 @@ See `poke/README.md` for the file-by-file table. The essentials:
 - **Rooms:** `ROOMS[key] = {name, tw, th, style, enter, build(...)}`; doors are listed in the
   area's layout.
 - **Minigames:** `MINIS.x = {title, keys, start, update, draw}`; `playMinigame(kind, opts, cb)`.
-  So far: sieve, tea, darts, seal, race, tawla, the guide's quiz.
+  So far: sieve, tea, darts, seal, race, tawla, the guide's quiz, and for the Fixer: haggle,
+  lockpick, scout (`ch1c_prep.js`). Don't name a minigame's state field `done`: `Mini` keeps the
+  callback there.
 - **Music:** `poke/music.js`, chiptune tunes synthesised on the fly (`TUNES`).
 - Script order matters: new files go in `poke.html` after what they depend on.
 
@@ -137,12 +139,15 @@ Add a playthrough file for each new opening (next: `poke_fixer.js`). An area can
   German woman who doesn't laugh, nobody opens the package); the beat 3 tasks set. New: the
   `villa` room style, the `chain` accessory, and `auditOpen` (an area's story gates opened for the
   audit).
+- **P0.42: the Fixer, step 3** (`ch1c_prep.js`): three new minigames (haggling, lockpicking,
+  scouting the patrol boat); diesel paid, stolen past the night watchman's view cone, or bribed;
+  the coast guard route bought from the fisherman or scouted from the fort's rampart; Rana's kit.
 
 ## 6. What's next
 
 1. **The Fixer's opening, Chapter 1-C (Marsa Tarfa):** follow `poke/FIXER_TODO.md`; next is
-   step 3 (prep the job: the fuel theft with the new lockpicking minigame or a paid fill with the
-   new haggling minigame, the coast guard route, Rana's kit). Waiting on the owner's go-ahead.
+   step 4 (the truck stop at ten: Lena Brandt gets out with the truck, "Don't open it," loading
+   the package). Waiting on the owner's go-ahead.
 2. Then the Journalist's opening, Chapter 1-D (Port Said): write `JOURNALIST_TODO.md` the
    same way first.
 3. Then Chapter 2, Cairo, where the four backgrounds meet.

@@ -118,6 +118,7 @@ there are no image files.
 | `sprites_ch1c.js` | Marsa Tarfa's art: whitewashed houses, the dive shop, the fish market, the dhow and the boats, the coast guard post, the hotel, the Ottoman fort, the villa, the truck stop |
 | `ch1c_scenes.js` | Chapter 1-C's story so far: the cast, the debt (in the bank app), beat 1 (the collectors, Zaki, Rana), water and food, your flat and Rana's dive shop |
 | `ch1c_bassem.js` | Chapter 1-C, beat 2: Bassem's gate (open from 16:30, wait for five), the villa inside, Bassem and his offer, the prep tasks for beat 3 |
+| `ch1c_prep.js` | Chapter 1-C, beat 3: the haggling, lockpicking and scouting minigames; the night watchman's round and view cone; diesel (pay, steal, bribe), the coast guard route (buy, scout from the fort), Rana's kit |
 | `backgrounds.js` | The four backgrounds: skills, gear, papers, their paintings and opening cutscenes |
 | `intro.js` | The opening scenes, the background choice, male/female, the character creator, the name grid, your papers |
 | `game.js` | The loop: input, movement and collision, camera, drawing, day/night, doors, saving |
