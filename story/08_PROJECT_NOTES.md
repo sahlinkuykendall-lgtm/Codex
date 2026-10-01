@@ -2,7 +2,7 @@
 
 The working memory for the poke-style build: **what the owner wants, how to work, what's
 been done, and what's next.** Keep it current: update the "Where we are" and "What's next"
-sections at the end of every step. Last updated 2026-10-01, at P0.39.
+sections at the end of every step. Last updated 2026-10-01, at P0.40.
 
 ---
 
@@ -54,7 +54,7 @@ The player picks one of **four backgrounds**, and each has its own Chapter 1 ope
 |---|---|---|
 | Archaeologist | 1-A, the Giza dig camp (one night) | **Done** (P0.7–P0.28; `poke/AREA1_TODO.md`) |
 | Inspector | 1-B, Saqqara and Mit Rahina | **Done** (P0.23–P0.39; `poke/INSPECTOR_TODO.md`) |
-| Fixer | 1-C, Marsa Tarfa on the Red Sea | **Planned** (`poke/FIXER_TODO.md`), not started |
+| Fixer | 1-C, Marsa Tarfa on the Red Sea | **In progress** (`poke/FIXER_TODO.md`): step 1 done in P0.40 |
 | Journalist | 1-D, Port Said | Not planned yet (only the opening cutscenes exist) |
 
 All four meet in **Chapter 2, Cairo** (`story/regions/ch02_cairo.md`). Each opening ends with
@@ -119,11 +119,15 @@ Add a playthrough file for each new opening (next: `poke_fixer.js`).
   guitar walks out to an original riff, says "Rock on, dude! I gotta go save
   Peachessssss!" and runs off.
 - **After P0.39:** `poke/FIXER_TODO.md` written (11 steps for Chapter 1-C).
+- **P0.40: the Fixer, step 1.** Marsa Tarfa (`marsa.js`, `map_ch1c.js`, `sprites_ch1c.js`,
+  `ch1c_scenes.js`): the map with new sea, reef, beach and quay ground; the cast; beat 1 (the debt
+  collectors, the debt in the bank app, Zaki, Rana, the summons to Bassem's at five); water and
+  food; your flat and Rana's dive shop. The Fixer is playable. The villa gate stays shut until step 2.
 
 ## 6. What's next
 
-1. **The Fixer's opening, Chapter 1-C (Marsa Tarfa):** follow `poke/FIXER_TODO.md` from
-   step 1 (the map, the cast, beat 1). Waiting on the owner's go-ahead.
+1. **The Fixer's opening, Chapter 1-C (Marsa Tarfa):** follow `poke/FIXER_TODO.md`; next is
+   step 2 (Bassem's offer at the villa, its interior). Waiting on the owner's go-ahead.
 2. Then the Journalist's opening, Chapter 1-D (Port Said): write `JOURNALIST_TODO.md` the
    same way first.
 3. Then Chapter 2, Cairo, where the four backgrounds meet.

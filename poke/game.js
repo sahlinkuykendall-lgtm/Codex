@@ -125,7 +125,7 @@ const Game = {
     miniMap() {
         if (this._mm) return this._mm;
         const L = this.camp, [c, g] = mk(L.W, L.H), A = pa(g);
-        const COL = { [T.SAND]: '#ecd49a', [T.PATH]: '#c89e62', [T.ROCK]: '#9a7e58', [T.WATER]: '#4a98dc', [T.DIG]: '#5a422a', [T.STONE]: '#e8dcc0', [T.RAIL]: '#5a5048', [T.GRAVEL]: '#b8a882', [T.FIELD]: '#5aa048', [T.ROAD]: '#77726c', [T.YARD]: '#e8c98e' };
+        const COL = { [T.SAND]: '#ecd49a', [T.PATH]: '#c89e62', [T.ROCK]: '#9a7e58', [T.WATER]: '#4a98dc', [T.DIG]: '#5a422a', [T.STONE]: '#e8dcc0', [T.RAIL]: '#5a5048', [T.GRAVEL]: '#b8a882', [T.FIELD]: '#5aa048', [T.ROAD]: '#77726c', [T.YARD]: '#e8c98e', [T.SEA]: '#2e86c8', [T.REEF]: '#48c0cc', [T.BEACH]: '#f6e6ba', [T.QUAY]: '#cbc5b6' };
         for (let y = 0; y < L.H; y++) for (let x = 0; x < L.W; x++) A.px(x, y, COL[L.get(x, y)]);
         for (const e of this.maps.ch1.ents) if (e.spr && e.w >= TILE * 2 && !e.spr.flat) A.r(e.x / TILE, e.y / TILE, e.w / TILE, Math.max(1, e.d / TILE), '#804c28');
         for (const [tx, ty] of L.trees) A.px(tx, ty, '#388030');

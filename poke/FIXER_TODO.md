@@ -39,7 +39,24 @@ Diving 1, Egyptian Arabic (street). New minigames: **haggling**, **lockpicking**
 
 ---
 
-## 1. The area, the cast, beat 1: morning in Marsa Tarfa
+## 1. The area, the cast, beat 1: morning in Marsa Tarfa — ✅ DONE in P0.40
+> Done in `poke/marsa.js` (the layout), `poke/map_ch1c.js` (what things say), `poke/sprites_ch1c.js`
+> (the art) and `poke/ch1c_scenes.js` (the story):
+> - **the map** (80×58): the town (thirteen houses, the mosque, the café, the kiosk, the square with
+>   its tap), the harbour (quays, breakwaters, the fish market and grill, the fuel store, Zaki's
+>   dhow, fishing boats, the coast guard post and its patrol boat), the north beach and the hotel,
+>   the Ottoman fort on the headland, Bassem's walled villa on the south point (locked until beat
+>   2), the reef offshore, the coast highway, the truck stop, the wadi
+> - **new ground:** sea (foam at the beach), the reef (coral under the water), beach, quays
+> - **the cast:** Captain Zaki, Rana Fouad, Bassem's men, and sixteen nameless locals with first
+>   lines; water and food (the tap, three sets of water jars, the grill, the ful cart, the café,
+>   the kiosk, the truck stop café, Rana's cooler, your sink)
+> - **beat 1:** Bassem's two collectors at your door (pay, haggle or refuse "something for our
+>   trouble"), the debt in the phone's bank app, Zaki at his dhow, Rana in her shop, the
+>   summons to the villa at five
+> - **rooms:** your flat and Rana's dive shop
+> - **the Fixer is playable** from the intro (Egyptian or foreign: Egyptian Arabic 5 and reading
+>   2, and less money)
 - **The map** (about 80×58, like Giza and Saqqara), the sea on the east:
   - the harbour: quays, fishing boats, **Captain Zaki's dhow**, the fish market and grill
   - the town: whitewashed houses with blue doors, **your flat**, a café, a mosque, a

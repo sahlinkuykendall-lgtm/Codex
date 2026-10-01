@@ -286,7 +286,7 @@ const Phone = {
             const calls = PHONE_CALLS.filter(c => c.when()).map(c => ['☎ Call ' + c.name, '', 0, c]);
             return calls.concat([['PEOPLE', '', 1]], people.length ? people : [['Nobody yet.', '']]);
         }
-        if (T === 'BANK') return [[money().toLocaleString('en') + ' EGP', 'balance', 1]].concat((s.ledger || []).map(l => [l.why || 'Payment', (l.a > 0 ? '+' : '−') + Math.abs(l.a).toLocaleString('en') + '  ' + l.t]));
+        if (T === 'BANK') return [[money().toLocaleString('en') + ' EGP', 'balance', 1]].concat(s.debt ? [['Owed to B. Nassar', '−' + s.debt.toLocaleString('en'), 1]] : [], (s.ledger || []).map(l => [l.why || 'Payment', (l.a > 0 ? '+' : '−') + Math.abs(l.a).toLocaleString('en') + '  ' + l.t]));
         if (T === 'SKILLS') return Object.keys(SKILLS).map(k => { const l = skillLevel(k); return [SKILLS[k], '●'.repeat(l) + '○'.repeat(5 - l), 0, null, k]; });
         if (T === 'NOTES') return Game.journal.map(j => [j.label, j.text]);
         return (s.photos || []).map(p => [p.what, p.where + '  ' + p.t]).concat((s.photos || []).length ? [] : [['No photos yet. Press C to take one of whatever you\'re facing.', '']]);

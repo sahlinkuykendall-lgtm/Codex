@@ -10,8 +10,8 @@
 //   CampGround    → paints the tiles, crisp: flat colours, hard edges
 // ============================================================
 
-const T = { SAND: 0, PATH: 1, ROCK: 2, WATER: 3, DIG: 4, STONE: 5, RAIL: 6, GRAVEL: 7, YARD: 8, FIELD: 9, ROAD: 10 };
-const SOLID_TILE = { [T.ROCK]: 1, [T.WATER]: 1 };
+const T = { SAND: 0, PATH: 1, ROCK: 2, WATER: 3, DIG: 4, STONE: 5, RAIL: 6, GRAVEL: 7, YARD: 8, FIELD: 9, ROAD: 10, SEA: 11, REEF: 12, BEACH: 13, QUAY: 14 };   // (sea, reef, beach and quay: the Red Sea coast, poke/marsa.js)
+const SOLID_TILE = { [T.ROCK]: 1, [T.WATER]: 1, [T.SEA]: 1, [T.REEF]: 1 };
 
 function campLayout() {
     const W = 78, H = 58, tile = new Uint8Array(W * H);
@@ -260,6 +260,48 @@ const CampGround = {
                 const vert = n(0, -1) === T.ROAD && n(0, 1) === T.ROAD && n(-1, 0) !== T.ROAD, horiz = n(-1, 0) === T.ROAD && n(1, 0) === T.ROAD && n(0, -1) !== T.ROAD;
                 if (horiz && (tx & 1)) A.r(x + 4, y + TILE - 1, 14, 2, '#e8e0c8');                                            // the dashed centre line (roads are two tiles wide)
                 if (vert && (ty & 1)) A.r(x + TILE - 1, y + 4, 2, 14, '#e8e0c8');
+            } else if (t === T.SEA || t === T.REEF) {
+                // the Red Sea: deep blue, turquoise over the reef with the coral showing through, foam where it meets the shore
+                const wet = q => q === T.SEA || q === T.REEF, shallow = [[0, -1], [0, 1], [-1, 0], [1, 0]].some(([dx, dy]) => !wet(n(dx, dy)));
+                if (t === T.SEA) {
+                    A.r(x, y, TILE, TILE, shallow ? '#3aa4d4' : '#2e86c8');
+                    for (let k = 0; k < 3; k++) { const wx = x + 2 + Math.floor(hash2(tx * 5 + k, ty * 3) * 22), wy = y + 4 + k * 10 + Math.floor(hash2(ty * 5 + k, tx) * 4); A.hl(wx, wy, 5, shallow ? '#62c0e4' : '#4aa0dc'); A.hl(wx + 2, wy - 1, 3, shallow ? '#88d4ec' : '#68b4e4'); }   // little waves
+                    if (h > 0.82) { A.px(x + 8 + Math.floor(h * 14), y + 9, '#ffffff'); A.px(x + 20, y + 22, '#d8f0fc'); }
+                    if ((n(0, -1) === T.REEF) || (n(-1, 0) === T.REEF)) A.r(x, y, TILE, 2, '#40aed4');
+                } else {
+                    A.r(x, y, TILE, TILE, '#48c0cc');
+                    if (h < 0.5) { const cx = x + 6 + Math.floor(hash2(tx * 7, ty * 11) * 18), cy = y + 6 + Math.floor(hash2(ty * 7, tx * 5) * 18); A.ell(cx, cy, 5, 4, '#3aa6b8'); A.ell(cx - 1, cy - 1, 3, 2, ['#9a9ab8', '#b8a07a', '#a88a98'][Math.floor(h * 6)]); }   // a coral head under the water (muted: it's under the sea)
+                    if (h > 0.8) A.hl(x + 6 + Math.floor(h * 14), y + 16, 6, '#7ad8e0');
+                    for (const [dx, dy] of [[0, -1], [0, 1], [-1, 0], [1, 0]]) if (n(dx, dy) === T.SEA) { if (dy === -1) A.hl(x, y, TILE, '#3aa8cc'); if (dy === 1) A.hl(x, y + TILE - 1, TILE, '#3aa8cc'); if (dx === -1) A.vl(x, y, TILE, '#3aa8cc'); if (dx === 1) A.vl(x + TILE - 1, y, TILE, '#3aa8cc'); }
+                }
+                for (const [dx, dy] of [[0, -1], [0, 1], [-1, 0], [1, 0]]) {                                                   // foam on the beach and the rocks (the quay draws its own edge)
+                    const q = n(dx, dy); if (wet(q) || q === T.QUAY) continue;
+                    for (let k = 0; k < TILE; k += 2) {
+                        const f = 2 + Math.floor(hash2(tx * 17 + k, ty * 23 + dx * 3 + dy * 7) * 3);
+                        if (dy === -1) { A.r(x + k, y, 2, f, '#f4fcff'); A.r(x + k, y + f, 2, 2, '#9ee0f0'); } if (dy === 1) { A.r(x + k, y + TILE - f, 2, f, '#f4fcff'); A.r(x + k, y + TILE - f - 2, 2, 2, '#9ee0f0'); }
+                        if (dx === -1) { A.r(x, y + k, f, 2, '#f4fcff'); A.r(x + f, y + k, 2, 2, '#9ee0f0'); } if (dx === 1) { A.r(x + TILE - f, y + k, f, 2, '#f4fcff'); A.r(x + TILE - f - 2, y + k, 2, 2, '#9ee0f0'); }
+                    }
+                }
+            } else if (t === T.BEACH) {
+                // pale coral sand, shells, darker where the waves have wet it
+                A.r(x, y, TILE, TILE, '#f6e6ba');
+                for (let k = 0; k < 4; k++) { const px = x + 2 + Math.floor(hash2(tx * 3 + k, ty * 7) * 27), py = y + 2 + Math.floor(hash2(ty * 3 + k, tx * 7) * 27); A.px(px, py, '#e4d09c'); A.px(px + 1, py + 1, '#fff6dc'); }
+                if (h > 0.7) { const sx = x + 8 + Math.floor(h * 14), sy = y + 14; A.r(sx, sy, 3, 2, '#fffaf0'); A.px(sx + 1, sy + 1, '#e8a890'); }       // a shell
+                if (h < 0.12) { A.r(x + 12, y + 20, 4, 2, '#c8b48c'); A.hl(x + 12, y + 20, 4, '#e8dcc0'); }                                             // a bit of coral washed up
+                const wet = q => q === T.SEA || q === T.REEF;
+                if (wet(n(1, 0))) A.r(x + TILE - 6, y, 6, TILE, '#e2cc96'); if (wet(n(-1, 0))) A.r(x, y, 6, TILE, '#e2cc96');
+                if (wet(n(0, 1))) A.r(x, y + TILE - 6, TILE, 6, '#e2cc96'); if (wet(n(0, -1))) A.r(x, y, TILE, 6, '#e2cc96');
+            } else if (t === T.QUAY) {
+                // the quay: concrete slabs, joints, a kerb and fenders along the water
+                A.r(x, y, TILE, TILE, '#cbc5b6');
+                A.hl(x, y, TILE, '#ddd8cc'); A.vl(x, y, TILE, '#ddd8cc'); A.hl(x, y + 16, TILE, '#aea89a'); A.vl(x + ((ty & 1) ? 16 : 0), y, TILE, '#aea89a');
+                if (h > 0.6) { A.r(x + 6 + Math.floor(h * 12), y + 6, 4, 3, '#b8b2a4'); }                                                              // a stain
+                if (h < 0.1) { A.r(x + 18, y + 20, 6, 2, '#8a5a3a'); }                                                                                  // a bit of rope
+                const wet = q => q === T.SEA || q === T.REEF;
+                if (wet(n(0, 1))) { A.r(x, y + TILE - 8, TILE, 3, '#eeeae0'); A.r(x, y + TILE - 5, TILE, 5, '#7e786c'); A.hl(x, y + TILE - 1, TILE, '#4e4a42'); if (h > 0.55) { A.ell(x + 16, y + TILE - 3, 4, 3, '#22242a'); A.ell(x + 16, y + TILE - 3, 2, 1, '#4a4c54'); } }   // the edge, a tyre for a fender
+                if (wet(n(0, -1))) { A.r(x, y, TILE, 3, '#eeeae0'); A.hl(x, y + 3, TILE, '#9a9488'); }
+                if (wet(n(1, 0))) { A.r(x + TILE - 4, y, 4, TILE, '#eeeae0'); A.vl(x + TILE - 1, y, TILE, '#6e685e'); if (h > 0.7) { A.r(x + TILE - 10, y + 10, 5, 6, '#3e4048'); A.hl(x + TILE - 10, y + 10, 5, '#6a6c74'); } }   // a bollard
+                if (wet(n(-1, 0))) { A.r(x, y, 4, TILE, '#eeeae0'); A.vl(x, y, TILE, '#6e685e'); }
             } else if (t === T.GRAVEL) {
                 A.r(x, y, TILE, TILE, C.gravel[0]);
                 for (let k = 0; k < 9; k++) { const px = x + Math.floor(hash2(tx * 3 + k, ty) * 28), py = y + Math.floor(hash2(ty * 3 + k, tx) * 28); A.r(px, py, 3, 2, C.gravel[1 + (k & 1)]); A.hl(px, py, 3, '#ece0c4'); }

@@ -207,7 +207,7 @@ const BACKGROUNDS = [
         ],
     },
     {
-        id: 'fixer', only: 'The only one who can pick locks, haggle hard and dive. In with the Gebali.', name: 'THE FIXER', ready: false, origin: true,
+        id: 'fixer', only: 'The only one who can pick locks, haggle hard and dive. In with the Gebali.', name: 'THE FIXER', ready: true, origin: true,
         place: 'Marsa Tarfa  ·  the Red Sea coast', lon: 34.1, lat: 26.4, chapter: '1-C',
         who: 'A smuggler and fixer who works the Red Sea coast, in their thirties. Egyptian or foreign: you pick.',
         hook: 'You owe Bassem "the Shark" Nassar 60,000 pounds. One night job clears it: take a package out to a ship offshore. Nobody is supposed to open the package.',

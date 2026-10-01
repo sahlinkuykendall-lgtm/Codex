@@ -149,7 +149,7 @@ const EndCard = {
         }
         yy += 6; next.forEach((ln, i) => Txt.draw(g, ln, x + 20, yy + i * 12, { col: '#3058a0' }));
         yy = y + h - 20;
-        [area().giza ? 'KEEP EXPLORING THE CAMP' : 'KEEP EXPLORING SAQQARA', 'RETURN TO TITLE'].forEach((s, i) => {
+        [area().giza ? 'KEEP EXPLORING THE CAMP' : 'KEEP EXPLORING ' + area().name, 'RETURN TO TITLE'].forEach((s, i) => {
             const bx = x + 20 + i * ((w - 40) >> 1), on = i === this.sel;
             if (on) A.poly([[bx, yy + 2], [bx, yy + 10], [bx + 5, yy + 6]], '#d04838');
             Txt.draw(g, s, bx + 10, yy, { col: on ? UI.ink : UI.dim });
@@ -265,7 +265,7 @@ const Title = {
             Txt.draw(g, str, bx + 26, by + 8 + i * 15, { col: i === this.sel ? UI.ink : UI.dim });
             if (i === this.sel) A.poly([[bx + 13, by + 10 + i * 15], [bx + 13, by + 18 + i * 15], [bx + 18, by + 14 + i * 15]], '#d04838');
         });
-        Txt.draw(g, 'POKE-STYLE BUILD  P0.39', VW - 6, VH - 14, { col: '#8898d0', align: 'right' });
+        Txt.draw(g, 'POKE-STYLE BUILD  P0.40', VW - 6, VH - 14, { col: '#8898d0', align: 'right' });
         Txt.draw(g, '▲▼ choose    SPACE select', 6, VH - 14, { col: '#8898d0' });
     },
 };

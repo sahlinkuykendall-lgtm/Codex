@@ -113,6 +113,10 @@ there are no image files.
 | `ch1b_secrets.js` | Chapter 1-B's secrets (the Serapeum's twenty-sixth gallery with its bronze Thoth and a rare find; Naneferkaptah's sealed tomb), counted like Giza's; the Serapeum open after the round |
 | `ch1b_rooms.js` | Chapter 1-B's interiors (the café, bakery, mosque, garage, seven village houses, the ghaffir's hut, the kiosk, the Step Pyramid's shaft), the phone calls and messages, and the places to rest |
 | `ch1b_egg.js` | A secret at the alabaster sphinx (UP three times in front of it): a rocker's cameo with an original riff. Not in the story bible, on purpose |
+| `marsa.js` | Chapter 1-C's map: Marsa Tarfa, the Fixer's Red Sea harbour town (the town, the harbour, the beaches, the fort, Bassem's villa, the reef, the highway, the truck stop, the wadi) |
+| `map_ch1c.js` | What everything in Marsa Tarfa says |
+| `sprites_ch1c.js` | Marsa Tarfa's art: whitewashed houses, the dive shop, the fish market, the dhow and the boats, the coast guard post, the hotel, the Ottoman fort, the villa, the truck stop |
+| `ch1c_scenes.js` | Chapter 1-C's story so far: the cast, the debt (in the bank app), beat 1 (the collectors, Zaki, Rana), water and food, your flat and Rana's dive shop |
 | `backgrounds.js` | The four backgrounds: skills, gear, papers, their paintings and opening cutscenes |
 | `intro.js` | The opening scenes, the background choice, male/female, the character creator, the name grid, your papers |
 | `game.js` | The loop: input, movement and collision, camera, drawing, day/night, doors, saving |

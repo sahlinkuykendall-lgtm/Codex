@@ -24,7 +24,7 @@
 const STORY_START = {
     archaeologist: { money: 8000, rep: { ministry: 10, gebali: -10 }, rel: { amira: 10 } },
     inspector: { money: 3000, rep: { ministry: 20 }, rel: {} },
-    fixer: { money: 500, rep: { gebali: 10, ministry: -10 }, rel: {} },
+    fixer: { money: 500, rep: { gebali: 20, ministry: -15 }, rel: {} },   // (story/01_CHARACTERS.md; police heat 1, the debt: poke/ch1c_scenes.js)
     journalist: { money: 12000, rep: {}, rel: {} },
 };
 const REL_NAMES = {

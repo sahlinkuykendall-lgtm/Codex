@@ -12,6 +12,36 @@ Other docs:
 
 ---
 
+## POKE-STYLE P0.40 — 2026-10-01 — (branch `poke-style`) The Fixer's opening begins: Marsa Tarfa on the Red Sea (Chapter 1-C, step 1)
+- **The Fixer is playable.** Pick them in the intro (Egyptian or foreign: an Egyptian Fixer has
+  Egyptian Arabic 5 and Arabic reading 2, and even less money).
+- **Marsa Tarfa** (`poke/marsa.js`), the same size as Giza and Saqqara:
+  - the town: whitewashed houses with blue doors and shutters (nets drying on the roofs, washing,
+    dishes, rebar for the next floor), the mosque, the café, the kiosk, the square with its tap
+  - the harbour: quays and two breakwaters, the fish market, the fish grill, the fuel store,
+    Captain Zaki's dhow the Umm Kalthoum, fishing boats, the coast guard post and its patrol boat
+  - the north beach and the Beach Hotel, the old Ottoman fort on the headland with its cannon
+  - Bassem's villa on the south point behind a wall of broken glass and cameras (the gate stays
+    shut until beat 2)
+  - the reef offshore with a dive boat, the coast highway, the truck stop (café, pumps, painted
+    lorries), the wadi going up into the mountains
+- **New ground:** the Red Sea (foam where it meets the beach), the reef (coral showing through
+  turquoise water), beach and concrete quays.
+- **Beat 1:** eight in the morning, two of Bassem's men at your door: sixty thousand pounds,
+  and "something for our trouble" (pay 300, haggle them down to 50, or pay nothing and be
+  remembered). Your debt is in the phone's bank app, in red. Bassem wants you at his villa at
+  five. Find Captain Zaki at his dhow (his boat is yours for the job, if you buy the diesel) and
+  Rana at her dive shop (your ex: she'll have a diving kit ready if it goes wrong in the water).
+- **Water and food:** the public tap, water jars by the tap, on the quay and at the truck stop,
+  grilled fish on the quay (haggle it down), the ful cart, the café, the kiosk, the truck stop
+  café; the cooler in Rana's shop and the sink in your flat.
+- **Rooms:** your flat (the mattress, the unopened envelopes, the Shahd's lifebuoy, a
+  photograph of you and Rana) and Rana's dive shop (tanks, wetsuits, the compressor, a
+  clownfish named Bassem).
+- Tested: the beat from the door to the summons, every person and food stop, both rooms, save,
+  and night. The audit is clean (every area reachable), the Giza playthroughs and the three
+  Inspector runs pass, and Giza's 33 views are identical.
+
 ## POKE-STYLE P0.39 — 2026-10-01 — (branch `poke-style`) Saqqara redrawn: the Step Pyramid, the colossus, the sphinx, the animals, the stalls; and a secret at the sphinx
 - **The Step Pyramid** no longer looks like a beehive: six battered steps, each shorter than
   the one below and much wider than tall, built of staggered blocks (no more stripes), with

@@ -61,7 +61,7 @@ const World = {
         for (let y = 0; y < L.H; y++) for (let x = 0; x < L.W;) {
             if (!SOLID_TILE[L.get(x, y)]) { x++; continue; }
             let x1 = x; while (x1 < L.W && SOLID_TILE[L.get(x1, y)]) x1++;
-            World.addSolid(map, x * TILE, y * TILE + (L.get(x, y) === T.WATER ? 6 : 0), (x1 - x) * TILE, TILE - (L.get(x, y) === T.WATER ? 6 : 0));
+            const wt = L.get(x, y), off = wt === T.WATER || wt === T.SEA || wt === T.REEF ? 6 : 0; World.addSolid(map, x * TILE, y * TILE + off, (x1 - x) * TILE, TILE - off);
             x = x1;
         }
         const occ = new Set(), mark = (tx, ty, tw, th) => { for (let j = ty - 1; j <= ty + th; j++) for (let i = tx - 1; i <= tx + tw; i++) occ.add(i + ',' + j); };
