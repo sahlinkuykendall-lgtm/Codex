@@ -254,7 +254,22 @@ plus three jobs, two secrets and the seal register.
   corner ("a river, a woman and a small boy"). You can notice it but not enter; players
   see it again in The Return.
 
-## 11. Rooms and the rest
+## 11. Rooms and the rest — ✅ DONE in P0.38
+> Done in `poke/ch1b_rooms.js` and `tools/poke_checks/poke_inspector.js`:
+> - **every visible building in Mit Rahina and Saqqara has an inside:** the café (the counter
+>   and the champion's table), the bakery (the oven, bread for sale), the mosque (rest on the
+>   carpet, the imam), the garage (the old Fiat on blocks), seven village houses (a family in
+>   each, their own furniture, a meal with them), the ghaffir's hut (the bench), the museum's
+>   kiosk (drinks, postcards) and the Step Pyramid's shaft (the blue tiles). The Serapeum
+>   stays story-locked until the round
+> - **the phone:** Fathi and Umm Sabry call; the Ministry (noon) and your mother (19:30) text
+> - **rest:** the tea corner and the ghaffir's bench by night, the mosque by day, a meal in a
+>   house
+> - **the checks:** `poke_inspector.js` plays the Inspector start to finish three times, one
+>   per exit (quiet, legal, deal), with a save and load mid-night in each, and times a frame
+>   by day and by night
+> - **the Inspector level (Chapter 1-B) is complete**
+
 - **Interiors:** the café, the bakery, the mosque, the garage, a village house, the ghaffir's
   hut and the museum's kiosk, plus the Serapeum (beat 4). The Serapeum's gate is story-locked
   until the round.

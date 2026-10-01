@@ -119,9 +119,10 @@ const World = {
             World.addEnt(map, { x: x0 * TILE, y: ty * TILE + 7, w, d: 18, spr: Object.assign(fit(st), { flat: true }) });
         }
         // doors on the front of the three buildings you can enter
-        for (const [id, frac, to, name, dy] of L.doors) {
+        for (let [id, frac, to, name, dy] of L.doors) {
             const e = map.ents.find(q => q.id === id); if (!e) continue;
             const label = name || byId[id === 'tent_bldg' ? 'tent_door' : id === 'dorm_bldg' ? 'dorm_door' : 'foreman_door'].label.replace(/^Enter /, '');
+            if (frac === 'spr') frac = e.spr && e.spr.doorFrac != null ? e.spr.doorFrac : 0.5;   // (the sprite knows where it drew its door)
             map.doors.push({ x: e.x + e.w * frac - 16, y: e.y + (dy != null ? dy : e.d - 8), w: 32, h: 14, to, label, b: e });   // (b: the building, which glows at night)
             if (name) e.noLook = true;                 // (what it said from outside, you read going in: ch1_rooms.js)
         }

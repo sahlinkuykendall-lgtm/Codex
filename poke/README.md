@@ -111,11 +111,13 @@ there are no image files.
 | `ch1b_side.js` | Chapter 1-B's nine side quests (SQ-01B-01 to 09), the people who are about by day only, and the side-quest lines on the end card |
 | `ch1b_jobs.js` | Chapter 1-B's jobs: the seal register and the paid seal shift (eight sealed shafts, two forged), guiding tours of the Step Pyramid (the guide's quiz), sieving at the Teti dig |
 | `ch1b_secrets.js` | Chapter 1-B's secrets (the Serapeum's twenty-sixth gallery with its bronze Thoth and a rare find; Naneferkaptah's sealed tomb), counted like Giza's; the Serapeum open after the round |
+| `ch1b_rooms.js` | Chapter 1-B's interiors (the café, bakery, mosque, garage, seven village houses, the ghaffir's hut, the kiosk, the Step Pyramid's shaft), the phone calls and messages, and the places to rest |
 | `backgrounds.js` | The four backgrounds: skills, gear, papers, their paintings and opening cutscenes |
 | `intro.js` | The opening scenes, the background choice, male/female, the character creator, the name grid, your papers |
 | `game.js` | The loop: input, movement and collision, camera, drawing, day/night, doors, saving |
 
 To check the game after a change: `node tools/poke_checks/poke_audit.js`, `node tools/poke_checks/poke_playthrough.js`,
+`node tools/poke_checks/poke_inspector.js` (Chapter 1-B start to finish, each exit),
 and `node tools/poke_checks/poke_look.js <older build>` (see each file's header).
 
 To re-export the map after changing the 3D layout, run

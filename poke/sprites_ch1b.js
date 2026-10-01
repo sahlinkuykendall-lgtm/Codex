@@ -331,7 +331,7 @@ SPR_L['village house'] = (w, d, o) => {
         }
     });
     A.r(cxs[di] - 10, wy + WH, 20, 3, '#c9b48e'); A.hl(cxs[di] - 10, wy + WH + 2, 20, '#8a7658');                                          // the step
-    return fit(st);
+    return fit(st, { doorFrac: (cxs[di] - x) / w });
 };
 SPR_L['mosque'] = (w, d) => {                                      // the village mosque: cream walls, arched windows, a green dome, a minaret with a balcony and a crescent
     const wallH = 44, st = stage(w, d, wallH + 100, 4), { A } = st, x = st.x, top = st.y - wallH;

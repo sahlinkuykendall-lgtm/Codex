@@ -12,6 +12,30 @@ Other docs:
 
 ---
 
+## POKE-STYLE P0.38 — 2026-10-01 — (branch `poke-style`) Saqqara's rooms, the phone, resting, and an Inspector playthrough in the checks (Chapter 1-B, step 11 — the Inspector level is done)
+- **Every building you can see has an inside** (except the Serapeum, which the story keeps
+  locked until the round):
+  - **the café:** tables, shishas, the counter (the old café scene) and the champion's table
+  - **the bakery:** the oven, the dough table, flour sacks; buy bread
+  - **the mosque:** the minbar and carpets, the imam; rest a while by day
+  - **the garage:** the old Fiat on blocks, tools on the wall; look in the glovebox
+  - **seven village houses,** each with its own family (new faces, nobody from the story
+    reused), their own furniture (a kanaba, a tabliya, a cot, an ironing board…) and a line
+    of talk; sit and eat with them
+  - **the ghaffir's hut:** the bench (the night wait now happens here)
+  - **the museum's kiosk:** cold drinks and postcards
+  - **the Step Pyramid's shaft:** down to a corridor of blue faience tiles
+- **The phone:** Fathi and Umm Sabry call; the Ministry texts at noon and your mother at 19:30.
+- **Resting:** the tea corner and the ghaffir's bench by night, the mosque by day, a meal in a
+  house.
+- **The checks:** a new `tools/poke_checks/poke_inspector.js` plays the Inspector from the
+  morning to the chapter-end card three times, once per exit (quiet, legal, deal), with a
+  save and load mid-night in each, and times a frame by day and by night.
+- Tested: the three Inspector runs pass (quiet with Samy exposed; legal with the dart and
+  Samy fleeing; the deal with the run), a frame takes about 0.7 ms by day and 3 ms at night,
+  the audit is clean (286 scenes, no unreachable ones, every room builds), the Giza
+  playthroughs, side quests, jobs and secrets pass, and Giza's 33 views are identical.
+
 ## POKE-STYLE P0.37 — 2026-10-01 — (branch `poke-style`) Saqqara's secrets: the twenty-sixth gallery and the painted tomb (Chapter 1-B, step 10)
 - **The bible's two secrets,** counted as three like Giza's five (a chime, a notice, a
   "Secrets of Saqqara" page in the journal, and a line on the end card):
