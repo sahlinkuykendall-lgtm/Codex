@@ -126,7 +126,7 @@ To re-export the map after changing the 3D layout, run
 
 ## Not in it yet
 
-- The Inspector's, Fixer's and Journalist's starting areas (their cutscenes are in). Area 1, the
-  Archaeologist's night at Giza, is complete: see `AREA1_TODO.md`. The main story plays from the gate to the chapter-end card. See `AREA1_TODO.md`.
-- The minigames (sieve, tea, darts), the supply train moving, and the midnight event.
-- Other chapters.
+- The Fixer's and the Journalist's starting areas (their cutscenes are in). Area 1, the
+  Archaeologist's night at Giza, is complete (`AREA1_TODO.md`), and so is the Inspector's
+  Saqqara (`INSPECTOR_TODO.md`). The Fixer's Marsa Tarfa is planned in `FIXER_TODO.md`.
+- Other chapters (Cairo onwards).

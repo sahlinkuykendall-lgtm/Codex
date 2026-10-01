@@ -1,0 +1,149 @@
+# The Fixer's opening (Marsa Tarfa, Chapter 1-C, poke-style): what's left
+
+Started 2026-10-01 after P0.39. **Source of truth:** `story/regions/ch01_opening_fixer.md`
+(the beats, side quests, jobs, secrets), `story/01_CHARACTERS.md` §Ch1-C (who's in it) and
+§Backgrounds (the Fixer's skills and gear). The flags are in `story/03_CHOICES_AND_FLAGS.md`;
+the debt collectors in `story/06_SYSTEMS.md` §7.
+
+**The aim:** the same size as Giza and Saqqara, and about as much to do, but its own
+place: a Red Sea harbour, sea and reef instead of sand. Only the Fixer ever plays it.
+
+Rules (the same as the Inspector's):
+- Crisp pixel art only. Every update gets a POKE-STYLE P0.x entry in `UPDATE_LOG.md`, a bump
+  of the title version in `poke/ui.js` and of `?v=` in `poke.html`. Commit and push
+  `poke-style` after each step.
+- **Don't touch Giza's or Saqqara's look.** `poke_look.js` must show Giza's 33 views
+  identical unless a change was meant for Giza.
+- **Only the bible's people.** The named cast of Ch1-C is **Bassem "the Shark" Nassar**,
+  **Captain Zaki** and **Rana Fouad** (the Fixer's ex). **Lena Brandt** arrives with the
+  truck in beat 4 (the bible puts her here). **Dr. Amira Sayed** is on the phone if you go
+  legal. Nobody from the Giza or Saqqara stories appears (Karim only *knows your name* in
+  Ch2). Everyone else is a nameless local: Bassem's two collectors, the fisherman, the old
+  man at the fort, the hotel cook, Bassem's sister and her boy, the coast guard officer, the
+  truck driver, the ship's crew.
+- **Every map gets water and food:** a public tap and water jars, the fish grill on the
+  harbour, a ful and ta'ameya cart, the truck stop café, the hotel kitchen, tea on Zaki's
+  dhow.
+- **Every building you can see has an inside** unless the story keeps you out.
+- Test with `tools/poke_checks/`: the audit checks every area; add `poke_fixer.js` (a
+  Fixer playthrough, like `poke_inspector.js`) once the beats are in.
+
+**How it'll be built** (like Saqqara): `poke/marsa.js` (the layout), `poke/map_ch1c.js`
+(what things say), `poke/sprites_ch1c.js` (the art), `poke/ch1c_scenes.js` (the story), and
+one file per beat after that. The day starts in the morning; the truck comes at ten at
+night; the clock ends at 04:40 like the others.
+
+**The Fixer's own skills get used here first:** Haggling 3 (prices and bribes), Lockpicking 2,
+Diving 1, Egyptian Arabic (street). New minigames: **haggling**, **lockpicking**, **diving**,
+**the boat chase**, **first aid** and **fishing**.
+
+---
+
+## 1. The area, the cast, beat 1: morning in Marsa Tarfa
+- **The map** (about 80×58, like Giza and Saqqara), the sea on the east:
+  - the harbour: quays, fishing boats, **Captain Zaki's dhow**, the fish market and grill
+  - the town: whitewashed houses with blue doors, **your flat**, a café, a mosque, a
+    kiosk, **Rana's dive shop**
+  - **Bassem's seafront villa** on the point (a wall, a gate, a terrace over the water)
+  - **the coast guard post** at the harbour mouth
+  - **the reef** offshore (shallows you can see into, a buoy line, a dive boat)
+  - **the coast highway** behind the town, with **the truck stop** (a café, fuel pumps,
+    lorries)
+  - **the old Ottoman fort** on the headland (Quseir's, seen from the coast), and **the
+    wadi** going up into the mountains
+  - a beach hotel (for the cook's side quest)
+- **New ground:** sea, reef and shallows, quays, beach, asphalt (reused), wadi gravel.
+- **A sprite for every building and landmark**, and the cast placed with first lines.
+- **Beat 1:** Bassem's two collectors at your door (polite, the first time): the debt system's
+  tutorial. **The bank app** on the phone shows 500 EGP and a debt of 60,000 to B. Nassar.
+  Meet Captain Zaki at the dhow, and Rana at her dive shop (cool with you: you're her ex).
+  The tips teach movement, haggling, the backpack and the bank app.
+- The Fixer becomes playable from the intro (`ready: true`); Egyptian or foreign changes the
+  lines in places (the bible's `skillsEg`).
+
+## 2. Beat 2: Bassem's offer
+- **Bassem's villa** (an interior): the terrace, the juice, the phone face down. He's polite
+  and terrifying. One night job and you're even: a truck brings a package from Cairo at ten,
+  Zaki's dhow takes it out to a cargo ship offshore, the client is a Swiss foundation, and
+  their security chief is "a German woman who doesn't laugh." "Nobody opens the package."
+- Sets the three prep tasks of beat 3.
+
+## 3. Beat 3: prep the job (your choice of how)
+Three tasks, each with more than one way to do it:
+- **Fuel for the dhow:** steal it from the harbour fuel store at dusk (**the lockpicking
+  minigame**, new, plus a watchman's view cone) or pay for a fill (**the haggling
+  minigame**, new: offer, counter-offer, walk away).
+- **A route past the coast guard:** buy the patrol schedule from a fisherman (haggling) or
+  scout it yourself from the fort at dusk (watch the patrol boat's lights and mark its
+  times).
+- **A diving kit from Rana,** in case you have to ditch the cargo: she lends it, with a
+  look.
+- The compass leads round the prep; the day passes as you do it.
+
+## 4. Beat 4: the truck stop (the staged event)
+- At ten the truck pulls in at the truck stop, and **Lena Brandt** gets out with it: tall,
+  cropped blond hair, clipped. She checks you over. *"Don't open it."*
+- You load the package into Zaki's pickup (or carry it to the dhow); she watches you go.
+
+## 5. Beat 5: you open it
+- On the dhow, in the dark, out past the reef (a deck scene: the lamp, the engine, Zaki at
+  the wheel pretending not to look).
+- Inside: **the Codex**, **a GPS tracker**, and a note in the flap in Miriam's handwriting:
+  *"If you're reading this, they stole it from me. Father Bishoy, El-Fishawy, Thursday.
+  Please."*
+
+## 6. Beat 6: the ship and the betrayal
+- The offshore meet: the cargo ship's crew mean to kill the courier (you) to cut loose ends.
+  Overhear it, then get away: **the boat chase** (new: Zaki at the wheel, you on the lamp
+  and the lines; dodge the searchlight and the launch, use the reef) with a stealth part.
+- **Zaki is shot** in the escape. **Save him** (**the first aid minigame**, new, while the
+  dhow drifts, and you lose the ship) or **keep running** (he survives, just, and won't
+  forgive you) → `ch1c_zaki_saved` ★ (in Ch3 his boat takes you to the harbour dive).
+
+## 7. Beat 7: back on shore, and the exit
+- You have Vasse's package, Bassem's debt and a tracker. **Dump the tracker:** on the reef,
+  on a passing bus, or in Bassem's own car (the funny option).
+- **The exit choice** (`c1_exit`):
+  - **Quiet:** ghost Bassem. The debt stays and grows (a collector event in Ch2), and
+    nobody knows where the package went.
+  - **Legal:** walk into the coast guard post. The officer calls the Ministry, and Amira asks
+    you to bring it to Cairo yourself (`rel_amira` +15). Bassem now hunts you: debt +10,000,
+    and a Ch2 goon event.
+  - **Deal:** Bassem's double-cross: sell it to the Gebali in Cairo. You carry it; he takes
+    20,000 off the debt and gives you 5,000 cash, and you owe the Gebali a favour.
+- **The debt thread** carried forward: the amount, whether Bassem hunts you, the Ch2 hooks
+  (Bassem texts threats; Karim already knows your name).
+- **Leaving:** the night bus or a truck up the coast highway; the chapter-end card.
+
+## 8. Side quests (bible §SIDE QUESTS)
+| ID | Name | Giver | What |
+|---|---|---|---|
+| SQ-01C-01 | Rana's Reef | Rana | Clear ghost nets off the reef (diving): diving XP, a Ch3 dive kit discount |
+| SQ-01C-02 | The Fort's Cannon | Old man at the fort | A treasure legend; a detector hunt: a rare find (an Ottoman coin hoard) |
+| SQ-01C-03 | Fish for the Hotel | Hotel cook | A fishing job, done well three times: fishing unlocked, the cook's discount |
+| SQ-01C-04 | The Coast Guard's Cousin | Fisherman | Smuggle medicine (not drugs) to a mountain village up the wadi: rep, and a Bedouin contact for Ch6 |
+| SQ-01C-05 | Bassem's Nephew | Bassem's sister | Get her boy out of Bassem's crew: `rel_rana` +, a small debt cut |
+- Like the Inspector's: the people who are only about by day, the compass for each, and a
+  line each on the end card.
+
+## 9. Jobs (bible §JOBS)
+- **Fishing** off the reef and the harbour (the fishing minigame, new; reused by SQ-01C-03)
+- **Diving salvage** on a sunk yacht (the diving minigame, reused by SQ-01C-01)
+- **Truck-stop loading** (a timed loading job)
+- **Small smuggling runs** (cigarettes): pay against the debt, with risk (police heat)
+- Paying the debt down from any of them through the bank app.
+
+## 10. Secrets (bible §SECRETS)
+- **A wrecked Roman trade ship on the reef** (real Roman Red Sea trade): found diving, an
+  amphora and coins (a Rare find)
+- **A tiny Keeper shrine in the fort wall:** the first one the player might notice
+- Counted like Giza's and Saqqara's (a notice, a journal page, a line on the end card).
+
+## 11. Rooms and the rest
+- **Interiors:** your flat, Rana's dive shop, Bassem's villa (beat 2), the café, the mosque,
+  the kiosk, the coast guard post, the hotel kitchen, the truck stop café, the fort, Zaki's
+  dhow (the deck and the little cabin), and the houses you can see.
+- **The phone:** Bassem's messages (polite, then not), Zaki, Rana; Amira if you go legal.
+- **Rest:** wait or sleep somewhere (your flat by day, the dhow by night).
+- **The checks:** a Fixer playthrough with each exit and each choice for Zaki, save and load
+  mid-night, and the speed check; Giza's look unchanged.
