@@ -12,6 +12,29 @@ Other docs:
 
 ---
 
+## POKE-STYLE P0.36 — 2026-10-01 — (branch `poke-style`) The Inspector's jobs: the seal shift, guiding, sieving (Chapter 1-B, step 9)
+- **The seal register and the seal shift** (the Inspector's answer to Miriam's metal
+  detector): a duty roster on the inspectorate wall offers today's seal shift. Write your
+  name against it and the seal register goes in your bag. Eight sealed tomb shafts across
+  the necropolis (new: a limestone slab, a rope, the clay seal and a tin tag), each checked
+  with the seal minigame: 40 EGP a seal logged, and 100 more when the shift's done. Two of
+  them are forged with the same faulty stamp as the Serapeum's service door: 60 EGP for
+  reporting each, and they start The Forged Seal if you haven't already. The compass
+  points to the nearest shaft left.
+- **Guiding** (once Léo's father has vouched for you, SQ-01B-04): a group from Lyon at the
+  tour bus in the coach park. The guide's quiz, new: six questions from the tourists, on
+  Djoser, Imhotep, the steps, the serdab, the Heb-Sed court, the false doors, the Serapeum,
+  and one about aliens. Pick the answer, watch the group's mood. 120 EGP plus 30 for each
+  right answer; one tour every two hours, by day.
+- **Sieving at the Teti dig** for Rais Gad: three heaps a day, the sieve minigame, paid by
+  what you find.
+- The licensed guide tells you how to get guiding work, and the end card lists a seal
+  shift and your tours.
+- Tested: taking the shift, all eight seals with both forgeries, the pay (540 EGP for the
+  whole shift), a full tour, and sieving. The audit is clean (263 scenes; Saqqara has 107
+  things, all reachable), the playthroughs and the earlier Inspector flows pass, and
+  Giza's 33 views are identical.
+
 ## POKE-STYLE P0.35 — 2026-10-01 — (branch `poke-style`) Saqqara's nine side quests, and tawla (Chapter 1-B, step 8)
 - **All nine of the bible's side quests for the Inspector (SQ-01B-01 to 09):**
   - **Umm Sabry's Price:** she wants to know who's romancing the accountant. The well girls

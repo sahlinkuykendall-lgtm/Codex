@@ -214,7 +214,17 @@ Setne tale) sets `ch10_tomb_known` after Ch9.
 five, plus four added to the bible on 2026-09-30 after checking they conflict with nothing),
 plus three jobs, two secrets and the seal register.
 
-## 9. Jobs, the collection, minigames
+## 9. Jobs, the collection, minigames — ✅ DONE in P0.36
+> Done in `poke/ch1b_jobs.js`:
+> - **the seal register and the seal shift:** the duty roster on the inspectorate wall;
+>   eight sealed tomb shafts across the necropolis (each with the seal minigame), 40 EGP a
+>   seal, 100 for the shift; two forged with Samy's faulty stamp (60 EGP each for reporting
+>   them; they start The Forged Seal if it isn't started). The register is in the bag
+> - **guiding:** after Léo's father vouches for you, the tour group at the coach park bus;
+>   the guide's quiz (new): six of nine questions about the complex, 120 EGP + 30 per right
+>   answer, one tour every two hours, by day
+> - **sieving at the Teti dig:** three heaps a day for Rais Gad, paid by the finds
+
 - **Jobs (bible §JOBS):**
   - seal inspections (a paid shift)
   - guiding tourists round the Step Pyramid complex (a quiz-style minigame)
