@@ -2,7 +2,7 @@
 
 The working memory for the poke-style build: **what the owner wants, how to work, what's
 been done, and what's next.** Keep it current: update the "Where we are" and "What's next"
-sections at the end of every step. Last updated 2026-10-01, at P0.43.
+sections at the end of every step. Last updated 2026-10-01, at P0.44.
 
 ---
 
@@ -147,6 +147,11 @@ Add a playthrough file for each new opening (next: `poke_fixer.js`). An area can
   west side: a boatman takes you over by day; the lighthouse and its room, flavour (osprey, turtle
   tracks, gulls, flotsam), water and food, and the fishing minigame (sell the catch on the quay).
   The audit now takes `auditSeeds()` for places reached by boat.
+- **P0.44:** the lighthouse beam turns (two beams, every eleven seconds, at night), and the climb to
+  the lamp opens a 360° view built from the real map (`panoBuild` in `ch1c_island.js`: the map's
+  tiles projected to the horizon, every sprite at its true bearing and distance, lit by the hour).
+  The same trick could give other high places a view (the fort's rampart, a minaret, the Cairo
+  Tower in Ch2).
 
 ## 6. What's next
 

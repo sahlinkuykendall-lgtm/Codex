@@ -179,7 +179,8 @@ Three tasks, each with more than one way to do it:
 > `poke/ch1c_island.js`: an island past the harbour mouth, reached with a nameless boatman by day.
 > The lighthouse (its room inside, the climb to the lamp), the keeper's ruined hut, a cistern, an
 > osprey's nest, turtle tracks, gulls, flotsam, a driftwood fire to grill your catch, and the
-> fishing rocks. Not in the bible's map; no named people, no story flags. Later steps may use it
+> fishing rocks. P0.44: the beam turns at night, and the climb to the lamp is a 360° view built from
+> the real map. Not in the bible's map; no named people, no story flags. Later steps may use it
 > (the diving jobs, Rana's reef, the boat chase in beat 6) only where that doesn't change a beat.
 
 ## 10. Secrets (bible §SECRETS)

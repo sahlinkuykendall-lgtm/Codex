@@ -12,6 +12,20 @@ Other docs:
 
 ---
 
+## POKE-STYLE P0.44 — 2026-10-01 — (branch `poke-style`) The lighthouse turns, and the view from the lamp
+- **The lighthouse's light turns** like a real one: two beams sweeping round once every eleven
+  seconds over the island, the sea and the harbour, brighter the darker it gets, and the lamp
+  flares when a beam swings round towards you.
+- **The lamp room: a 360° view** when you climb to the top. It's built from the real map: the
+  ground is Marsa Tarfa's own tiles projected out to the horizon from the lamp's height, and every
+  building, boat, palm and person stands where it really is, drawn from its own sprite, smaller the
+  farther it is. You see the actual harbour, fish market, the dhow, the town and its mosque, the
+  hotel, the fort, the coast guard post, Bassem's villa, the mountains behind, and the open sea
+  with a ship waiting on the horizon. The view turns by itself (◄► to look round yourself) with the
+  place names coming round as you pass them, the lamp room's iron frame and the gallery rail in
+  front. Lit by the hour: dawn, day, dusk, and at night stars, street lamps, lit windows, and the
+  beam turning with you over the water.
+
 ## POKE-STYLE P0.43 — 2026-10-01 — (branch `poke-style`) Marsa Tarfa: Lighthouse Island, and fishing
 - **Lighthouse Island** (`poke/ch1c_island.js`, an addition the owner asked for: not in the bible's
   map, nothing in it touches the story), offshore past the harbour mouth, sheltering the harbour.

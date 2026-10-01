@@ -219,16 +219,13 @@ scene('c1c_lh_tank', { speaker: 'System', text: 'The keepers\' water tank, galva
 scene('c1c_lh_stair', {
     speaker: 'System',
     text: `An iron stair corkscrewing up through the ceiling, ninety-one steps to the lamp. Somebody has painted every tenth step white, so you can count them in the dark.`,
-    choices: [{ text: 'Climb to the lamp. (10 minutes)', onSelect: () => { if (!sflag('c1c_lh_top')) { sflag('c1c_lh_top', true); skillXP('climbing', 25, 'the lighthouse'); } clockAdvance(10); startDialogue('c1c_lh_top'); } }, { text: 'Not now.' }],
+    choices: [{ text: 'Climb to the lamp. (10 minutes)', onSelect: () => { if (!sflag('c1c_lh_top')) { sflag('c1c_lh_top', true); skillXP('climbing', 25, 'the lighthouse'); } clockAdvance(10); if (Game.set.time === 5) Game.hour = storyHour(); playMinigame('lamproom', {}, r => { if (!r.left) startDialogue('c1c_lh_top'); }); } }, { text: 'Not now.' }],
 });
 scene('c1c_lh_top', {
     speaker: 'System',
-    text: () => {
-        const night = Game.light && Game.light().dark > 0.5;
-        return night
-            ? `The lamp room, glass all round, and the light turning inside its lens like a slow white engine. Every eleven seconds the beam goes over the town, the harbour, the fort, Bassem's villa with every light on, and away over the dark sea to where a ship sits at anchor with her deck lights lit, waiting for something.\n\nUp here the wind sings in the rail. You could stay all night.`
-            : `The lamp room, glass all round and too hot to breathe, the great lens resting in its brass cage, waiting for dark. From the gallery outside you can see the whole of Marsa Tarfa laid out like a map: the town, the mosque, the harbour, the fort, Bassem's white villa on its point, the highway, the mountains, the wadi going up into them. And the reef, every coral head of it, under water as clear as glass.\n\nAn osprey goes past below you, a fish in its claws.`;
-    },
+    text: () => Game.light().dark > 0.5
+        ? `The light goes round behind you like a slow white engine, and every eleven seconds its beam passes over the town, the harbour, Bassem's villa with every light on, and away over the black water to where a ship sits at anchor with her deck lights lit, waiting for something.\n\nThe wind sings in the rail. Then down the ninety-one steps, counting the white ones.`
+        : `Too hot to breathe in the lamp room, the wind singing in the rail outside. An osprey goes past below you with a fish in its claws, and lands on its nest, and glares up at you as if you'd been looking at its fish.\n\nThen down the ninety-one steps, counting the white ones.`,
     choices: [{ text: 'Climb back down.' }],
 });
 
@@ -248,7 +245,7 @@ SPR_L['lighthouse'] = (w, d) => {                                  // a white st
     A.r(cx - 16, top - 2, 32, 4, '#3a3e48'); for (let i = cx - 15; i < cx + 16; i += 3) A.vl(i, top - 8, 6, '#3a3e48'); A.hl(cx - 16, top - 8, 32, '#5a6068');   // the gallery and its rail
     A.r(cx - 9, top - 22, 18, 14, '#20242c'); A.r(cx - 8, top - 21, 16, 12, '#fff4c0'); A.r(cx - 3, top - 19, 6, 8, '#ffffff'); A.vl(cx - 3, top - 21, 12, '#3a3e48'); A.vl(cx + 3, top - 21, 12, '#3a3e48');   // the lamp room
     A.poly([[cx - 10, top - 22], [cx, top - 32], [cx + 10, top - 22]], '#d04838'); A.vl(cx, top - 38, 6, '#3a3e48'); A.hl(cx - 3, top - 36, 7, '#3a3e48');   // the cap, the vane
-    return fit(st, { light: { x: 0, y: -146, r: 60, far: 220, c: '#fff8d0' } });
+    return fit(st, { light: { x: 0, y: -165, r: 40, far: 120, c: '#fff8d0' } });
 };
 SPR_L['ruined hut'] = (w, d) => {                                  // the keeper's hut: stone walls, no roof, sand drifted in
     const S = ['#e8dcc4', '#d4c4a4', '#b8a684', '#948262'], st = propStage(w, d, w, 40), { A } = st, x = st.x, y = st.y;
@@ -316,3 +313,154 @@ SPR_L['gulls'] = () => {
 // ---- the audit: the island is only reached by boat, so it floods from the jetty too ----
 AREAS.fixer.auditSeeds = () => [[ISL.jetty[0] * TILE, ISL.jetty[1] * TILE]];
 NEEDS_WHERE.fixer += ' On Lighthouse Island: the cistern, the lighthouse\'s water tank, and anything you catch, grilled on the driftwood fire.';
+
+// ============================================================
+// THE BEAM: the light turns once every eleven seconds, two beams, sweeping the island,
+// the sea and the town, brighter the darker it is; the lamp flares when it faces you
+// ============================================================
+const Beam = {
+    lh: null, map: null,
+    lamp() { const m = Game.maps.ch1; if (this.map !== m) { this.map = m; this.lh = m.ents.find(e => e.id === 'c1c_lighthouse'); } return this.lh && [this.lh.x + 32, this.lh.y - 101]; },
+    draw(g, cx, cy) {
+        const m = Game.maps.ch1; if (Game.map !== m) return;
+        const dark = Game.light().dark; if (dark < 0.12) return;
+        const L = this.lamp(); if (!L) return;
+        const lx = L[0] - cx, ly = L[1] - cy, VW = Game.VW, VH = Game.VH, R = 15 * TILE;
+        if (lx < -R || lx > VW + R || ly < -R * 0.6 || ly > VH + R * 0.6) return;
+        const A = pa(g), a = Game.time * Math.PI * 2 / 11, rnd = q => [Math.round(q[0]), Math.round(q[1])];
+        g.globalCompositeOperation = 'lighter';
+        for (const s of [0, Math.PI]) {
+            const b = a + s;
+            for (const [len, wd, al] of [[R, 0.1, 0.07], [R * 0.82, 0.065, 0.08], [R * 0.6, 0.035, 0.1]]) {
+                g.globalAlpha = al * dark;
+                A.poly([[lx, ly], [lx + Math.cos(b - wd) * len, ly + Math.sin(b - wd) * len * 0.55], [lx + Math.cos(b + wd) * len, ly + Math.sin(b + wd) * len * 0.55]].map(rnd), '#fff4c8');
+            }
+        }
+        const face = Math.max(Math.sin(a), Math.sin(a + Math.PI));             // swinging round towards you
+        if (face > 0.85) { const k = (face - 0.85) / 0.15; g.globalAlpha = 0.5 * k * dark; A.ell(Math.round(lx), Math.round(ly), Math.round(10 + 14 * k), Math.round(8 + 10 * k), '#fff8d8'); g.globalAlpha = 0.9 * k; A.ell(Math.round(lx), Math.round(ly), 4, 3, '#ffffff'); }
+        g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
+    },
+};
+
+// ============================================================
+// THE LAMP ROOM: a 360° look out from the top of the lighthouse, built from the real map.
+// The ground is the map's own tiles, projected out to the horizon from the lamp's height;
+// every building, boat, palm and person stands where it really is, drawn from its own
+// sprite at its true bearing, smaller the farther it is (distance squeezed a little past
+// the island, so the town isn't a smudge). Lit by the hour's light, lamps and windows at
+// night. The view turns by itself; ◄► to look round yourself.
+// ============================================================
+const PANO_COL = { 0: [232, 204, 144], 1: [216, 184, 120], 2: [168, 140, 104], 3: [60, 140, 200], 4: [200, 170, 120], 5: [212, 196, 164], 6: [150, 130, 110], 7: [196, 180, 144], 8: [224, 196, 140], 9: [120, 160, 80], 10: [108, 108, 112], 11: [42, 122, 184], 12: [58, 168, 200], 13: [242, 222, 170], 14: [200, 196, 188] };
+const panoEff = d => d < 8 ? d : 8 + (d - 8) * 0.5, panoInv = e => e < 8 ? e : 8 + (e - 8) * 2;
+function panoBuild(VH) {
+    const m = Game.maps.ch1, L = m.camp, Wp = 1920, Hp = VH, f = Wp / (Math.PI * 2), hz = Math.round(Hp * 0.3), h = 9;
+    const lh = m.ents.find(e => e.id === 'c1c_lighthouse'), ox = (lh.x + 32) / TILE, oy = (lh.y + 48) / TILE;
+    const [c, g] = mk(Wp, Hp), A = pa(g); g.imageSmoothingEnabled = false;
+    // the sky, and the ground out to the horizon (the map's tiles, a little haze with distance)
+    const img = g.createImageData(Wp, Hp), D = img.data, haze = [206, 224, 238], SKY = [[120, 184, 232], [150, 200, 238], [184, 218, 244], [212, 232, 248]];
+    for (let x = 0; x < Wp; x++) {
+        const th = x / f, cs = Math.cos(th), sn = Math.sin(th);
+        for (let y = 0; y < Hp; y++) {
+            let col;
+            if (y <= hz) col = SKY[y < hz - 60 ? 0 : y < hz - 26 ? 1 : y < hz - 9 ? 2 : 3];
+            else {
+                const d = panoInv(h / Math.tan((y - hz) / f)), tx = ox + cs * d, ty = oy + sn * d, ix = Math.floor(tx), iy = Math.floor(ty), t = L.get(ix, iy);
+                col = (PANO_COL[t] || PANO_COL[0]).slice();
+                const v = hash2(ix, iy);
+                if (t === 11 || t === 12) { if (d < 14 && hash2(Math.floor(tx * 1.5), Math.floor(ty * 4)) > 0.965) col = [96, 168, 216]; }   // (a few waves close in; none farther out, where they'd only shimmer)
+                else if (t !== 10 && t !== 14) { const k = (v - 0.5) * 14; col = col.map(q => q + k); }
+                const hk = d < 22 ? 0 : d < 45 ? 0.12 : d < 85 ? 0.26 : d < 150 ? 0.42 : 0.58;
+                if (hk) { const hz2 = t === 11 || t === 12 ? haze : [226, 208, 182]; col = col.map((q, i) => q + (hz2[i] - q) * hk); }   // (the sea fades to sky, the desert to dust)
+            }
+            const o = (y * Wp + x) * 4; D[o] = col[0]; D[o + 1] = col[1]; D[o + 2] = col[2]; D[o + 3] = 255;
+        }
+    }
+    g.putImageData(img, 0, 0);
+    // the mountains, wherever the land goes on past the horizon
+    const ridge = new Int16Array(Wp);
+    for (let x = 0; x < Wp; x++) {
+        const th = x / f, t = L.get(Math.floor(ox + Math.cos(th) * 160), Math.floor(oy + Math.sin(th) * 160));
+        if (t === 11 || t === 12) continue;
+        const r = Math.round(8 + Math.abs(Math.sin(x * 0.011) * 14 + Math.sin(x * 0.037) * 6 + Math.sin(x * 0.13) * 2)); ridge[x] = r;
+        A.r(x, hz - r, 1, r, '#b4a4ac'); A.px(x, hz - r, '#d4c8cc'); A.r(x, hz - Math.round(r * 0.45), 1, Math.round(r * 0.45), '#c4b6b8');
+    }
+    // a cargo ship on the horizon, waiting (ESE)
+    const sx0 = Math.round(0.35 * f); A.r(sx0, hz - 3, 22, 3, '#4a4e58'); A.r(sx0 + 15, hz - 8, 5, 5, '#5a6068'); A.r(sx0 + 3, hz - 5, 10, 2, '#6a7078');
+    // everything standing on the map, far to near
+    const list = [];
+    for (const e of m.ents) {
+        if (e.gone || e === lh) continue;
+        let img, fx, fy, offx, offy;
+        if (e.person) { img = e.person.sheet.frames[0][0]; fx = e.x; fy = e.y; offx = 16; offy = 30; }
+        else if (e.spr && e.spr.c && !e.spr.flat) { const sp = e.spr; img = sp.frames ? sp.frames[0] : sp.c; if (e.w) { fx = e.x + e.w / 2; fy = e.y + e.d; offx = e.w / 2 - sp.ox; offy = e.d - sp.oy; } else { fx = e.x; fy = e.y; offx = -sp.ox; offy = -sp.oy; } }
+        else continue;
+        const dx = fx / TILE - ox, dy = fy / TILE - oy, d = Math.hypot(dx, dy); if (d < 2.2) continue;
+        list.push({ img, d, th: (Math.atan2(dy, dx) + Math.PI * 2) % (Math.PI * 2), offx, offy, e });
+    }
+    list.sort((a, b) => b.d - a.d);
+    for (const q of list) {
+        const e = panoEff(q.d), sc = f / (TILE * e), sx = q.th * f, sy = hz + Math.atan(h / e) * f, w = q.img.width * sc, hh = q.img.height * sc;
+        if (w < 1 || hh < 1) continue;
+        for (const k of [0, -Wp, Wp]) { const x = sx + k - q.offx * sc; if (x > -w && x < Wp) g.drawImage(q.img, Math.round(x), Math.round(sy - q.offy * sc), Math.max(1, Math.round(w)), Math.max(1, Math.round(hh))); }
+        q.sx = sx; q.sy = sy; q.sc = sc;
+    }
+    // the hour's light over all of it; then, after dark, the stars, the lamps and the windows
+    const LT = Game.light();
+    g.globalCompositeOperation = 'multiply'; g.fillStyle = 'rgb(' + LT.c.join(',') + ')'; g.fillRect(0, 0, Wp, Hp); g.globalCompositeOperation = 'source-over';
+    if (LT.dark > 0.4) {
+        for (let i = 0; i < 260; i++) { const x = Math.floor(hash2(i, 71) * Wp), y = Math.floor(hash2(71, i) * (hz - 12)); if (y < hz - ridge[x] - 2) A.px(x, y, i % 5 ? '#c8d0f0' : '#ffffff'); }
+        g.globalCompositeOperation = 'lighter';
+        const dot = (x, y, r, col, glow) => { for (const k of [0, -Wp, Wp]) { if (glow) { g.globalAlpha = 0.18; A.ell(Math.round(x + k), Math.round(y), r + 2, r + 1, col); g.globalAlpha = 1; } A.r(Math.round(x + k), Math.round(y), r, r, col); } };
+        for (const [tx, ty] of L.lamps) { const dx = tx + 0.5 - ox, dy = ty + 0.5 - oy, d = Math.hypot(dx, dy), e = panoEff(d), sc = f / (TILE * e); dot(((Math.atan2(dy, dx) + Math.PI * 2) % (Math.PI * 2)) * f, hz + Math.atan(h / e) * f - 34 * sc, 2, '#fff0b0', true); }
+        for (const q of list) {
+            if (q.sc === undefined) continue; const id = q.e.id || '';
+            if (/house|flat|cafe|mosque|diveshop|hotel|truckcafe|coastguard|villa$/.test(id)) {   // a lit window or two in the front wall
+                const n = id === 'c1c_villa' ? 5 : id === 'c1c_hotel' ? 3 : 1 + (hash2(q.sx | 0, 3) > 0.5 ? 1 : 0), bw = q.img.width * q.sc;
+                for (let k = 0; k < n; k++) dot(q.sx - bw * 0.25 + (bw * 0.5) * (n > 1 ? k / (n - 1) : 0.5), q.sy - Math.max(3, 14 * q.sc), Math.max(1, Math.round(2 * q.sc)), '#ffc060');
+            }
+            if (/dhow|patrol|diveboat/.test(id)) dot(q.sx, q.sy - 26 * q.sc, 1, '#ffffff');
+        }
+        for (let k = 0; k < 3; k++) dot(sx0 + 3 + k * 7, hz - 5, 1, '#fff8d0');                                    // the ship's deck lights
+        g.globalCompositeOperation = 'source-over';
+    }
+    // the places, for labels
+    const labels = L.places.filter(P => P[0] !== 'island').map(P => { const dx = P[2] - ox, dy = P[3] - oy, d = Math.hypot(dx, dy), e = panoEff(d); return { name: P[1], x: ((Math.atan2(dy, dx) + Math.PI * 2) % (Math.PI * 2)) * f, y: hz + Math.atan(h / e) * f }; });
+    return { c, f, hz, Wp, labels, dark: LT.dark };
+}
+MINIS.lamproom = {
+    title: 'THE LAMP ROOM', keys: '◄► look round    SPACE / ESC: climb down',
+    start() { return { P: panoBuild(Game.VH), ang: Math.PI, turned: 0, hand: 0, fin: false }; },   // (facing west first: the town)
+    update(S, dt, I, keys) {
+        if (S.fin) return;
+        const man = (keys.right ? 1 : 0) - (keys.left ? 1 : 0);
+        let v = Math.PI * 2 / 34; if (man) { v = man * 1.1; S.hand = 2; } else if (S.hand > 0) { S.hand -= dt; v = 0; }
+        S.ang = (S.ang + v * dt + Math.PI * 4) % (Math.PI * 2); S.turned += Math.abs(v * dt);
+        if (I.ok || S.turned >= Math.PI * 2) { S.fin = true; Mini.finish({ ok: true }, S.turned >= Math.PI * 2 ? 'All the way round: the town, the mountains, the fort, the open sea, the villa, the harbour, and the town again. The machine behind you clicks and hums.' : 'You take one last look.', '360°'); }
+    },
+    draw(S, g, A, VW, VH) {
+        const P = S.P, x0 = Math.round(S.ang * P.f - VW / 2);
+        const sx = ((x0 % P.Wp) + P.Wp) % P.Wp, w1 = Math.min(VW, P.Wp - sx);
+        g.drawImage(P.c, sx, 0, w1, VH, 0, 0, w1, VH); if (w1 < VW) g.drawImage(P.c, 0, 0, VW - w1, VH, w1, 0, VW - w1, VH);
+        // the beam, turning with you, out over the water (after dark)
+        if (P.dark > 0.4) { g.globalCompositeOperation = 'lighter'; for (const [wd, al] of [[110, 0.07], [60, 0.09], [26, 0.12]]) { g.globalAlpha = al; A.poly([[VW / 2 - wd * 2, VH], [VW / 2 + wd * 2, VH], [VW / 2 + wd * 0.12, P.hz + 2], [VW / 2 - wd * 0.12, P.hz + 2]].map(q => [Math.round(q[0]), Math.round(q[1])]), '#fff4c8'); } g.globalAlpha = 1; g.globalCompositeOperation = 'source-over'; }
+        // the names of the places as they come round, stacked so they don't overlap
+        const vis = []; for (const Lb of P.labels) for (const k of [-P.Wp, 0, P.Wp]) { const x = Math.round(Lb.x + k - x0); if (x > -80 && x < VW + 80) vis.push({ Lb, x, w: Txt.width(Lb.name) }); }
+        vis.sort((a, b) => a.x - b.x); const rows = [];
+        for (const v of vis) { let r = 0; while (rows[r] !== undefined && rows[r] > v.x - v.w / 2 - 6) r++; rows[r] = v.x + v.w / 2; const ty = P.hz - 22 - r * 13;
+            A.vl(v.x, ty + 10, Math.max(2, Math.round(v.Lb.y - ty - 10)), 'rgba(255,255,255,0.5)');
+            Txt.draw(g, v.Lb.name, v.x, ty, { col: '#ffe890', shadow: '#101838', align: 'center' }); }
+        // the lamp room's glass and its iron frame, turning past; the gallery rail in front
+        for (let k = 0; k < 6; k++) { const x = ((Math.round(k * P.Wp / 6 - x0) % P.Wp) + P.Wp) % P.Wp; if (x < VW + 4) { A.r(x - 3, 0, 6, VH, '#20242c'); A.vl(x - 2, 0, VH, '#4a5058'); } }
+        A.r(0, 0, VW, 6, '#20242c');
+        const ry = VH - 46; A.r(0, ry, VW, 4, '#2a2e36'); A.hl(0, ry, VW, '#5a6068'); for (let x = ((-x0 % 12) + 12) % 12; x < VW; x += 12) A.r(x, ry + 4, 2, 40, '#2a2e36');
+        A.r(0, VH - 8, VW, 8, '#20242c');
+        // the compass point you're facing
+        const dirs = ['EAST', 'SOUTH-EAST', 'SOUTH', 'SOUTH-WEST', 'WEST', 'NORTH-WEST', 'NORTH', 'NORTH-EAST'], di = Math.round(S.ang / (Math.PI / 4)) % 8;
+        Txt.draw(g, dirs[di], VW - 10, 10, { col: '#ffffff', shadow: '#101838', align: 'right' });
+    },
+};
+(function () {
+    const A = AREAS.fixer, _over = A.overlay;
+    A.overlay = function (g, cx, cy) { if (_over) _over.call(this, g, cx, cy); Beam.draw(g, cx, cy); };
+    const _sync = A.sync; A.sync = function () { _sync.call(this); Beam.map = null; };
+})();
