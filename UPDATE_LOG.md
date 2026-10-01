@@ -12,6 +12,26 @@ Other docs:
 
 ---
 
+## POKE-STYLE P0.48 — 2026-10-01 — (branch `poke-style`) The Fixer, step 6: the ship and the betrayal
+- **Alongside** (`poke/ch1c_ship.js`): the green lamp becomes a rusty coaster with her name painted out.
+  "Hamburg." Up the rope ladder, the case still in your bag.
+- **The ship's deck at night** (a new steel-deck room): rusting containers, a cargo hatch, dim deck
+  lamps, two deckhands on their rounds with torches (view cones; the containers block them). Creep
+  close to the captain and the mate by the wheelhouse and **listen**: "A courier is a loose end with
+  a mouth." Then back down the ladder unseen. Spotted first, and you hear it shouted instead, and
+  the launch is already in the water.
+- **The boat chase** (new minigame): Zaki at the wheel steering where you call (◄►), you on the lamp
+  (SPACE) and the lines (▲: a net astern to foul the launch's propeller). The searchlight sweeps
+  from the ship; the launch follows your wake. The dhow draws nothing and goes over the shallows;
+  the launch doesn't, **if they can't see the reef**: cross it with the lamp out (with it lit, they
+  swerve round). Coral heads hole your hull. Hold them off a minute and they give up.
+- **Zaki is shot** in the last spiteful burst. **Save him** (new **first aid** minigame: find the wound,
+  hold the pressure in the band, bind it with the arrows, while his blood runs down) while the dhow
+  drifts and the ship gets away: `ch1c_zaki_saved` = true, Zaki +20. Or **keep running**: he lives,
+  just, ties it up himself, and won't forgive you ("I'd have stopped for you"), Zaki −30.
+- **Home** at half past one in the morning, the dhow creeping in with no lights. (Back on shore is
+  step 7.)
+
 ## POKE-STYLE P0.47 — 2026-10-01 — (branch `poke-style`) Marsa Tarfa's houses, each with its own character
 - **Every house in town is different now** (`poke/sprites_ch1c.js`, from the Red Sea's own harbour
   towns, Quseir above all):

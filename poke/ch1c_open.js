@@ -33,7 +33,7 @@ const Voyage = {
     start() {
         const m = Game.maps.ch1; this.d = m.ents.find(e => e.id === 'c1c_dhow'); this.z = m.ents.find(e => e.id === 'c1c_zaki');
         if (!this.d) return this.end();
-        voyageHold(); World.setSolid(m, this.d, false); this.i = 0; this.trail = []; this.on = true;
+        voyageHold(); if (!this.d.home) this.d.home = [this.d.x, this.d.y]; World.setSolid(m, this.d, false); this.i = 0; this.trail = []; this.on = true;
         const [tx, ty] = VOYAGE_PTS[0]; this.d.x = tx * TILE - this.d.w / 2; this.d.y = ty * TILE - this.d.d; this.place();
         if (this.z) this.z.gone = false;
     },
@@ -179,7 +179,6 @@ function c1cOpened() {
     storyNote('What was in the package', 'A codex: a leather-bound book of papyrus leaves with a wrap-around flap, Greek with little temple pictures in the margins, wrapped in a green silk scarf. Taped in the case\'s lining, a GPS tracker. And in the flap, a note in a woman\'s hand: "If you\'re reading this, they stole it from me. Father Bishoy, El-Fishawy, Thursday. Please."' + (sflag('c1c_seal') === 'intact' ? ' The seal is whole: you could put it back as it was.' : ' You cut the wire.'));
     storyNotice('The Codex, a tracker, and a note: "Please."');
     task('c1c_ship', 'The ship\'s green lamp, offshore. "The man you give it to will say Hamburg."');
-    Toast.show('(The ship is the next part of the story: coming soon.)', 6);
 }
 
 // ---- the hooks ----

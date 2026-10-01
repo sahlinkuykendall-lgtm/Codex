@@ -131,7 +131,12 @@ Three tasks, each with more than one way to do it:
   *"If you're reading this, they stole it from me. Father Bishoy, El-Fishawy, Thursday.
   Please."*
 
-## 6. Beat 6: the ship and the betrayal
+## 6. Beat 6: the ship and the betrayal — ✅ DONE in P0.48
+> Done in `poke/ch1c_ship.js`: "Hamburg"; the ship's deck (`INT_SHIP`, a `steel` room) with two deckhands'
+> torch cones and the captain and the mate to overhear (or be spotted: `c1c_ship_seen`, a harder chase);
+> the **chase** minigame (call the turns, the lamp, the nets; lure the launch onto the reef with the lamp
+> out; a minute and they give up); Zaki shot; the **first aid** minigame or keep running →
+> `ch1c_zaki_saved` ★ (rel_zaki +20 / −30); home at 01:30 (`c1c_ship_done`).
 - The offshore meet: the cargo ship's crew mean to kill the courier (you) to cut loose ends.
   Overhear it, then get away: **the boat chase** (new: Zaki at the wheel, you on the lamp
   and the lines; dodge the searchlight and the launch, use the reef) with a stealth part.

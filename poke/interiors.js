@@ -99,6 +99,10 @@ function roomShell(tw, th, style) {
     } else if (style === 'planks') {
         A.r(0, W, pw, ph - W, PAL.plank[1]);
         for (let y = W; y < ph; y += 16) { A.hl(0, y, pw, PAL.plank[2]); for (let x = ((y / 16) & 1) * 40 + 12; x < pw; x += 80) A.vl(x, y, 16, PAL.plank[2]); for (let x = 6; x < pw; x += 23) A.px(x + ((y * 7) % 9), y + 5 + ((x * 3) % 7), PAL.plank[0]); }
+    } else if (style === 'steel') {                    // a ship's steel deck: plates, rivets, rust bleeding from the seams
+        A.r(0, W, pw, ph - W, '#5a6068');
+        for (let y = W; y < ph; y += 32) for (let x = ((y - W) / 32 & 1) * 24; x < pw; x += 48) { A.r(x, y, 48, 32, hash2(x, y) > 0.5 ? '#5e646c' : '#565c64'); A.hl(x, y, 48, '#3e444c'); A.vl(x, y, 32, '#3e444c'); for (const [rx, ry] of [[3, 3], [44, 3], [3, 28], [44, 28]]) A.px(x + rx, y + ry, '#7a828a'); }
+        for (let i = 0; i < 18; i++) { const x = Math.floor(hash2(i, 61) * pw), y = W + Math.floor(hash2(61, i) * (ph - W)); A.r(x, y, 2, 6 + (i % 4) * 3, '#7a4a2c'); }
     } else if (style === 'deck') {                     // a boat's deck: planks running fore and aft, tar in the seams
         A.r(0, W, pw, ph - W, '#a8845c');
         for (let y = W; y < ph; y += 9) { A.hl(0, y, pw, '#6a4a2c'); for (let x = ((y / 9) % 3) * 40 + 10; x < pw; x += 120) A.vl(x, y, 9, '#7a5a3a'); }
@@ -148,6 +152,10 @@ function roomShell(tw, th, style) {
     } else if (style === 'planks') {
         A.r(0, 0, pw, W, PAL.wood[1]); for (let x = 0; x < pw; x += 10) A.vl(x, 0, W, PAL.wood[2]); A.r(0, 0, pw, 6, PAL.wood[3]); A.r(0, W - 5, pw, 5, PAL.wood[3]);
         for (const wx of [pw * 0.22, pw * 0.72]) { const x = Math.round(wx); A.r(x - 1, 13, 34, 26, PAL.wood[3]); A.r(x, 14, 32, 24, PAL.blue[3]); A.r(x, 14, 32, 3, PAL.blue[2]); A.vl(x + 16, 14, 24, PAL.wood[3]); A.hl(x, 26, 32, PAL.wood[3]); A.px(x + 5, 19, PAL.white[0]); A.px(x + 24, 31, PAL.white[1]); }
+    } else if (style === 'steel') {                    // the ship's white superstructure, streaked with rust, lit portholes
+        A.r(0, 0, pw, W, '#c8ccc8'); A.r(0, 0, pw, 4, '#e0e4e0'); A.r(0, W - 6, pw, 6, '#8a908c');
+        for (let x = 30; x < pw - 20; x += 54) { A.ell(x, 24, 7, 7, '#5a6068'); A.ell(x, 24, 5, 5, x % 108 < 54 ? '#ffd890' : '#2a3448'); }
+        for (let i = 0; i < 12; i++) A.r(Math.floor(hash2(i, 71) * pw), 30 + Math.floor(hash2(71, i) * 10), 2, 10 + (i % 3) * 4, '#9a6a4a');
     } else if (style === 'deck') {                     // no wall: the night sea over the gunwale, the stars, a path of moonlight
         A.r(0, 0, pw, W, '#101838'); A.r(0, 26, pw, W - 26, '#14284a'); A.hl(0, 26, pw, '#2a3a64');
         for (let i = 0; i < 50; i++) A.px(Math.floor(hash2(i, 91) * pw), Math.floor(hash2(91, i) * 24), i % 4 ? '#8890b8' : '#ffffff');
@@ -170,8 +178,9 @@ function roomShell(tw, th, style) {
     A.r(0, 0, E, ph, PAL.dark[2]); A.r(pw - E, 0, E, ph, PAL.dark[2]); A.r(E - 2, W, 2, ph - W, PAL.dark[1]); A.r(pw - E, W, 2, ph - W, PAL.dark[1]);
     A.r(0, ph - E, pw, E, PAL.dark[2]); A.r(E, ph - E, pw - E * 2, 2, PAL.dark[1]);
     const dx = (pw >> 1) - 22;
-    if (style === 'deck') {                             // the gunwale all round: no way off but the sea
-        for (const [x, y, w, h] of [[0, W, E, ph - W], [pw - E, W, E, ph - W], [0, ph - E, pw, E]]) { A.r(x, y, w, h, '#6a4a2c'); A.r(x, y, w, 2, '#a8845c'); }
+    if (style === 'deck' || style === 'steel') {        // the gunwale (or the ship's rail) all round: no way off but the sea
+        const RC = style === 'steel' ? ['#9aa4ac', '#d8dcdc'] : ['#6a4a2c', '#a8845c'];
+        for (const [x, y, w, h] of [[0, W, E, ph - W], [pw - E, W, E, ph - W], [0, ph - E, pw, E]]) { A.r(x, y, w, h, RC[0]); A.r(x, y, w, 2, RC[1]); }
     } else if (style === 'rock') {                             // no mat down here: the ladder you came down
         A.r(dx, ph - E, 44, E, PAL.dark[3]);
         A.r(dx + 12, ph - E - 22, 3, 26, PAL.wood[2]); A.r(dx + 29, ph - E - 22, 3, 26, PAL.wood[2]);
