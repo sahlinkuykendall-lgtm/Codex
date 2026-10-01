@@ -174,7 +174,30 @@ Then the chapter-end card. **Inspector-only lore seed:** Umm Sabry's story of th
 "where the magician's wife and son are painted by the river" (Naneferkaptah, from the
 Setne tale) sets `ch10_tomb_known` after Ch9.
 
-## 8. Side quests (bible §SIDE QUESTS, SQ-01B-01 to 09)
+## 8. Side quests (bible §SIDE QUESTS, SQ-01B-01 to 09) — ✅ DONE in P0.35
+> Done in `poke/ch1b_side.js` (and the tawla minigame in `poke/ch1b_tawla.js`):
+> - **01 Umm Sabry's Price:** the well girls' gossip (the baker and Madame Nadia, the
+>   accountant) pays it; her tip (Fathi's second phone that only rings on Tuesdays) and her
+>   network (`ch1b_umsabry_network`, for the Return-ending cameo)
+> - **02 The Camel Men:** "twenty to get on, two hundred to get down": fine them, let them
+>   go, or organize them (a price board, a licence form); organized, they give you camel
+>   rides (the Serapeum, Mit Rahina, the inspectorate, the Teti dig)
+> - **03 Rais Gad's Tunnel:** a night stakeout at the robbers' hole; two Qurna men ("Hagg
+>   Mahmoud won't like this"); photograph them or not; a faience wedjat to log with the Rais
+>   (Ministry rep)
+> - **04 The Colossus:** Léo, lost at the colossus; his parents at the coach park; 150 EGP
+>   and the guiding job unlocked (`c1b_guide_job`; the job itself is step 9)
+> - **05 The Forged Seal:** Fathi, after the round: "check them, quietly"; three mastabas in
+>   the mastaba field, two forged with the service door's faulty stamp, S.R. in the
+>   register (`ch1b_forged_seals`, evidence for Radwan's conscience track)
+> - **06 The Serdab's Eyes:** look through the holes (a picture), photograph him (C)
+> - **07 The Café's Backgammon:** the champion, unbeaten since 1994; 5 EGP a game, 100 if
+>   you win, village rep
+> - **08 The Well Girls:** their jerrycan cap is under the cloth stall
+> - **09 The Mechanic's Receipt:** in the red Fiat's glovebox; in beat 6 it adds lines for
+>   Samy and Fathi, not a different outcome, not a Radwan point
+> - by day only: the children, the old men, the tourists, the guide, the camel man
+
 | Quest | Giver | What happens |
 |---|---|---|
 | Umm Sabry's Price | Umm Sabry | Gossip for gossip: who's romancing the accountant? (Already a task.) Unlocks her network: tips about Fathi, and a Return-ending cameo |

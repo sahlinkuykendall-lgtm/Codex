@@ -90,6 +90,7 @@ function saqqaraLayout() {
         ['c1b_wires1', 60, 21, 8, 1], ['c1b_bunting', 58, 37, 8, 1], ['c1b_fulcart', 69, 20, 2, 1], ['c1b_juice', 53, 19, 2, 2], ['c1b_qulla', 74, 19, 1, 1], ['c1b_butane', 53, 27, 2, 1],
         ['c1b_chickens1', 61, 19, 1, 1], ['c1b_chickens2', 69, 39, 1, 1], ['c1b_cat', 74, 26, 1, 1], ['c1b_bicycle', 69, 36, 1, 1], ['c1b_crates', 58, 33, 1, 1], ['c1b_rugs', 50, 38, 3, 1],
         ['c1b_bench', 60, 26, 2, 1], ['c1b_oldman1', 60, 27, 1, 1], ['c1b_oldman2', 62, 26, 1, 1], ['c1b_kid1', 60, 39, 1, 1], ['c1b_kid2', 62, 40, 1, 1], ['c1b_ball', 61, 39, 1, 1],
+        ['c1b_girl1', 59, 25, 1, 1], ['c1b_girl2', 62, 25, 1, 1], ['c1b_cap', 62, 36, 1, 1], ['c1b_tawlaman', 55, 26, 1, 1], ['c1b_lostkid', 63, 49, 1, 1], ['c1b_mum', 33, 34, 1, 1], ['c1b_dad', 34, 35, 1, 1],   // (the side quests: poke/ch1b_side.js)
         ['c1b_dovecote1', 50, 15, 2, 2], ['c1b_dovecote2', 70, 9, 2, 2], ['c1b_buffalo', 57, 10, 2, 1], ['c1b_goats', 52, 45, 1, 1],
         // --- the museum garden: the colossus, the alabaster sphinx ---
         ['c1b_colossus', 57, 44, 8, 4], ['c1b_sphinx', 67, 48, 4, 2], ['c1b_kiosk', 57, 50, 2, 1], ['c1b_statues', 69, 44, 3, 1], ['c1b_tourist1', 66, 46, 1, 1], ['c1b_tourist2', 67, 46, 1, 1], ['c1b_guide', 61, 49, 1, 1],

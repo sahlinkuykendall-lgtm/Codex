@@ -91,6 +91,7 @@ function c1bChapterEnd() {
     if (f.c1b_so_evidence) L.push('You kept Samy\'s Cleopatra cigarette ends, in a Ministry evidence bag.');
     if (f.ch1b_tomb_story) L.push('Umm Sabry told you about the tomb where the magician\'s wife and son are painted by the river.');
     if (f.c1b_ghaf_saw) L.push('The night ghaffir saw you in the galleries at midnight.');
+    for (const fn of window.C1B_END_LINES || []) { const t = fn(f); if (t) L.push(t); }                // (the side quests: poke/ch1b_side.js)
     EndCard.show('END OF CHAPTER ONE', 'SAQQARA', L, 'Thursday, Café El-Fishawy, Cairo. Father Bishoy is waiting for someone who isn\'t coming. Chapter Two, Cairo, is being built. Your choices are saved and will carry forward.');
 }
 

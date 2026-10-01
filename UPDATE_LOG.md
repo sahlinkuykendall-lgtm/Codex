@@ -12,6 +12,54 @@ Other docs:
 
 ---
 
+## POKE-STYLE P0.35 — 2026-10-01 — (branch `poke-style`) Saqqara's nine side quests, and tawla (Chapter 1-B, step 8)
+- **All nine of the bible's side quests for the Inspector (SQ-01B-01 to 09):**
+  - **Umm Sabry's Price:** she wants to know who's romancing the accountant. The well girls
+    know (the baker: an extra loaf in Madame Nadia's bag every morning). Tell her, and she
+    pays you back with a tip about the Director (a second, old telephone in his desk that
+    only rings on Tuesdays) and her network: anyone on the site, anyone in Mit Rahina,
+    anyone's cousin in Cairo
+  - **The Camel Men:** a tourist stuck on a camel: "twenty to get on, madame, two hundred
+    to get down". Fine him, let it go, or organize the camel men (a price board, fifty
+    pounds up and down, and a licence form with your name on it). Organized, they give you
+    free camel rides to the Serapeum, Mit Rahina, the inspectorate or the Teti dig
+  - **Rais Gad's Tunnel:** after Gad mentions the footprints, offer to watch. At night, lie
+    in a hollow by the robbers' hole: two young men from Qurna come with a lamp ("Hagg
+    Mahmoud won't like this. We're not supposed to be up here at all"). Photograph them or
+    not, shout "Ministry!", and they run, dropping a faience wedjat amulet. Log it with the
+    Rais for Ministry rep: "Qurna men. The old families. Someone paid them to come this far
+    north"
+  - **The Colossus:** Léo, seven, lost by the fallen colossus; his French parents frantic
+    at the coach park. Reunite them: 150 pounds from his father, and the guide mentions
+    that the Inspector does Step Pyramid tours (the guiding job, step 9)
+  - **The Forged Seal:** after the round, ask Fathi about the other seals: "Check them.
+    Quietly. Nothing in writing until you're sure." Three sealed mastabas in the mastaba
+    field (their seals now drawn on): two forged with the same faulty stamp as the
+    Serapeum's service door, and the register has S.R. against every renewal. Evidence
+    for Colonel Radwan's conscience, one day
+  - **The Serdab's Eyes:** look through the two eye holes at Djoser (a close-up picture of
+    the statue's face) and photograph him with the camera (C)
+  - **The Café's Backgammon:** an old man at the café, unbeaten at tawla since 1994. Five
+    pounds a game; win, and the café pays you a hundred and the whole village hears
+  - **The Well Girls:** two girls at the well have lost their jerrycan's cap; it's under
+    the cloth stall
+  - **The Mechanic's Receipt:** the receipt for Samy's motorbike is in the glovebox of the
+    red Fiat in the garage: cash, a Shubra dealer, dated two days before the Codex came. In
+    the standoff it adds lines (Samy: "That was a present too"; Fathi pockets it "like a
+    winning ticket"), but nothing turns on it
+- **Tawla,** a new minigame: backgammon as the café plays it, cut down to a quick race.
+  Four checkers each, two dice (doubles play four times), round the inlaid board and off;
+  land on a lone checker and it goes back to the start, two on a point block it. ◄► picks
+  a checker, ▲▼ the die, SPACE moves; the champion plays a sensible game with a little luck
+  of the hand. (Ch2's Madame Samira will reuse it.)
+- **By day only:** the children, the old men at dominoes, the well girls, the tourists, the
+  guide and the camel man go home at nine in the evening.
+- The end card lists the side quests you finished.
+- Tested: every quest start to finish, the camel ride, a full game of tawla played to the
+  end, the receipt's lines in beat 6, the end card, and saving and loading. The audit is
+  clean (256 scenes), the playthroughs and the earlier Inspector flows pass, and Giza's 33
+  views are identical.
+
 ## POKE-STYLE P0.34 — 2026-09-30 — (branch `poke-style`) Miriam's note and the way out: the Inspector's opening can be finished (Chapter 1-B, step 7)
 - **Beat 7** (from the bible), the end of the Inspector's story.
 - **Look at the Codex properly,** somewhere nobody can see you: SPACE on it in your bag, or
