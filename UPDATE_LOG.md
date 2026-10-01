@@ -12,6 +12,32 @@ Other docs:
 
 ---
 
+## POKE-STYLE P0.37 — 2026-10-01 — (branch `poke-style`) Saqqara's secrets: the twenty-sixth gallery and the painted tomb (Chapter 1-B, step 10)
+- **The bible's two secrets,** counted as three like Giza's five (a chime, a notice, a
+  "Secrets of Saqqara" page in the journal, and a line on the end card):
+  - **the twenty-sixth gallery** (fiction): in the Serapeum, the Apis coffin whose lid the
+    robbers pushed aside ("the dark goes down further than it should"). Lean in with the
+    torch: the robbers cut through the coffin's floor and the rock under it, and there are
+    footholds down into a new room, a short, rough gallery that isn't on any plan, with an
+    unfinished granite coffin at the end
+  - **the bronze Thoth:** in a niche in the rough wall, a hand-length Late Period bronze of
+    Thoth, ibis-headed, a scribe's palette against his chest, set there to watch over the
+    coffin. Not yours to take; you leave him watching
+  - **a Rare find:** in the unfinished coffin's dust, a finger-length bronze Apis bull, the
+    sun disc between its horns still gilded (an item; excavation XP)
+  - **Naneferkaptah's tomb:** the sealed doorway in the far corner of the necropolis, where
+    the sand comes in, with a river, a woman and a small boy painted faintly above it. You
+    can notice it, not enter it. If Umm Sabry has told you her grandmother's story, you know
+    whose tomb it is
+- **The Serapeum is open after the round** (the bible keeps it locked only until then): by
+  day, tourists and your Ministry card; by night the old ghaffir lets you in. Outside the
+  story's nights nobody patrols and nobody comes, so you can explore the galleries and
+  find the way down.
+- Tested: noticing the tomb, the gate before and after the round, a daytime visit with no
+  patrol and no Samy, down to the twenty-sixth gallery, the Thoth, the Apis, back up,
+  and saving and loading. The audit is clean (269 scenes), the playthroughs and the
+  Inspector story flows pass, and Giza's 33 views are identical.
+
 ## POKE-STYLE P0.36 — 2026-10-01 — (branch `poke-style`) The Inspector's jobs: the seal shift, guiding, sieving (Chapter 1-B, step 9)
 - **The seal register and the seal shift** (the Inspector's answer to Miriam's metal
   detector): a duty roster on the inspectorate wall offers today's seal shift. Write your

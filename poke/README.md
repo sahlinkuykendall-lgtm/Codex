@@ -110,6 +110,7 @@ there are no image files.
 | `ch1b_tawla.js` | The tawla minigame (backgammon cut down to a quick race: four checkers each, hits and blocks, bearing off); the café champion uses it, and Ch2's Madame Samira will |
 | `ch1b_side.js` | Chapter 1-B's nine side quests (SQ-01B-01 to 09), the people who are about by day only, and the side-quest lines on the end card |
 | `ch1b_jobs.js` | Chapter 1-B's jobs: the seal register and the paid seal shift (eight sealed shafts, two forged), guiding tours of the Step Pyramid (the guide's quiz), sieving at the Teti dig |
+| `ch1b_secrets.js` | Chapter 1-B's secrets (the Serapeum's twenty-sixth gallery with its bronze Thoth and a rare find; Naneferkaptah's sealed tomb), counted like Giza's; the Serapeum open after the round |
 | `backgrounds.js` | The four backgrounds: skills, gear, papers, their paintings and opening cutscenes |
 | `intro.js` | The opening scenes, the background choice, male/female, the character creator, the name grid, your papers |
 | `game.js` | The loop: input, movement and collision, camera, drawing, day/night, doors, saving |

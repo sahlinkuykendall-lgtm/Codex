@@ -235,7 +235,19 @@ plus three jobs, two secrets and the seal register.
 - **Minigames:** the seal (reused, reworked), the sieve (reused), the tail (new, beat 3),
   and the guide's quiz (new).
 
-## 10. Secrets (bible §SECRETS)
+## 10. Secrets (bible §SECRETS) — ✅ DONE in P0.37
+> Done in `poke/ch1b_secrets.js`: three secrets, counted like Giza's (a notice, a journal
+> page, a line on the end card):
+> - **the twenty-sixth gallery:** under the robbed Apis coffin in the Serapeum (its lid
+>   pushed aside), a cut through its floor and footholds down to a new room
+>   (`INT_SER26`): a short, rough gallery and an unfinished granite coffin
+> - **the bronze Thoth** in a niche, watching the coffin (the deniable hint): you leave him
+> - **a Rare find:** a gilded bronze Apis in the coffin's dust (an item)
+> - **Naneferkaptah's tomb:** the sealed doorway in the far corner, noticed, not entered;
+>   if you've heard Umm Sabry's story, you know whose it is
+> - the Serapeum is open after the round, by day too (just the galleries, nobody patrols
+>   outside the story's nights)
+
 - **The Serapeum's sealed 26th gallery** (fiction): a Late Period Thoth statuette (a
   deniable hint) and a Rare find.
 - **Naneferkaptah's tomb:** already on the map, the sealed doorway in the far south-west
