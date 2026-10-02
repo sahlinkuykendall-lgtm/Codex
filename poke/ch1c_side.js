@@ -148,6 +148,7 @@ MINIS.dive = {
         // the moray
         const M = S.moray, md = Math.hypot((S.x - M.x) / 300, S.y - M.y);
         if (M.lunge > 0) M.lunge -= dt; else if (md < 0.12 && S.sting <= 0) { M.lunge = 1; S.air -= 5; S.sting = 1.2; S.vx = (S.x < M.x ? -1 : 1) * 90; S.msg = 'The moray lunges out of its hole! You kick away.'; S.msgT = 2; Sfx.tone(120, 0.2, 'square', 0.05); }
+        if (S.salvage) { this.salvageUpdate(S, dt, keys, ay); return; }                // (the Lady Haifa's wreck: poke/ch1c_jobs.js)
         // cutting the net
         let near = null;
         for (const h of S.heads) if (!h.done && Math.abs(S.x - h.x) < 54 && Math.abs(S.y - (h.y - 0.08)) < 0.18) near = h;
@@ -180,8 +181,9 @@ MINIS.dive = {
             A.line(fx, base, fx, top + 6, '#d85a18'); A.line(fx, top + 12, fx - 6, top + 2, '#e86a20'); A.line(fx, top + 10, fx + 6, top, '#e86a20'); A.line(fx - 6, top + 2, fx - 8, top - 3, '#f8a040'); A.line(fx + 6, top, fx + 7, top - 5, '#f8a040');
             A.px(fx - 8, top - 4, '#fff0a0'); A.px(fx + 7, top - 6, '#fff0a0'); A.px(fx, top + 5, '#fff0a0');
         }
+        if (S.salvage) this.drawWreck(S, g, A, X, Y);
         // the coral heads, the net on them
-        for (const h of S.heads) {
+        for (const h of (S.salvage ? [] : S.heads)) {
             const cx = X(h.x), cy = Y(h.y);
             A.ell(cx, cy, 34, 22, '#b85a8a'); A.ell(cx - 8, cy - 6, 20, 13, '#d07aa8'); A.ell(cx + 14, cy + 2, 14, 10, '#8a4a7a');
             for (let k = 0; k < 6; k++) A.r(cx - 26 + k * 10, cy - 20 - (k % 3) * 4, 3, 12, ['#f0c040', '#e86a8a', '#7ac8a0'][k % 3]);
@@ -212,8 +214,9 @@ MINIS.dive = {
         if (S.sting > 0 && (S.t * 10 | 0) % 2) A.r(dx - 10, dy - 6, 20, 12, 'rgba(255,80,40,0.3)');
         // air, nets
         miniBar(g, A, 12, VH - 30, 160, 'AIR', S.air / DIVE_AIR, null, S.air < 15);
-        Txt.draw(g, 'NETS ' + S.heads.filter(h => h.done).length + '/3', VW - 70, VH - 30, { col: '#ffffff', shadow: '#0c1830' });
-        if (S.near) Txt.draw(g, 'Hold SPACE to cut', X(S.near.x), Y(S.near.y) - 46, { col: '#ffffff', align: 'center', shadow: '#0c1830' });
+        if (S.salvage) Txt.draw(g, 'CARRYING ' + S.bag.length + '/' + S.cap, VW - 96, VH - 30, { col: '#ffffff', shadow: '#0c1830' });
+        else Txt.draw(g, 'NETS ' + S.heads.filter(h => h.done).length + '/3', VW - 70, VH - 30, { col: '#ffffff', shadow: '#0c1830' });
+        if (S.near) Txt.draw(g, S.salvage ? 'Hold SPACE: work it loose' : 'Hold SPACE to cut', X(S.near.x), Y(S.near.y) - (S.salvage ? 20 : 46), { col: '#ffffff', align: 'center', shadow: '#0c1830' });
         if (S.msgT > 0) Txt.wrap(S.msg, VW - 40).forEach((ln, i) => Txt.draw(g, ln, VW >> 1, top + 8 + i * 12, { col: '#ffffff', align: 'center', shadow: '#0c1830' }));
     },
 };

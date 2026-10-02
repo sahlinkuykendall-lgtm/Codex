@@ -186,7 +186,7 @@ Three tasks, each with more than one way to do it:
 - Like the Inspector's: the people who are only about by day, the compass for each, and a
   line each on the end card.
 
-## 9. Jobs (bible §JOBS)
+## 9. Jobs (bible §JOBS) — ✅ DONE in P0.57 (`ch1c_jobs.js`: the bank transfer, the Lady Haifa salvage, truck-stop loading, Bassem's cigarette runs)
 - **Fishing** off the reef and the harbour (the fishing minigame, new; reused by SQ-01C-03). ✅ The
   minigame is done (P0.43), on Lighthouse Island's fishing rocks; selling to the fish seller works.
   Fishing from the end of the north breakwater, with the hotel cook's rod, and his side quest: ✅ P0.55.

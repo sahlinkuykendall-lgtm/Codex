@@ -2,7 +2,7 @@
 
 The working memory for the poke-style build: **what the owner wants, how to work, what's
 been done, and what's next.** Keep it current: update the "Where we are" and "What's next"
-sections at the end of every step. Last updated 2026-10-02, at P0.56.
+sections at the end of every step. Last updated 2026-10-02, at P0.57.
 
 ---
 
@@ -84,7 +84,7 @@ See `poke/README.md` for the file-by-file table. The essentials:
 - **Rooms:** `ROOMS[key] = {name, tw, th, style, enter, build(...)}`; doors are listed in the
   area's layout.
 - **Minigames:** `MINIS.x = {title, keys, start, update, draw}`; `playMinigame(kind, opts, cb)`.
-  So far: sieve, tea, darts, seal, race (rebuilt in P0.51: lanes, stride, breath), fossil, dive, detect, tawla, the guide's quiz, and for the Fixer: haggle,
+  So far: sieve, tea, darts, seal, race (rebuilt in P0.51: lanes, stride, breath), fossil, dive, salvage, detect, loading, cartons, tawla, the guide's quiz, and for the Fixer: haggle,
   lockpick, scout (`ch1c_prep.js`), fish (`ch1c_island.js`), lamproom, chase and firstaid
   (`ch1c_island.js`, `ch1c_ship.js`). Don't name a minigame's state field `done`: `Mini` keeps the
   callback there. Give a minigame `howto: [lines]` (a line can be `[label, text]`) and it opens on a
@@ -200,13 +200,16 @@ Add a playthrough file for each new opening (next: `poke_fixer.js`). An area can
   hotel lobby, the lockpicking safe), Tawla at the Truck Stop, the Imam's Loudspeaker (the minaret,
   the boy's remote-control boat), Goats in the Wadi (herding). `AREAS.fixer.sideQuests` lists all nine
   for the leaving line and the end card. **Step 8 is done.**
+- **P0.57: the Fixer, step 9** (`ch1c_jobs.js`): paying the debt from the bank app; diving salvage on
+  the Lady Haifa (the dive minigame with a wreck); truck-stop loading (new minigame); Bassem's
+  cigarette runs (new grid-stealth minigame: 1,000 off the debt, heat if caught). **Step 9 is done.**
 
 ## 6. What's next
 
 1. **The Fixer's opening, Chapter 1-C (Marsa Tarfa):** follow `poke/FIXER_TODO.md`; next is
-   step 8 (the side quests) is done (P0.54–P0.56). Next: step 9, jobs (fishing is in; diving salvage
-   on a sunk yacht, truck-stop loading, small smuggling runs, paying the debt down), then secrets (10)
-   and rooms and the `poke_fixer.js` playthrough check (11). Then jobs (9), secrets (10),
+   steps 8 (side quests) and 9 (jobs) are done (P0.54–P0.57). Next: step 10, secrets (the Roman wreck
+   on the reef, the Keeper shrine in the fort wall, the smugglers' cave up the wadi), then step 11
+   (rooms, rest, the phone, and the `poke_fixer.js` playthrough check). Then jobs (9), secrets (10),
    rooms and the `poke_fixer.js` playthrough check (11). Waiting on the owner's go-ahead.
 2. Then the Journalist's opening, Chapter 1-D (Port Said): write `JOURNALIST_TODO.md` the
    same way first.

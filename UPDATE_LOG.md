@@ -12,6 +12,39 @@ Other docs:
 
 ---
 
+## POKE-STYLE P0.57 — 2026-10-02 — (branch `poke-style`) The Fixer, step 9: jobs, and paying the debt down
+New file `poke/ch1c_jobs.js`.
+- **Paying the debt:** the phone's BANK app now has **➜ Transfer to B. Nassar**. Pay 500, 1,000,
+  5,000, 10,000 or all you can. Bassem texts the first time you pay ("Only 59,000 to go,
+  habibi") and if you ever clear it.
+- **Diving salvage: the Lady Haifa.** A Cairo lawyer's motor yacht sank off the south point in the
+  spring storm.
+  - Once you've cleared her reef, Rana offers the work. The insurers pay a fifth of the value of
+    anything brought up, and she logs it and pays you on the boat.
+  - It's the dive minigame with the wreck on the sand: work loose a brass porthole, the ship's
+    bell, the outboard propeller, a dive computer and binoculars (200–600 each). You can carry
+    two things a dive, and heavy things cost breath.
+  - A lionfish stings, and a moray lives in the cabin door.
+  - It costs 50 for the tank, by day, until the wreck is stripped.
+- **Truck-stop loading:** the truck stop café man has lorries to pack (a new **loading**
+  minigame).
+  - Drop cement sacks, crates, fridges, watermelons and eggs into the trailer. You can turn them,
+    and see where each one will land before you drop it.
+  - Heavy things crush fragile ones underneath.
+  - Pay depends on how full the trailer is and how much you broke (about 50–200). One lorry an
+    hour, by day.
+- **Bassem's cigarette runs:** after Bassem's offer, his gate man has small jobs: carry a bag of
+  cartons from the beach to the kiosk's back door through the back lanes (a new **cartons**
+  minigame).
+  - It's a grid. Police walk their beats lighting the cells ahead with torches, and the dark
+    doorways hide you. Stand in the light and a meter fills until you're caught.
+  - Each run takes **1,000 off the debt**. Caught: police heat +1, and Bassem adds 500 for the
+    cartons. More police come out the higher your heat.
+  - A solver checked that both maps can be won at every heat level, even moving at a person's
+    pace, without stepping into the light.
+  - The runs stop once you've crossed Bassem.
+- All three new minigames have how-to-play cards.
+
 ## POKE-STYLE P0.56 — 2026-10-02 — (branch `poke-style`) The Fixer, step 8, part 3: the four added side quests (step 8 done)
 New file `poke/ch1c_side3.js`. These four are additions to the bible's five, marked as such in
 `FIXER_TODO.md`. Nameless locals only, nothing that touches the main story.

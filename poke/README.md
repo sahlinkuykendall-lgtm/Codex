@@ -128,6 +128,7 @@ there are no image files.
 | `ch1c_side.js` | The Fixer's side quests: Rana's Reef (the diving minigame), the Fort's Cannon (the old gun platform, the detector minigame) |
 | `ch1c_side2.js` | The Fixer's side quests: Fish for the Hotel, the Coast Guard's Cousin, Bassem's Nephew |
 | `ch1c_side3.js` | The Fixer's four added side quests (the One Guest and the hotel lobby, truck-stop tawla, the Imam's loudspeaker, goats in the wadi), and the list of all nine |
+| `ch1c_jobs.js` | The Fixer's jobs: paying the debt from the bank app, diving salvage (the Lady Haifa), truck-stop loading, Bassem's cigarette runs (the cartons minigame) |
 | `leaving.js` | Before you leave an opening: how many main tasks and side quests are still open there |
 | `ch1c_exit.js` | Chapter 1-C, beat 7: back on shore, dumping the tracker (reef / bus / Bassem's car), the exit (legal / deal / quiet), goodbyes, leaving by lorry or night bus, the end card |
 | `backgrounds.js` | The four backgrounds: skills, gear, papers, their paintings and opening cutscenes |
