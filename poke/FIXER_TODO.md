@@ -164,7 +164,7 @@ Three tasks, each with more than one way to do it:
   (Bassem texts threats; Karim already knows your name).
 - **Leaving:** the night bus or a truck up the coast highway; the chapter-end card.
 
-## 8. Side quests (bible §SIDE QUESTS) — Rana's Reef and the Fort's Cannon ✅ DONE in P0.54 (`ch1c_side.js`)
+## 8. Side quests (bible §SIDE QUESTS) — the bible's five ✅ DONE in P0.54–P0.55 (`ch1c_side.js`, `ch1c_side2.js`); the additions next
 | ID | Name | Giver | What |
 |---|---|---|---|
 | SQ-01C-01 | Rana's Reef | Rana | Clear ghost nets off the reef (diving): diving XP, a Ch3 dive kit discount |
@@ -189,7 +189,7 @@ Three tasks, each with more than one way to do it:
 ## 9. Jobs (bible §JOBS)
 - **Fishing** off the reef and the harbour (the fishing minigame, new; reused by SQ-01C-03). ✅ The
   minigame is done (P0.43), on Lighthouse Island's fishing rocks; selling to the fish seller works.
-  Still to do: fishing from the harbour too, and the hotel cook's side quest using it.
+  Fishing from the end of the north breakwater, with the hotel cook's rod, and his side quest: ✅ P0.55.
 - **Diving salvage** on a sunk yacht (the diving minigame, reused by SQ-01C-01)
 - **Truck-stop loading** (a timed loading job)
 - **Small smuggling runs** (cigarettes): pay against the debt, with risk (police heat)

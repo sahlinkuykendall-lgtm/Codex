@@ -12,6 +12,32 @@ Other docs:
 
 ---
 
+## POKE-STYLE P0.55 — 2026-10-02 — (branch `poke-style`) The Fixer, step 8, part 2: the hotel, the insulin, Bassem's nephew
+New file `poke/ch1c_side2.js`.
+- **Fish for the Hotel (SQ-01C-03):** the hotel cook (new, by the kitchen door) has forty rooms,
+  one guest (his cousin), and no good fish.
+  - Bring him three big ones (snapper, trevally or grouper, from the island's far rocks). He pays
+    25 more than the fish seller.
+  - Then he gives you **his rod** for the new **fishing spot at the end of the north breakwater**
+    (fishing in the harbour, at last), and his kitchen at half price: fish soup and rice, and
+    water. That's a new food and water spot.
+- **The Coast Guard's Cousin (SQ-01C-04):** the old fisherman's blue cool box holds insulin and
+  antibiotics that came in on a boat that didn't stop at customs. They're for mountain villages
+  the Ministry of Health has forgotten.
+  - Take his 200 or carry it for nothing. With your lockpicks you can peel the tape back and look
+    first.
+  - Carry it up the wadi to **the man from the mountain** (new, under the acacia, by day).
+  - Bedouin reputation goes up (more if you did it free), and `ch1c_bedouin`: "say you carried
+    the box for the Ababda", a desert contact for Chapter 6.
+- **Bassem's Nephew (SQ-01C-05):** Bassem's sister (the woman in green) wants her fifteen-year-old
+  off the quay, where he sits in mirror sunglasses watching the coast guard for his uncle.
+  - Send him to Zaki as a deckhand, to Rana's dive shop, or home: talk him round with "look at
+    me".
+  - Rana approves (more if he goes to her).
+  - Bassem texts: "Good. I never wanted him there... 2,000 off. Tell nobody I am sentimental."
+- The sister, the boy and the man from the mountain are only about by day. The compass points the
+  way for every task.
+
 ## POKE-STYLE P0.54 — 2026-10-02 — (branch `poke-style`) The Fixer, step 8, part 1: Rana's Reef and the Fort's Cannon
 - **Rana's Reef (SQ-01C-01)** (`poke/ch1c_side.js`): after you've met Rana, she asks you to help
   cut a trawler's ghost net off the north reef. She only dives by day.

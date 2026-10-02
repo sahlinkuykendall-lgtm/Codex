@@ -2,7 +2,7 @@
 
 The working memory for the poke-style build: **what the owner wants, how to work, what's
 been done, and what's next.** Keep it current: update the "Where we are" and "What's next"
-sections at the end of every step. Last updated 2026-10-02, at P0.54.
+sections at the end of every step. Last updated 2026-10-02, at P0.55.
 
 ---
 
@@ -193,12 +193,14 @@ Add a playthrough file for each new opening (next: `poke_fixer.js`). An area can
 - **P0.54: the Fixer, step 8, part 1** (`ch1c_side.js`): Rana's Reef (the diving minigame) and the
   Fort's Cannon (the old gun platform, the detector minigame, the Ottoman hoard). Side-quest tasks are
   written "(Name) ..." and the Fixer's chapter end leaves them open. Notices wait out minigames.
+- **P0.55: the Fixer, step 8, part 2** (`ch1c_side2.js`): Fish for the Hotel (the cook, his rod, the
+  breakwater fishing spot, his kitchen), the Coast Guard's Cousin (the insulin up the wadi, the man
+  from the mountain, `ch1c_bedouin`), Bassem's Nephew (the sister, the boy, Bassem's 2,000 off).
 
 ## 6. What's next
 
 1. **The Fixer's opening, Chapter 1-C (Marsa Tarfa):** follow `poke/FIXER_TODO.md`; next is
-   step 8 (the side quests): Rana's Reef and the Fort's Cannon are done (P0.54); next Fish for the
-   Hotel, the Coast Guard's Cousin, Bassem's Nephew, then the four additions. Then jobs (9), secrets (10),
+   step 8 (the side quests): the bible's five are done (P0.54, P0.55); next the four additions. Then jobs (9), secrets (10),
    rooms and the `poke_fixer.js` playthrough check (11). Waiting on the owner's go-ahead.
 2. Then the Journalist's opening, Chapter 1-D (Port Said): write `JOURNALIST_TODO.md` the
    same way first.
