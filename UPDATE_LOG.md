@@ -12,6 +12,26 @@ Other docs:
 
 ---
 
+## POKE-STYLE P0.58 — 2026-10-02 — (branch `poke-style`) The Fixer, step 10: the secrets of Marsa Tarfa
+New file `poke/ch1c_secrets.js`. The secrets are counted like Giza's and Saqqara's: a notice, a
+"Secrets of Marsa Tarfa" journal page, and a line on the end card.
+- **The Roman wreck** (bible): on Lighthouse Island's seaward side, past the fishing rocks, a
+  fisherman's marker stick shows where the reef drops away.
+  - Looking down, there's a long coral-covered mound with rows of rounded shapes.
+  - With Rana's dive card (the boatman keeps her spare tank) or her diving kit, you can dive it.
+    It uses the dive minigame, with the hull and its amphorae on the sand.
+  - You bring up **a Roman amphora** and **silver denarii of Tiberius** (Rare finds). Ships like
+    her sailed from Myos Hormos, just up this coast, for India.
+- **The niche in the fort wall** (bible): a whitewashed niche in the fort's west wall, with a lamp
+  painted inside a blue doorway and a candle stub somebody lights every morning. Nothing on screen
+  says whose it is (a quiet +3 with the Keepers).
+- **The smugglers' cave** (addition): behind a fallen slab in the wadi wall.
+  - Names and dates scratched since the 1940s: HASSAN 1943, a Royal Navy sailor in 1944, rows of
+    little boats.
+  - If you're Egyptian, your own initials from the summer you were fifteen. If not, the initials
+    of the old man who taught you the trade, and you can finally sign beside them.
+  - A rusted 1942 British army tin.
+
 ## POKE-STYLE P0.57 — 2026-10-02 — (branch `poke-style`) The Fixer, step 9: jobs, and paying the debt down
 New file `poke/ch1c_jobs.js`.
 - **Paying the debt:** the phone's BANK app now has **➜ Transfer to B. Nassar**. Pay 500, 1,000,

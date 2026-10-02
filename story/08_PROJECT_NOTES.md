@@ -2,7 +2,7 @@
 
 The working memory for the poke-style build: **what the owner wants, how to work, what's
 been done, and what's next.** Keep it current: update the "Where we are" and "What's next"
-sections at the end of every step. Last updated 2026-10-02, at P0.57.
+sections at the end of every step. Last updated 2026-10-02, at P0.58.
 
 ---
 
@@ -203,13 +203,17 @@ Add a playthrough file for each new opening (next: `poke_fixer.js`). An area can
 - **P0.57: the Fixer, step 9** (`ch1c_jobs.js`): paying the debt from the bank app; diving salvage on
   the Lady Haifa (the dive minigame with a wreck); truck-stop loading (new minigame); Bassem's
   cigarette runs (new grid-stealth minigame: 1,000 off the debt, heat if caught). **Step 9 is done.**
+- **P0.58: the Fixer, step 10** (`ch1c_secrets.js`): the Roman wreck off Lighthouse Island (a dive, the
+  amphora and the denarii), the niche in the fort wall, and the smugglers' cave up the wadi (an addition).
+  Counted on the end card. **Step 10 is done.**
 
 ## 6. What's next
 
 1. **The Fixer's opening, Chapter 1-C (Marsa Tarfa):** follow `poke/FIXER_TODO.md`; next is
-   steps 8 (side quests) and 9 (jobs) are done (P0.54–P0.57). Next: step 10, secrets (the Roman wreck
-   on the reef, the Keeper shrine in the fort wall, the smugglers' cave up the wadi), then step 11
-   (rooms, rest, the phone, and the `poke_fixer.js` playthrough check). Then jobs (9), secrets (10),
+   steps 8–10 (side quests, jobs, secrets) are done (P0.54–P0.58). Next: step 11, the last one: rooms
+   for every visible building still without one (the café, the mosque, the kiosk, the coast guard
+   post, the truck stop café, the fort, the houses), resting, the phone, and the `poke_fixer.js`
+   playthrough check. Then jobs (9), secrets (10),
    rooms and the `poke_fixer.js` playthrough check (11). Waiting on the owner's go-ahead.
 2. Then the Journalist's opening, Chapter 1-D (Port Said): write `JOURNALIST_TODO.md` the
    same way first.

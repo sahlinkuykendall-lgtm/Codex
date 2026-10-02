@@ -203,7 +203,7 @@ Three tasks, each with more than one way to do it:
 > the real map. Not in the bible's map; no named people, no story flags. Later steps may use it
 > (the diving jobs, Rana's reef, the boat chase in beat 6) only where that doesn't change a beat.
 
-## 10. Secrets (bible §SECRETS)
+## 10. Secrets (bible §SECRETS) — ✅ DONE in P0.58 (`ch1c_secrets.js`)
 - **A wrecked Roman trade ship on the reef** (real Roman Red Sea trade): found diving, an
   amphora and coins (a Rare find)
 - **A tiny Keeper shrine in the fort wall:** the first one the player might notice
