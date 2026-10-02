@@ -17,6 +17,8 @@
 //   fossil a nummulite in the fossil pavement's limestone: tap SPACE to chisel, hold to brush;
 //          chisel too close and it cracks. Before your torch dies. → { ok, cracks } · { dark }
 // ESC / X leaves any of them ({ left: true }).
+// A minigame with `howto: [lines]` opens on a how-to-play card first; SPACE starts it, and ESC
+// there backs out before it begins ({ left: true, unstarted: true }).
 // ============================================================
 
 const Mini = {
@@ -24,7 +26,7 @@ const Mini = {
     open(kind, opts, done) {
         const G = MINIS[kind];
         if (!G) { done(Object.assign({ ok: true }, opts)); return; }
-        this.cur = Object.assign({ kind, opts: opts || {}, done, t: 0, result: null, endT: 0, act: false, lock: true }, G.start(opts || {}));   // (lock: until SPACE is let go, so the key that chose 'play' doesn't throw, pour or dig)
+        this.cur = Object.assign({ kind, opts: opts || {}, done, t: 0, result: null, endT: 0, act: false, lock: true, howto: !!G.howto }, G.start(opts || {}));   // (lock: until SPACE is let go, so the key that chose 'play' doesn't throw, pour or dig)
         this.G = G; Sfx.ok();
     },
     update(dt, I, keys) {
@@ -37,8 +39,25 @@ const Mini = {
             if (S.endT > 0.5 && (I.ok || I.back)) { const cb = S.done, r = S.result; this.cur = null; Sfx.move(); cb(r); }
             return;
         }
+        if (S.howto) {                                                // the how-to-play card: SPACE to start
+            if (I.back || I.menu) { const cb = S.done; this.cur = null; Sfx.back(); cb({ left: true, ok: false, unstarted: true }); return; }
+            if (pressed) { S.howto = false; S.lock = true; S.t = 0; Sfx.ok(); }   // (lock: the SPACE that started it doesn't also play)
+            return;
+        }
         if (I.back || I.menu) { this.finish({ left: true, ok: false }, 'You step away.'); return; }
         this.G.update(S, dt, I, keys, pressed, released);
+    },
+    drawHowto(g, A, VW, VH) {
+        g.fillStyle = 'rgba(12,10,24,0.78)'; g.fillRect(0, 26, VW, VH - 26);
+        const w = Math.min(VW - 20, 420), tw = w - 40, rows = [];
+        this.G.howto.forEach(l => { const [head, body] = Array.isArray(l) ? l : [null, l]; Txt.wrap(body, head ? tw - 62 : tw).forEach((ln, i) => rows.push([i === 0 ? head : null, ln, !!head])); rows.push(null); });
+        rows.pop();
+        const h = 44 + rows.reduce((n, r) => n + (r ? 12 : 4), 0), x = (VW - w) >> 1, y = Math.max(28, (VH - h) >> 1);
+        frame(g, x, y, w, h, { band: '#e0a030', hi: '#ffe090' });
+        Txt.draw(g, 'HOW TO PLAY', VW >> 1, y + 7, { col: UI.gold, align: 'center' });
+        let yy = y + 24;
+        for (const r of rows) { if (!r) { yy += 4; continue; } if (r[0]) Txt.draw(g, r[0], x + 16, yy, { col: '#c04030' }); Txt.draw(g, r[1], x + (r[2] ? 78 : 16), yy, { col: UI.ink }); yy += 12; }
+        Txt.draw(g, 'SPACE: start      ESC: not yet', VW >> 1, y + h - 15, { col: (this.cur.t * 2.5 | 0) % 2 ? '#3058a0' : '#c04030', align: 'center' });
     },
     finish(result, line, big) { const S = this.cur; S.result = result; S.line = line || ''; S.big = big || ''; S.endT = 0; },
     draw(g) {
@@ -48,6 +67,7 @@ const Mini = {
         this.G.draw(S, g, A, VW, VH);
         frame(g, 6, 4, Txt.width(this.G.title) + 26, 20, { band: '#e0a030', hi: '#ffe090' });
         Txt.draw(g, this.G.title, 19, 7, { col: UI.ink });
+        if (S.howto) { this.drawHowto(g, A, VW, VH); return; }
         if (!S.result) Txt.draw(g, this.G.keys, VW >> 1, VH - 13, { col: '#8898d0', align: 'center' });
         if (S.result) {
             const w = Math.min(VW - 24, 380), lines = Txt.wrap(S.line, w - 28), h = 40 + lines.length * 12, x = (VW - w) >> 1, y = VH - h - 10;
@@ -428,6 +448,15 @@ function raceObstacle(A, kind, x, y, t, ph) {
 }
 MINIS.race = {
     title: 'THE RACE', keys: '▲▼ change lane    SPACE as the ring closes    ESC: pull up (and lose)',
+    howto: [
+        'Three lanes of sand. First horse through the camp gate wins.',
+        ['▲ ▼', 'Change lane. Dodge rubble, carts and the dog, or she shies and loses ground.'],
+        ['SPACE', 'As the white ring closes on the hoof. A miss slows her; two misses in a row break her stride.'],
+        ['BREATH', 'Every push costs breath. Ease off, or ride right behind the bay, to get it back.'],
+        ['BOXED IN', 'You can\'t ride through the bay. Change lane to pass him.'],
+        'Three times on the way you choose how to ride (▲ ▼, SPACE).',
+        'One try. ESC once you\'ve started counts as losing.',
+    ],
     start() {
         return { me: 0, bay: 0, lane: 2, laneT: 2, bayLane: 0, bayLaneY: 0, base: 92, boost: 0, stam: 100, stumble: 0, phase: 0, pressed: false, misses: 0, rest: 0, draft: false, late: false,
             m: 0, choosing: 0, csel: 0, perfect: 0, good: 0, bumps: 0, say: '', sayT: 0, judge: '', judgeT: 0, obs: raceCourse(), boxed: false };
@@ -567,6 +596,14 @@ MINIS.race = {
 const FOS_C = 13, FOS_R = 8, FOS_CELL = 14, FOS_TIME = 40;
 MINIS.fossil = {
     title: 'THE FOSSIL PAVEMENT', keys: '◄►▲▼ move    tap SPACE: chisel    hold SPACE: brush    ESC: leave it',
+    howto: [
+        'Chip the nummulite out of the limestone before your torch dies.',
+        ['◄►▲▼', 'Move the square over the slab.'],
+        ['TAP', 'SPACE to chisel: two layers at once. Quick, but it cracks the fossil.'],
+        ['HOLD', 'SPACE to brush: one layer at a time. Slow and safe.'],
+        'Darker rock is deeper. When the fossil\'s curved edge shows through, brush.',
+        'Clear every part of the fossil. No cracks and it\'s a perfect one.',
+    ],
     start() {
         const fx = 4 + Math.random() * 5, fy = 3 + Math.random() * 2, rx = 2.3 + Math.random() * 0.5, ry = 1.7 + Math.random() * 0.4;
         const cells = [];

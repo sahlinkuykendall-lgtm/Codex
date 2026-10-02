@@ -12,6 +12,18 @@ Other docs:
 
 ---
 
+## POKE-STYLE P0.52 — 2026-10-02 — (branch `poke-style`) Explaining the sneak and the race (owner's notes)
+- **The midnight sneak:** the first time you come near Miriam's tent while it's being searched, a
+  box explains what to do. Their torchlight shows as yellow cones, and stepping into one fills a "!"
+  bar until you're seen. Walking up to them counts as being seen too. Reach the tent door unseen to
+  listen, photograph them or slip in the back. It also says how Lena and her men move, that the
+  equipment table hides you, and that facing them is a choice too. The task now says the same in
+  short.
+- **How to play:** the race now opens on a card explaining lanes, the stride ring, breath,
+  slipstream, being boxed in, the three riding choices, and one try. SPACE starts it. ESC on the
+  card backs out without losing ("Nervous? Take a minute."). The fossil dig got the same card.
+  Any minigame can have one now (`howto: [...]` in `MINIS`).
+
 ## POKE-STYLE P0.51 — 2026-10-02 — (branch `poke-style`) The owner's Giza list (a tester's playthrough of Chapter 1-A)
 - **The starting looks:** the male and female defaults in the creator no longer look alike. He has a
   field hat, stubble, a khaki safari jacket, cargo trousers and a satchel. She has long auburn hair,

@@ -81,6 +81,7 @@ scene('c1a_race1', {
     speaker: 'System',
     text: `He gives you the grey ("she's old, she's wise, she's slower than my bay; that is fair") and swings up onto the bay himself. Half the camp has come to the gate. Somebody is taking bets. Saber is taking bets.\n\n"One race," Hagg Sayed says. "You win, the boy owes nothing. You lose, it's fifteen hundred, and no second race. I have a living to make."\n\nThe Rais raises his handkerchief.`,
     choices: [{ text: 'Swing up onto the grey. (minigame: one try)', onSelect: () => playMinigame('race', {}, r => {
+        if (r.unstarted) { Dlg.open('Hagg Sayed', '"Nervous? Take a minute. The bay isn\'t going anywhere." He pats its neck. "Neither am I."'); return; }
         if (r.left) sflag('race_pulled', true);
         c1aRaceResult(!!r.won); startDialogue('c1a_race_end');
     }) }, { text: '"Give me a minute."' }],

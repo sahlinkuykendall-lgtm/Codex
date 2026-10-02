@@ -183,7 +183,7 @@ function storyFrame(dt) {
     if (ev === 'coming' && s.clock >= (sflag('lena_arrive_at') || 0) && Game.map.key !== 'INT_TENT') {
         sflag('lena_event', 'searching'); sflag('lena_until', s.clock + 90);
         Toast.show('Torches at Miriam\'s tent. Three people are searching it.', 5);
-        task('lena', 'Someone is searching Miriam\'s tent. Go and see (quietly).');
+        task('lena', 'Someone is searching Miriam\'s tent. Get to its door without stepping into their torchlight, or walk up and face them.');
     }
     if (ev === 'searching' && s.clock >= (sflag('lena_until') || 1e9)) c1aLenaLeave(true);
     Train.update(dt);

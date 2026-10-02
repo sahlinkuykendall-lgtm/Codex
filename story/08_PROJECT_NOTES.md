@@ -2,7 +2,7 @@
 
 The working memory for the poke-style build: **what the owner wants, how to work, what's
 been done, and what's next.** Keep it current: update the "Where we are" and "What's next"
-sections at the end of every step. Last updated 2026-10-02, at P0.51.
+sections at the end of every step. Last updated 2026-10-02, at P0.52.
 
 ---
 
@@ -87,7 +87,8 @@ See `poke/README.md` for the file-by-file table. The essentials:
   So far: sieve, tea, darts, seal, race (rebuilt in P0.51: lanes, stride, breath), fossil, tawla, the guide's quiz, and for the Fixer: haggle,
   lockpick, scout (`ch1c_prep.js`), fish (`ch1c_island.js`), lamproom, chase and firstaid
   (`ch1c_island.js`, `ch1c_ship.js`). Don't name a minigame's state field `done`: `Mini` keeps the
-  callback there.
+  callback there. Give a minigame `howto: [lines]` (a line can be `[label, text]`) and it opens on a
+  how-to-play card; ESC on the card returns `{ left, unstarted }`, which shouldn't count as a loss.
 - **Leaving an area:** `poke/leaving.js` adds "N main tasks and N side quests still open here" to
   each opening's leaving scene (`area().sideQuests` / `sideIds`, or "(Name) ..." task texts). The
   chapter end settles main tasks; side quests stay open for KEEP EXPLORING, so don't tick them off.
@@ -182,6 +183,8 @@ Add a playthrough file for each new opening (next: `poke_fixer.js`). An area can
   village's stones; the fossils dug out in a new minigame; Miriam's palm made to stand out; the site
   office's burn bin cold; the camel, kitchen and inspector-car lines rewritten. Answered, not
   changed yet: the "Go to bed, Doctor" text and the inspector car with no purpose.
+- **P0.52:** the owner's notes on P0.51: a box explains the midnight sneak the first time you come
+  near the tent; the race and the fossil dig open on a how-to-play card.
 
 ## 6. What's next
 

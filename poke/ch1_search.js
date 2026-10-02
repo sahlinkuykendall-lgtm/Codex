@@ -25,8 +25,10 @@ const Search = {
     frame(dt) {
         if (!this.on()) { if (this.t) this.reset(); return; }
         if (Dlg.active || Game.state !== 'play') return;
+        const p = Game.player;
+        if (!sflag('lena_sneak_tip') && Math.hypot(p.x - 33.5 * TILE, p.y - 27 * TILE) < 11 * TILE) { this.tip(); return; }   // (the first time you come near: what to do)
         this.t += dt;
-        const p = Game.player; let seen = false, close = false;
+        let seen = false, close = false;
         for (const e of this.ents()) {
             const S = SEARCHERS[e.id], st = this.st[e.id] || (this.st[e.id] = { i: 0, dir: 1, pause: 0, face: Math.PI / 2, t: 0 });
             if (S.home) {
@@ -53,6 +55,14 @@ const Search = {
         this.seeing = seen;
         this.sus = seen ? Math.min(1, this.sus + 1.6 * dt) : Math.max(0, this.sus - 0.5 * dt);
         if (close || this.sus >= 1) this.spotted();
+    },
+    tip() {
+        sflag('lena_sneak_tip', true);
+        Dlg.open('System', `MIRIAM'S TENT. Three people with torches are searching it. They haven't seen you yet.\n\n` +
+            `Their torchlight shows as yellow cones on the ground. Step into one and a "!" bar fills over your head; when it's full, they've seen you. Walking right up to one of them counts as being seen too.\n\n` +
+            `Get to the tent's door without being seen and you can choose what to do: listen to them, photograph them, or slip in at the back.\n\n` +
+            `The woman faces into the tent most of the time and turns to look out every few seconds. The two men walk up and down the sides. The equipment table in front of the tent hides you from them.\n\n` +
+            `Or walk straight up to them. That's a choice too.`);
     },
     spotted() { this.sus = 0; this.seeing = true; sflag('lena_spotted', true); startDialogue('c1a_lena_seen'); },
     draw(g, cx, cy) {
