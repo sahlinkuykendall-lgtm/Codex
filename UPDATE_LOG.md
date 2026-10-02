@@ -12,6 +12,66 @@ Other docs:
 
 ---
 
+## POKE-STYLE P0.51 — 2026-10-02 — (branch `poke-style`) The owner's Giza list (a tester's playthrough of Chapter 1-A)
+- **The starting looks:** the male and female defaults in the creator no longer look alike. He has a
+  field hat, stubble, a khaki safari jacket, cargo trousers and a satchel. She has long auburn hair,
+  no hat, a Nile-blue field shirt and a neck scarf.
+- **Notices:** the corner notices and the top line are now drawn over everything, the phone
+  included, and they stay up longer (9 s and at least 4 s).
+- **Midnight at Miriam's tent** (`poke/ch1_search.js`):
+  - Lena and her two men carry torches, and their light shows as cones on the ground.
+  - Walk into a cone, or walk right up to one of them, and you're seen: they turn on you and
+    it's the confrontation.
+  - Reach the tent door unseen to get the quiet choices (listen, photograph, slip in the back).
+  - Lena stands by the door, facing in for six seconds and looking out for three. The men walk the
+    tent's sides. The equipment table is cover.
+- **Knocked out:** they take the cash in your wallet, up to 1,000 EGP and never so much that you
+  can't pay the men's wages ("thieves, anyone would say"). They don't take Miriam's notebook page:
+  they photograph it and leave it with you, so you keep it and they still know what it says. They
+  never take anything you need for a task. The bible (`ch01_opening_archaeologist.md`) is changed to
+  match, at the owner's request.
+- **Hana's sherds:** she always joined them into an ibis and gave you conservation wax. Now that's
+  clearer:
+  - the third sherd tells you to take them to her
+  - she says what the wax is for (slit a seal neatly, press it in, and nobody can tell)
+  - a notice and the wax's description say it too
+  - the find store's "slit the seal" choice mentions the wax when you have it
+- **Before you leave** (`poke/leaving.js`, all three openings): the leaving scene says how many main
+  tasks and side quests are still open there. It also says the side quests will wait: pick KEEP
+  EXPLORING on the chapter-end card to come back. Giza counts all eleven of the bible's side
+  quests. The Inspector's chapter end no longer ticks off its side quests.
+- **The horse race, rebuilt:**
+  - Three lanes to the camp gate. ▲ ▼ to steer round rubble, clover carts, limestone chips and a
+    stray dog.
+  - SPACE as the ring closes on the hoof urges her on (perfect / good / miss). Two misses in a row
+    and she breaks stride.
+  - Every urge costs **breath**, which comes back when you ease off, and faster in the bay's
+    slipstream. Get boxed in behind him and you can't get past.
+  - The bible's three riding choices are still there.
+  - **One try:** Hagg Sayed says so before the race, and pulling up counts as losing.
+  - Tested with bots: mashing never wins, average timing wins about half the time, good timing
+    about four in five.
+- **The supply train** now runs only on its rails. Before, it went past their west end onto the
+  plateau edge, and east into the old village, whose stones sit on the line and were drawn over it.
+- **The fossils:** each nummulite on the fossil pavement is now dug out in a new minigame:
+  - Tap SPACE to chisel plain rock, two layers at a time.
+  - Hold SPACE to brush, one layer, slowly.
+  - Chisel the fossil itself with two layers or less over it and it cracks. Its edge shows through
+    by then, so a crack is never a surprise.
+  - You have until your torch dies. If it does, the fossil stays in the rock and you can try again.
+  - A perfect one gives extra excavation XP, and the last one says how many were perfect.
+- **Miriam's palm** stands out now: a ring of whitewashed stones round a dark watered bed, her
+  green watering can, and a red cloth tied round the trunk.
+- **Smaller fixes:**
+  - the site office's burn bin is cold ash, not still burning
+  - the camel "lying down with its legs folded under it… completely unimpressed"
+  - the "somebody's kitchen" line made plain
+  - the inspector car no longer calls the dig illegal: "Ministry inspectors check on licensed digs
+    by day… They do not sit outside one in the dark, watching, unless someone told them to."
+- **Checks:** the playthrough check reaches the quiet choices at the tent door now.
+- **The look check:** most views differ by 71 px because of the new default player look. With the
+  old look swapped back in, 32 of 33 views are identical; the last is the cold burn bin.
+
 ## POKE-STYLE P0.50 — 2026-10-01 — (branch `poke-style`) The Inspector's story made consistent (a tester's report)
 - **The dates:** the shared intro says Miriam vanished four nights ago, but the Inspector's story said
   she logged the Codex three days ago, after she'd gone. Now it's **five days ago, the day before she

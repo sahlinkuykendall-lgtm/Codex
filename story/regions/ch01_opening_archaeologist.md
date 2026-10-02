@@ -185,8 +185,10 @@ Dr. Miriam Hale, "left for family reasons" four days ago. Nobody at camp believe
 - **Failure states:**
   - The old seal's dart **injures** you, so you limp until Hana patches you or you rest.
   - Slipping into the tent behind Lena's men gets you **knocked out**. You wake by the
-    workers' fire 1.5 hours later, injured, and **they take Miriam's notebook page**
-    (`lena_has_page`: whoever they work for now knows about the shaft).
+    workers' fire 1.5 hours later, injured. **They take the cash in your wallet** (up to 1,000
+    EGP, so it looks like thieves, never so much you can't pay the men's wages) and **photograph Miriam's notebook page, but leave it with you**
+    (`lena_has_page`: whoever they work for now knows about the shaft). They never take
+    anything you need for a task.
 - **The phone (P):**
   - Map, with tasks and places found
   - Messages (the department's welcome; an unknown number at midnight: "Go to bed, Doctor.")

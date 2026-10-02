@@ -1265,7 +1265,27 @@ function cactus(seed) {                                           // a prickly p
     if (R() < 0.6) { A.px(7, 6, PAL.red[0]); A.px(19, 5, PAL.red[0]); }
     return { c: outline(c), ox: -13, oy: -27, solid: [-5, -4, 10, 5] };
 }
-SPR_L['palm tree'] = SPR_L["sam's date palm"] = (w, d, o) => Object.assign(palm(o.id), { anchor: true });
+SPR_L['palm tree'] = (w, d, o) => Object.assign(palm(o.id), { anchor: true });
+// Miriam's palm: the one she looked after, so it has to read as different from across the camp. A ring of
+// whitewashed stones round a dark, freshly watered bed, her watering can, and a red cloth tied round the trunk.
+SPR_L["sam's date palm"] = (w, d, o) => {
+    const p = palm(o.id || 'miriam', true), [c, g0] = mk(96, 92), [cb, g] = mk(96, 92), A = pa(g), bx = 48, by = 85;
+    A.ell(bx, by, 17, 6, '#5a3a22'); A.ell(bx - 2, by - 1, 13, 4, '#6e4a2c');                       // the watered bed, dark against the sand
+    A.px(bx - 9, by - 2, '#4a2e1a'); A.px(bx + 7, by + 1, '#4a2e1a'); A.px(bx + 3, by - 3, '#8a6a3c');
+    for (let i = 0; i < 14; i++) {                                                                  // the ring of whitewashed stones
+        const a = (i / 14) * Math.PI * 2, sx = Math.round(bx + Math.cos(a) * 20) - 2, sy = Math.round(by + Math.sin(a) * 7) - 1;
+        A.r(sx, sy, 4, 3, '#e8e2d2'); A.r(sx, sy, 4, 1, '#fffaf0'); A.r(sx, sy + 2, 4, 1, '#b8ae98');
+    }
+    const wx = bx + 22, wy = by - 6;                                                                // the watering can, a dented green one
+    A.r(wx, wy, 9, 7, '#4a8a5a'); A.r(wx, wy, 9, 2, '#6aaa72'); A.r(wx + 8, wy + 4, 1, 3, '#2e5a3a');
+    A.line(wx, wy + 4, wx - 5, wy - 1, '#4a8a5a'); A.r(wx - 7, wy - 2, 3, 2, '#6aaa72');
+    A.line(wx + 2, wy - 1, wx + 7, wy - 1, '#2e5a3a'); A.px(wx + 1, wy, '#2e5a3a'); A.px(wx + 8, wy, '#2e5a3a');
+    g0.drawImage(outline(cb), 0, 0); g0.drawImage(p.c, bx - 36, 0);                                  // ground and can outlined on their own, the palm (already outlined) over them
+    const B = pa(g0);
+    B.r(bx - 4, by - 18, 8, 3, '#c83a2a'); B.r(bx - 4, by - 18, 8, 1, '#e86048');                    // the red cloth round the trunk, its ends hanging
+    B.line(bx + 3, by - 15, bx + 5, by - 9, '#c83a2a'); B.line(bx + 4, by - 15, bx + 7, by - 10, '#a02a1e');
+    return { c, ox: -bx, oy: -by, solid: [-4, -4, 8, 5], anchor: true };
+};
 SPR_L['cactus'] = SPR_L['lone date cactus'] = (w, d, o) => Object.assign(cactus(o.id), { anchor: true });
 
 // ---- ANIMALS ----

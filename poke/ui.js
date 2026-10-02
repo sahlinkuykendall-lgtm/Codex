@@ -173,8 +173,8 @@ const Banner = {
 
 // a small popup line at the top ("Got a painted sherd!")
 const Toast = {
-    text: '', t: 99, dur: 2.6,
-    show(s, dur) { this.text = s; this.t = 0; this.dur = dur || 2.6; },
+    text: '', t: 99, dur: 4,
+    show(s, dur) { this.text = s; this.t = 0; this.dur = Math.max(4, dur || 4); },
     draw(g, dt) {
         this.t += dt;
         if (this.t > this.dur || !this.text) return;
@@ -265,7 +265,7 @@ const Title = {
             Txt.draw(g, str, bx + 26, by + 8 + i * 15, { col: i === this.sel ? UI.ink : UI.dim });
             if (i === this.sel) A.poly([[bx + 13, by + 10 + i * 15], [bx + 13, by + 18 + i * 15], [bx + 18, by + 14 + i * 15]], '#d04838');
         });
-        Txt.draw(g, 'POKE-STYLE BUILD  P0.50', VW - 6, VH - 14, { col: '#8898d0', align: 'right' });
+        Txt.draw(g, 'POKE-STYLE BUILD  P0.51', VW - 6, VH - 14, { col: '#8898d0', align: 'right' });
         Txt.draw(g, '▲▼ choose    SPACE select', 6, VH - 14, { col: '#8898d0' });
     },
 };

@@ -11,8 +11,11 @@
 //   seal   Petamun's old seal: ◄ ► ▲ ▼ pick a stone, SPACE presses it. The first press wakes
 //          it and the resonance drains; finish before it fades. Owl, eye, serpent, lion.
 //          → { ok } solved · { dart } a wrong stone · { left }
-//   race   Hagg Sayed's bay against his old grey: press SPACE as her stride marker crosses
-//          the gold, and three moments to choose how to ride. → { won }
+//   race   Hagg Sayed's bay against his old grey, three lanes to the camp gate: ▲ ▼ round the
+//          rubble, carts and dog, SPACE on her stride, mind her breath, draft behind the bay;
+//          and three moments to choose how to ride. → { won, gap } (ESC pulls up: { left })
+//   fossil a nummulite in the fossil pavement's limestone: tap SPACE to chisel, hold to brush;
+//          chisel too close and it cracks. Before your torch dies. → { ok, cracks } · { dark }
 // ESC / X leaves any of them ({ left: true }).
 // ============================================================
 
@@ -386,80 +389,163 @@ MINIS.seal = {
 // ============================================================
 // THE RACE — the old grey against Hagg Sayed's bay
 // ============================================================
-const RACE_LEN = 1000;
+// Three lanes along the desert track to the camp gate. ▲ ▼ change lane round the rubble, the
+// carts and the dog; SPACE on her stride (the ring closing on the hoof) urges her on; every urge
+// costs breath, which comes back when you sit still, and faster tucked in behind the bay. Two
+// misses in a row and she breaks stride. One race: pulling up is losing.
+const RACE_LEN = 1700, RACE_LANES = 3, RACE_BEAT = 0.6;
 const RACE_MOMENTS = [
-    { at: 0, text: 'The Rais drops his handkerchief.', opts: [['Kick hard off the line.', S => { S.boost += 30; S.tire += 0.35; }], ['Let the grey find her own pace.', S => { S.base += 4; }], ['Tuck in behind the bay and let him break the wind.', S => { S.draft = true; }]] },
-    { at: 0.5, text: 'The quarry markers: pale blocks, the turn around them tight and rough with chips.', opts: [['Take the turn tight, on the inside.', S => { if (Math.random() < 0.6) { S.boost += 28; S.say = 'She takes it like a cat.'; } else { S.boost -= 26; S.say = 'She stumbles on the chips!'; } }], ['Swing wide where the footing is sure.', S => { S.boost -= 6; S.say = 'Wide and safe. The bay gains a little.'; }]] },
-    { at: 0.8, text: 'Out of the turn and home: the camp lamps, the crowd at the gate. Hagg Sayed is using his whip.', opts: [['Ask her for everything, now.', S => { S.base += skillLevel('riding') >= 1 ? 8 : 5; S.tire += 0.2; }], ['Hold her till the last fifty metres, then go.', S => { S.late = true; }]] },
+    { at: 0, text: 'The Rais drops his handkerchief.', opts: [['Kick hard off the line.', S => { S.boost += 34; S.stam -= 22; }], ['Let the grey find her own pace.', S => { S.base += 5; }], ['Tuck in behind the bay and let him break the wind.', S => { S.draft = true; S.laneT = S.bayLane; }]] },
+    { at: 0.5, text: 'The quarry markers: pale blocks, the turn around them tight and rough with chips.', opts: [['Take the turn tight, on the inside.', S => { if (Math.random() < 0.6) { S.boost += 30; S.say = 'She takes it like a cat.'; } else { S.stumble = 0.8; S.boost = 0; S.say = 'She stumbles on the chips!'; } }], ['Swing wide where the footing is sure.', S => { S.boost -= 6; S.stam = Math.min(100, S.stam + 15); S.say = 'Wide and safe. She gets her breath; the bay gains a little.'; }]] },
+    { at: 0.8, text: 'Out of the turn and home: the camp lamps, the crowd at the gate. Hagg Sayed is using his whip.', opts: [['Ask her for everything, now.', S => { S.base += skillLevel('riding') >= 1 ? 9 : 6; S.stam -= 15; }], ['Hold her till the last fifty metres, then go.', S => { S.late = true; }]] },
 ];
+const RACE_OBS = { rock: { w: 14, block: true, say: 'She shies at the rubble!' }, cart: { w: 26, block: true, say: 'A cart! She swerves and nearly has you off.' }, chips: { w: 56 }, dog: { w: 14, block: true, say: 'The dog! She props and spins.' } };
+function raceCourse() {
+    const obs = [];
+    for (let d = 170; d < RACE_LEN - 140; d += 120 + Math.random() * 70) {
+        if (Math.abs(d - RACE_LEN * 0.5) < 60) continue;                               // (the quarry turn is its own moment)
+        const free = Math.floor(Math.random() * RACE_LANES), n = Math.random() < 0.35 ? 2 : 1, used = [free];
+        for (let k = 0; k < n; k++) {
+            let lane; do lane = Math.floor(Math.random() * RACE_LANES); while (used.includes(lane)); used.push(lane);
+            const r = Math.random(), kind = r < 0.38 ? 'rock' : r < 0.6 ? 'chips' : r < 0.85 ? 'cart' : 'dog';
+            obs.push({ d: d + (k ? 20 + Math.random() * 30 : 0), lane, y: lane, kind, hit: false, ph: Math.random() * 6 });
+        }
+    }
+    return obs;
+}
+function raceObstacle(A, kind, x, y, t, ph) {
+    const L = PAL.line;
+    if (kind === 'rock') { A.r(x - 7, y - 9, 14, 9, L); A.r(x - 6, y - 8, 12, 7, '#d8ccb0'); A.r(x - 6, y - 8, 12, 2, '#f4ecd8'); A.r(x + 1, y - 5, 5, 4, '#b8aa8c'); A.r(x - 9, y - 4, 4, 4, L); A.r(x - 8, y - 3, 2, 2, '#c8bc9c'); }
+    else if (kind === 'chips') { for (let i = 0; i < 26; i++) A.r(x - 28 + Math.floor(hash2(i, 7) * 56), y - 6 + Math.floor(hash2(i, 9) * 7), 2, 1, i % 3 ? '#efe6cc' : '#b8aa8c'); }
+    else if (kind === 'cart') {
+        A.r(x - 13, y - 16, 26, 10, L); A.r(x - 12, y - 15, 24, 8, PAL.wood[1]); A.r(x - 12, y - 15, 24, 2, PAL.wood[0]); A.line(x + 12, y - 9, x + 20, y - 5, PAL.wood[2]);
+        A.r(x - 10, y - 20, 18, 5, L); A.r(x - 9, y - 19, 16, 4, '#5a9a3a'); A.px(x - 5, y - 19, '#8ac85a'); A.px(x + 2, y - 18, '#8ac85a');   // a load of clover
+        A.ell(x - 5, y - 4, 4, 4, L); A.ell(x - 5, y - 4, 3, 3, PAL.wood[2]); A.px(x - 5, y - 4, L);
+    } else if (kind === 'dog') {
+        const f = (t * 8 | 0) % 2; A.ell(x, y - 5, 6, 3, L); A.ell(x, y - 5, 5, 2, PAL.sand[3]); A.r(x + 4, y - 9, 4, 4, L); A.r(x + 5, y - 8, 3, 3, PAL.sand[3]); A.px(x + 7, y - 8, L);
+        A.r(x - 4, y - 3, 1, 3 - f, L); A.r(x + 3, y - 3, 1, 2 + f, L); A.line(x - 6, y - 6, x - 9, y - 9 + f, PAL.sand[4]);
+    }
+}
 MINIS.race = {
-    title: 'THE RACE', keys: 'SPACE on the gold    ▲▼ SPACE: choose    ESC: pull up',
-    start() { return { me: 0, bay: 0, base: 92, boost: 0, tire: 0, draft: false, late: false, m: 0, choosing: 0, csel: 0, marker: 0, mdir: 1, zone: 0.62, hits: 0, say: '', sayT: 0, flash: 0 }; },
-    update(S, dt, I, keys, pressed) {
+    title: 'THE RACE', keys: '▲▼ change lane    SPACE as the ring closes    ESC: pull up (and lose)',
+    start() {
+        return { me: 0, bay: 0, lane: 2, laneT: 2, bayLane: 0, bayLaneY: 0, base: 92, boost: 0, stam: 100, stumble: 0, phase: 0, pressed: false, misses: 0, rest: 0, draft: false, late: false,
+            m: 0, choosing: 0, csel: 0, perfect: 0, good: 0, bumps: 0, say: '', sayT: 0, judge: '', judgeT: 0, obs: raceCourse(), boxed: false };
+    },
+    laneY(l) { return l * 15; },
+    update(S, dt, I) {
         const mo = RACE_MOMENTS[S.m];
         if (mo && S.me >= mo.at * RACE_LEN && !S.choosing) { S.choosing = 1; S.csel = 0; }
         if (S.choosing) {
             if (I.up) { S.csel = (S.csel + mo.opts.length - 1) % mo.opts.length; Sfx.move(); }
             if (I.down) { S.csel = (S.csel + 1) % mo.opts.length; Sfx.move(); }
-            if (I.ok && S.choosing > 0.3) { mo.opts[S.csel][1](S); S.m++; S.choosing = 0; S.sayT = S.say ? 2 : 0; Sfx.ok(); }
+            if (I.ok && S.choosing > 0.3) { S.say = ''; mo.opts[S.csel][1](S); S.m++; S.choosing = 0; S.sayT = S.say ? 2.2 : 0; Sfx.ok(); }
             else S.choosing += dt;
             return;
         }
-        // her stride: a marker sweeping a bar; SPACE on the gold keeps her going
-        S.marker += S.mdir * dt * 1.25; if (S.marker > 1) { S.marker = 1; S.mdir = -1; } if (S.marker < 0) { S.marker = 0; S.mdir = 1; }
-        if (I.ok) {
-            const hit = Math.abs(S.marker - S.zone) < 0.1;
-            S.boost += hit ? 14 : -8; S.flash = hit ? 0.3 : -0.3; if (hit) S.hits++;
-            Sfx.tone(hit ? 520 : 150, 0.06, hit ? 'square' : 'triangle', 0.05);
-            S.zone = 0.3 + Math.random() * 0.55;
+        S.sayT -= dt; S.judgeT -= dt;
+        // steering
+        if (I.up && S.laneT > 0) { S.laneT--; Sfx.move(); }
+        if (I.down && S.laneT < RACE_LANES - 1) { S.laneT++; Sfx.move(); }
+        S.lane += Math.sign(S.laneT - S.lane) * Math.min(Math.abs(S.laneT - S.lane), dt * 6);
+        const myLane = Math.round(S.lane);
+        // her stride: one urge a beat, judged by how close to the hoof coming down
+        S.phase += dt / RACE_BEAT;
+        if (S.phase >= 1) { S.phase -= 1; if (!S.pressed && S.rest > 0.9) S.misses = 0; S.pressed = false; Sfx.tone(84 + Math.random() * 14, 0.05, 'triangle', 0.035); }
+        S.rest += dt;
+        if (I.ok && S.stumble <= 0) {
+            const off = Math.min(S.phase, 1 - S.phase) * RACE_BEAT, blown = S.stam <= 0;
+            let q = S.pressed ? 'miss' : off < 0.075 ? 'perfect' : off < 0.16 ? 'good' : 'miss';
+            S.pressed = true; S.rest = 0;
+            if (q === 'perfect') { S.boost += blown ? 4 : 16; S.stam -= 4; S.perfect++; S.misses = 0; Sfx.tone(660, 0.06, 'square', 0.05); }
+            else if (q === 'good') { S.boost += blown ? 2 : 9; S.stam -= 7; S.good++; S.misses = 0; Sfx.tone(520, 0.05, 'square', 0.04); }
+            else { S.boost -= 6; S.stam -= 10; S.misses++; Sfx.tone(150, 0.08, 'triangle', 0.05); if (S.misses >= 2) { S.stumble = 0.7; S.boost = 0; S.misses = 0; S.say = 'She breaks stride, fighting the bit.'; S.sayT = 1.6; } }
+            S.judge = blown && q !== 'miss' ? 'BLOWN' : q.toUpperCase(); S.judgeT = 0.6; S.stam = Math.max(0, S.stam);
         }
-        S.flash += (0 - S.flash) * Math.min(1, dt * 5);
-        S.boost *= Math.pow(0.55, dt); S.sayT -= dt;
-        let v = S.base + S.boost - S.tire * S.me * 0.02;
-        if (S.draft && S.bay > S.me && S.bay - S.me < 60) v += 6;
-        if (S.late && S.me > RACE_LEN * 0.95) v += 30;
-        S.me += Math.max(40, v) * dt;
-        const whip = S.bay > RACE_LEN * 0.8 ? 10 : 0;
-        S.bay += (104 + whip + Math.sin(S.t * 1.3) * 4) * dt;
-        if ((S.t * 5 | 0) !== ((S.t - dt) * 5 | 0)) Sfx.tone(80 + Math.random() * 20, 0.04, 'triangle', 0.03);   // hooves
+        // breath: back when you sit still, faster in the bay's slipstream
+        const behind = S.bay - S.me, slip = myLane === S.bayLane && behind > 8 && behind < (S.draft ? 95 : 60);
+        if (S.rest > 0.9) S.stam = Math.min(100, S.stam + 11 * dt);
+        if (slip) S.stam = Math.min(100, S.stam + (S.draft ? 9 : 5) * dt);
+        // speed
+        S.boost *= Math.pow(0.42, dt); S.stumble -= dt;
+        let v = S.base + S.boost - (S.stam <= 0 ? 16 : 0) + (slip ? 4 : 0);
+        if (S.late && S.me > RACE_LEN * 0.94 && S.stam > 0) v += 30;
+        for (const o of S.obs) {
+            if (o.kind === 'dog') o.y = Math.max(0, Math.min(RACE_LANES - 1, o.lane + Math.sin(S.t * 0.9 + o.ph) * 1.1));
+            const ol = Math.round(o.y), W = RACE_OBS[o.kind].w;
+            if (o.kind === 'chips') { if (ol === myLane && S.me > o.d - W / 2 && S.me < o.d + W / 2) v *= 0.72; continue; }
+            if (!o.hit && ol === myLane && Math.abs(S.me - o.d) < W / 2 + 4) { o.hit = true; S.stumble = 0.9; S.boost = 0; S.stam = Math.max(0, S.stam - 8); S.bumps++; S.say = RACE_OBS[o.kind].say; S.sayT = 1.6; Sfx.tone(110, 0.2, 'sawtooth', 0.05); }
+        }
+        if (S.stumble > 0) v = 38;
+        // boxed in behind the bay: you can't go through him
+        S.boxed = myLane === S.bayLane && behind > 0 && behind < 30;
+        let dme = Math.max(30, v) * dt;
+        if (S.boxed) dme = Math.min(dme, Math.max(0, behind - 22));
+        S.me += dme;
+        // Hagg Sayed: steers round what's ahead, keeps near you, whips home
+        const near = S.obs.find(o => o.kind !== 'chips' && Math.round(o.y) === S.bayLane && o.d - S.bay > 0 && o.d - S.bay < 70);
+        if (near) { const opts = [0, 1, 2].filter(l => !S.obs.some(o => o.kind !== 'chips' && Math.round(o.y) === l && o.d - S.bay > -10 && o.d - S.bay < 80)); if (opts.length) S.bayLane = opts.sort((a, b) => Math.abs(a - S.bayLane) - Math.abs(b - S.bayLane))[0]; }
+        if (S.bay < S.me && S.me - S.bay < 30 && S.bayLane === myLane) S.bayLane = (S.bayLane + (S.bayLane < 2 ? 1 : -1));   // (he won't run into the back of you either)
+        S.bayLaneY += Math.sign(S.bayLane - S.bayLaneY) * Math.min(Math.abs(S.bayLane - S.bayLaneY), dt * 5);
+        let bv = 105 + Math.sin(S.t * 1.3) * 4 + (S.bay > RACE_LEN * 0.8 ? 10 : 0);
+        if (S.bay - S.me > 120) bv -= 6; else if (S.me - S.bay > 80) bv += 7;
+        if (S.obs.some(o => o.kind === 'chips' && Math.round(o.y) === Math.round(S.bayLaneY) && Math.abs(S.bay - o.d) < 28)) bv *= 0.8;
+        S.bay += bv * dt;
         if (S.me >= RACE_LEN || S.bay >= RACE_LEN) {
-            const won = S.me >= S.bay;
+            const won = S.me >= S.bay, gap = Math.abs(S.me - S.bay);
             won ? Sfx.save() : Sfx.back();
-            Mini.finish({ won }, won ? 'The grey puts her nose in front at the gate by the width of a hand.' : 'The bay is a length clear at the gate.', won ? 'THE GREY WINS' : 'THE BAY WINS');
+            const how = won ? (gap < 12 ? 'The grey puts her nose in front at the gate by the width of a hand.' : gap < 50 ? 'The grey takes it by half a length.' : 'The grey comes home clear, ears pricked.')
+                : (gap < 12 ? 'The bay gets his nose in front at the gate. A hand\'s width.' : 'The bay is ' + (gap < 50 ? 'half a length' : 'a length and more') + ' clear at the gate.');
+            Mini.finish({ won, gap: Math.round(gap) }, how + `  (${S.perfect} perfect strides, ${S.good} good, ${S.bumps} ${S.bumps === 1 ? 'scare' : 'scares'})`, won ? 'THE GREY WINS' : 'THE BAY WINS');
         }
     },
     draw(S, g, A, VW, VH) {
-        const gy = Math.min(VH - 80, 170), cam = Math.max(S.me, S.bay) - VW * 0.55;
-        // night sky, the pyramids far off, the sand, the quarry markers and the camp gate going by
+        const gy = Math.min(VH - 96, 150), cam = Math.max(S.me, S.bay) - VW * 0.55;
+        // night sky, the pyramids far off, the sand, the track
         A.r(0, 26, VW, gy - 26, '#182450'); for (let i = 0; i < 40; i++) A.px(Math.floor(hash2(i, 3) * VW), 30 + Math.floor(hash2(i, 4) * (gy - 60)), '#8898d0');
         for (const [px, h, w] of [[0.2, 40, 60], [0.45, 56, 80], [0.7, 30, 46]]) { const x = Math.round(((px * VW - cam * 0.08) % (VW + 200) + VW + 200) % (VW + 200) - 100); A.poly([[x - w, gy - 6], [x, gy - 6 - h], [x + w, gy - 6]], '#34406c'); A.poly([[x, gy - 6 - h], [x + w, gy - 6], [x + w * 0.3, gy - 6]], '#283458'); }
-        A.r(0, gy - 6, VW, VH - gy - 14, PAL.sand[3]); A.r(0, gy + 18, VW, VH - gy - 32, PAL.sand[2]);
-        for (let i = 0; i < 30; i++) { const x = Math.round(((i * 57 - cam) % VW + VW) % VW); A.r(x, gy + 26 + (i % 3) * 6, 3, 1, PAL.sand[4]); }
-        const mk = (d, draw) => { const x = Math.round(d - cam); if (x > -40 && x < VW + 40) draw(x); };
+        A.r(0, gy - 6, VW, VH - gy - 14, PAL.sand[3]);
+        for (let l = 0; l < RACE_LANES; l++) A.r(0, gy + 2 + l * 15, VW, 15, l % 2 ? mix(PAL.sand[2], PAL.sand[3], 0.8) : PAL.sand[2]);   // the track: three lanes of trodden sand
+        for (let l = 1; l < RACE_LANES; l++) for (let x = Math.round(-(cam % 24)); x < VW; x += 24) A.r(x, gy + 2 + l * 15, 10, 1, PAL.sand[4]);
+        A.r(0, gy + 2, VW, 1, PAL.sand[4]); A.r(0, gy + 48, VW, 1, PAL.sand[4]);
+        for (let i = 0; i < 30; i++) { const x = Math.round(((i * 57 - cam) % VW + VW) % VW); A.r(x, gy + 54 + (i % 3) * 5, 3, 1, PAL.sand[4]); }
+        const mk = (d, draw) => { const x = Math.round(d - cam); if (x > -50 && x < VW + 50) draw(x); };
         mk(RACE_LEN * 0.5, x => { A.r(x - 8, gy - 22, 16, 18, PAL.rock[1]); A.r(x - 8, gy - 22, 16, 3, PAL.rock[0]); A.r(x + 12, gy - 16, 12, 12, PAL.rock[2]); });
-        mk(RACE_LEN, x => { A.r(x, gy - 40, 3, 50, PAL.wood[2]); A.r(x - 30, gy - 40, 34, 3, PAL.wood[1]); A.r(x - 30, gy - 40, 3, 50, PAL.wood[2]); });
-        // the two horses and riders, galloping
-        const horseAt = (d, y, P, rider, hat) => mk(d, x => {
-            const f = (S.t * 10 | 0) % 2;
+        mk(RACE_LEN, x => { A.r(x, gy - 40, 3, 92, PAL.wood[2]); A.r(x - 30, gy - 40, 34, 3, PAL.wood[1]); A.r(x - 30, gy - 40, 3, 44, PAL.wood[2]); for (let k = 0; k < 6; k++) A.r(x + 4 + k * 6, gy - 14 - (k % 2) * 3, 4, 10, k % 2 ? '#6a5a8a' : '#8a6a4a'); });   // the gate, and the crowd
+        // everything on the track, far lane first
+        const items = [];
+        for (const o of S.obs) items.push([o.y, () => mk(o.d, x => raceObstacle(A, o.kind, x, gy + 14 + Math.round(o.y * 15), S.t, o.ph))]);
+        const horseAt = (d, ly, P, rider, hat, stumbling) => mk(d, x => {
+            const y = gy + 14 + Math.round(ly * 15) - (stumbling ? 0 : 0), f = (S.t * 10 | 0) % 2;
             horse(A, x - 30, y - 24, P);
-            if (f) { A.r(x - 26, y - 6, 2, 3, PAL.sand[3]); A.r(x - 8, y - 6, 2, 3, PAL.sand[3]); }
-            // the rider, leaning into it: body, arm to the reins, head, and a turban or a hat
+            if (f && !stumbling) { A.r(x - 26, y - 6, 2, 3, PAL.sand[3]); A.r(x - 8, y - 6, 2, 3, PAL.sand[3]); }
             A.r(x - 18, y - 33, 7, 10, PAL.line); A.r(x - 17, y - 32, 5, 9, rider); A.line(x - 12, y - 29, x - 6, y - 24, PAL.line);
             A.r(x - 16, y - 38, 5, 5, PAL.line); A.r(x - 15, y - 37, 3, 4, '#a0704a');
             if (hat === 'turban') { A.r(x - 17, y - 40, 7, 3, PAL.line); A.r(x - 16, y - 39, 5, 2, '#f0ece0'); }
             else { A.r(x - 19, y - 38, 11, 1, PAL.line); A.r(x - 16, y - 41, 5, 3, '#d8b878'); }
+            if (stumbling) for (let k = 0; k < 5; k++) A.r(x - 32 + k * 7, y - 3 - (k % 2) * 2, 2, 2, PAL.sand[4]);      // dust kicked up
         });
-        horseAt(S.bay, gy + 4, [PAL.wood[0], PAL.wood[1], PAL.wood[3]], '#1c1814', 'turban');
-        horseAt(S.me, gy + 22, [PAL.white[1], PAL.white[2], PAL.white[3]], '#6a8a58', 'hat');
-        // progress along the course, and her stride bar
-        const bx = 20, bw = VW - 40, by = VH - 44;
-        A.r(bx, 32, bw, 3, '#30302c'); A.r(bx + Math.round(bw * S.bay / RACE_LEN) - 1, 30, 3, 7, PAL.wood[1]); A.r(bx + Math.round(bw * S.me / RACE_LEN) - 1, 30, 3, 7, '#ffffff');
+        items.push([S.bayLaneY + 0.01, () => horseAt(S.bay, S.bayLaneY, [PAL.wood[0], PAL.wood[1], PAL.wood[3]], '#1c1814', 'turban', false)]);
+        items.push([S.lane + 0.02, () => horseAt(S.me, S.lane, [PAL.white[1], PAL.white[2], PAL.white[3]], '#6a8a58', 'hat', S.stumble > 0)]);
+        items.sort((a, b) => a[0] - b[0]).forEach(it => it[1]());
+        // the course, top: where you both are
+        const bx = 20, bw = VW - 40;
+        A.r(bx, 32, bw, 3, '#30302c'); A.r(bx + Math.round(bw * 0.5), 31, 1, 5, PAL.rock[1]); A.r(bx + Math.round(bw * 0.8), 31, 1, 5, PAL.rock[1]);
+        A.r(bx + Math.round(bw * Math.min(1, S.bay / RACE_LEN)) - 1, 30, 3, 7, PAL.wood[1]); A.r(bx + Math.round(bw * Math.min(1, S.me / RACE_LEN)) - 1, 30, 3, 7, '#ffffff');
+        // the bottom: her breath, and her stride
+        const by = VH - 40;
         if (!S.choosing) {
-            A.r(bx, by, bw, 10, '#30302c'); A.r(bx + 1, by + 1, bw - 2, 8, '#1c2442');
-            A.r(bx + Math.round(bw * (S.zone - 0.1)), by + 1, Math.round(bw * 0.2), 8, '#5a4a18'); A.r(bx + Math.round(bw * S.zone), by, 1, 10, '#f0c040');
-            A.r(bx + Math.round(bw * S.marker) - 1, by - 2, 3, 14, S.flash > 0.1 ? '#60f060' : S.flash < -0.1 ? '#f05030' : '#ffffff');
+            Txt.draw(g, 'BREATH', 16, by - 2, { col: '#c8d0f0' });
+            A.r(60, by - 1, 90, 10, '#30302c'); A.r(61, by, 88, 8, '#1c2442'); A.r(61, by, Math.round(88 * S.stam / 100), 8, S.stam > 35 ? '#60c060' : S.stam > 0 ? '#e0a030' : '#f05030');
+            const cx = VW >> 1, cy = by + 3, r = Math.round(7 + 22 * (1 - S.phase));
+            A.ell(cx, cy, 8, 8, '#f0c040'); A.ell(cx, cy, 6, 6, '#1c2442');
+            A.r(cx - 2, cy - 3, 4, 5, '#d8ccb0'); A.r(cx - 3, cy + 1, 6, 2, '#a89878');                              // the hoof
+            if (S.stumble <= 0) { g.globalAlpha = 0.85; for (let k = 0; k < 24; k++) { const a = k / 24 * Math.PI * 2; A.r(Math.round(cx + Math.cos(a) * r), Math.round(cy + Math.sin(a) * r * 0.9), 2, 2, S.pressed ? '#607090' : '#ffffff'); } g.globalAlpha = 1; }
+            if (S.judgeT > 0) Txt.draw(g, S.judge, cx + 40, cy - 5, { col: S.judge === 'PERFECT' ? '#80f080' : S.judge === 'GOOD' ? '#f0e080' : '#f07050', shadow: '#101838' });
+            if (S.boxed) Txt.draw(g, 'BOXED IN', VW - 70, by - 2, { col: '#f0a050', shadow: '#101838' });
+            else if (S.bayLane === Math.round(S.lane) && S.bay - S.me > 8 && S.bay - S.me < (S.draft ? 95 : 60)) Txt.draw(g, 'SLIPSTREAM', VW - 76, by - 2, { col: '#80d0f0', shadow: '#101838' });
         }
-        if (S.sayT > 0) Txt.draw(g, S.say, VW >> 1, 42, { col: '#ffe890', align: 'center', shadow: '#101838' });
+        if (S.sayT > 0 && S.say) Txt.draw(g, S.say, VW >> 1, 42, { col: '#ffe890', align: 'center', shadow: '#101838' });
         if (S.choosing) {
             const mo = RACE_MOMENTS[S.m], w = Math.min(VW - 24, 400), rows = mo.opts.map(o => Txt.wrap(o[0], w - 40)), head = Txt.wrap(mo.text, w - 24);
             const h = 16 + head.length * 12 + rows.reduce((s, r) => s + r.length * 12 + 3, 0), x = (VW - w) >> 1, y = 48;
@@ -468,5 +554,93 @@ MINIS.race = {
             let yy = y + 11 + head.length * 12;
             rows.forEach((r, i) => { const on = i === S.csel; if (on) { A.r(x + 6, yy - 2, w - 12, r.length * 12 + 2, '#d8ecff'); A.poly([[x + 10, yy + 2], [x + 10, yy + 10], [x + 15, yy + 6]], '#d04838'); } r.forEach((ln, j) => Txt.draw(g, ln, x + 22, yy + j * 12, { col: on ? UI.ink : UI.dim })); yy += r.length * 12 + 3; });
         }
+    },
+};
+
+// ============================================================
+// THE FOSSIL PAVEMENT: chip a nummulite out of the limestone
+// ============================================================
+// The slab is a grid of cells, each under 2 or 3 layers of rock. Tap SPACE to chisel (two layers
+// at once, quick), hold it to brush (one layer, slow, safe). Chisel a cell of the fossil itself
+// when it has two layers or less over it and you crack it; by then its edge shows through. Clear every cell of the fossil before
+// your torch dies. The fewer cracks, the better the find: { ok, cracks } · { dark } · { left }
+const FOS_C = 13, FOS_R = 8, FOS_CELL = 14, FOS_TIME = 40;
+MINIS.fossil = {
+    title: 'THE FOSSIL PAVEMENT', keys: '◄►▲▼ move    tap SPACE: chisel    hold SPACE: brush    ESC: leave it',
+    start() {
+        const fx = 4 + Math.random() * 5, fy = 3 + Math.random() * 2, rx = 2.3 + Math.random() * 0.5, ry = 1.7 + Math.random() * 0.4;
+        const cells = [];
+        for (let y = 0; y < FOS_R; y++) for (let x = 0; x < FOS_C; x++) {
+            const dx = (x + 0.5 - fx) / rx, dy = (y + 0.5 - fy) / ry;
+            cells.push({ depth: Math.random() < 0.55 ? 3 : 2, fos: dx * dx + dy * dy <= 1, crack: false, brush: 0 });
+        }
+        return { cells, fx, fy, rx, ry, cx: 0, cy: 0, hold: 0, torch: FOS_TIME, cracks: 0, msg: '', msgT: 0, shake: 0, dust: [] };
+    },
+    at(S, x, y) { return S.cells[y * FOS_C + x]; },
+    update(S, dt, I, keys, pressed, released) {
+        if (I.left) S.cx = (S.cx + FOS_C - 1) % FOS_C; if (I.right) S.cx = (S.cx + 1) % FOS_C;
+        if (I.up) S.cy = (S.cy + FOS_R - 1) % FOS_R; if (I.down) S.cy = (S.cy + 1) % FOS_R;
+        if (I.left || I.right || I.up || I.down) { S.hold = 0; Sfx.move(); }
+        const c = this.at(S, S.cx, S.cy);
+        S.torch -= dt; S.msgT -= dt; S.shake = Math.max(0, S.shake - dt);
+        S.dust = S.dust.filter(d => (d.t -= dt) > 0);
+        const puff = n => { for (let k = 0; k < n; k++) S.dust.push({ x: S.cx + Math.random(), y: S.cy + Math.random(), vx: (Math.random() - 0.5) * 1.5, vy: -Math.random() * 1.5, t: 0.5 }); };
+        if (keys.act) {
+            S.hold += dt;
+            if (S.hold > 0.2 && c.depth > 0) {                                   // brushing
+                c.brush += dt / 0.5;
+                if ((S.t * 10 | 0) !== ((S.t - dt) * 10 | 0)) Sfx.tone(900 + Math.random() * 300, 0.02, 'triangle', 0.01);
+                if (c.brush >= 1) { c.brush = 0; c.depth--; puff(3); }
+            }
+        } else {
+            if (released && S.hold <= 0.2 && c.depth > 0) {                       // a tap: the chisel
+                if (c.fos && c.depth <= 2 && !c.crack) { c.crack = true; S.cracks++; c.depth = 0; S.shake = 0.25; S.msg = 'Crack! Too close: brush near the fossil.'; S.msgT = 1.8; Sfx.tone(120, 0.15, 'sawtooth', 0.06); }
+                else { c.depth = Math.max(0, c.depth - 2); Sfx.tone(320 + Math.random() * 60, 0.04, 'square', 0.04); }
+                c.brush = 0; puff(6);
+            }
+            S.hold = 0;
+        }
+        const left = S.cells.filter(q => q.fos && q.depth > 0).length;
+        if (!left) { Sfx.save(); Mini.finish({ ok: true, cracks: S.cracks }, S.cracks === 0 ? 'Out in one piece: a nummulite the size of a coin, every whorl of its spiral sharp.' : S.cracks <= 2 ? 'Out, with ' + S.cracks + (S.cracks === 1 ? ' crack' : ' cracks') + ' across it. Still a nummulite; still forty-five million years old.' : 'Out, in pieces. You wrap them in a tissue. All there, more or less.', S.cracks === 0 ? 'A PERFECT ONE' : S.cracks <= 2 ? 'CHIPPED' : 'IN PIECES'); return; }
+        if (S.torch <= 0) { Sfx.back(); Mini.finish({ dark: true }, 'Your torch gutters out. The fossil stays in the rock for now; it\'s not going anywhere.', 'TOO DARK'); }
+    },
+    draw(S, g, A, VW, VH) {
+        const w = FOS_C * FOS_CELL, h = FOS_R * FOS_CELL, sx = Math.round((VW - w) / 2 + (S.shake > 0 ? (Math.random() - 0.5) * 3 : 0)), sy = Math.round((VH - h) / 2) - 4;
+        A.r(sx - 8, sy - 8, w + 16, h + 16, '#5a4a38'); A.r(sx - 6, sy - 6, w + 12, h + 12, '#8a7658');               // the slab's broken edge
+        const ROCK = ['#e8dcc0', '#d8c8a4', '#c4b088', '#ac9670'];                                                 // exposed, then deeper layers of rock
+        for (let y = 0; y < FOS_R; y++) for (let x = 0; x < FOS_C; x++) {
+            const c = this.at(S, x, y), px = sx + x * FOS_CELL, py = sy + y * FOS_CELL;
+            if (c.depth === 0) {
+                A.r(px, py, FOS_CELL, FOS_CELL, c.fos ? '#7a6448' : '#6a5640');                                      // dug out: a dark hollow, grit in the bottom
+                if (!c.fos) for (let k = 0; k < 3; k++) A.px(px + Math.floor(hash2(x * 7 + k, y) * FOS_CELL), py + Math.floor(hash2(x, y * 5 + k) * FOS_CELL), '#54442f');
+            } else {
+                A.r(px, py, FOS_CELL, FOS_CELL, ROCK[c.depth]);
+                for (let k = 0; k < 4; k++) A.px(px + Math.floor(hash2(x * 3 + k, y * 11) * FOS_CELL), py + Math.floor(hash2(x * 13, y + k * 3) * FOS_CELL), ROCK[Math.min(3, c.depth + 1)]);
+                if (c.brush > 0) A.r(px + 2, py + FOS_CELL - 3, Math.round((FOS_CELL - 4) * c.brush), 2, '#f0f0e0');
+            }
+        }
+        // the nummulite itself, drawn where it's been uncovered: a disc with its spiral whorls
+        const fcx = sx + S.fx * FOS_CELL, fcy = sy + S.fy * FOS_CELL, frx = S.rx * FOS_CELL, fry = S.ry * FOS_CELL;
+        for (let y = 0; y < FOS_R; y++) for (let x = 0; x < FOS_C; x++) {
+            const c = this.at(S, x, y); if (!c.fos) continue;
+            const px = sx + x * FOS_CELL, py = sy + y * FOS_CELL;
+            for (let yy = 0; yy < FOS_CELL; yy += 2) for (let xx = 0; xx < FOS_CELL; xx += 2) {
+                const dx = (px + xx + 1 - fcx) / frx, dy = (py + yy + 1 - fcy) / fry, r = Math.sqrt(dx * dx + dy * dy); if (r > 1) continue;
+                const ring = Math.abs(Math.sin((r * 5 + Math.atan2(dy, dx) / Math.PI) * Math.PI));
+                if (c.depth === 0) A.r(px + xx, py + yy, 2, 2, r > 0.9 ? '#8a6e44' : ring < 0.3 ? '#9a8058' : '#dccaa0');
+                else if (c.depth <= 2 && r > 0.84) A.r(px + xx, py + yy, 2, 2, c.depth === 1 ? '#a8946c' : '#b29e78');   // its edge shows through the last two layers of rock (so a chisel that would crack it never comes as a surprise)
+            }
+            if (c.crack) { A.line(px + 1, py + 3, px + 7, py + 8, '#3a2a1c'); A.line(px + 7, py + 8, px + 12, py + 10, '#3a2a1c'); }
+        }
+        for (const d of S.dust) A.r(Math.round(sx + (d.x + d.vx * (0.5 - d.t)) * FOS_CELL), Math.round(sy + (d.y + d.vy * (0.5 - d.t)) * FOS_CELL), 2, 2, '#f4ecd8');
+        // the cursor, and your torch
+        const qx = sx + S.cx * FOS_CELL, qy = sy + S.cy * FOS_CELL, on = (S.t * 3 | 0) % 2;
+        A.r(qx - 1, qy - 1, FOS_CELL + 2, 1, on ? '#ffffff' : '#ffd060'); A.r(qx - 1, qy + FOS_CELL, FOS_CELL + 2, 1, on ? '#ffffff' : '#ffd060');
+        A.r(qx - 1, qy - 1, 1, FOS_CELL + 2, on ? '#ffffff' : '#ffd060'); A.r(qx + FOS_CELL, qy - 1, 1, FOS_CELL + 2, on ? '#ffffff' : '#ffd060');
+        if (S.hold > 0.2 && !S.result) Txt.draw(g, 'brushing', qx + FOS_CELL / 2, qy - 13, { col: '#f0f0e0', align: 'center', shadow: '#101838' });
+        miniBar(g, A, sx - 8, sy + h + 14, 150, 'TORCH', S.torch / FOS_TIME, null, S.torch < 10);
+        Txt.draw(g, 'CRACKS ' + S.cracks, sx + w - 60, sy + h + 14, { col: S.cracks ? '#f0a060' : '#c8d0f0' });
+        Txt.draw(g, 'Chisel the plain rock. Brush where the fossil is.', VW >> 1, 30, { col: '#c8d0f0', align: 'center' });
+        if (S.msgT > 0) Txt.draw(g, S.msg, VW >> 1, sy - 22, { col: '#ffe890', align: 'center', shadow: '#101838' });
     },
 };

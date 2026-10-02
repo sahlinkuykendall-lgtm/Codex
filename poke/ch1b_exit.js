@@ -76,7 +76,7 @@ scene('c1b_exit_deal', {
 });
 function c1bChapterEnd() {
     sflag('ch1_complete', true);
-    for (const t of Story.s.tasks) if (!t.done && /^c1b_/.test(t.id) && t.id !== 'c1b_accountant') taskDone(t.id);
+    for (const t of Story.s.tasks) if (!t.done && /^c1b_/.test(t.id) && t.id !== 'c1b_accountant' && t.text[0] !== '(') taskDone(t.id);   // (side quests stay open: KEEP EXPLORING)
     Game.save();
     const f = Story.s.flags, L = [];
     L.push({ quiet: 'You went home to Cairo on leave with the Codex in a bag of oranges. Nobody knows you have it.',

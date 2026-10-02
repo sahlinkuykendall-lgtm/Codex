@@ -2,7 +2,7 @@
 
 The working memory for the poke-style build: **what the owner wants, how to work, what's
 been done, and what's next.** Keep it current: update the "Where we are" and "What's next"
-sections at the end of every step. Last updated 2026-10-01, at P0.50.
+sections at the end of every step. Last updated 2026-10-02, at P0.51.
 
 ---
 
@@ -84,10 +84,13 @@ See `poke/README.md` for the file-by-file table. The essentials:
 - **Rooms:** `ROOMS[key] = {name, tw, th, style, enter, build(...)}`; doors are listed in the
   area's layout.
 - **Minigames:** `MINIS.x = {title, keys, start, update, draw}`; `playMinigame(kind, opts, cb)`.
-  So far: sieve, tea, darts, seal, race, tawla, the guide's quiz, and for the Fixer: haggle,
+  So far: sieve, tea, darts, seal, race (rebuilt in P0.51: lanes, stride, breath), fossil, tawla, the guide's quiz, and for the Fixer: haggle,
   lockpick, scout (`ch1c_prep.js`), fish (`ch1c_island.js`), lamproom, chase and firstaid
   (`ch1c_island.js`, `ch1c_ship.js`). Don't name a minigame's state field `done`: `Mini` keeps the
   callback there.
+- **Leaving an area:** `poke/leaving.js` adds "N main tasks and N side quests still open here" to
+  each opening's leaving scene (`area().sideQuests` / `sideIds`, or "(Name) ..." task texts). The
+  chapter end settles main tasks; side quests stay open for KEEP EXPLORING, so don't tick them off.
 - **Music:** `poke/music.js`, chiptune tunes synthesised on the fly (`TUNES`).
 - Script order matters: new files go in `poke.html` after what they depend on.
 
@@ -169,9 +172,21 @@ Add a playthrough file for each new opening (next: `poke_fixer.js`). An area can
   the day before she vanished, matching the shared intro's "four nights ago"; the bible changed too)
   and her reason made plain (she trusted the Ministry, feared the antiquities police). Still open, not
   done by the owner's choice: a line telling players the four starts are separate stories.
+- **P0.51: the owner's Giza list** (a tester's playthrough of Chapter 1-A): the male and female starting
+  looks made clearly different; notices drawn over the phone and kept up longer; Lena's men at midnight
+  carry torch cones (`ch1_search.js`: walk into the light, or up to them, and you're seen); the
+  knockout takes wallet cash (never what you need for a task, never the wages) and photographs
+  Miriam's page instead of taking it (bible changed, at the owner's request); Hana's sherds and wax
+  made clear; the "still open here" line before leaving any opening (`leaving.js`); the horse race
+  rebuilt as a real minigame, one try; the supply train kept on its rails and out of the old
+  village's stones; the fossils dug out in a new minigame; Miriam's palm made to stand out; the site
+  office's burn bin cold; the camel, kitchen and inspector-car lines rewritten. Answered, not
+  changed yet: the "Go to bed, Doctor" text and the inspector car with no purpose.
 
 ## 6. What's next
 
+0. **Waiting on the owner:** whether to reword the midnight "Go to bed, Doctor" text, and whether to
+   give the Giza inspector car a purpose (both answered in P0.51, not changed).
 1. **The Fixer's opening, Chapter 1-C (Marsa Tarfa):** follow `poke/FIXER_TODO.md`; next is
    step 8 (the side quests: the bible's five, Rana's Reef, the Fort's Cannon, Fish for the Hotel,
    the Coast Guard's Cousin, Bassem's Nephew, and the four additions). Then jobs (9), secrets (10),

@@ -264,8 +264,8 @@ const CREATOR = [
       ids: [null, 'satchel', 'backpack', 'camera', 'binoculars', 'canteen', 'ankh', 'scarab', 'horus', 'collar', 'scarf', 'bracelets'] },
 ];
 // the choices a new character starts with
-const CHOICES_M = { skin: 4, hair: 0, hairCol: 2, head: 1, face: 0, top: 0, topCol: 0, bot: 0, botCol: 8, shoes: 0, acc: 1 };
-const CHOICES_F = { skin: 4, hair: 4, hairCol: 2, head: 1, face: 0, top: 0, topCol: 0, bot: 0, botCol: 8, shoes: 0, acc: 1 };
+const CHOICES_M = { skin: 4, hair: 0, hairCol: 2, head: 1, face: 7, top: 1, topCol: 0, bot: 1, botCol: 3, shoes: 0, acc: 1 };    // field hat, stubble, khaki safari jacket, olive cargo trousers, satchel
+const CHOICES_F = { skin: 3, hair: 3, hairCol: 5, head: 0, face: 0, top: 0, topCol: 4, bot: 0, botCol: 2, shoes: 2, acc: 10 };   // long auburn hair, no hat, a Nile-blue field shirt, sand trousers, a neck scarf
 
 // the creator's choices (an index per category) → a look
 function lookFromChoices(c, gender) {

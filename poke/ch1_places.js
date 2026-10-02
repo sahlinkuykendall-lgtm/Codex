@@ -110,7 +110,7 @@ scene('c1p_tower_top', {
 // THE SUPPLY TRAIN, running once the pin is in
 // ============================================================
 const Train = {
-    x0: 1 * TILE, x1: 22 * TILE, v: 45, dir: 1, wait: 0,
+    x0: 3 * TILE, x1: 13 * TILE, v: 45, dir: 1, wait: 0,              // out to where the rails start and back to the halt by Uncle Hamid (east of it, the old village's stones are on the line)
     update(dt) {
         const m = Game.maps.ch1, e = m && m.ents.find(q => q.id === 'carts'); if (!e) return;
         if (sflag('hamid') !== 'fixed') return;

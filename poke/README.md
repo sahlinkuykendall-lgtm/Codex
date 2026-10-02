@@ -92,12 +92,13 @@ there are no image files.
 | `detector.js` | Miriam's metal detector: the 40 buried finds, the signal and metal readout, digging |
 | `ch1_side.js` | The eleven side quests (the race, darts, Saber's tea, the 1926 truck, the supply line, Amira's call, the fossils, the old woman, the looters' pit) |
 | `bosta.js` | Bosta the camp dog: her sprites, following you, tricks, barking at the midnight car |
-| `minigames.js` | The five minigames: the sieve, mint tea, darts, Petamun's seal, the race |
+| `minigames.js` | Chapter 1-A's minigames: the sieve, mint tea, darts, Petamun's seal, the race (lanes, stride, breath), the fossil dig |
 | `systems.js` | Skills and XP, thirst and hunger, injury, the phone (P), the camera (C), the bank ledger and messages |
 | `ch1_places.js` | The Osiris Shaft's three levels, the watchtower, the running supply train, Trench B's stake, the find store's seal |
 | `ch1_rooms.js` | Seven more rooms, with their furniture and scenes: the guard booth, the old Ministry post, Lindqvist's trailer, the dig shed, the mess tent, Hana's tent, the sheikh's tomb |
 | `ch1_scenes.js` | Chapter 1-A's story, ported from the 3D `ch1a_story.js`: every main beat, the midnight car, the exit choice and the chapter-end card |
 | `areas.js` | Which place each background opens in: the map, the objects, the start time, the story hooks |
+| `ch1_search.js` | Midnight at Miriam's tent: Lena's men's torch cones; walk into the light, or up to them, and you're seen |
 | `ch1b_scenes.js` | Chapter 1-B, the Inspector's opening at Saqqara (see `INSPECTOR_TODO.md`) |
 | `tracker.js` | The task tracker (the compass, T for an arrow) and the corner panel with water and food |
 | `ch1b_seals.js` | Chapter 1-B beat 2: the inspection round, the seal-check minigame, the forged seal and Samy's cigarettes |
@@ -123,6 +124,7 @@ there are no image files.
 | `ch1c_truck.js` | Chapter 1-C, beat 4: the truck at ten (headlights down the highway), Lena Brandt's handover and "Don't open it", the pickup or carrying it, the package stowed aboard |
 | `ch1c_open.js` | Chapter 1-C, beat 5: casting off (the voyage out on the map), the dhow's deck at sea (a room), opening the case: the Codex, the GPS tracker, the note in the flap; the ship's green lamp |
 | `ch1c_ship.js` | Chapter 1-C, beat 6: alongside the ship, the ship's deck (stealth: deckhands' torches, listen to the captain), the boat chase and first aid minigames, Zaki shot (`ch1c_zaki_saved`), home |
+| `leaving.js` | Before you leave an opening: how many main tasks and side quests are still open there |
 | `ch1c_exit.js` | Chapter 1-C, beat 7: back on shore, dumping the tracker (reef / bus / Bassem's car), the exit (legal / deal / quiet), goodbyes, leaving by lorry or night bus, the end card |
 | `backgrounds.js` | The four backgrounds: skills, gear, papers, their paintings and opening cutscenes |
 | `intro.js` | The opening scenes, the background choice, male/female, the character creator, the name grid, your papers |

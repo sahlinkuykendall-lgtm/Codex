@@ -96,7 +96,7 @@ scene('c1a_hana', {
                 if (!hasItem('Painted sherd', 3)) return;
                 dropItem('Painted sherd', 3);
                 sflag('hana_q', 'done'); sflag('hana_valuation', true); rel('hana', 15); taskDone('hana_sherds');
-                storyNote('Hana\'s conservation (side quest)', 'Done. Hana joined the sherds: one potter, one ibis. She gave you a stick of conservation wax, "for anything you need to close again without anyone knowing."');
+                storyNote('Hana\'s conservation (side quest)', 'Done. Hana joined the sherds: one potter, one ibis. She gave you a stick of conservation wax, "for anything you need to close again without anyone knowing." If you slit a seal cleanly, the wax closes it again so nobody can tell.');
                 startDialogue('c1a_hana_done');
             } });
         }
@@ -123,12 +123,13 @@ scene('c1a_hana_q', {
         sflag('hana_q', 'open'); c1aMetHana();
         storyNote('Hana\'s conservation (side quest)', 'Bring Hana three painted sherds. They glint in the sand.');
         task('hana_sherds', 'Bring Hana three painted sherds (they glint in the sand).');
+        if (hasItem('Painted sherd', 3)) storyNotice('You already have three painted sherds. Talk to Hana again to give them to her.');
     } }],
 });
 scene('c1a_hana_done', {
     speaker: 'Hana',
-    text: `She fits them edge to edge under the lamp, and the black flicks become a line, and the line becomes a bird: long curved beak, one leg raised. An ibis.\n\n"Thoth's bird. Ptolemaic, I think. Pretty." She presses a stick of dark wax into your hand. "Conservation wax. For anything you need to close again without anyone knowing." She doesn't explain, and you don't ask.`,
-    choices: [{ text: 'Pocket the wax.', onSelect: () => pocket('Conservation wax') }],
+    text: `She fits them edge to edge under the lamp, and the black flicks become a line, and the line becomes a bird: long curved beak, one leg raised. An ibis.\n\n"Thoth's bird. Ptolemaic, I think. Pretty." She presses a stick of dark wax into your hand. "Conservation wax. For anything you need to close again without anyone knowing. A seal, say. Slit it neatly, press this in after, and nobody can tell it was ever opened." She doesn't explain, and you don't ask.`,
+    choices: [{ text: 'Pocket the wax.', onSelect: () => { pocket('Conservation wax'); storyNotice('Conservation wax: slit a seal cleanly and this closes it again.'); } }],
 });
 
 // ============================================================
@@ -559,7 +560,7 @@ scene('c1a_store', {
     get choices() {
         if (sflag('codex') || !sflag('mag_key')) return [{ text: 'Leave it.' }];
         return [
-            { text: 'Slit the seal cleanly along the paper, so it can be closed again.', onSelect: () => { sflag('seal_clean', true); startDialogue('c1a_store_in'); } },
+            { text: hasItem('Conservation wax') ? 'Slit the seal cleanly along the paper. (Hana\'s wax will close it again.)' : 'Slit the seal cleanly along the paper, so it can be closed again.', onSelect: () => { sflag('seal_clean', true); startDialogue('c1a_store_in'); } },
             { text: 'Break the seal. It\'s your site now.', onSelect: () => { sflag('seal_clean', false); startDialogue('c1a_store_in'); } },
             { text: 'Not yet.' },
         ];
@@ -636,7 +637,7 @@ scene('c1a_hana_aid', { speaker: 'Hana', text: `She has you sit on a crate under
 // ============================================================
 // THE MIDNIGHT CAR (beat 5)
 // ============================================================
-STORY_SCRIPTS.c1a_lena = STORY_SCRIPTS.c1a_lenaman1 = STORY_SCRIPTS.c1a_lenaman2 = () => sflag('lena_event') === 'searching' ? 'c1a_lena' : null;
+// (walking up to them, or into their torchlight, is poke/ch1_search.js; reaching the tent door unseen is c1a_lena)
 function c1aLenaLeave(missed) {
     sflag('lena_event', 'gone'); taskDone('lena'); taskDone('midnight');
     if (missed) { sflag('lena_missed', true); storyNote('The midnight car', 'By the time you got back, they were gone. Miriam\'s tent has been gone through carefully by people who did this for a living.'); storyNotice('The car on the road in has gone.'); }
@@ -687,10 +688,14 @@ scene('c1a_lena_slip', {
     text: `You work round to the back of the tent, lift the canvas, and get one knee inside...\n\n...and a hand you never saw closes on your collar. The last thing you hear is the woman's voice, bored: "Gently. We're not animals."`,
     choices: [{ text: '…', onSelect: c1aKnockedOut }],
 });
-// knocked out: they take Miriam's page, and you wake at the workers' fire an hour and a half later
+// knocked out: they empty your wallet (so it looks like thieves) and photograph Miriam's page, but
+// leave it, and everything else you need, where it was. You wake at the workers' fire an hour and a half later.
 function c1aKnockedOut() {
     sflag('lena_knocked', true);
-    if (hasItem("Miriam's notebook page")) { dropItem("Miriam's notebook page"); sflag('lena_has_page', true); }
+    if (hasItem("Miriam's notebook page")) sflag('lena_has_page', true);
+    let took = Math.min(1000, money());                                            // what's in a wallet, not the bank,
+    if (sflag('payroll') !== 'paid') took = Math.min(took, Math.max(0, money() - 6000));   // and never so much you can't pay the men
+    if (took > 0) { sflag('lena_took_cash', took); Story.s.money -= took; }
     setInjured('head');
     c1aLenaLeave(false);
     Game.fadeTo(() => {
@@ -704,10 +709,12 @@ function c1aKnockedOut() {
 scene('c1a_woke', {
     speaker: R,
     text: () => `Firelight. A glass of tea being held against your lips. The Rais's face, very close, very calm.\n\n"Farouk found you behind the director's tent. They were gone. They left you by our fire: polite people." He puts the glass in your hand. "They went through your pockets."` +
-        (sflag('lena_has_page') ? `\n\nMiriam's notebook page is gone. You remember every word of it, but now so do they.` : ''),
+        (sflag('lena_took_cash') ? `\n\nYour wallet is still there, ${sflag('lena_took_cash').toLocaleString('en')} pounds lighter: thieves, anyone would say.` : '') +
+        (sflag('lena_has_page') ? ` Miriam's notebook page is still folded in your shirt pocket, but it's been unfolded and folded again, the wrong way. They photographed it. Now they know what you know.` : ''),
     choices: [{ text: 'Drink the tea.', onSelect: () => {
-        storyNote('The midnight car', 'You tried to slip into Miriam\'s tent behind the searchers and were knocked out. You woke by the workers\' fire an hour and a half later.' + (sflag('lena_has_page') ? ' They took Miriam\'s notebook page: whoever they work for now knows about the shaft and the find store.' : ''));
+        storyNote('The midnight car', 'You tried to slip into Miriam\'s tent behind the searchers and were knocked out. You woke by the workers\' fire an hour and a half later.' + (sflag('lena_took_cash') ? ' They took ' + sflag('lena_took_cash').toLocaleString('en') + ' EGP, to look like thieves.' : '') + (sflag('lena_has_page') ? ' They photographed Miriam\'s notebook page and left it: whoever they work for now knows about the shaft and the find store.' : ''));
         rel('abdallah', 3, true);
+        if (sflag('lena_took_cash')) Toast.show('−' + sflag('lena_took_cash').toLocaleString('en') + ' EGP   Gone from your wallet');
     } }],
 });
 
@@ -760,7 +767,7 @@ function c1aChapterEnd() {
     if (f.lena_overheard) L.push('You heard the woman in black say Vasse\'s name. She doesn\'t know you were there.');
     else if (f.lena_photos) L.push('You photographed the midnight visitors, and their car\'s plate.');
     else if (f.met_lena) L.push('You met Lena Brandt face to face. She knows who you are.');
-    else if (f.lena_knocked) L.push('You were knocked out behind Miriam\'s tent.' + (f.lena_has_page ? ' They took her notebook page.' : ''));
+    else if (f.lena_knocked) L.push('You were knocked out behind Miriam\'s tent.' + (f.lena_has_page ? ' They photographed her notebook page.' : ''));
     else if (f.lena_missed) L.push('You missed the midnight car. Whoever it was went through Miriam\'s tent.');
     if (f.farouk_bribed) L.push('Uncle Farouk owes you. He has the key to the old causeway gate.');
     if (f.petamun_seal) L.push('You opened the old seal and took the bronze seal of Petamun.');

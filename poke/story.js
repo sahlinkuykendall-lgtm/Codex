@@ -43,7 +43,7 @@ const ITEM_INFO = {
     'The Codex': { key: 1, desc: 'A leather-bound papyrus codex, Late Antique, in Miriam\'s green scarf. Greek, with hieroglyph-like marks beside some lines.' },
     "Miriam's note": { key: 1, desc: '"Whoever finds this: don\'t give it to Vasse. Take it to Father Bishoy, Café El-Fishawy, Cairo, Thursday. M."' },
     'Bronze seal of Petamun': { key: 1, desc: 'A bronze seal the size of your palm, green with age: ΠΕΤΑΜΟΥΝ in Greek, and an ibis.' },
-    'Conservation wax': { key: 1, desc: 'Hana\'s dark wax. "For anything you need to close again without anyone knowing."' },
+    'Conservation wax': { key: 1, desc: 'Hana\'s dark wax. "For anything you need to close again without anyone knowing." Slit a seal cleanly and this closes it again, so nobody can tell it was opened.' },
     'Coupling pin': { desc: 'A greased coupling pin wrapped in newspaper. Uncle Hamid\'s supply line needs one.' },
     'Photos: the midnight visitors': { key: 1, desc: 'Eleven frames on your phone: the woman in charge, her two men, and the car\'s plate, diplomatic green.' },
     "Lena Brandt's card": { key: 1, desc: 'LENA BRANDT · SECURITY · VASSE FOUNDATION, GENEVA. A phone number, nothing else.' },
@@ -143,10 +143,10 @@ const Notice = {
     draw(g, dt) {
         const A = pa(g), maxW = Math.max(150, Math.round(Game.VW * 0.42));
         let y = 58;                                                     // under the toast line
-        this.lines = this.lines.filter(l => (l.t += dt) < 5);
+        this.lines = this.lines.filter(l => (l.t += dt) < 9);
         for (const l of this.lines) {
             const rows = Txt.wrap(l.text, maxW), h = rows.length * 12 + 4;
-            const w = Math.max(...rows.map(r => Txt.width(r))) + 16, x = Game.VW - w - 6, slide = l.t < 0.25 ? l.t / 0.25 : l.t > 4.6 ? (5 - l.t) / 0.4 : 1;
+            const w = Math.max(...rows.map(r => Txt.width(r))) + 16, x = Game.VW - w - 6, slide = l.t < 0.25 ? l.t / 0.25 : l.t > 8.6 ? (9 - l.t) / 0.4 : 1;
             const xx = Math.round(x + (1 - slide) * (w + 8));
             A.r(xx, y, w, h, '#30302c'); A.r(xx + 1, y + 1, w - 2, h - 2, '#f8f0d8'); A.r(xx + 1, y + 1, 3, h - 2, '#c89020');
             rows.forEach((r, i) => Txt.draw(g, r, xx + 9, y + 2 + i * 12, { col: '#5c3418' }));

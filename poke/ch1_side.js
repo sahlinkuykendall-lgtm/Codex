@@ -22,12 +22,21 @@ Object.assign(ITEM_INFO, {
     'Fossil': { desc: 'Nummulites: coin-shaped fossils from the limestone the pyramids are built of. Herodotus thought they were the builders\' lentils.' },
 });
 
+// ---- the fossil pavement: each nummulite is chipped out of the rock (the fossil minigame) ----
+function fossilDig(e) {
+    playMinigame('fossil', {}, r => {
+        if (!r.ok) return;                                                  // (left in the rock: it'll still be there)
+        if (r.cracks === 0) { sflag('fossil_perfect', (sflag('fossil_perfect') || 0) + 1); skillXP('excavation', 6); }
+        Game.takePickup(e);
+    });
+}
+
 // ---- things you pick up off the ground (Game.examine calls this) ----
 function storyPickup(kind) {
     const count = pre => Object.keys(Game.taken).filter(k => k.startsWith(pre)).length;
     if (kind === 'Painted sherd') {
         const n = count('ow_sherd'); skillXP('excavation', 6);
-        if (sflag('hana_q') === 'open' && hasItem('Painted sherd', 3) && !sflag('sherd_hint')) { sflag('sherd_hint', true); storyNotice('That\'s three. Hana wanted three.'); }
+        if (sflag('hana_q') === 'open' && hasItem('Painted sherd', 3) && !sflag('sherd_hint')) { sflag('sherd_hint', true); storyNotice('That\'s three sherds. Take them to Hana, by the director\'s tent.'); }
         if (n >= 8 && !sflag('sherd_set')) {
             sflag('sherd_set', true);
             const pay = sflag('hana_valuation') ? 300 : 250;
@@ -42,7 +51,9 @@ function storyPickup(kind) {
         if (n >= 5 && !sflag('fossils_done')) {
             sflag('fossils_done', true); taskDone('fossils');
             storyNote('Pharaoh\'s lentils (side quest)', 'Five nummulites from the fossil pavement: "pharaoh\'s lentils". Herodotus was told they were the pyramid workers\' food turned to stone. They\'re 45-million-year-old sea creatures, and the pyramids are made of them.');
-            storyNotice('Pharaoh\'s lentils: all five.');
+            const perfect = sflag('fossil_perfect') || 0;
+            storyNotice('Pharaoh\'s lentils: all five' + (perfect === 5 ? ', every one perfect.' : perfect ? ' (' + perfect + ' perfect).' : '.'));
+            if (perfect === 5) skillXP('excavation', 30, 'five perfect nummulites');
         } else if (n < 5) { Toast.show('Nummulite ' + n + ' of 5'); if (n === 1) task('fossils', 'Find all five nummulite fossils on the fossil pavement.'); }
     }
 }
@@ -68,17 +79,18 @@ scene('c1a_sayed', {
 });
 scene('c1a_race1', {
     speaker: 'System',
-    text: `He gives you the grey ("she's old, she's wise, she's slower than my bay; that is fair") and swings up onto the bay himself. Half the camp has come to the gate. Somebody is taking bets. Saber is taking bets.\n\nThe Rais raises his handkerchief.`,
-    choices: [{ text: 'Swing up onto the grey. (minigame)', onSelect: () => playMinigame('race', {}, r => {
-        if (r.left) { Dlg.open('Hagg Sayed', '"You pull her up? Wise. Another night, Doctor."'); return; }
-        c1aRaceResult(r.won); startDialogue('c1a_race_end');
-    }) }],
+    text: `He gives you the grey ("she's old, she's wise, she's slower than my bay; that is fair") and swings up onto the bay himself. Half the camp has come to the gate. Somebody is taking bets. Saber is taking bets.\n\n"One race," Hagg Sayed says. "You win, the boy owes nothing. You lose, it's fifteen hundred, and no second race. I have a living to make."\n\nThe Rais raises his handkerchief.`,
+    choices: [{ text: 'Swing up onto the grey. (minigame: one try)', onSelect: () => playMinigame('race', {}, r => {
+        if (r.left) sflag('race_pulled', true);
+        c1aRaceResult(!!r.won); startDialogue('c1a_race_end');
+    }) }, { text: '"Give me a minute."' }],
 });
 scene('c1a_race_end', {
     speaker: 'System',
     text: () => sflag('race') === 'won'
         ? `The grey puts her nose in front at the gate by the width of a hand. The camp goes up like a wedding. Saber is paying out bets with the face of a ruined man.\n\nHagg Sayed slides down, breathing hard, and laughs until he has to hold the bay's saddle. "Mina's debt is nothing. Nothing! God is great. Next time you ride for me."\n\nThe Rais says nothing at all. He just takes your hand in both of his.`
-        : `The bay is a length clear at the gate. The camp groans. Hagg Sayed slides down, delighted with himself, and pats your knee.\n\n"You rode well. She is old. So am I." He considers. "Fifteen hundred, still. I am not a monster."`,
+        : sflag('race_pulled') ? `You pull the grey up halfway, and the bay canters home alone. The camp groans. Hagg Sayed walks the bay back, not even out of breath.\n\n"No shame. She is old. So am I." He pats your knee. "But a race is a race. Fifteen hundred, Doctor. Friday."`
+        : `The bay is clear at the gate. The camp groans. Hagg Sayed slides down, delighted with himself, and pats your knee.\n\n"You rode well. She is old. So am I." He considers. "Fifteen hundred, still. I am not a monster."`,
     choices: [{ text: 'Get down off the grey.' }],
 });
 function c1aRaceResult(won) {
@@ -88,7 +100,7 @@ function c1aRaceResult(won) {
     if (won) {
         sflag('mina', 'done'); rel('abdallah', 15); rel('workmen', 10, true); taskDone('mina');
         storyNote('The Rais\'s son (side quest)', 'Done. You beat Hagg Sayed on his own old grey mare, and Mina\'s debt is forgiven. The camp will talk about it for years.');
-    } else storyNote('The Rais\'s son (side quest)', 'You lost the race to Hagg Sayed. Mina\'s debt is still 1,500 EGP (the Rais can take it from you, or the darts winnings, any time).');
+    } else storyNote('The Rais\'s son (side quest)', 'You lost the race to Hagg Sayed, and there\'s no second race. Mina\'s debt is still 1,500 EGP: pay it through the Rais, or give him the darts winnings.');
 }
 
 // ============================================================

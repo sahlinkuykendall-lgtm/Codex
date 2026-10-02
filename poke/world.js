@@ -65,7 +65,7 @@ const World = {
             x = x1;
         }
         const occ = new Set(), mark = (tx, ty, tw, th) => { for (let j = ty - 1; j <= ty + th; j++) for (let i = tx - 1; i <= tx + tw; i++) occ.add(i + ',' + j); };
-        const DRAW_AS = { fl_ministry_post: 'ministry post', fl_digshed: 'dig shed clipboard', fl_toolshed: "sam's tool shed", fl_guard_booth: 'guard booth', d_gearstor: 'gear storage', fl_trailer: 'site trailer', fl_scaffold: 'scaffolding', fl_palm: 'palm tree', fl_cactus: 'palm tree', fl_boulder: 'big boulder', fl_ruins: null, fl_stake_sam: 'survey stake' };
+        const DRAW_AS = { fl_ministry_post: 'ministry post', fl_digshed: 'dig shed clipboard', fl_toolshed: "sam's tool shed", fl_guard_booth: 'guard booth', d_gearstor: 'gear storage', fl_trailer: 'site trailer', fl_scaffold: 'scaffolding', fl_palm: "sam's date palm", fl_cactus: 'palm tree', fl_boulder: 'big boulder', fl_ruins: null, fl_stake_sam: 'survey stake' };
         const NO_SPRITE = { trench: 1, ow_oasis: 1, fl_cooking: 1, fl_crates: 1, perimeter: 1, fl_sand_east: 1, fl_stars: 1, fl_ruins: 1 };
         const OPEN = { dig_gate: 1, c1p_pavement: 1, d_gearstor: 1, c1p_cemetery: 1, ow_ruins: 1, c1p_ramp: 1 };
         const NIGHT_ONLY = { c1p_oldwoman: 1 }, HIDDEN = { c1a_lena: 1, c1a_lenaman1: 1, c1a_lenaman2: 1 };
@@ -131,7 +131,7 @@ const World = {
         L.trees.forEach(([tx, ty], i) => { const x = tx * TILE + 16, y = ty * TILE + 28; World.addEnt(map, { x, y, w: 0, d: 0, spr: palm('cp' + i), sortY: y }); World.addSolid(map, x - 4, y - 4, 8, 5); mark(tx, ty, 1, 1); });
         // the camel, couched beside the Bedouin tent
         const sh = map.ents.find(q => q.id === 'ow_shelter');
-        if (sh) World.addEnt(map, { x: sh.x + sh.w + 24, y: sh.y + sh.d, w: 0, d: 0, spr: camel(), label: 'Camel', say: ['System', 'A camel, couched, chewing sideways with great patience. It looks at you as if you owe it money.'] });
+        if (sh) World.addEnt(map, { x: sh.x + sh.w + 24, y: sh.y + sh.d, w: 0, d: 0, spr: camel(), label: 'Camel', say: ['System', 'A camel, lying down with its legs folded under it, chewing slowly and sideways. It watches you go past with half-closed eyes, completely unimpressed.'] });
         // plants and stones on the open sand
         const memo = {}, variant = (kind, n, make) => { const key = kind + (n % 7); return Object.assign({}, memo[key] || (memo[key] = make(key))); };
         for (let ty = 1; ty < L.H - 1; ty++) for (let tx = 1; tx < L.W - 1; tx++) {

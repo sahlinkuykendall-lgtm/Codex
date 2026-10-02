@@ -24,6 +24,8 @@ const HELP = () => {
       Dlg.csel = i; Dlg.ct = 1; const txt = Dlg.choices[i]; Dlg.update(0, { ok: true }); return txt;
     },
     talk(id) { const m = Game.maps.ch1; const e = m.ents.find(q => q.id === id) || Game.map.ents.find(q => q.id === id); if (!e) throw new Error('no ent ' + id); Game.examine(e); if (!Dlg.active) throw new Error('nothing said by ' + id); },
+    // walk up to a building's door from outside (the story may stop you there: Miriam's tent mid-search)
+    door(to) { const m = Game.maps.ch1, d = m.doors.find(q => q.to === to); if (!d) throw new Error('no door to ' + to); Game.player.x = d.x + d.w / 2; Game.player.y = d.y + d.h + 2; Game.goInside(d); },
     room(key) { const r = Game.maps[key] || (Game.maps[key] = buildRoom(key, window.POKE_MAP, [Game.player.x, Game.player.y])); r.back = [Game.player.x, Game.player.y]; Game.enter(r); },
     out() { Game.enter(Game.maps.ch1); },
     // is tile (tx,ty) reachable on foot from the spawn?
@@ -83,7 +85,7 @@ async function start(b, errs) {
   // save and load during the search
   console.log('A save mid-search', await p.evaluate(() => { Game.save(); Game.story = null; Game.lenaCar = null; Game.load(); return { lena: sflag('lena_event'), car: !!Game.lenaCar, trio: Game.maps.ch1.ents.filter(e => e.lenaEvent && !e.gone).length }; }));
   console.log('A end', await p.evaluate(() => {
-    TT.go('c1a_lena'); TT.talk('c1a_lena'); TT.pick('listen'); TT.pick(0);
+    TT.door('INT_TENT'); TT.pick('listen'); TT.pick(0);                    // (reached the tent door unseen: walking up to them is being seen)
     TT.go('fl_toolshed'); TT.sim(30); TT.talk('fl_toolshed'); TT.pick('Slit'); TT.pick('Unwrap'); TT.pick('Wrap'); TT.pick('Walk away');
     TT.pick('quarry'); TT.pick('Ride');
     return { card: EndCard.open, lines: EndCard.lines, ...TT.check(), resealed: sflag('store_resealed') };
@@ -113,7 +115,7 @@ async function start(b, errs) {
     TT.go('puzzle_glyph'); TT.talk('puzzle_glyph'); TT.pick('Wake'); TT.win({ ok: true }); TT.pick(0);
     let n = 0; while (!sflag('lena_event') && n++ < 80) TT.sim(60);
     n = 0; while (sflag('lena_event') === 'coming' && n++ < 20) TT.sim(5);
-    TT.go('c1a_lenaman1'); TT.talk('c1a_lenaman1'); TT.pick('Slip'); TT.pick(0);
+    TT.door('INT_TENT'); TT.pick('Slip'); TT.pick(0);
     return { lena: sflag('lena_event'), page: sflag('lena_has_page'), injured: sflag('injured') };
   }));
   await p.waitForTimeout(900);

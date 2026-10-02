@@ -293,14 +293,16 @@ const Game = {
         if (e.picture && !e.pictureShown) { e.pictureShown = true; return Picture.show(e.picture, () => { this.examine(e); e.pictureShown = false; }); }   // (a map on the wall: shown big first)
         if (sc) return startDialogue(sc);                   // a scripted conversation (poke/ch1_scenes.js)
         const [speaker, text] = e.say;
+        if (e.pickup === 'Fossil') return Dlg.open(speaker, text + '\n\n(It\'s still set in the limestone. Chip it out.)', () => { this.note(e.label || speaker, text, e.id); fossilDig(e); });   // (the fossil minigame, below)
         Dlg.open(speaker, text, () => {
             this.note(e.label || speaker, text, e.id);
-            if (e.pickup) {
-                this.bag[e.pickup] = (this.bag[e.pickup] || 0) + 1; this.taken[e.id] = 1;
-                World.removeEnt(this.map, e); Sfx.get(); Toast.show('Got a ' + e.pickup.toLowerCase() + '!');
-                storyPickup(e.pickup);
-            }
+            if (e.pickup) this.takePickup(e);
         });
+    },
+    takePickup(e) {
+        this.bag[e.pickup] = (this.bag[e.pickup] || 0) + 1; this.taken[e.id] = 1;
+        World.removeEnt(this.map, e); Sfx.get(); Toast.show('Got a ' + e.pickup.toLowerCase() + '!');
+        storyPickup(e.pickup);
     },
 
     updatePeople(dt) {
@@ -346,6 +348,7 @@ const Game = {
         if (Phone.open) Phone.draw(g);
         Camera.draw(g, 1 / 60);
         if (Menu.open) Menu.draw(g);
+        if (this.state === 'play') { Toast.draw(g, 1 / 60); Notice.draw(g, 1 / 60); }   // (over the phone and the menu, so nothing is missed)
         if (WorldMap.open) WorldMap.draw(g);
         if (EndCard.open) EndCard.draw(g);
         if (this.fade) { const t = this.fade.t, a = t < 0.22 ? t / 0.22 : 1 - (t - 0.22) / 0.28; g.fillStyle = 'rgba(0,0,0,' + Math.max(0, Math.min(1, a)).toFixed(2) + ')'; g.fillRect(0, 0, VW, VH); }
@@ -449,8 +452,6 @@ const Game = {
             if (m.outdoor) for (const d of m.doors) if (Math.abs(p.x - (d.x + d.w / 2)) < 40 && p.y > d.y && p.y < d.y + d.h + 34) this.tag(g, '▲ ' + d.label, d.x + d.w / 2 - cx, d.y - 22 - cy);
         }
         Banner.draw(g);
-        Toast.draw(g, 1 / 60);
-        Notice.draw(g, 1 / 60);
         if (area().giza) Detector.drawHud(g);
         Hud.draw(g);                                       // water, food, and the compass to the tracked task
         if (this.hintT < 14 && !Dlg.active) Txt.draw(g, 'MOVE: WASD / arrows    RUN: Shift    LOOK / TALK: Space    MAP: M    MENU: Esc', VW >> 1, VH - 14, { col: '#ffffff', shadow: '#30302c', align: 'center' });
