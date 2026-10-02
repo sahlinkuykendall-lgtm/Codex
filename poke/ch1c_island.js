@@ -128,7 +128,7 @@ scene('c1c_fishsell', {
 // fish as it fights, until the line's in.  → { fish } · { fish: null } · { left }
 // ============================================================
 MINIS.fish = {
-    title: 'FISHING', keys: 'SPACE: cast · strike    hold SPACE: reel (keep the green on the fish)    ESC: leave',
+    title: 'FISHING', keys: 'SPACE: cast, strike    hold SPACE: reel    ESC: leave',
     howto: [
         'Catch a fish and land it.',
         ['CAST', 'SPACE on the swinging power bar. Near gets reef fish, far gets the big ones.'],

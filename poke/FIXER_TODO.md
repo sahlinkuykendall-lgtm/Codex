@@ -164,7 +164,7 @@ Three tasks, each with more than one way to do it:
   (Bassem texts threats; Karim already knows your name).
 - **Leaving:** the night bus or a truck up the coast highway; the chapter-end card.
 
-## 8. Side quests (bible §SIDE QUESTS)
+## 8. Side quests (bible §SIDE QUESTS) — Rana's Reef and the Fort's Cannon ✅ DONE in P0.54 (`ch1c_side.js`)
 | ID | Name | Giver | What |
 |---|---|---|---|
 | SQ-01C-01 | Rana's Reef | Rana | Clear ghost nets off the reef (diving): diving XP, a Ch3 dive kit discount |

@@ -348,7 +348,7 @@ const Game = {
         if (Phone.open) Phone.draw(g);
         Camera.draw(g, 1 / 60);
         if (Menu.open) Menu.draw(g);
-        if (this.state === 'play') { Toast.draw(g, 1 / 60); Notice.draw(g, 1 / 60); }   // (over the phone and the menu, so nothing is missed)
+        if (this.state === 'play' && !Mini.cur) { Toast.draw(g, 1 / 60); Notice.draw(g, 1 / 60); }   // (over the phone and the menu, so nothing is missed; held back during a minigame, then shown)
         if (WorldMap.open) WorldMap.draw(g);
         if (EndCard.open) EndCard.draw(g);
         if (this.fade) { const t = this.fade.t, a = t < 0.22 ? t / 0.22 : 1 - (t - 0.22) / 0.28; g.fillStyle = 'rgba(0,0,0,' + Math.max(0, Math.min(1, a)).toFixed(2) + ')'; g.fillRect(0, 0, VW, VH); }

@@ -122,7 +122,7 @@ MINIS.haggle = {
 // binds). Lift too far and it oversets, with a clank.  → { opened } · { caught } · { left }
 // ============================================================
 MINIS.lockpick = {
-    title: 'LOCKPICKING', keys: '◄► choose a pin    hold SPACE: lift    let go on the gold line    ESC: leave',
+    title: 'LOCKPICKING', keys: '◄► pin    hold SPACE: lift    let go on the gold    ESC: leave',
     howto: [
         'Pick the lock before the watchman comes back round.',
         ['◄ ►', 'Choose a pin.'],
@@ -199,7 +199,7 @@ function scoutAt(u) {                                                           
     return [P[P.length - 1][0], P[P.length - 1][1], 0];
 }
 MINIS.scout = {
-    title: 'THE PATROL BOAT', keys: 'SPACE: note the time as its lights pass the next mark    ESC: climb down',
+    title: 'THE PATROL BOAT', keys: 'SPACE as its lights pass the next mark    ESC: climb down',
     howto: [
         'Watch the patrol boat\'s round from the fort wall and note the times.',
         ['SPACE', 'Press as its lights pass the next mark: the harbour mouth, the north reef, the buoy line, and the harbour mouth again.'],

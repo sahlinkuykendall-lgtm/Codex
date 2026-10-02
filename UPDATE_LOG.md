@@ -12,6 +12,31 @@ Other docs:
 
 ---
 
+## POKE-STYLE P0.54 — 2026-10-02 — (branch `poke-style`) The Fixer, step 8, part 1: Rana's Reef and the Fort's Cannon
+- **Rana's Reef (SQ-01C-01)** (`poke/ch1c_side.js`): after you've met Rana, she asks you to help
+  cut a trawler's ghost net off the north reef. She only dives by day.
+  - It uses a new **diving** minigame, a side view of the reef. Swim with drift, and hold SPACE
+    beside a coral head to cut the net free (you hold still while you cut).
+  - Air runs down, faster the deeper you go. Fire coral stings and the moray in its hole bites,
+    and both cost air. Swim back up to the boat's ladder to finish; out of air, Rana hauls you up.
+  - One net has a turtle in it, and you see her swim off when you cut it.
+  - Clear all three for diving XP, Rana +10 and **Rana's dive card** (a kit at cost: the Ch3
+    discount). Fewer than three, and you go again another time.
+- **The Fort's Cannon (SQ-01C-02):** the old man's legend has a twist. The cannon was moved: the
+  English dragged it to the gate for photographs, so the boys have been digging in the wrong
+  place for a century.
+  - He lends you his grandson's yellow beach detector. The **old gun platform** (new, on the
+    headland's edge) is where it used to stand.
+  - It uses a new **detector** minigame. Move the coil and read the needle and the tone: a high
+    chirp right on top means junk (nails, bottle tops, cartridge cases), and a low hum that grows
+    as you get closer means something big and deep. You can dig six holes.
+  - You find **an Ottoman coin hoard** (a Rare find, the tughra of Selim III). The old man keeps
+    one coin, for his grandfather.
+- Both new minigames have how-to-play cards. The chapter end now leaves the side quests' tasks
+  open for KEEP EXPLORING.
+- **Notices** wait until a minigame is over instead of covering it. The controls lines of fishing,
+  the chase, first aid, the patrol boat and lockpicking were shortened to fit the screen.
+
 ## POKE-STYLE P0.53 — 2026-10-02 — (branch `poke-style`) The owner's answers: the midnight text, the man in the Ministry car, how-to cards everywhere
 - **The midnight text** from the unknown number is now plainly a threat from the people in the
   black car: "Stay in your tent tonight, Doctor. Whatever you hear." (bible updated)

@@ -178,7 +178,7 @@ scene('c1c_flee_seen', {
 // THE BOAT CHASE (minigame)
 // ============================================================
 MINIS.chase = {
-    title: 'THE CHASE', keys: '◄► call the turns (Zaki steers)    SPACE: the lamp on / off    ▲: throw a net astern',
+    title: 'THE CHASE', keys: '◄► call the turns    SPACE: lamp on / off    ▲: net astern',
     howto: [
         'Get away from the ship\'s launch in the dark, through the reef.',
         ['◄ ►', 'Call the turns; Zaki steers. Keep off the coral heads, or the hull takes damage.'],
@@ -326,7 +326,7 @@ scene('c1c_run', {
 // (the arrows, in order). His blood drains all the while.  → { ok, blood } · { ok: false } · { left }
 // ============================================================
 MINIS.firstaid = {
-    title: 'FIRST AID', keys: 'find: ◄►▲▼ and SPACE    press: hold SPACE in the band    bind: the arrows in order',
+    title: 'FIRST AID', keys: 'find: ◄►▲▼, SPACE    press: hold SPACE    bind: the arrows',
     howto: [
         'Zaki is bleeding. Three steps, quickly: he loses blood the whole time.',
         ['FIND', '◄►▲▼ to move over him, SPACE where the wound is.'],

@@ -2,7 +2,7 @@
 
 The working memory for the poke-style build: **what the owner wants, how to work, what's
 been done, and what's next.** Keep it current: update the "Where we are" and "What's next"
-sections at the end of every step. Last updated 2026-10-02, at P0.53.
+sections at the end of every step. Last updated 2026-10-02, at P0.54.
 
 ---
 
@@ -84,7 +84,7 @@ See `poke/README.md` for the file-by-file table. The essentials:
 - **Rooms:** `ROOMS[key] = {name, tw, th, style, enter, build(...)}`; doors are listed in the
   area's layout.
 - **Minigames:** `MINIS.x = {title, keys, start, update, draw}`; `playMinigame(kind, opts, cb)`.
-  So far: sieve, tea, darts, seal, race (rebuilt in P0.51: lanes, stride, breath), fossil, tawla, the guide's quiz, and for the Fixer: haggle,
+  So far: sieve, tea, darts, seal, race (rebuilt in P0.51: lanes, stride, breath), fossil, dive, detect, tawla, the guide's quiz, and for the Fixer: haggle,
   lockpick, scout (`ch1c_prep.js`), fish (`ch1c_island.js`), lamproom, chase and firstaid
   (`ch1c_island.js`, `ch1c_ship.js`). Don't name a minigame's state field `done`: `Mini` keeps the
   callback there. Give a minigame `howto: [lines]` (a line can be `[label, text]`) and it opens on a
@@ -190,12 +190,15 @@ Add a playthrough file for each new opening (next: `poke_fixer.js`). An area can
   Whatever you hear."); Sergeant Ashraf Galal by the Ministry car (`ch1_watcher.js`, an addition:
   police watching Miriam's tent for a colonel in Cairo, his log of the night she left, a photo
   for Ch2 to use); how-to-play cards on every minigame.
+- **P0.54: the Fixer, step 8, part 1** (`ch1c_side.js`): Rana's Reef (the diving minigame) and the
+  Fort's Cannon (the old gun platform, the detector minigame, the Ottoman hoard). Side-quest tasks are
+  written "(Name) ..." and the Fixer's chapter end leaves them open. Notices wait out minigames.
 
 ## 6. What's next
 
 1. **The Fixer's opening, Chapter 1-C (Marsa Tarfa):** follow `poke/FIXER_TODO.md`; next is
-   step 8 (the side quests: the bible's five, Rana's Reef, the Fort's Cannon, Fish for the Hotel,
-   the Coast Guard's Cousin, Bassem's Nephew, and the four additions). Then jobs (9), secrets (10),
+   step 8 (the side quests): Rana's Reef and the Fort's Cannon are done (P0.54); next Fish for the
+   Hotel, the Coast Guard's Cousin, Bassem's Nephew, then the four additions. Then jobs (9), secrets (10),
    rooms and the `poke_fixer.js` playthrough check (11). Waiting on the owner's go-ahead.
 2. Then the Journalist's opening, Chapter 1-D (Port Said): write `JOURNALIST_TODO.md` the
    same way first.
