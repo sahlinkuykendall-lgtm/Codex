@@ -2,7 +2,7 @@
 
 The working memory for the poke-style build: **what the owner wants, how to work, what's
 been done, and what's next.** Keep it current: update the "Where we are" and "What's next"
-sections at the end of every step. Last updated 2026-10-02, at P0.55.
+sections at the end of every step. Last updated 2026-10-02, at P0.56.
 
 ---
 
@@ -196,11 +196,17 @@ Add a playthrough file for each new opening (next: `poke_fixer.js`). An area can
 - **P0.55: the Fixer, step 8, part 2** (`ch1c_side2.js`): Fish for the Hotel (the cook, his rod, the
   breakwater fishing spot, his kitchen), the Coast Guard's Cousin (the insulin up the wadi, the man
   from the mountain, `ch1c_bedouin`), Bassem's Nephew (the sister, the boy, Bassem's 2,000 off).
+- **P0.56: the Fixer, step 8, part 3** (`ch1c_side3.js`): the four additions: the One Guest (the new
+  hotel lobby, the lockpicking safe), Tawla at the Truck Stop, the Imam's Loudspeaker (the minaret,
+  the boy's remote-control boat), Goats in the Wadi (herding). `AREAS.fixer.sideQuests` lists all nine
+  for the leaving line and the end card. **Step 8 is done.**
 
 ## 6. What's next
 
 1. **The Fixer's opening, Chapter 1-C (Marsa Tarfa):** follow `poke/FIXER_TODO.md`; next is
-   step 8 (the side quests): the bible's five are done (P0.54, P0.55); next the four additions. Then jobs (9), secrets (10),
+   step 8 (the side quests) is done (P0.54–P0.56). Next: step 9, jobs (fishing is in; diving salvage
+   on a sunk yacht, truck-stop loading, small smuggling runs, paying the debt down), then secrets (10)
+   and rooms and the `poke_fixer.js` playthrough check (11). Then jobs (9), secrets (10),
    rooms and the `poke_fixer.js` playthrough check (11). Waiting on the owner's go-ahead.
 2. Then the Journalist's opening, Chapter 1-D (Port Said): write `JOURNALIST_TODO.md` the
    same way first.

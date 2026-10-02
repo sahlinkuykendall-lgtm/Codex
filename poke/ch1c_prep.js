@@ -124,7 +124,7 @@ MINIS.haggle = {
 MINIS.lockpick = {
     title: 'LOCKPICKING', keys: '◄► pin    hold SPACE: lift    let go on the gold    ESC: leave',
     howto: [
-        'Pick the lock before the watchman comes back round.',
+        'Pick the lock before time runs out (the bar at the top).',
         ['◄ ►', 'Choose a pin.'],
         ['HOLD', 'SPACE to lift the pin. Let go when the gap is on the gold line and it sets.'],
         'Only one pin binds at a time; the others spring back down. Lift too far and it oversets with a clank. Set them all and the lock opens.',
@@ -139,7 +139,7 @@ MINIS.lockpick = {
     update(S, dt, I, keys, pressed, released) {
         if (S.fin) return;
         S.time -= dt; S.msgT -= dt;
-        if (S.time <= 0) { Sfx.tone(120, 0.3, 'square', 0.06); Mini.finish({ caught: true }, 'Footsteps on the concrete, and then a torch, right in your face.', 'CAUGHT'); S.fin = true; return; }
+        if (S.time <= 0) { Sfx.tone(120, 0.3, 'square', 0.06); Mini.finish({ caught: true }, S.opts.outLine || 'Footsteps on the concrete, and then a torch, right in your face.', S.opts.outBig || 'CAUGHT'); S.fin = true; return; }
         if (I.left || I.right) { S.sel = (S.sel + (I.left ? S.pins.length - 1 : 1)) % S.pins.length; Sfx.move(); }
         const P = S.pins[S.sel], SH = 46;                                         // the shear line, in px above the plug's floor
         for (const q of S.pins) { q.flash = Math.max(0, q.flash - dt); if (!q.set && q !== P) q.p = Math.max(0, q.p - 90 * dt); }

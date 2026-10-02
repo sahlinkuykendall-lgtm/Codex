@@ -164,7 +164,7 @@ Three tasks, each with more than one way to do it:
   (Bassem texts threats; Karim already knows your name).
 - **Leaving:** the night bus or a truck up the coast highway; the chapter-end card.
 
-## 8. Side quests (bible §SIDE QUESTS) — the bible's five ✅ DONE in P0.54–P0.55 (`ch1c_side.js`, `ch1c_side2.js`); the additions next
+## 8. Side quests (bible §SIDE QUESTS) — ✅ DONE in P0.54–P0.56 (`ch1c_side.js`, `ch1c_side2.js`, `ch1c_side3.js`; the hotel lobby too)
 | ID | Name | Giver | What |
 |---|---|---|---|
 | SQ-01C-01 | Rana's Reef | Rana | Clear ghost nets off the reef (diving): diving XP, a Ch3 dive kit discount |

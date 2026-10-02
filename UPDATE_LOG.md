@@ -12,6 +12,34 @@ Other docs:
 
 ---
 
+## POKE-STYLE P0.56 — 2026-10-02 — (branch `poke-style`) The Fixer, step 8, part 3: the four added side quests (step 8 done)
+New file `poke/ch1c_side3.js`. These four are additions to the bible's five, marked as such in
+`FIXER_TODO.md`. Nameless locals only, nothing that touches the main story.
+- **The One Guest (SQ-01C-06):** the hotel porter's one guest has locked his passport in his room
+  safe and carried it down to the lobby.
+  - The **hotel lobby** is new: marble, a key board, the safe on a rug, and a 1924 photograph of
+    English officers sitting on the cannon at the gate ("We moved it for the picture"), a nod to
+    the Fort's Cannon.
+  - Open the safe with the lockpicking minigame. Inside: his passport, and his wife's birthday
+    written down wrong. He pays 250.
+- **Tawla at the Truck Stop (SQ-01C-07):** a long-haul driver in a trucker's cap, nineteen years
+  unbeaten from Suez to Port Sudan.
+  - It costs 50 to play and pays 300 to win (a harder opponent than Saqqara's café). You can play
+    again if you lose.
+  - Win and you get his lorry's number for the radio (`ch1c_truckers`).
+- **The Imam's Loudspeaker (SQ-01C-08):** climb the minaret (the mosque) and fix the corroded
+  wires. The amplifier's batteries are gone, though: the boy in the green football shirt has a
+  remote-control boat doing circles in the harbour. Buy him new ones, threaten to tell his
+  mother, or buy batteries at the kiosk. Then the call carries to the end of the breakwater.
+- **Goats in the Wadi (SQ-01C-09):** a boy's three goats have strayed up the wadi. Goats run away
+  from you, so herd them: get round behind them and walk them down to the boy at the wadi mouth.
+  You get half a packet of biscuits.
+- **All nine together:** the Fixer's "before you go" line now counts every one of the nine side
+  quests, started or not, and the chapter-end card has a line for each one you did, plus
+  "Side quests: N of 9 done".
+- The lockpicking minigame takes its own time-out text now (the hotel guest loses patience rather
+  than a watchman catching you).
+
 ## POKE-STYLE P0.55 — 2026-10-02 — (branch `poke-style`) The Fixer, step 8, part 2: the hotel, the insulin, Bassem's nephew
 New file `poke/ch1c_side2.js`.
 - **Fish for the Hotel (SQ-01C-03):** the hotel cook (new, by the kitchen door) has forty rooms,
