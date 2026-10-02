@@ -44,6 +44,13 @@ function sealArt(o, door) {                                                // on
 }
 MINIS.sealcheck = {
     title: 'THE SEAL CHECK', keys: '◄► choose    SPACE: mark / sign    ESC: leave',
+    howto: [
+        'Compare the seal on the door (right) with the one in the register (left), part by part.',
+        ['◄ ►', 'Choose a part of the seal: the ring signs, the centre sign, the numbers.'],
+        ['SPACE', 'Mark a part that\'s different. Press again to unmark it.'],
+        ['▼ SPACE', 'Go to SIGN and sign it off when you\'re done.'],
+        'Wear, cracks and crumbs don\'t count, only a different sign or number. If nothing differs, sign with nothing marked.',
+    ],
     start(o) { return { sel: 0, marks: {}, els: sealEls(), ref: sealArt(o, false), door: sealArt(o, true) }; },
     update(S, dt, I) {
         const n = S.els.length + 1;

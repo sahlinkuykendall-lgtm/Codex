@@ -41,6 +41,13 @@ const HAGGLE_LINES = {
 };
 MINIS.haggle = {
     title: 'HAGGLING', keys: '◄► your price    ▲▼ offer / walk away    SPACE: do it    ESC: leave',
+    howto: [
+        'Haggle a price down.',
+        ['◄ ►', 'Set the price you\'ll offer.'],
+        ['▲ ▼', 'Choose OFFER or WALK AWAY.'],
+        ['SPACE', 'Do it. He counters with a new price.'],
+        'Offer too low and he loses patience; run out and he won\'t deal. Walk away while he\'s still above his lowest price and he\'ll call you back, once.',
+    ],
     start(o) {
         const step = o.step || 10, sk = skillLevel('haggling'), rs = v => Math.round(v / step) * step;
         return { o, step, sk, rs, ask: o.ask, floor: o.floor, counter: o.ask, offer: Math.min(o.max != null ? rs(o.max) : 1e9, rs(o.ask * 0.35)), pat: o.patience || 4, walked: false, sel: 0, rep: 0, line: (o.lines && o.lines.open) || `"${o.ask}. A fair price."`, mood: 0, n: 0, endIn: 0, end: null };
@@ -116,6 +123,12 @@ MINIS.haggle = {
 // ============================================================
 MINIS.lockpick = {
     title: 'LOCKPICKING', keys: '◄► choose a pin    hold SPACE: lift    let go on the gold line    ESC: leave',
+    howto: [
+        'Pick the lock before the watchman comes back round.',
+        ['◄ ►', 'Choose a pin.'],
+        ['HOLD', 'SPACE to lift the pin. Let go when the gap is on the gold line and it sets.'],
+        'Only one pin binds at a time; the others spring back down. Lift too far and it oversets with a clank. Set them all and the lock opens.',
+    ],
     start(o) {
         const n = o.pins || 4, R = rng('lock' + Math.floor(Story.s.clock) + n), sk = skillLevel('lockpicking');
         const pins = []; for (let i = 0; i < n; i++) pins.push({ key: 10 + Math.floor(R() * 16), p: 0, set: false, speed: 34 + R() * 30, flash: 0 });
@@ -187,6 +200,11 @@ function scoutAt(u) {                                                           
 }
 MINIS.scout = {
     title: 'THE PATROL BOAT', keys: 'SPACE: note the time as its lights pass the next mark    ESC: climb down',
+    howto: [
+        'Watch the patrol boat\'s round from the fort wall and note the times.',
+        ['SPACE', 'Press as its lights pass the next mark: the harbour mouth, the north reef, the buoy line, and the harbour mouth again.'],
+        'Too early does nothing: wait for the lights to reach the mark. Too late and that mark is missed. Get all four for exact times.',
+    ],
     start(o) { const u0 = o.u0 || 0; return { u: u0, u0, dur: 34, noted: SCOUT_MARKS.map((m, i) => m[1] < u0 - 0.02 ? 'missed' : null), next: SCOUT_MARKS.findIndex(m => m[1] >= u0 - 0.02), flash: 0, msg: '', msgT: 0, fin: false }; },
     clock(S) { return SCOUT_T0 + Math.round(S.u * SCOUT_LEN); },
     update(S, dt, I) {

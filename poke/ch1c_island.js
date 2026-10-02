@@ -129,6 +129,12 @@ scene('c1c_fishsell', {
 // ============================================================
 MINIS.fish = {
     title: 'FISHING', keys: 'SPACE: cast · strike    hold SPACE: reel (keep the green on the fish)    ESC: leave',
+    howto: [
+        'Catch a fish and land it.',
+        ['CAST', 'SPACE on the swinging power bar. Near gets reef fish, far gets the big ones.'],
+        ['STRIKE', 'Wait for the float to go under, then SPACE, quickly.'],
+        ['REEL', 'Hold SPACE to raise the green band, let go to drop it. Keep it on the fish as it fights until the line\'s in.'],
+    ],
     start() { return { ph: 'cast', pow: 0, pd: 1, dist: 0, fly: 0, wait: 0, bite: 0, fish: null, zone: 0.3, zv: 0, fy: 0.5, ft: 0.5, fT: 0, prog: 0.4, msg: 'Cast: SPACE when the bar is where you want it.', fin: false }; },
     pickFish(dist) {
         const far = dist > 0.55, pool = Object.keys(FISH_1C).filter(n => !!FISH_1C[n][3] === far);

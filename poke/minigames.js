@@ -17,8 +17,9 @@
 //   fossil a nummulite in the fossil pavement's limestone: tap SPACE to chisel, hold to brush;
 //          chisel too close and it cracks. Before your torch dies. → { ok, cracks } · { dark }
 // ESC / X leaves any of them ({ left: true }).
-// A minigame with `howto: [lines]` opens on a how-to-play card first; SPACE starts it, and ESC
-// there backs out before it begins ({ left: true, unstarted: true }).
+// A minigame with `howto: [lines]` opens on a how-to-play card the first time you play it in a
+// save (Story.s.howtoSeen); SPACE starts it, and ESC there backs out before it begins
+// ({ left: true, unstarted: true }).
 // ============================================================
 
 const Mini = {
@@ -26,7 +27,7 @@ const Mini = {
     open(kind, opts, done) {
         const G = MINIS[kind];
         if (!G) { done(Object.assign({ ok: true }, opts)); return; }
-        this.cur = Object.assign({ kind, opts: opts || {}, done, t: 0, result: null, endT: 0, act: false, lock: true, howto: !!G.howto }, G.start(opts || {}));   // (lock: until SPACE is let go, so the key that chose 'play' doesn't throw, pour or dig)
+        this.cur = Object.assign({ kind, opts: opts || {}, done, t: 0, result: null, endT: 0, act: false, lock: true, howto: !!G.howto && !(Story.s && (Story.s.howtoSeen || {})[kind]) }, G.start(opts || {}));   // (lock: until SPACE is let go, so the key that chose 'play' doesn't throw, pour or dig)
         this.G = G; Sfx.ok();
     },
     update(dt, I, keys) {
@@ -41,7 +42,7 @@ const Mini = {
         }
         if (S.howto) {                                                // the how-to-play card: SPACE to start
             if (I.back || I.menu) { const cb = S.done; this.cur = null; Sfx.back(); cb({ left: true, ok: false, unstarted: true }); return; }
-            if (pressed) { S.howto = false; S.lock = true; S.t = 0; Sfx.ok(); }   // (lock: the SPACE that started it doesn't also play)
+            if (pressed) { S.howto = false; S.lock = true; S.t = 0; Sfx.ok(); if (Story.s) (Story.s.howtoSeen || (Story.s.howtoSeen = {}))[S.kind] = 1; }   // (lock: the SPACE that started it doesn't also play; the card shows once a save)
             return;
         }
         if (I.back || I.menu) { this.finish({ left: true, ok: false }, 'You step away.'); return; }
@@ -118,6 +119,12 @@ function sieveIconBig(kind) {
 }
 MINIS.sieve = {
     title: 'THE SIEVE', keys: '◄ ► in turn: shake    ▲▼ choose    SPACE: bag it    ESC: leave',
+    howto: [
+        'Shake the spoil heap through the sieve and pick out the finds before time runs out (25 seconds).',
+        ['◄ ►', 'Press them in turn, left, right, left... to shake. The more you shake, the more turns up.'],
+        ['▲ ▼', 'Choose something lying on the mesh.'],
+        ['SPACE', 'Bag it. Stones are worth nothing; pot sherds, beads, coins and flint are.'],
+    ],
     start(o) {
         const items = [], n = 6 + (Math.random() * 3 | 0);
         for (let i = 0; i < n; i++) {
@@ -186,6 +193,12 @@ MINIS.sieve = {
 // ============================================================
 MINIS.tea = {
     title: 'MINT TEA', keys: '▲▼ kettle height    hold SPACE: pour    ESC: leave',
+    howto: [
+        'Pour a proper glass of mint tea: filled to between the gold lines, with a fat head of foam.',
+        ['▲ ▼', 'Raise or lower the kettle. Higher makes foam; too high and it splashes everywhere.'],
+        ['SPACE', 'Hold to pour, let go to stop. Stop between the gold lines.'],
+        'Too little is an insult, no foam is flat, and over the top spills. Pour high, but not too high.',
+    ],
     start() { return { level: 0, foam: 0, h: 0.4, pouring: false, splash: 0, drops: [] }; },
     update(S, dt, I, keys, pressed, released) {
         if (keys.up) S.h = Math.min(1, S.h + dt * 0.9); if (keys.down) S.h = Math.max(0, S.h - dt * 0.9);
@@ -307,6 +320,12 @@ function dartBoard() {
 }
 MINIS.darts = {
     title: 'CAMP DARTS', keys: '◄►▲▼ aim    hold SPACE: steady    let go: throw    ESC: leave',
+    howto: [
+        'Three darts. Beat the score chalked on the board.',
+        ['◄►▲▼', 'Aim. Your hand sways a little all the time.'],
+        ['HOLD', 'SPACE to steady your hand. After a second or two your arm starts to shake, so don\'t hold too long.'],
+        ['LET GO', 'Throw. The thin outer ring is double, the thin middle ring is treble, the bull\'s-eye is 50 and the ring round it 25.'],
+    ],
     start(o) { return { ax: 0, ay: -52, steady: 0, holding: false, darts: [], score: 0, fly: null, best: o.best || 132, pop: null, sway: 0 }; },
     sway(S) { const t = S.t * 1.25, A = S.amp; return [(Math.sin(t * 1.9) * 0.6 + Math.sin(t * 3.7 + 1.3) * 0.4) * A, (Math.sin(t * 2.3 + 0.7) * 0.6 + Math.sin(t * 4.1 + 2.1) * 0.4) * A]; },
     update(S, dt, I, keys, pressed, released) {
@@ -363,6 +382,12 @@ const SEAL_GLYPH = {
 };
 MINIS.seal = {
     title: 'THE OLD SEAL', keys: '◄►▲▼ choose a stone    SPACE: press it    ESC: step back',
+    howto: [
+        'Press the seal\'s four stones in the right order.',
+        ['◄►▲▼', 'Choose the top, right, bottom or left stone.'],
+        ['SPACE', 'Press it. The first press wakes the seal; finish before its hum fades.'],
+        'It\'s the order of the animals that matters, not where they sit. A wrong stone fires a dart and moves the stones round. Miriam\'s notebook page, buried in Trench A, gives the order.',
+    ],
     start() { return { pos: sflag('seal_pos') || SEAL_ORDER.slice(), sel: 0, awake: false, energy: 1, input: 0, flash: [], note: '', noteT: 0, dart: 0 }; },
     update(S, dt, I) {
         const DIRS = [['up', 0], ['right', 1], ['down', 2], ['left', 3]];

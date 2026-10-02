@@ -12,6 +12,24 @@ Other docs:
 
 ---
 
+## POKE-STYLE P0.53 — 2026-10-02 — (branch `poke-style`) The owner's answers: the midnight text, the man in the Ministry car, how-to cards everywhere
+- **The midnight text** from the unknown number is now plainly a threat from the people in the
+  black car: "Stay in your tent tonight, Doctor. Whatever you hear." (bible updated)
+- **The man in the Ministry car** (`poke/ch1_watcher.js`, an addition marked in the bible):
+  - Sergeant Hamdi Tawfik stands by the white Land Cruiser at the guard post all night, his
+    cigarette glowing. He has Ministry plates but police boots.
+  - Ask him and he says he writes down who goes in and out of Miriam's tent for "a colonel in
+    Cairo... not a bad man, a tired one".
+  - Bring him a glass of tea and he reads you his log of the night Miriam left: the green-scarf
+    bundle into the find store, the black Land Cruiser, Miriam getting in by herself. It backs up
+    Hana and Farouk.
+  - You can photograph him (an item). The bible suggests Chapter 2 use it in the Radwan interview,
+    but it changes nothing there unless the owner decides it should.
+- **How to play, everywhere:** every minigame now opens on a how-to-play card the first time you
+  play it in a save. That covers the sieve, mint tea, darts, the old seal, guiding, the seal check,
+  tawla, fishing, haggling, lockpicking, the patrol boat, the chase and first aid, as well as the
+  race and the fossils. The lamp room is a view, so it has none. SPACE starts; ESC backs out.
+
 ## POKE-STYLE P0.52 — 2026-10-02 — (branch `poke-style`) Explaining the sneak and the race (owner's notes)
 - **The midnight sneak:** the first time you come near Miriam's tent while it's being searched, a
   box explains what to do. Their torchlight shows as yellow cones, and stepping into one fills a "!"

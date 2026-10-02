@@ -167,6 +167,16 @@ Dr. Miriam Hale, "left for family reasons" four days ago. Nobody at camp believe
 - **The old woman with the lamp**: at the sheikh's tomb, at night. Kind and unafraid. A
   Keeper, though nothing on screen says so.
 - **The cook**, **Gamal** (night shift), the workmen.
+- **Sergeant Hamdi Tawfik** *(addition, P0.53, at the owner's request)*: the man by the white
+  Ministry Land Cruiser at the guard post. Ministry plates, police boots: Tourist and Antiquities
+  Police, writing down who comes and goes from Miriam's tent for "a colonel in Cairo" (Radwan,
+  never named here: "not a bad man, a tired one"). Bring him a glass of tea and he reads his log of
+  the night Miriam left (23:40 to the find store with the green-scarf bundle, out without it;
+  00:30 the black Land Cruiser, a woman in the back, Miriam got in by herself), which backs up
+  Hana and Farouk (`c1a_watcher_log`). You can photograph him (`c1a_watcher_photo`, an item).
+  **For Ch2 to use** (a suggestion, not yet a rule): in the Radwan interview, the photo shows him
+  you know his men were watching Miriam. It doesn't change his conscience points unless the
+  owner decides it should.
 
 ## SYSTEMS HERE (see `06_SYSTEMS.md`)
 - **The clock:** the chapter runs one night, 20:30 to 04:40. After the chapter-end card, the
@@ -191,7 +201,7 @@ Dr. Miriam Hale, "left for family reasons" four days ago. Nobody at camp believe
     anything you need for a task.
 - **The phone (P):**
   - Map, with tasks and places found
-  - Messages (the department's welcome; an unknown number at midnight: "Go to bed, Doctor.")
+  - Messages (the department's welcome; an unknown number at midnight, from the people in the black car: "Stay in your tent tonight, Doctor. Whatever you hear.")
   - Contacts and calls
   - Bank, with a ledger
   - Skills

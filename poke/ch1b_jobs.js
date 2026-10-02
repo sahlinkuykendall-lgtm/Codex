@@ -96,6 +96,11 @@ const GUIDE_QS = [
 ];
 MINIS.guide = {
     title: 'GUIDING', keys: '▲▼: choose an answer    SPACE: say it    ESC: leave',
+    howto: [
+        'Show a tour group round the Step Pyramid. They ask six questions.',
+        ['▲ ▼', 'Choose an answer.'],
+        ['SPACE', 'Say it. Right answers cheer the group up and raise the tip; wrong ones lose them.'],
+    ],
     start(o) { const R = rng('tour' + Math.floor(Story.s.clock)), qs = GUIDE_QS.map((q, i) => i).sort(() => R() - 0.5).slice(0, 6).map(i => { const [t, opts, right] = GUIDE_QS[i], order = [0, 1, 2].sort(() => R() - 0.5); return { t, opts: order.map(k => opts[k]), right: order.indexOf(right) }; }); return { qs, i: 0, sel: 0, mood: 0.6, right: 0, flash: 0, said: null }; },
     update(S, dt, I) {
         S.flash = Math.max(0, S.flash - dt);

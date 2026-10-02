@@ -179,6 +179,13 @@ scene('c1c_flee_seen', {
 // ============================================================
 MINIS.chase = {
     title: 'THE CHASE', keys: '◄► call the turns (Zaki steers)    SPACE: the lamp on / off    ▲: throw a net astern',
+    howto: [
+        'Get away from the ship\'s launch in the dark, through the reef.',
+        ['◄ ►', 'Call the turns; Zaki steers. Keep off the coral heads, or the hull takes damage.'],
+        ['SPACE', 'Your lamp on and off. On, you see the reef, but so do they, and the searchlight finds you faster. Off, you\'re harder to see, and they can hit the reef behind you.'],
+        ['▲', 'Throw a net astern (three). If they run over it, it fouls their propeller.'],
+        'Stay out of the searchlight beam: in it they gain on you and shoot. Last a minute and they give up.',
+    ],
     start(o) {
         return { x: 0.5, tx: 0.5, hist: [], reefs: [], nets: [], netsLeft: 3, lamp: true, alarm: 0, hull: 1, gap: o.seen ? 100 : 130, stall: 0, spawn: 4, dist: 0, slow: 0, hit: 0, launch: { x: 0.5, dead: false }, deadT: 0, bursts: [], msg: o.seen ? 'They\'re close already! Lead them over the reef, with the lamp out.' : 'Lead them over the reef, with the lamp out, so they can\'t see it.', msgT: 4, fin: false, T: 0, flash: 0 };
     },
@@ -320,6 +327,12 @@ scene('c1c_run', {
 // ============================================================
 MINIS.firstaid = {
     title: 'FIRST AID', keys: 'find: ◄►▲▼ and SPACE    press: hold SPACE in the band    bind: the arrows in order',
+    howto: [
+        'Zaki is bleeding. Three steps, quickly: he loses blood the whole time.',
+        ['FIND', '◄►▲▼ to move over him, SPACE where the wound is.'],
+        ['PRESS', 'Hold SPACE to press. Keep the pressure inside the band, not too light and not too hard.'],
+        ['BIND', 'Press the arrows in the order shown to tie the bandage.'],
+    ],
     start() { const R = Math.random; return { ph: 'find', blood: 1, cx: 0.5, cy: 0.3, wx: 0.36 + R() * 0.08, wy: 0.42 + R() * 0.06, pr: 0, prog: 0, seq: [0, 1, 2, 3, 0, 2].map(() => Math.floor(R() * 4)), si: 0, msg: 'Find where it went in. Under the shirt, below the shoulder.', fin: false, wrong: 0 }; },
     update(S, dt, I, keys) {
         if (S.fin) return;

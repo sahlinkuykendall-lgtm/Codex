@@ -2,7 +2,7 @@
 
 The working memory for the poke-style build: **what the owner wants, how to work, what's
 been done, and what's next.** Keep it current: update the "Where we are" and "What's next"
-sections at the end of every step. Last updated 2026-10-02, at P0.52.
+sections at the end of every step. Last updated 2026-10-02, at P0.53.
 
 ---
 
@@ -88,7 +88,8 @@ See `poke/README.md` for the file-by-file table. The essentials:
   lockpick, scout (`ch1c_prep.js`), fish (`ch1c_island.js`), lamproom, chase and firstaid
   (`ch1c_island.js`, `ch1c_ship.js`). Don't name a minigame's state field `done`: `Mini` keeps the
   callback there. Give a minigame `howto: [lines]` (a line can be `[label, text]`) and it opens on a
-  how-to-play card; ESC on the card returns `{ left, unstarted }`, which shouldn't count as a loss.
+  how-to-play card (once a save: `Story.s.howtoSeen`); ESC on the card returns `{ left, unstarted }`,
+  which shouldn't count as a loss. **Every new minigame needs a `howto`.**
 - **Leaving an area:** `poke/leaving.js` adds "N main tasks and N side quests still open here" to
   each opening's leaving scene (`area().sideQuests` / `sideIds`, or "(Name) ..." task texts). The
   chapter end settles main tasks; side quests stay open for KEEP EXPLORING, so don't tick them off.
@@ -185,11 +186,13 @@ Add a playthrough file for each new opening (next: `poke_fixer.js`). An area can
   changed yet: the "Go to bed, Doctor" text and the inspector car with no purpose.
 - **P0.52:** the owner's notes on P0.51: a box explains the midnight sneak the first time you come
   near the tent; the race and the fossil dig open on a how-to-play card.
+- **P0.53:** the owner's answers: the midnight text reworded ("Stay in your tent tonight, Doctor.
+  Whatever you hear."); Sergeant Hamdi Tawfik by the Ministry car (`ch1_watcher.js`, an addition:
+  police watching Miriam's tent for a colonel in Cairo, his log of the night she left, a photo
+  for Ch2 to use); how-to-play cards on every minigame.
 
 ## 6. What's next
 
-0. **Waiting on the owner:** whether to reword the midnight "Go to bed, Doctor" text, and whether to
-   give the Giza inspector car a purpose (both answered in P0.51, not changed).
 1. **The Fixer's opening, Chapter 1-C (Marsa Tarfa):** follow `poke/FIXER_TODO.md`; next is
    step 8 (the side quests: the bible's five, Rana's Reef, the Fort's Cannon, Fish for the Hotel,
    the Coast Guard's Cousin, Bassem's Nephew, and the four additions). Then jobs (9), secrets (10),

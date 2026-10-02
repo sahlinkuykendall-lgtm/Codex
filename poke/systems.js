@@ -359,7 +359,7 @@ const Phone = {
     c1aLenaArrive = function () {
         const was = sflag('lena_event');
         _arr();
-        if (!was && sflag('lena_event')) setTimeout(() => storyMessage('Unknown number', 'Go to bed, Doctor. She would want you to.'), 2500);
+        if (!was && sflag('lena_event')) setTimeout(() => storyMessage('Unknown number', 'Stay in your tent tonight, Doctor. Whatever you hear.'), 2500);
     };
 })();
 function systemsNewGame() {

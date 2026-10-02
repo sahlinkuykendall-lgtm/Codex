@@ -98,6 +98,7 @@ there are no image files.
 | `ch1_rooms.js` | Seven more rooms, with their furniture and scenes: the guard booth, the old Ministry post, Lindqvist's trailer, the dig shed, the mess tent, Hana's tent, the sheikh's tomb |
 | `ch1_scenes.js` | Chapter 1-A's story, ported from the 3D `ch1a_story.js`: every main beat, the midnight car, the exit choice and the chapter-end card |
 | `areas.js` | Which place each background opens in: the map, the objects, the start time, the story hooks |
+| `ch1_watcher.js` | The man in the Ministry car: Sergeant Tawfik, his log of the night Miriam left, his photo |
 | `ch1_search.js` | Midnight at Miriam's tent: Lena's men's torch cones; walk into the light, or up to them, and you're seen |
 | `ch1b_scenes.js` | Chapter 1-B, the Inspector's opening at Saqqara (see `INSPECTOR_TODO.md`) |
 | `tracker.js` | The task tracker (the compass, T for an arrow) and the corner panel with water and food |

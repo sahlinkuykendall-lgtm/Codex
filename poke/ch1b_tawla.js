@@ -13,6 +13,13 @@ const TAWLA_N = 4;
 MINIS.tawla = {
     title: 'TAWLA',
     keys: 'SPACE: roll / move    ◄►: checker    ▲▼: which die    ESC: leave',
+    howto: [
+        'Backgammon, café style and cut short: four checkers each, round the board and off. First to bear off all four wins.',
+        ['SPACE', 'Roll the dice, then move.'],
+        ['◄ ►', 'Choose which checker to move.'],
+        ['▲ ▼', 'Choose which die to use. Doubles play four times.'],
+        'Land on a lone enemy checker and it goes back to the start. You can\'t land where they have two or more. Once all four of yours are in the last six points, you can bear off.',
+    ],
     start(o) { return { me: Array(TAWLA_N).fill(0), him: Array(TAWLA_N).fill(0), dice: [], turn: 'me', phase: 'roll', sel: 0, die: 0, wait: 0.6, log: 'Your roll. SPACE.', roll: [1, 1], shake: 0, skill: o.skill != null ? o.skill : 0.6 }; },
     // board point (1..24) for a position on each side's path; 0 = waiting to come on, 25 = off
     pt(side, p) { return side === 'me' ? p : 25 - p; },
