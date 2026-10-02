@@ -187,7 +187,7 @@ Add a playthrough file for each new opening (next: `poke_fixer.js`). An area can
 - **P0.52:** the owner's notes on P0.51: a box explains the midnight sneak the first time you come
   near the tent; the race and the fossil dig open on a how-to-play card.
 - **P0.53:** the owner's answers: the midnight text reworded ("Stay in your tent tonight, Doctor.
-  Whatever you hear."); Sergeant Hamdi Tawfik by the Ministry car (`ch1_watcher.js`, an addition:
+  Whatever you hear."); Sergeant Ashraf Galal by the Ministry car (`ch1_watcher.js`, an addition:
   police watching Miriam's tent for a colonel in Cairo, his log of the night she left, a photo
   for Ch2 to use); how-to-play cards on every minigame.
 

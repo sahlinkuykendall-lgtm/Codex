@@ -167,7 +167,7 @@ Dr. Miriam Hale, "left for family reasons" four days ago. Nobody at camp believe
 - **The old woman with the lamp**: at the sheikh's tomb, at night. Kind and unafraid. A
   Keeper, though nothing on screen says so.
 - **The cook**, **Gamal** (night shift), the workmen.
-- **Sergeant Hamdi Tawfik** *(addition, P0.53, at the owner's request)*: the man by the white
+- **Sergeant Ashraf Galal** *(addition, P0.53, at the owner's request)*: the man by the white
   Ministry Land Cruiser at the guard post. Ministry plates, police boots: Tourist and Antiquities
   Police, writing down who comes and goes from Miriam's tent for "a colonel in Cairo" (Radwan,
   never named here: "not a bad man, a tired one"). Bring him a glass of tea and he reads his log of

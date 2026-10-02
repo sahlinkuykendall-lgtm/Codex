@@ -16,7 +16,7 @@ Other docs:
 - **The midnight text** from the unknown number is now plainly a threat from the people in the
   black car: "Stay in your tent tonight, Doctor. Whatever you hear." (bible updated)
 - **The man in the Ministry car** (`poke/ch1_watcher.js`, an addition marked in the bible):
-  - Sergeant Hamdi Tawfik stands by the white Land Cruiser at the guard post all night, his
+  - Sergeant Ashraf Galal stands by the white Land Cruiser at the guard post all night, his
     cigarette glowing. He has Ministry plates but police boots.
   - Ask him and he says he writes down who goes in and out of Miriam's tent for "a colonel in
     Cairo... not a bad man, a tired one".
