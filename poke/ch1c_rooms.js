@@ -127,13 +127,15 @@ ROOMS.INT_TRUCKCAFE = {
         wall(tvx - 2, 34, null, { label: 'The Television', say: ['System', 'The film from 1974. The man in flares has now slapped someone. The drivers watch without reacting; they have all seen it on this television, in this café, every week for twenty years.'] });
         WALLART.calendar(A, 110, 12); A.r(60, 10, 40, 20, '#3a70c8'); for (let i = 0; i < 5; i++) A.r(64 + i * 7, 14, 4, 12, '#f4f4f0');
         wall(58, 44, null, { label: 'A Road Map', say: ['System', 'A road map of Egypt with the coast highway gone over in marker by a hundred drivers, every café and fuel stop circled, and one bridge near Safaga crossed out with BROKEN SINCE 2019.'] });
-        put(16, W + 6, FURN.counter(84), null, { label: 'The Counter', script: 'c1c_truckcafe' });
+        put(16, W + 6, FURN.counter(84), 'c1c_tc_counter', { label: 'The Counter', say: ['System', 'The counter.'] });
         put(pw - 70, W + 4, FURN1B.fridgeDrinks(), null, { label: 'Cold Drinks', say: ['System', 'A fridge of cold drinks with a padlock on it, the key on a string round the café man\'s neck. He\'s had trouble with drivers.'] });
         put(pw - 110, W + 56, FURN1B.cafeTable()); put(pw - 170, W + 84, FURN1B.cafeTable()); put(pw - 90, ph - 60, FURN1B.cafeTable());
         folk1C(map, pw - 92, W + 78, 'c1c_tc_d1', 'Driver', 'tc1', {}, '"Port Sudan to Suez in forty hours, and they still ask me why I drink tea like this." He has eleven sugars in it. You counted.', 3);
         folk1C(map, pw - 152, W + 106, 'c1c_tc_d2', 'Driver', 'tc2', { robe: true }, 'A driver asleep upright at the table with his hand round a glass of tea, which he does not spill. Somebody has put a newspaper over his head to keep the flies off.', 3);
     },
 };
+
+STORY_SCRIPTS.c1c_tc_counter = e => { const f = STORY_SCRIPTS.c1c_truckcafe; return typeof f === 'function' ? f(e) : f; };   // (food, or the wait for the truck at ten)
 
 // ---- the fort's courtyard ----
 ROOMS.INT_FORT = {

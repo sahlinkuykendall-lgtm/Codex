@@ -12,6 +12,22 @@ Other docs:
 
 ---
 
+## POKE-STYLE P0.60 — 2026-10-03 — (branch `poke-style`) The Fixer, step 11, part 2: the playthrough check. The Fixer's opening is finished
+- **`tools/poke_checks/poke_fixer.js`** (new) plays the Fixer's opening three times on the game's
+  own update loop, from the knock on the door to the end card:
+  - **L (legal):** pay for the diesel and the patrol times, tell Rana, the pickup, save and load
+    with the package aboard, save Zaki, the tracker on the reef, the coast guard, the lorry.
+  - **D (the deal):** steal the diesel past the watchman at dusk, haggle the times, keep Rana out of
+    it, carry the case, get seen on the ship, keep running (Zaki not saved), the tracker in
+    Bassem's car, Bassem's deal (the debt down to 40,000), the lorry.
+  - **Q (quiet):** buy the diesel, scout the patrol boat from the fort wall, the tracker on the
+    night bus south, no exit at all, the night bus north.
+  - Then the speed check: 1–3 ms a frame in town by day, the harbour at night and under the
+    lighthouse beam.
+- **A bug it found and fixed:** since P0.57, the truck stop café man offered the lorry-loading job
+  instead of the main story's "wait for the truck at ten". Now the wait comes first when it's due,
+  and the counter inside the café offers it too.
+
 ## POKE-STYLE P0.59 — 2026-10-03 — (branch `poke-style`) The Fixer, step 11, part 1: every building has an inside
 New file `poke/ch1c_rooms.js`.
 - **New rooms** (the rule: every building you can see has an inside, unless the story keeps you

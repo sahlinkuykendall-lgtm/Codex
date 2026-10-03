@@ -2,7 +2,7 @@
 
 The working memory for the poke-style build: **what the owner wants, how to work, what's
 been done, and what's next.** Keep it current: update the "Where we are" and "What's next"
-sections at the end of every step. Last updated 2026-10-03, at P0.59.
+sections at the end of every step. Last updated 2026-10-03, at P0.60.
 
 ---
 
@@ -60,7 +60,7 @@ The player picks one of **four backgrounds**, and each has its own Chapter 1 ope
 |---|---|---|
 | Archaeologist | 1-A, the Giza dig camp (one night) | **Done** (P0.7–P0.28; `poke/AREA1_TODO.md`) |
 | Inspector | 1-B, Saqqara and Mit Rahina | **Done** (P0.23–P0.39; `poke/INSPECTOR_TODO.md`) |
-| Fixer | 1-C, Marsa Tarfa on the Red Sea | **In progress** (`poke/FIXER_TODO.md`): **Playable to the end** (P0.40–P0.49); still to do: side quests, jobs, secrets, rooms (steps 8–11) |
+| Fixer | 1-C, Marsa Tarfa on the Red Sea | **Done** (P0.40–P0.60, `poke/FIXER_TODO.md`): the story, 9 side quests, jobs, 3 secrets, every room, the playthrough check |
 | Journalist | 1-D, Port Said | Not planned yet (only the opening cutscenes exist) |
 
 All four meet in **Chapter 2, Cairo** (`story/regions/ch02_cairo.md`). Each opening ends with
@@ -104,9 +104,10 @@ See `poke/README.md` for the file-by-file table. The essentials:
 node tools/poke_checks/poke_audit.js          # every scene, script, room and area; must be clean
 node tools/poke_checks/poke_playthrough.js    # Giza start to finish; errors []
 node tools/poke_checks/poke_inspector.js      # Saqqara with each exit, save/load, speed
+node tools/poke_checks/poke_fixer.js          # Marsa Tarfa with each exit, save/load, speed
 git worktree add -f /tmp/old HEAD && node tools/poke_checks/poke_look.js /tmp/old   # 33 identical
 ```
-Add a playthrough file for each new opening (next: `poke_fixer.js`). An area can define
+Add a playthrough file for each new opening (next: `poke_journalist.js`). An area can define
 `auditOpen()` to open its story gates for the audit (the Fixer's villa gate does), and
 `auditSeeds()` for places reached another way (Lighthouse Island, by boat).
 
@@ -210,13 +211,14 @@ Add a playthrough file for each new opening (next: `poke_fixer.js`). An area can
   truck stop café, fort courtyard, fish market and thirteen houses; resting on your mattress; phone
   calls to Zaki and Rana. Three townspeople moved off their doorsteps (a test walked into all 25
   doors). `look1C(seed, o)` makes a nameless local's look from a seed.
+- **P0.60: the Fixer, step 11, part 2:** `poke_fixer.js`, three full runs (legal, deal, quiet) and
+  the speed check. It caught a P0.57 regression (the café man's loading job hid the truck wait).
+  **The Fixer's opening is finished** (steps 1–11).
 
 ## 6. What's next
 
-1. **The Fixer's opening, Chapter 1-C (Marsa Tarfa):** follow `poke/FIXER_TODO.md`; next is
-   steps 8–11a are done (P0.54–P0.59). Last: the `poke_fixer.js` playthrough check (each exit, Zaki
-   saved or not, save/load mid-night, the speed check). Then the Fixer's opening is finished. Then jobs (9), secrets (10),
-   rooms and the `poke_fixer.js` playthrough check (11). Waiting on the owner's go-ahead.
-2. Then the Journalist's opening, Chapter 1-D (Port Said): write `JOURNALIST_TODO.md` the
-   same way first.
-3. Then Chapter 2, Cairo, where the four backgrounds meet.
+1. **The Journalist's opening, Chapter 1-D (Port Said):** write `poke/JOURNALIST_TODO.md` first,
+   the same way as the Inspector's and the Fixer's (the bible's beats, cast, side quests, jobs,
+   secrets; the matching-starter-maps rule), then build it step by step. Waiting on the owner's
+   go-ahead.
+2. Then Chapter 2, Cairo, where the four backgrounds meet.

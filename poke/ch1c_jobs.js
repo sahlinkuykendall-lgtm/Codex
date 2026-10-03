@@ -132,7 +132,10 @@ MINIS.salvage = Object.assign({}, MINIS.dive, {
 // TRUCK-STOP LOADING
 // ============================================================
 const loadDay = () => { const c = Story.s.clock; return c >= 6 * 60 && c < 20 * 60; };
-STORY_SCRIPTS.c1c_truckman = 'c1c_loadjob';
+(function () {   // (the café man: the truck at ten comes first, when it's due; the lorries otherwise)
+    const prev = STORY_SCRIPTS.c1c_truckman;
+    STORY_SCRIPTS.c1c_truckman = e => { const r = typeof prev === 'function' ? prev(e) : prev; return r === 'c1c_ts_wait' ? r : 'c1c_loadjob'; };
+})();
 scene('c1c_loadjob', {
     speaker: 'Café Man',
     text: () => {
