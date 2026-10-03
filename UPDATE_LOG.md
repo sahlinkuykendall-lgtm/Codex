@@ -12,6 +12,33 @@ Other docs:
 
 ---
 
+## POKE-STYLE P0.59 — 2026-10-03 — (branch `poke-style`) The Fixer, step 11, part 1: every building has an inside
+New file `poke/ch1c_rooms.js`.
+- **New rooms** (the rule: every building you can see has an inside, unless the story keeps you
+  out; the fuel store stays locked):
+  - **the café:** domino players, the football, a mirror older than the tea it advertises
+  - **the mosque:** carpet, the mihrab, a minbar built from an old boat, the minaret stair (it's
+    open while you fix the loudspeaker), and you can sit a while
+  - **the kiosk:** from behind the counter
+  - **the coast guard post:** the chart with a rubbed-out patrol line, the radio, the siesta cell,
+    a conscript who'd like a stuck drawer opened
+  - **the truck stop café:** a road map, a padlocked drinks fridge, two drivers
+  - **the fort's courtyard:** the old barracks, a well with sweet water, a heap of Ottoman, French
+    and English cannonballs, and the inscription (Selim I, 1517; the French and the British, 1799)
+  - **the fish market:** fish on ice, the scales, the cats
+  - **thirteen houses:** each family has its own line (an old captain who knows when the patrol
+    boat is late, a teacher who taught you, the man who carved Zaki's boat, a widow from the storm
+    of 1994...), and a meal with any of them
+- **Resting:** your mattress at the flat lets you lie down for an hour, sleep until half past four
+  (Bassem at five), until half past nine (the truck at ten), or until morning once it's over.
+- **The phone:** calls to Captain Zaki and Rana once you've met them, which change through the
+  night, and a message from each at the right moment.
+- **Fixes:**
+  - The imam, the kiosk man and the fish seller each stood right in front of a door. They've moved
+    a step aside, and every one of Marsa Tarfa's 25 doors was walked into by a test to prove it.
+  - The people indoors get their looks from a stronger seed, so similar names no longer come out
+    as near-twins.
+
 ## POKE-STYLE P0.58 — 2026-10-02 — (branch `poke-style`) The Fixer, step 10: the secrets of Marsa Tarfa
 New file `poke/ch1c_secrets.js`. The secrets are counted like Giza's and Saqqara's: a notice, a
 "Secrets of Marsa Tarfa" journal page, and a line on the end card.

@@ -2,7 +2,7 @@
 
 The working memory for the poke-style build: **what the owner wants, how to work, what's
 been done, and what's next.** Keep it current: update the "Where we are" and "What's next"
-sections at the end of every step. Last updated 2026-10-02, at P0.58.
+sections at the end of every step. Last updated 2026-10-03, at P0.59.
 
 ---
 
@@ -206,14 +206,16 @@ Add a playthrough file for each new opening (next: `poke_fixer.js`). An area can
 - **P0.58: the Fixer, step 10** (`ch1c_secrets.js`): the Roman wreck off Lighthouse Island (a dive, the
   amphora and the denarii), the niche in the fort wall, and the smugglers' cave up the wadi (an addition).
   Counted on the end card. **Step 10 is done.**
+- **P0.59: the Fixer, step 11, part 1** (`ch1c_rooms.js`): the café, mosque, kiosk, coast guard post,
+  truck stop café, fort courtyard, fish market and thirteen houses; resting on your mattress; phone
+  calls to Zaki and Rana. Three townspeople moved off their doorsteps (a test walked into all 25
+  doors). `look1C(seed, o)` makes a nameless local's look from a seed.
 
 ## 6. What's next
 
 1. **The Fixer's opening, Chapter 1-C (Marsa Tarfa):** follow `poke/FIXER_TODO.md`; next is
-   steps 8–10 (side quests, jobs, secrets) are done (P0.54–P0.58). Next: step 11, the last one: rooms
-   for every visible building still without one (the café, the mosque, the kiosk, the coast guard
-   post, the truck stop café, the fort, the houses), resting, the phone, and the `poke_fixer.js`
-   playthrough check. Then jobs (9), secrets (10),
+   steps 8–11a are done (P0.54–P0.59). Last: the `poke_fixer.js` playthrough check (each exit, Zaki
+   saved or not, save/load mid-night, the speed check). Then the Fixer's opening is finished. Then jobs (9), secrets (10),
    rooms and the `poke_fixer.js` playthrough check (11). Waiting on the owner's go-ahead.
 2. Then the Journalist's opening, Chapter 1-D (Port Said): write `JOURNALIST_TODO.md` the
    same way first.

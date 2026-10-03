@@ -290,7 +290,7 @@ ROOMS.INT_FLAT1C = {
         wall(128, 26, null, { label: 'A Lifebuoy', say: ['System', 'The lifebuoy from the Shahd, the boat you sank off Safaga in March with Bassem\'s cargo in her hold. SHAHD, in faded red letters. It\'s the only thing that came up. You keep it to remind you. Of what, you haven\'t decided.'] });
         A.r(100, 14, 14, 18, '#c89020'); A.r(102, 16, 10, 14, '#7ab0d8'); A.r(104, 20, 3, 6, '#3a3e48'); A.r(107, 21, 3, 5, '#a04a3a');   // a photo
         wall(98, 18, null, { label: 'A Photograph', say: ['System', 'A photograph in a gilt frame from the market: you and Rana on the dive boat, three summers ago, both laughing at something you can\'t remember now. She left it when she left. Or you kept it when she went. It depends who\'s telling it.'] });
-        put(16, W + 4, FURN1C.mattress(), null, { label: 'Your Mattress', say: ['System', 'A mattress on the floor, a sheet, a blue blanket you don\'t need in this heat. You slept four hours. You dreamed of water.'] });
+        put(16, W + 4, FURN1C.mattress(), null, { label: 'Your Mattress', script: 'c1c_mattress' });   // (sleep and wait: poke/ch1c_rooms.js)
         put(pw - 70, W + 2, FURN.fridge(), null, { label: 'The Fridge', script: 'c1c_fridge' });
         put((pw >> 1) - 20, W + 50, FURN.desk(48, false), null, { label: 'The Envelopes', say: ['System', 'A stack of envelopes on the table: the electricity, the harbour fees, the phone, a wedding invitation from a cousin, and one with no stamp and B.N. written on it in a beautiful hand. You know what it says. You haven\'t opened it. You don\'t need to.'] });
         put(14, ph - 66, FURN.fan()); put(pw - 40, ph - 70, FURN.washstand(), null, { label: 'Sink', script: 'c1c_sink' });

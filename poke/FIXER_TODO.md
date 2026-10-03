@@ -213,7 +213,7 @@ Three tasks, each with more than one way to do it:
   initials of the man who taught you the trade). Three secrets, like Saqqara.
 - Counted like Giza's and Saqqara's (a notice, a journal page, a line on the end card).
 
-## 11. Rooms and the rest
+## 11. Rooms and the rest — rooms, rest and the phone ✅ DONE in P0.59 (`ch1c_rooms.js`); the playthrough check next
 - **Interiors:** your flat, Rana's dive shop, Bassem's villa (beat 2), the café, the mosque,
   the kiosk, the coast guard post, the hotel kitchen, the truck stop café, the fort, Zaki's
   dhow (the deck and the little cabin), and the houses you can see.

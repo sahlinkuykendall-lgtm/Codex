@@ -92,9 +92,9 @@ function marsaLayout() {
         // --- the dive boat out on the reef, buoys ---
         ['c1c_diveboat', 72, 10, 3, 1], ['c1c_buoy1', 67, 6, 1, 1], ['c1c_buoy2', 67, 12, 1, 1], ['c1c_buoy3', 68, 17, 1, 1],
         // --- the people (beat 1; the rest come in their beats) ---
-        ['c1c_zaki', 56, 26, 1, 1], ['c1c_fisherman', 53, 41, 1, 1], ['c1c_griller', 53, 26, 1, 1], ['c1c_fishseller', 53, 34, 1, 1], ['c1c_cafeman', 24, 26, 1, 1], ['c1c_kioskman', 29, 26, 1, 1],
+        ['c1c_zaki', 56, 26, 1, 1], ['c1c_fisherman', 53, 41, 1, 1], ['c1c_griller', 53, 26, 1, 1], ['c1c_fishseller', 52, 34, 1, 1], ['c1c_cafeman', 24, 26, 1, 1], ['c1c_kioskman', 28, 26, 1, 1],
         ['c1c_tapwoman', 46, 26, 1, 1], ['c1c_kid1', 38, 29, 1, 1], ['c1c_kid2', 40, 29, 1, 1], ['c1c_oldman', 54, 6, 1, 1], ['c1c_vguard', 61, 46, 1, 1], ['c1c_cgofficer', 66, 45, 1, 1],
-        ['c1c_truckman', 7, 41, 1, 1], ['c1c_driver', 9, 45, 1, 1], ['c1c_hotelman', 38, 10, 1, 1], ['c1c_imam', 18, 26, 1, 1],
+        ['c1c_truckman', 7, 41, 1, 1], ['c1c_driver', 9, 45, 1, 1], ['c1c_hotelman', 38, 10, 1, 1], ['c1c_imam', 19, 27, 1, 1],
     ];
     const scatter = {};
     const trees = [[49, 22], [49, 26], [49, 31], [49, 37], [49, 42], [42, 26], [33, 26], [15, 22], [15, 33], [22, 20], [37, 20], [29, 36], [44, 36], [34, 42], [21, 42], [30, 12], [43, 11], [34, 11], [47, 7], [58, 50], [68, 51], [69, 54], [60, 55], [5, 36], [10, 36], [14, 40], [14, 12]];
